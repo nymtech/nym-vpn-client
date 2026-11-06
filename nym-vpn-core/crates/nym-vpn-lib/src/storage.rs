@@ -58,7 +58,15 @@ impl VpnClientOnDiskStorage {
             secure_enclave.clone(),
             SecureEnclaveCipherOptions {
                 key_alias: MNEMONIC_SE_KEY.to_owned(),
-                user_presence: false,
+                user_presence: if cfg!(any(target_os = "ios", target_os = "android")) {
+                    // iOS (UI app) and Android can use attended key
+                    // todo: ensure that iOS (network extension) does not attempt to access mnemonic
+                    true
+                } else {
+                    // on macOS mnemonic key cannot require biometric prompt since
+                    // nym-vpnd runs as root.
+                    false
+                },
             },
         );
         #[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]

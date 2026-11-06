@@ -3,14 +3,14 @@
 
 pub mod account;
 pub mod ad_block;
+#[cfg(target_os = "macos")]
+pub mod authorization;
 pub mod device;
 pub mod diagnostic;
 pub mod dns;
 pub mod favorites;
 pub mod gateway;
 pub mod geo_exclusion;
-#[cfg(target_os = "macos")]
-pub mod keychain;
 pub mod lan;
 pub mod network;
 pub mod network_stats;

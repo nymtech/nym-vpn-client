@@ -273,19 +273,16 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn unlock_keychain(&mut self, authorization: Vec<u8>) -> Result<()> {
+    pub async fn authorize(&mut self, authorization: Vec<u8>) -> Result<()> {
         self.0
-            .unlock_keychain(proto::UnlockKeychainRequest {
-                reason: String::new(),
-                authorization,
-            })
+            .authorize(proto::AuthorizeRequest { authorization })
             .await
             .map_err(Error::Rpc)?;
         Ok(())
     }
 
-    pub async fn lock_keychain(&mut self) -> Result<()> {
-        self.0.lock_keychain(()).await.map_err(Error::Rpc)?;
+    pub async fn deauthorize(&mut self) -> Result<()> {
+        self.0.deauthorize(()).await.map_err(Error::Rpc)?;
         Ok(())
     }
 

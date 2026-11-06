@@ -175,6 +175,9 @@ impl From<AccountControllerError> for VpnError {
             error @ AccountControllerError::ErrorState(_) => Self::Storage {
                 details: error.to_string(),
             },
+            error @ AccountControllerError::AuthorizationRequired => Self::InternalError {
+                details: error.to_string(),
+            },
         }
     }
 }

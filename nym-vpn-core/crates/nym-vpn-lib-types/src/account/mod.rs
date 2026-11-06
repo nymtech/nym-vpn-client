@@ -134,8 +134,11 @@ pub enum AccountControllerError {
     #[error("deeplink error: {0}")]
     DeeplinkError(String),
 
-    #[error("Account controller is in error state. Reason : {0}")]
+    #[error("account controller is in error state. Reason : {0}")]
     ErrorState(controller_error::AccountControllerErrorStateReason),
+
+    #[error("authorization required")]
+    AuthorizationRequired,
 }
 
 impl AccountControllerError {

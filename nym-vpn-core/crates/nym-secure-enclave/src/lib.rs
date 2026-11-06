@@ -14,10 +14,8 @@ use android::AndroidKeyStoreProvider;
 pub use android::{AndroidSecureEnclaveKey, AndroidSecureEnclaveProvider};
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 use apple::AppleSecureEnclaveProvider;
-#[cfg(target_os = "macos")]
-pub use apple::{UnlockAuthorization, register_unlock_right};
 #[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
-pub use secure_enclave::{PlatformSecureEnclaveKey, PlatformUnlockOptions, SecureEnclave};
+pub use secure_enclave::{PlatformSecureEnclaveKey, SecureEnclave};
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[cfg_attr(target_os = "android", derive(uniffi::Error))]
@@ -59,8 +57,6 @@ pub trait SecureEnclaveKey: Send + Sync {
 pub trait SecureEnclaveProvider {
     /// Object standing in-place of key stored in secure enclave
     type Key: SecureEnclaveKey;
-    /// Platform specific options for [`Self::unlock`]
-    type KeyUnlockOptions: Send;
 
     /// Create a new key in secure enclave with the given alias
     async fn create_key(&self, alias: &str, user_presence: bool) -> Result<Self::Key>;
@@ -69,11 +65,12 @@ pub trait SecureEnclaveProvider {
     async fn delete_key(&self, alias: &str) -> Result<()>;
 
     /// Get object standing in-place of key that can be used to perform encryption or decryption.
-    async fn get_key(&self, alias: &str, user_presence: bool) -> Result<Self::Key>;
+    async fn get_key(&self, alias: &str) -> Result<Self::Key>;
 
     /// Authenticate the user once, so that keys requiring user presence can be used without
-    /// prompting until [`Self::lock`] is called.
-    async fn unlock(&self, options: Self::KeyUnlockOptions) -> Result<()>;
+    /// prompting until [`Self::lock`] is called. The `reason` is shown to the user when
+    /// authenticating the device owner.
+    async fn unlock(&self, reason: &str) -> Result<()>;
 
     /// Revoke the authentication obtained with [`Self::unlock`]. Keys requiring user presence
     /// prompt the user on every use again.

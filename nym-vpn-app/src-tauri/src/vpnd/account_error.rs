@@ -81,6 +81,9 @@ impl From<lib::AccountControllerError> for BackendError {
                 BackendError::internal_with_detail("failed to create ecash keypair", e)
             }
             lib::AccountControllerError::ErrorState(reason) => reason.into(),
+            lib::AccountControllerError::AuthorizationRequired => {
+                BackendError::internal("authorization required", None)
+            }
         }
     }
 }

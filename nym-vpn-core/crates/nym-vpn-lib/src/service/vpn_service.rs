@@ -28,6 +28,8 @@ use tokio::{
 use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "macos")]
+use nym_authorization::AuthorizationService;
 use nym_common::trace_err_chain;
 use nym_favorites::RecentsManager;
 use nym_gateway_directory::{GatewayFilter, GatewayFilters, GatewayList};
@@ -256,17 +258,19 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<(), nym_secure_enclave::SecureEnclaveError>>,
         String,
     ),
-    /// Unlock with the authorization token obtained in the user's session
-    #[cfg(target_os = "macos")]
-    UnlockKeychain(
-        oneshot::Sender<Result<(), nym_secure_enclave::SecureEnclaveError>>,
-        Vec<u8>,
-    ),
-    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    #[cfg(any(target_os = "ios", target_os = "android"))]
     LockKeychain(
         oneshot::Sender<Result<(), nym_secure_enclave::SecureEnclaveError>>,
         (),
     ),
+    /// Authorize with the token obtained in the user's session
+    #[cfg(target_os = "macos")]
+    Authorize(
+        oneshot::Sender<Result<(), nym_authorization::Error>>,
+        Vec<u8>,
+    ),
+    #[cfg(target_os = "macos")]
+    Deauthorize(oneshot::Sender<()>, ()),
     GetRecentGateways(
         oneshot::Sender<Result<RecentGateways, ListGatewaysError>>,
         TunnelType,
@@ -439,8 +443,12 @@ pub struct NymVpnService {
     split_tunnel_pid_manager: nym_split_tunnel::PidManager,
 
     // Secure enclave shared with storage
-    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    #[cfg(any(target_os = "ios", target_os = "android"))]
     secure_enclave: Arc<nym_secure_enclave::SecureEnclave>,
+
+    // Unlocked with the authorization token obtained in the user's session
+    #[cfg(target_os = "macos")]
+    authorization_service: AuthorizationService,
 }
 
 impl NymVpnService {
@@ -525,7 +533,7 @@ impl NymVpnService {
         ));
 
         #[cfg(target_os = "macos")]
-        if let Err(err) = nym_secure_enclave::register_unlock_right() {
+        if let Err(err) = AuthorizationService::register_unlock_right() {
             tracing::error!("Failed to register keychain unlock right: {err}");
         }
 
@@ -871,8 +879,10 @@ impl NymVpnService {
             recents_manager,
             #[cfg(target_os = "linux")]
             split_tunnel_pid_manager,
-            #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+            #[cfg(any(target_os = "ios", target_os = "android"))]
             secure_enclave,
+            #[cfg(target_os = "macos")]
+            authorization_service: AuthorizationService::default(),
         })
     }
 
@@ -1389,19 +1399,18 @@ impl NymVpnService {
             VpnServiceCommand::UnlockKeychain(tx, reason) => {
                 self.handle_unlock_keychain(reason, tx);
             }
-            #[cfg(target_os = "macos")]
-            VpnServiceCommand::UnlockKeychain(tx, token) => {
-                let _ = tx.send(
-                    self.secure_enclave
-                        .unlock(
-                            nym_secure_enclave::PlatformUnlockOptions::AuthorizationToken { token },
-                        )
-                        .await,
-                );
-            }
-            #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+            #[cfg(any(target_os = "ios", target_os = "android"))]
             VpnServiceCommand::LockKeychain(tx, ()) => {
                 let _ = tx.send(self.secure_enclave.lock().await);
+            }
+            #[cfg(target_os = "macos")]
+            VpnServiceCommand::Authorize(tx, token) => {
+                let _ = tx.send(self.authorization_service.authorize_with_token(&token));
+            }
+            #[cfg(target_os = "macos")]
+            VpnServiceCommand::Deauthorize(tx, ()) => {
+                self.authorization_service.invalidate();
+                let _ = tx.send(());
             }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::IsSplitTunnelSupported(tx, ()) => {
@@ -2091,7 +2100,24 @@ impl NymVpnService {
             .await
     }
 
-    async fn handle_create_account(&self) -> Result<(), AccountControllerError> {
+    async fn ensure_authorized(&mut self) -> Result<(), AccountControllerError> {
+        #[cfg(target_os = "macos")]
+        {
+            if self.authorization_service.is_authorized() {
+                Ok(())
+            } else {
+                Err(AccountControllerError::AuthorizationRequired)
+            }
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            Ok(())
+        }
+    }
+
+    async fn handle_create_account(&mut self) -> Result<(), AccountControllerError> {
+        self.ensure_authorized().await?;
         self.account_command_tx.create_account_command().await
     }
 
@@ -2099,12 +2125,14 @@ impl NymVpnService {
         &mut self,
         store_request: StoreAccountRequest,
     ) -> Result<(), AccountControllerError> {
+        self.ensure_authorized().await?;
         let account = StorableAccount::try_from(store_request)
             .map_err(|err| AccountControllerError::InvalidSecret(err.to_string()))?;
         self.account_command_tx.store_account(account).await
     }
 
     async fn handle_get_stored_mnemonic(&mut self) -> Result<String, AccountControllerError> {
+        self.ensure_authorized().await?;
         let stored_account = self
             .account_command_tx
             .get_stored_account()
@@ -2143,6 +2171,7 @@ impl NymVpnService {
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountControllerError> {
+        self.ensure_authorized().await?;
         if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountControllerError::internal(
                 "Unable to forget account while connected",
@@ -2165,6 +2194,7 @@ impl NymVpnService {
     }
 
     async fn handle_delete_account(&mut self) -> Result<(), AccountControllerError> {
+        self.ensure_authorized().await?;
         if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountControllerError::internal(
                 "Unable to delete account while connected",
@@ -2259,6 +2289,7 @@ impl NymVpnService {
         &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountControllerError> {
+        self.ensure_authorized().await?;
         if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountControllerError::internal(
                 "Unable to reset device identity while connected",
@@ -2280,7 +2311,8 @@ impl NymVpnService {
         self.account_command_tx.get_device_identity().await
     }
 
-    async fn handle_get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountControllerError> {
+    async fn handle_get_devices(&mut self) -> Result<Vec<NymVpnDevice>, AccountControllerError> {
+        self.ensure_authorized().await?;
         Ok(self
             .account_command_tx
             .get_devices()
@@ -2290,7 +2322,10 @@ impl NymVpnService {
             .collect())
     }
 
-    async fn handle_get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountControllerError> {
+    async fn handle_get_active_devices(
+        &mut self,
+    ) -> Result<Vec<NymVpnDevice>, AccountControllerError> {
+        self.ensure_authorized().await?;
         Ok(self
             .account_command_tx
             .get_active_devices()
@@ -2380,9 +2415,10 @@ impl NymVpnService {
     }
 
     async fn handle_get_autologin_deeplink(
-        &self,
+        &mut self,
         params: GetDeeplinkParams,
     ) -> Result<AutologinResponse, AccountControllerError> {
+        self.ensure_authorized().await?;
         let account_management = self
             .network_tx
             .borrow()
@@ -2409,9 +2445,10 @@ impl NymVpnService {
     }
 
     async fn handle_deeplink_store_account(
-        &self,
+        &mut self,
         deeplink_url: String,
     ) -> Result<(), AccountControllerError> {
+        self.ensure_authorized().await?;
         let deeplink_mnemonic = self
             .account_command_tx
             .derive_deeplink_mnemonic(deeplink_url)
@@ -2433,7 +2470,8 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_start_pairing(&self) -> Result<QrUrl, AccountControllerError> {
+    async fn handle_start_pairing(&mut self) -> Result<QrUrl, AccountControllerError> {
+        self.ensure_authorized().await?;
         self.account_command_tx.start_pairing().await
     }
 
@@ -2445,9 +2483,10 @@ impl NymVpnService {
     }
 
     async fn handle_verified_pairing_pin(
-        &self,
+        &mut self,
         session_id: u32,
     ) -> Result<(), AccountControllerError> {
+        self.ensure_authorized().await?;
         self.account_command_tx
             .verified_pairing_pin(session_id)
             .await
@@ -2534,15 +2573,7 @@ impl NymVpnService {
         // Spawned because the user may take a while to respond to the authentication prompt.
         tokio::spawn(async move {
             completion_tx
-                .send(
-                    secure_enclave
-                        .unlock(
-                            nym_secure_enclave::PlatformUnlockOptions::LocalAuthentication {
-                                reason,
-                            },
-                        )
-                        .await,
-                )
+                .send(secure_enclave.unlock(&reason).await)
                 .ok();
         });
     }

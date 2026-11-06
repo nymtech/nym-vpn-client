@@ -1294,9 +1294,9 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(tentative_gateways.into()))
     }
 
-    async fn unlock_keychain(
+    async fn authorize(
         &self,
-        _request: tonic::Request<proto::UnlockKeychainRequest>,
+        _request: tonic::Request<proto::AuthorizeRequest>,
     ) -> Result<tonic::Response<()>> {
         #[cfg(target_os = "macos")]
         {
@@ -1306,7 +1306,7 @@ impl NymVpnService for CommandInterface {
                     "Authorization token is required",
                 ));
             }
-            self.send_and_wait(VpnServiceCommand::UnlockKeychain, authorization)
+            self.send_and_wait(VpnServiceCommand::Authorize, authorization)
                 .await?
                 .map_err(|err| tonic::Status::internal(err.to_string()))?;
             Ok(tonic::Response::new(()))
@@ -1316,12 +1316,11 @@ impl NymVpnService for CommandInterface {
         Err(tonic::Status::unimplemented("Unsupported platform"))
     }
 
-    async fn lock_keychain(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
+    async fn deauthorize(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
         #[cfg(target_os = "macos")]
         {
-            self.send_and_wait(VpnServiceCommand::LockKeychain, ())
-                .await?
-                .map_err(|err| tonic::Status::internal(err.to_string()))?;
+            self.send_and_wait(VpnServiceCommand::Deauthorize, ())
+                .await?;
             Ok(tonic::Response::new(()))
         }
 

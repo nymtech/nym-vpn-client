@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "crates/nym-apple-network",
+    "crates/nym-authorization",
     "crates/nym-common",
     "crates/nym-connection-monitor",
     "crates/nym-cgroup",
@@ -235,6 +236,7 @@ zbus_polkit = "5.1.0"
 zeroize = "1.9.1"
 
 nym-apple-network = { path = "crates/nym-apple-network" }
+nym-authorization = { path = "crates/nym-authorization" }
 nym-cgroup = { path = "crates/nym-cgroup" }
 nym-common = { path = "crates/nym-common" }
 nym-connection-monitor = { path = "crates/nym-connection-monitor" }

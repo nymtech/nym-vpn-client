@@ -123,12 +123,13 @@ pub enum Command {
         subcommand: commands::network::Command,
     },
 
-    /// Keychain access (macOS)
+    /// Authenticate to authorize account operations (macOS)
     #[cfg(target_os = "macos")]
-    Keychain {
-        #[command(subcommand)]
-        subcommand: commands::keychain::Command,
-    },
+    Authorize(commands::authorization::AuthorizeArgs),
+
+    /// Revoke the authorization obtained with authorize (macOS)
+    #[cfg(target_os = "macos")]
+    Deauthorize,
 
     /// Sentry integration
     Sentry {
@@ -213,7 +214,11 @@ impl Command {
             Command::Account { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Device(args) => args.execute(rpc_client.await?).await,
             #[cfg(target_os = "macos")]
-            Command::Keychain { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::Authorize(args) => {
+                commands::authorization::authorize(rpc_client.await?, args).await
+            }
+            #[cfg(target_os = "macos")]
+            Command::Deauthorize => commands::authorization::deauthorize(rpc_client.await?).await,
             Command::Sentry { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Socks5 { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::GeoExclusion { subcommand } => subcommand.execute(rpc_client.await?).await,

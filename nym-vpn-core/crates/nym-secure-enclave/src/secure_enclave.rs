@@ -19,8 +19,6 @@ type PlatformProvider = AppleSecureEnclaveProvider;
 
 /// Key type returned by [`SecureEnclave`] on the current platform.
 pub type PlatformSecureEnclaveKey = <PlatformProvider as SecureEnclaveProvider>::Key;
-/// Options for [`SecureEnclave::unlock`] on the current platform.
-pub type PlatformUnlockOptions = <PlatformProvider as SecureEnclaveProvider>::KeyUnlockOptions;
 
 pub struct SecureEnclave {
     inner: PlatformProvider,
@@ -51,19 +49,15 @@ impl SecureEnclave {
         self.inner.delete_key(alias).await
     }
 
-    pub async fn get_key(
-        &self,
-        alias: &str,
-        user_presence: bool,
-    ) -> Result<PlatformSecureEnclaveKey> {
-        self.inner.get_key(alias, user_presence).await
+    pub async fn get_key(&self, alias: &str) -> Result<PlatformSecureEnclaveKey> {
+        self.inner.get_key(alias).await
     }
 
     /// Authenticate the user once, so that keys requiring user presence can be used without
     /// prompting until [`Self::lock`] is called.
     #[tracing::instrument(skip_all)]
-    pub async fn unlock(&self, options: PlatformUnlockOptions) -> Result<()> {
-        self.inner.unlock(options).await
+    pub async fn unlock(&self, reason: &str) -> Result<()> {
+        self.inner.unlock(reason).await
     }
 
     /// Revoke the authentication obtained with [`Self::unlock`].
@@ -77,7 +71,7 @@ impl SecureEnclave {
         alias: &str,
         user_presence: bool,
     ) -> Result<PlatformSecureEnclaveKey> {
-        self.get_key(alias, user_presence)
+        self.get_key(alias)
             .or_else(|err| async {
                 if err == SecureEnclaveError::KeyNotFound {
                     self.create_key(alias, user_presence).await

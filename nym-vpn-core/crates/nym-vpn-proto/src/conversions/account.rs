@@ -93,6 +93,9 @@ impl TryFrom<proto::AccountControllerError> for AccountControllerError {
             proto::account_controller_error::ErrorDetail::ErrorState(reason) => {
                 Self::ErrorState(reason.into())
             }
+            proto::account_controller_error::ErrorDetail::AuthorizationRequired(_) => {
+                Self::AuthorizationRequired
+            }
         })
     }
 }
@@ -258,6 +261,11 @@ impl From<AccountControllerError> for proto::AccountControllerError {
                 error_detail: Some(proto::account_controller_error::ErrorDetail::ErrorState(
                     reason.into(),
                 )),
+            },
+            AccountControllerError::AuthorizationRequired => proto::AccountControllerError {
+                error_detail: Some(
+                    proto::account_controller_error::ErrorDetail::AuthorizationRequired(true),
+                ),
             },
         }
     }
