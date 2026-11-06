@@ -54,29 +54,37 @@ jobs:
           echo "LC_ALL=C.utf8" >> $GITHUB_ENV
           echo "LANG=C.utf8" >> $GITHUB_ENV
 
-      # Screenshots live in the nym-vpn-client-screenshots bucket, never in git.
-      # Extract to a scratch dir and copy only screenshot files into the checkout, so a
-      # tampered archive can't overwrite Fastfile/Deliverfile/workflows (which deliver
-      # would then run with App Store Connect credentials).
+      # Screenshots live in the nym-vpn-client-screenshots bucket, never in git. Validate
+      # the ZIP's entry list BEFORE extracting — reject symlinks, absolute paths, ".."
+      # traversal, and anything outside fastlane/screenshots/ios/ — so a tampered archive
+      # can't overwrite Fastfile/Deliverfile/workflows (which deliver would then run with
+      # App Store Connect credentials). Validation uses bash reads, not `find | grep -q`
+      # (which can pass silently when grep's early exit SIGPIPEs find under pipefail).
       - name: Fetch App Store screenshots from CDN
         run: |
           set -euo pipefail
           url="https://nym-vpn-client-screenshots.cdn.nymte.ch/ios-screenshots.zip"
           tmp="$(mktemp -d)"
           curl -fSL --proto '=https' --retry 3 --retry-delay 5 -o "$tmp/shots.zip" "$url"
+          if grep -qE '^l' <<<"$(unzip -Z "$tmp/shots.zip")"; then
+            echo "::error::archive contains a symlink entry"; exit 1
+          fi
+          shopt -s nocasematch
+          count=0
+          while IFS= read -r entry; do
+            [ -z "$entry" ] && continue
+            [ "${entry%/}" != "$entry" ] && continue              # directory entry
+            case "$entry" in /*) echo "::error::absolute path: $entry"; exit 1 ;; esac
+            case "/$entry/" in */../*) echo "::error::path traversal: $entry"; exit 1 ;; esac
+            case "$entry" in
+              fastlane/screenshots/ios/*) : ;;                    # inside the git-ignored dir
+              *) echo "::error::unexpected entry: $entry"; exit 1 ;;
+            esac
+            [[ "$entry" =~ ^fastlane/screenshots/ios/[^/]+/[^/]+\.(jpg|jpeg|png)$ ]] && count=$((count+1))
+          done < <(unzip -Z1 "$tmp/shots.zip")
+          echo "Validated $count iOS screenshots"
+          test "$count" -gt 0
           unzip -q "$tmp/shots.zip" -d "$tmp/x"
-          if find "$tmp/x" -type l | grep -q .; then
-            echo "::error::archive contains a symlink"; exit 1
-          fi
-          # Every entry must be an image under fastlane/screenshots/ios/<locale>/,
-          # anchored at the extraction root (rejects misplaced or decoy paths).
-          if find "$tmp/x" -type f -regextype egrep \
-               ! -iregex "$tmp/x/fastlane/screenshots/ios/[^/]+/[^/]+\.(jpg|jpeg|png)" | grep -q .; then
-            echo "::error::archive contains unexpected files"; find "$tmp/x" -type f | head; exit 1
-          fi
-          n=$(find "$tmp/x/fastlane/screenshots/ios" -type f | wc -l | tr -d ' ')
-          echo "Fetched $n iOS screenshots"
-          test "$n" -gt 0
           mkdir -p fastlane/screenshots
           rm -rf fastlane/screenshots/ios
           cp -R "$tmp/x/fastlane/screenshots/ios" fastlane/screenshots/ios
