@@ -172,6 +172,21 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_amnezia_mode(
+        &self,
+        request: tonic::Request<proto::AmneziaModeRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let amnezia_mode = proto::AmneziaModes::try_from(request.into_inner().mode)
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid amnezia mode: {e}")))?;
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetAmneziaMode, amnezia_mode.into())
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set amnezia mode: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_enable_ad_blocking(
         &self,
         request: tonic::Request<bool>,

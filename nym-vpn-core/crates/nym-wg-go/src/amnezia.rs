@@ -15,18 +15,19 @@ const OFF: AmneziaConfig = AmneziaConfig {
     response_pkt_magic_header: 2,
     under_load_pkt_magic_header: 3,
     transport_pkt_magic_header: 4,
+    cookie_pkt_junk_size: 0,
+    transport_pkt_junk_size: 0,
+    under_load_pkt_magic_header_max: None,
+    transport_pkt_magic_header_max: None,
+    header_protection_key: None,
+    random_trailers: false,
 };
 
 const BASE: AmneziaConfig = AmneziaConfig {
     junk_pkt_count: 4,
     junk_pkt_min_size: 40,
     junk_pkt_max_size: 70,
-    init_pkt_junk_size: 0,
-    response_pkt_junk_size: 0,
-    init_pkt_magic_header: 1,
-    response_pkt_magic_header: 2,
-    under_load_pkt_magic_header: 3,
-    transport_pkt_magic_header: 4,
+    ..OFF
 };
 
 /// Hold Amnezia-wireguard configuration parameters.
@@ -63,6 +64,18 @@ pub struct AmneziaConfig {
     pub under_load_pkt_magic_header: i32, // H3
     /// H4 - Re-map transport packet header type indicator to this value
     pub transport_pkt_magic_header: i32, // H4
+    /// S3 - Number of bytes to PREPEND to the cookie reply message (AmneziaWG 3.1)
+    pub cookie_pkt_junk_size: u16, // S3
+    /// S4 - Number of bytes to PREPEND to every transport message (AmneziaWG 3.1)
+    pub transport_pkt_junk_size: u16, // S4
+    /// Upper end of the H3 range, the single H3 value when `None` (AmneziaWG 3.1)
+    pub under_load_pkt_magic_header_max: Option<i32>,
+    /// Upper end of the H4 range, the single H4 value when `None` (AmneziaWG 3.1)
+    pub transport_pkt_magic_header_max: Option<i32>,
+    /// Hex encoded 32 byte key masking every header; needs S1-S4 >= 12 (AmneziaWG 3.1)
+    pub header_protection_key: Option<String>,
+    /// Random trailing bytes on handshake and cookie messages (AmneziaWG 3.1)
+    pub random_trailers: bool,
 }
 
 impl Default for AmneziaConfig {
@@ -95,6 +108,7 @@ impl AmneziaConfig {
                 response_pkt_magic_header: rng.random_range(5..i32::MAX),
                 under_load_pkt_magic_header: rng.random_range(5..i32::MAX),
                 transport_pkt_magic_header: rng.random_range(5..i32::MAX),
+                ..OFF
             };
             if c.validate() {
                 return c;
@@ -120,8 +134,34 @@ impl AmneziaConfig {
         config_builder.add("s2", self.response_pkt_junk_size.to_string().as_str());
         config_builder.add("h1", self.init_pkt_magic_header.to_string().as_str());
         config_builder.add("h2", self.response_pkt_magic_header.to_string().as_str());
-        config_builder.add("h3", self.under_load_pkt_magic_header.to_string().as_str());
-        config_builder.add("h4", self.transport_pkt_magic_header.to_string().as_str());
+        config_builder.add(
+            "h3",
+            header_range(
+                self.under_load_pkt_magic_header,
+                self.under_load_pkt_magic_header_max,
+            )
+            .as_str(),
+        );
+        config_builder.add(
+            "h4",
+            header_range(
+                self.transport_pkt_magic_header,
+                self.transport_pkt_magic_header_max,
+            )
+            .as_str(),
+        );
+        if self.cookie_pkt_junk_size > 0 {
+            config_builder.add("s3", self.cookie_pkt_junk_size.to_string().as_str());
+        }
+        if self.transport_pkt_junk_size > 0 {
+            config_builder.add("s4", self.transport_pkt_junk_size.to_string().as_str());
+        }
+        if let Some(key) = &self.header_protection_key {
+            config_builder.add("header_protection_key", key.as_str());
+        }
+        if self.random_trailers {
+            config_builder.add("random_trailers", "true");
+        }
     }
 
     /// Check if the provided configuration is valid
@@ -134,35 +174,52 @@ impl AmneziaConfig {
     /// - H1/H2/H3/H4 — must be unique among each other;
     ///   recommended range is from 5 to 2_147_483_647  (2^31 - 1   i.e. signed 32 bit int) inclusive
     pub fn validate(&self) -> bool {
-        !(self.junk_pkt_count > 128
-            || self.junk_pkt_max_size > 1280
-            || self.junk_pkt_min_size > self.junk_pkt_max_size
-            || self.init_pkt_junk_size > 1280
-            || self.response_pkt_junk_size > 1280
-            || [
-                self.response_pkt_magic_header,
-                self.under_load_pkt_magic_header,
-                self.transport_pkt_magic_header,
-            ]
-            .contains(&self.init_pkt_magic_header)
-            || [
-                self.init_pkt_magic_header,
-                self.under_load_pkt_magic_header,
-                self.transport_pkt_magic_header,
-            ]
-            .contains(&self.response_pkt_magic_header)
-            || [
-                self.init_pkt_magic_header,
-                self.response_pkt_magic_header,
-                self.transport_pkt_magic_header,
-            ]
-            .contains(&self.under_load_pkt_magic_header)
-            || [
-                self.init_pkt_magic_header,
-                self.response_pkt_magic_header,
-                self.under_load_pkt_magic_header,
-            ]
-            .contains(&self.transport_pkt_magic_header))
+        // Header protection key and padding rules are enforced by the bridge params and again by
+        // amneziawg-go; only the H3/H4 ranges need to stay ordered and apart here.
+        let h3 = self.under_load_pkt_magic_header;
+        let h4 = self.transport_pkt_magic_header;
+        let h3_max = self.under_load_pkt_magic_header_max.unwrap_or(h3);
+        let h4_max = self.transport_pkt_magic_header_max.unwrap_or(h4);
+        h3 <= h3_max
+            && h4 <= h4_max
+            && (h3_max < h4 || h4_max < h3)
+            && !(self.junk_pkt_count > 128
+                || self.junk_pkt_max_size > 1280
+                || self.junk_pkt_min_size > self.junk_pkt_max_size
+                || self.init_pkt_junk_size > 1280
+                || self.response_pkt_junk_size > 1280
+                || [
+                    self.response_pkt_magic_header,
+                    self.under_load_pkt_magic_header,
+                    self.transport_pkt_magic_header,
+                ]
+                .contains(&self.init_pkt_magic_header)
+                || [
+                    self.init_pkt_magic_header,
+                    self.under_load_pkt_magic_header,
+                    self.transport_pkt_magic_header,
+                ]
+                .contains(&self.response_pkt_magic_header)
+                || [
+                    self.init_pkt_magic_header,
+                    self.response_pkt_magic_header,
+                    self.transport_pkt_magic_header,
+                ]
+                .contains(&self.under_load_pkt_magic_header)
+                || [
+                    self.init_pkt_magic_header,
+                    self.response_pkt_magic_header,
+                    self.under_load_pkt_magic_header,
+                ]
+                .contains(&self.transport_pkt_magic_header))
+    }
+}
+
+/// `h` or `h-max`, the header range format amneziawg-go 3.1 reads.
+fn header_range(h: i32, max: Option<i32>) -> String {
+    match max {
+        Some(max) => format!("{h}-{max}"),
+        None => h.to_string(),
     }
 }
 
@@ -190,6 +247,7 @@ mod test {
             response_pkt_magic_header: 12,
             under_load_pkt_magic_header: 13,
             transport_pkt_magic_header: 14,
+            ..OFF
         };
         let mut config_builder = UapiConfigBuilder::new();
         c.append_to(&mut config_builder);
@@ -197,5 +255,54 @@ mod test {
             config_builder.into_bytes(),
             b"jc=1\njmin=20\njmax=30\ns1=40\ns2=50\nh1=11\nh2=12\nh3=13\nh4=14\n\n"
         );
+    }
+
+    #[test]
+    fn test_encode_amnezia_3_1_config() {
+        let c = AmneziaConfig {
+            init_pkt_junk_size: 40,
+            response_pkt_junk_size: 50,
+            under_load_pkt_magic_header: 13,
+            transport_pkt_magic_header: 100,
+            cookie_pkt_junk_size: 20,
+            transport_pkt_junk_size: 16,
+            under_load_pkt_magic_header_max: Some(99),
+            transport_pkt_magic_header_max: Some(200),
+            header_protection_key: Some("ab".repeat(32)),
+            random_trailers: true,
+            ..BASE
+        };
+        assert!(c.validate());
+
+        let mut config_builder = UapiConfigBuilder::new();
+        c.append_to(&mut config_builder);
+        let expected = format!(
+            "jc=4\njmin=40\njmax=70\ns1=40\ns2=50\nh1=1\nh2=2\nh3=13-99\nh4=100-200\ns3=20\ns4=16\n\
+             header_protection_key={}\nrandom_trailers=true\n\n",
+            "ab".repeat(32)
+        );
+        assert_eq!(config_builder.into_bytes(), expected.as_bytes());
+    }
+
+    #[test]
+    fn test_validate_amnezia_3_1_config() {
+        let valid = AmneziaConfig {
+            init_pkt_junk_size: 40,
+            response_pkt_junk_size: 50,
+            under_load_pkt_magic_header: 13,
+            transport_pkt_magic_header: 100,
+            cookie_pkt_junk_size: 20,
+            transport_pkt_junk_size: 16,
+            under_load_pkt_magic_header_max: Some(99),
+            transport_pkt_magic_header_max: Some(200),
+            header_protection_key: Some("ab".repeat(32)),
+            ..BASE
+        };
+        let overlapping = AmneziaConfig {
+            under_load_pkt_magic_header_max: Some(150),
+            ..valid.clone()
+        };
+        assert!(valid.validate());
+        assert!(!overlapping.validate());
     }
 }

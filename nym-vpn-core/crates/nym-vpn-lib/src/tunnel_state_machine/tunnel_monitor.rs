@@ -53,9 +53,10 @@ use nym_registration_client::{
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::SkewManager;
 use nym_vpn_lib_types::{
-    AccountControllerError, BridgeAddress, BridgeTransport, ConnectionData, ErrorStateReason,
-    EstablishConnectionData, GatewayLightInfo, MixnetConnectionData, NymAddress,
-    TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
+    AccountControllerError, AmneziaConnection, AmneziaProtocol, BridgeAddress, BridgeTransport,
+    ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayLightInfo,
+    MixnetConnectionData, NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData,
+    WireguardNode,
 };
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -235,6 +236,9 @@ pub enum TunnelMonitorEvent {
         gateway_id: NodeIdentity,
     },
 
+    /// The tunnel through the entry's AmneziaWG bridge never came up.
+    AmneziaFailed,
+
     /// Connection has failed
     ConnectionFailed {
         /// Entry gateway used during the failed attempt.
@@ -274,6 +278,7 @@ pub struct TunnelParameters {
     pub use_bridges: bool,
     /// Fall back from QUIC to TLS and SSH bridges.
     pub bridge_fallback: bool,
+    pub amnezia_translator: bool,
     pub user_agent: UserAgent,
     #[cfg(not(target_os = "android"))]
     pub filtering_resolver_addr: SocketAddr,
@@ -603,6 +608,24 @@ impl TunnelMonitor {
             })
         })?;
 
+        // The AmneziaWG translator listens on its own port of the entry gateway, so it is chosen
+        // before the event below: the firewall exception for the entry must cover that port.
+        let amnezia_entry = match &registration_result {
+            RegistrationResult::Wireguard(result)
+                if self.tunnel_parameters.amnezia_translator
+                    && !self.tunnel_parameters.use_bridges =>
+            {
+                selected_gateways
+                    .entry_gateway()
+                    .bridge_params
+                    .as_ref()
+                    .and_then(|params| {
+                        transports::amnezia_entry(params, result.entry_gateway_data().endpoint)
+                    })
+            }
+            _ => None,
+        };
+
         // Send event upon successful gateway registration
         // The receiver should handle the event and add firewall exceptions for entry gateway
         let tunnel_connection_data = match &registration_result {
@@ -621,9 +644,14 @@ impl TunnelMonitor {
                 })
             }
             RegistrationResult::Wireguard(result) => {
+                let mut entry = WireguardNode::from(result.entry_gateway_data());
+                if let Some((endpoint, _, _)) = &amnezia_entry {
+                    entry.endpoint = *endpoint;
+                }
                 TunnelConnectionData::Wireguard(WireguardConnectionData {
                     entry_bridge_addr: None, // not known yet
-                    entry: WireguardNode::from(result.entry_gateway_data()),
+                    amnezia: None,
+                    entry,
                     exit: WireguardNode::from(result.exit_gateway_data()),
                 })
             }
@@ -652,6 +680,7 @@ impl TunnelMonitor {
         // We have to stop querying for location before starting the tunnels, to prevent incorrect data.
         self.gateway_provider.set_active_geo_location(false).await;
 
+        let mut via_amnezia = false;
         // todo: refactor
         let (
             StartTunnelResult {
@@ -694,6 +723,22 @@ impl TunnelMonitor {
 
                     None
                 } else {
+                    if let Some((endpoint, protocol, amnezia)) = amnezia_entry {
+                        tracing::info!("Using AmneziaWG bridge translator at {endpoint}");
+                        connection_data.entry.endpoint = endpoint;
+                        connection_data.entry_amnezia = Some(amnezia);
+                        connection_data.amnezia = Some(AmneziaConnection {
+                            protocol,
+                            via_translator: true,
+                        });
+                        via_amnezia = true;
+                    } else {
+                        // Base mode straight to the node: junk packets only, no wire format change.
+                        connection_data.amnezia = Some(AmneziaConnection {
+                            protocol: AmneziaProtocol::Awg10,
+                            via_translator: false,
+                        });
+                    }
                     // Return bridge_close_tx back to avoid it being dropped
                     Some(bridge_close_tx)
                 };
@@ -858,6 +903,11 @@ impl TunnelMonitor {
                             ConnectionStatusEvent::IntermittentFailure { retry } => {
                                 tracing::info!("Tunnel connection is failing (retry: {retry})");
                             }
+                            ConnectionStatusEvent::Failed if via_amnezia && !has_sent_up_event => {
+                                tracing::info!("AmneziaWG bridge tunnel never came up. Exiting");
+                                self.send_event(TunnelMonitorEvent::AmneziaFailed);
+                                break;
+                            }
                             ConnectionStatusEvent::Failed => {
                                 tracing::info!("Tunnel connection is down. Exiting");
                                 self.send_event(TunnelMonitorEvent::ConnectionFailed {
@@ -871,6 +921,11 @@ impl TunnelMonitor {
                 }
                 reachable = &mut metadata_endpoints_reachable => {
                     let reachable = reachable.unwrap_or((false, false));
+                    if !reachable.0 && via_amnezia {
+                        tracing::info!("Entry metadata endpoint not reachable over the AmneziaWG bridge. Exiting");
+                        self.send_event(TunnelMonitorEvent::AmneziaFailed);
+                        break;
+                    }
                     if !reachable.0 {
                         tracing::info!("Entry metadata endpoint not reachable. Exiting");
                         self.send_event(TunnelMonitorEvent::MetadataFailed {gateway_id: selected_gateways.entry_gateway().identity()});
@@ -1249,6 +1304,8 @@ impl TunnelMonitor {
 
         let connection_data = WgConnectionData {
             entry_bridge_addr: None,
+            entry_amnezia: None,
+            amnezia: None,
             entry: entry_gateway_data,
             exit: exit_gateway_data,
         };
@@ -1338,6 +1395,13 @@ impl TunnelMonitor {
             transports::ClientConfig::QuicPlain(_) => BridgeTransport::Quic,
             transports::ClientConfig::TlsPlain(_) => BridgeTransport::Tls,
             transports::ClientConfig::SshPlain(_) => BridgeTransport::Ssh,
+            // Dialed by WireGuard, never connected as a bridge stream.
+            transports::ClientConfig::Amnezia(_) => {
+                return Err(transports::TransportError::config_err(
+                    "amnezia is not a bridge transport",
+                )
+                .into());
+            }
         };
         let (listen_addr, join_handle) = transports::UdpForwarder::launch_initiator(
             bridge_conn,
@@ -1396,6 +1460,7 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
+            amnezia: conn_data.amnezia,
             entry: WireguardNode::from(&conn_data.entry),
             exit: WireguardNode::from(&conn_data.exit),
         });
@@ -1470,6 +1535,7 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
+            amnezia: conn_data.amnezia,
             entry: WireguardNode::from(&conn_data.entry),
             exit: WireguardNode::from(&conn_data.exit),
         });
@@ -1621,6 +1687,7 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
+            amnezia: conn_data.amnezia,
             entry: WireguardNode::from(&conn_data.entry),
             exit: WireguardNode::from(&conn_data.exit),
         });
@@ -1702,6 +1769,7 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
+            amnezia: conn_data.amnezia,
             entry: WireguardNode::from(&conn_data.entry),
             exit: WireguardNode::from(&conn_data.exit),
         });
@@ -1848,6 +1916,7 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
+            amnezia: conn_data.amnezia,
             entry: WireguardNode::from(&conn_data.entry),
             exit: WireguardNode::from(&conn_data.exit),
         });

@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [Linux] Add NetworkManager VPN plugin that can be used to manage VPN connection from system menu. Note that removing VPN from system network settings also disconnects VPN. In all other cases VPN is only managed via UI interaction by user. (https://github.com/nymtech/nym-vpn-client/pull/6873, https://github.com/nymtech/nym-vpn-client/pull/6861)
+- Add an AmneziaWG translator mode (`AmneziaMode`: auto, off; default off; config v16), `SetAmneziaMode` gRPC call and `vpnc tunnel set --amnezia-mode`. With the `amnezia.enabled` feature flag on (`FeatureFlags::amnezia_enabled`, uniffi `is_amnezia_enabled`) and the mode auto, plain WireGuard connects through the entry gateway's AmneziaWG translator (3.1 preferred over 1.0) and falls back to base mode on the same gateway if it fails. Independent of the bridge mode: bridges on never use the translator
+- `WireguardConnectionData` carries the AmneziaWG protocol in use on the entry hop (`amnezia`: 1.0 or 3.1, and whether it goes through the translator or directly to the node); absent from older daemons
 - Add `NYM_VPN_API_URL_OVERRIDE` compile time environment variable to override VPN API server in `nym-vpnd` during development (https://github.com/nymtech/nym-vpn-client/pull/6962)
 
 ### Fixed
@@ -67,6 +69,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expose free trial eligibility (`trialEligible` from the active subscription endpoint) to mobile clients through the account controller (https://github.com/nymtech/nym-vpn-client/pull/6701)
 - Expose the Apple introductory-offer eligibility token (`subscription/apple/intro-offer-eligibility`) to the iOS client through the account controller, for StoreKit's `introductoryOfferEligibility` purchase option (https://github.com/nymtech/nym-vpn-client/pull/6701)
 - Publish the app update policy, with optional per-platform overrides, from discovery so clients can ask for or require an update (https://github.com/nymtech/nym-vpn-client/pull/6450)
+- Retry the same entry gateway in AmneziaWG base mode when its AmneziaWG bridge does not connect, before blacklisting it
+- Prefer the AmneziaWG 3.1 bridge profile when the entry gateway advertises it, falling back to 1.0; desktop entry and exit MTUs shrink by the 3.1 transport padding
+- `AmneziaConfig` carries AmneziaWG 3.1 settings: S3/S4 padding, H3/H4 ranges, header protection key and random trailers
+- Update amneziawg-go to v3.1.20260828 (module `github.com/amnezia-vpn/amneziawg-go/v3`); same wire format with the existing AmneziaWG settings
+- Connect with full AmneziaWG through the bridge translator when the AmneziaWG mode is auto, bridges are not used and the entry gateway advertises it, otherwise keep the current AmneziaWG base mode
 - Add `polkit-1-auth-agent` to deb package dependencies to ensure that components used for graphical password prompts are installed alongside (https://github.com/nymtech/nym-vpn-client/pull/6502)
 - Add `nym-vpnc completions <shell>` to generate shell completions, and install bash, zsh and fish completions with the macOS, deb and AUR packages (https://github.com/nymtech/nym-vpn-client/pull/6735)
 - [core] QR pairing (https://github.com/nymtech/nym-vpn-client/pull/6730)

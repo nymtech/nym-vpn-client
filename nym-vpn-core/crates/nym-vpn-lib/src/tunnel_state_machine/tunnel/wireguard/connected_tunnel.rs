@@ -93,11 +93,11 @@ impl ConnectedTunnel {
     }
 
     pub fn entry_mtu(&self) -> u16 {
-        ENTRY_MTU
+        ENTRY_MTU - amnezia_mtu_overhead(self.connection_data.entry_amnezia.as_ref())
     }
 
     pub fn exit_mtu(&self) -> u16 {
-        EXIT_MTU
+        EXIT_MTU - amnezia_mtu_overhead(self.connection_data.entry_amnezia.as_ref())
     }
 
     pub async fn run(
@@ -142,6 +142,7 @@ impl ConnectedTunnel {
     ) -> Result<TunnelHandle> {
         let entry_mtu = self.entry_mtu();
         let exit_mtu = self.exit_mtu();
+        let entry_amnezia_config = self.connection_data.entry_amnezia.clone();
         let (wg_entry_data, wg_exit_data) =
             self.connection_data.into_effective_entry_and_exit_data();
         let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
@@ -157,7 +158,8 @@ impl ConnectedTunnel {
             Some(tunnel_constants.fwmark),
         );
         if entry_amnezia {
-            wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
+            wg_entry_config = wg_entry_config
+                .with_amnezia_config(entry_amnezia_config.unwrap_or(AmneziaConfig::BASE));
         }
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
@@ -286,6 +288,7 @@ impl ConnectedTunnel {
     ) -> Result<TunnelHandle> {
         let entry_mtu = self.entry_mtu();
         let exit_mtu = self.exit_mtu();
+        let entry_amnezia_config = self.connection_data.entry_amnezia.clone();
         let (wg_entry_data, wg_exit_data) =
             self.connection_data.into_effective_entry_and_exit_data();
         let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
@@ -302,7 +305,8 @@ impl ConnectedTunnel {
         );
 
         if entry_amnezia {
-            wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
+            wg_entry_config = wg_entry_config
+                .with_amnezia_config(entry_amnezia_config.unwrap_or(AmneziaConfig::BASE));
         }
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
@@ -716,5 +720,36 @@ impl TunnelHandle {
     #[cfg(windows)]
     pub fn exit_wintun_interface(&self) -> Option<&WintunInterface> {
         self.wintun_exit_interface.as_ref()
+    }
+}
+
+/// AmneziaWG 3.1 adds S4 bytes to every entry packet. Desktop MTUs already fill a 1500 byte path,
+/// so both tunnels shrink by S4; mobile MTUs keep 60 bytes of headroom, above the 32 byte S4 cap.
+fn amnezia_mtu_overhead(amnezia: Option<&AmneziaConfig>) -> u16 {
+    if cfg!(any(target_os = "ios", target_os = "android")) {
+        return 0;
+    }
+    amnezia.map_or(0, |config| config.transport_pkt_junk_size)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn amnezia_mtu_overhead_is_transport_padding_on_desktop() {
+        let padded = AmneziaConfig {
+            transport_pkt_junk_size: 16,
+            ..AmneziaConfig::BASE
+        };
+        let expected = if cfg!(any(target_os = "ios", target_os = "android")) {
+            0
+        } else {
+            16
+        };
+
+        assert_eq!(amnezia_mtu_overhead(Some(&padded)), expected);
+        assert_eq!(amnezia_mtu_overhead(Some(&AmneziaConfig::BASE)), 0);
+        assert_eq!(amnezia_mtu_overhead(None), 0);
     }
 }

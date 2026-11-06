@@ -1152,8 +1152,7 @@ mod bridges_test {
         // Verify transport type
         let params = match &parsed.transports[0] {
             BridgeParameters::QuicPlain(p) => p,
-            BridgeParameters::TlsPlain(_) => return Err("expected quic transport args".into()),
-            BridgeParameters::SshPlain(_) => return Err("expected quic transport args".into()),
+            _ => return Err("expected quic transport args".into()),
         };
 
         // Verify addresses contain our test IPs

@@ -90,6 +90,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
             bridge_mode: value.enable_bridges.into(),
+            amnezia_mode: nym_vpn_lib_types::AmneziaMode::default(),
             enable_ad_blocking: value.enable_ad_blocking,
             enable_conflict_detection: value.enable_conflict_detection,
             fronting_mode,

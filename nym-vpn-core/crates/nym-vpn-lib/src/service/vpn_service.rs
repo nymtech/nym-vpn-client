@@ -110,6 +110,7 @@ pub enum VpnServiceCommand {
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
     SetBridgeMode(oneshot::Sender<()>, nym_vpn_lib_types::BridgeMode),
+    SetAmneziaMode(oneshot::Sender<()>, nym_vpn_lib_types::AmneziaMode),
     SetEnableAdBlocking(oneshot::Sender<()>, bool),
     SetEnableConflictDetection(oneshot::Sender<()>, bool),
     SetFrontingMode(oneshot::Sender<()>, nym_vpn_lib_types::FrontingMode),
@@ -1114,6 +1115,10 @@ impl NymVpnService {
                 self.handle_set_bridge_mode(bridge_mode).await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetAmneziaMode(tx, amnezia_mode) => {
+                self.handle_set_amnezia_mode(amnezia_mode).await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetResidentialExit(tx, residential_exit) => {
                 self.handle_set_residential_exit(residential_exit).await;
                 let _ = tx.send(());
@@ -1466,6 +1471,11 @@ impl NymVpnService {
 
     async fn handle_set_bridge_mode(&mut self, bridge_mode: nym_vpn_lib_types::BridgeMode) {
         self.config_manager.set_bridge_mode(bridge_mode).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_amnezia_mode(&mut self, amnezia_mode: nym_vpn_lib_types::AmneziaMode) {
+        self.config_manager.set_amnezia_mode(amnezia_mode).await;
         self.update_tunnel_settings_with_throttle();
     }
 

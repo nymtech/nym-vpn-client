@@ -12,9 +12,9 @@ use tokio::runtime::Runtime;
 
 #[cfg(not(target_os = "android"))]
 use nym_vpn_lib_types::{
-    BridgeMode, CustomDnsSettings, EntryPoint, ExitPoint, FrontingMode, GatewayIndependence,
-    GatewaySelectionAlgorithmConfig, GeoExclusionSettings, MixnetTrafficConfig,
-    NetworkStatisticsConfig, Profile, SplitTunnelSettings, VpnServiceConfig,
+    AmneziaMode, BridgeMode, CustomDnsSettings, EntryPoint, ExitPoint, FrontingMode,
+    GatewayIndependence, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
+    MixnetTrafficConfig, NetworkStatisticsConfig, Profile, SplitTunnelSettings, VpnServiceConfig,
 };
 use nym_vpn_lib_types::{DiagnosticRunParams, PrivyDerivationMessage, UserAgent};
 
@@ -144,6 +144,8 @@ impl VPNConfig {
             disable_ipv6: false,
             enable_two_hop: self.enable_two_hop,
             bridge_mode: self.bridge_mode,
+            // The mobile apps do not expose the AmneziaWG translator yet.
+            amnezia_mode: AmneziaMode::default(),
 
             enable_ad_blocking: self.enable_ad_blocking,
             enable_conflict_detection: false,

@@ -43,6 +43,7 @@ pub struct VpnServiceConfig {
     pub disable_ipv6: bool,
     pub enable_two_hop: bool,
     pub bridge_mode: BridgeMode,
+    pub amnezia_mode: AmneziaMode,
     pub enable_ad_blocking: bool,
     pub enable_conflict_detection: bool,
     pub fronting_mode: FrontingMode,
@@ -116,6 +117,7 @@ impl Default for VpnServiceConfig {
             disable_ipv6: false,
             enable_two_hop: true,
             bridge_mode: BridgeMode::default(),
+            amnezia_mode: AmneziaMode::default(),
             enable_ad_blocking: false,
             enable_conflict_detection: true,
             fronting_mode: FrontingMode::default(),
@@ -427,6 +429,27 @@ pub enum BridgeMode {
     /// Bridges only.
     On,
     /// Plain WireGuard only.
+    #[default]
+    Off,
+}
+
+/// Whether the plain WireGuard path may use the AmneziaWG translator the entry gateway advertises.
+/// Independent of [`BridgeMode`]: the translator is only used when bridges are not.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+pub enum AmneziaMode {
+    /// Use the translator when the entry gateway advertises a profile this client speaks.
+    Auto,
+    /// Never use the translator; the base AmneziaWG settings stay as they are.
     #[default]
     Off,
 }
