@@ -83,6 +83,9 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err) => {
                 Self::PairingDerivingSharedSecret(err)
             }
+            proto::account_command_error::ErrorDetail::AuthorizationRequired(_) => {
+                Self::AuthorizationRequired
+            }
         })
     }
 }
@@ -230,6 +233,11 @@ impl From<AccountCommandError> for proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::DeeplinkError(
                     message,
                 )),
+            },
+            AccountCommandError::AuthorizationRequired => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::AuthorizationRequired(true),
+                ),
             },
         }
     }

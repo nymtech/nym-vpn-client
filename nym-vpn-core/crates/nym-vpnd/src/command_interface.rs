@@ -1279,6 +1279,41 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(tentative_gateways.into()))
     }
 
+    async fn authorize(
+        &self,
+        _request: tonic::Request<proto::AuthorizeRequest>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            let authorization = _request.into_inner().authorization;
+            if authorization.is_empty() {
+                Err(tonic::Status::invalid_argument(
+                    "Authorization token is required",
+                ))
+            } else {
+                self.send_and_wait(VpnServiceCommand::Authorize, authorization)
+                    .await?
+                    .map_err(|err| tonic::Status::internal(err.to_string()))?;
+                Ok(tonic::Response::new(()))
+            }
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::unimplemented("Unsupported platform"))
+    }
+
+    async fn deauthorize(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            self.send_and_wait(VpnServiceCommand::Deauthorize, ())
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::unimplemented("Unsupported platform"))
+    }
+
     async fn is_split_tunnel_supported(
         &self,
         _request: tonic::Request<()>,

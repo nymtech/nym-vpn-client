@@ -273,6 +273,19 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn authorize(&mut self, authorization: Vec<u8>) -> Result<()> {
+        self.0
+            .authorize(proto::AuthorizeRequest { authorization })
+            .await
+            .map_err(Error::Rpc)?;
+        Ok(())
+    }
+
+    pub async fn deauthorize(&mut self) -> Result<()> {
+        self.0.deauthorize(()).await.map_err(Error::Rpc)?;
+        Ok(())
+    }
+
     pub async fn set_fronting_mode(&mut self, fronting_mode: FrontingMode) -> Result<()> {
         self.0
             .set_fronting_mode(proto::FrontingModeRequest {

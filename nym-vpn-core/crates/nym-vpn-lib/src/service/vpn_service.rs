@@ -28,6 +28,8 @@ use tokio::{
 use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "macos")]
+use nym_authorization_service::AuthorizationService;
 use nym_common::trace_err_chain;
 use nym_favorites::RecentsManager;
 use nym_gateway_directory::{GatewayFilter, GatewayFilters, GatewayList};
@@ -254,6 +256,14 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<RecentGateways, ListGatewaysError>>,
         TunnelType,
     ),
+    /// Authorize with the token obtained in the user's session
+    #[cfg(target_os = "macos")]
+    Authorize(
+        oneshot::Sender<Result<(), nym_authorization_service::Error>>,
+        Vec<u8>,
+    ),
+    #[cfg(target_os = "macos")]
+    Deauthorize(oneshot::Sender<()>, ()),
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     IsSplitTunnelSupported(oneshot::Sender<bool>, ()),
     #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -418,6 +428,10 @@ pub struct NymVpnService {
 
     #[cfg(target_os = "linux")]
     split_tunnel_pid_manager: nym_split_tunnel::PidManager,
+
+    // Unlocked with the authorization token obtained in the user's session
+    #[cfg(target_os = "macos")]
+    authorization_service: AuthorizationService,
 }
 
 impl NymVpnService {
@@ -494,6 +508,11 @@ impl NymVpnService {
             .create_directories()
             .await
             .map_err(Error::PathsSetup)?;
+
+        #[cfg(target_os = "macos")]
+        if let Err(err) = AuthorizationService::register_unlock_right() {
+            tracing::error!("Failed to register unlock right: {err}");
+        }
 
         let storage = crate::storage::VpnClientOnDiskStorage::new(paths.network_data_dir.clone());
 
@@ -833,6 +852,8 @@ impl NymVpnService {
             recents_manager,
             #[cfg(target_os = "linux")]
             split_tunnel_pid_manager,
+            #[cfg(target_os = "macos")]
+            authorization_service: AuthorizationService::default(),
         })
     }
 
@@ -1341,6 +1362,15 @@ impl NymVpnService {
             }
             VpnServiceCommand::GetTentativeGateways(tx, _) => {
                 let _ = tx.send(self.handle_get_tentative_gateways().await);
+            }
+            #[cfg(target_os = "macos")]
+            VpnServiceCommand::Authorize(tx, token) => {
+                let _ = tx.send(self.authorization_service.authorize(&token));
+            }
+            #[cfg(target_os = "macos")]
+            VpnServiceCommand::Deauthorize(tx, ()) => {
+                self.authorization_service.deauthorize();
+                let _ = tx.send(());
             }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::IsSplitTunnelSupported(tx, ()) => {
@@ -2030,7 +2060,24 @@ impl NymVpnService {
             .await
     }
 
+    fn ensure_authorized(&self) -> Result<(), AccountCommandError> {
+        #[cfg(target_os = "macos")]
+        {
+            if self.authorization_service.is_authorized() {
+                Ok(())
+            } else {
+                Err(AccountCommandError::AuthorizationRequired)
+            }
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            Ok(())
+        }
+    }
+
     async fn handle_create_account(&self) -> Result<(), AccountCommandError> {
+        self.ensure_authorized()?;
         self.account_command_tx.create_account_command().await
     }
 
@@ -2038,12 +2085,14 @@ impl NymVpnService {
         &mut self,
         store_request: StoreAccountRequest,
     ) -> Result<(), AccountCommandError> {
+        self.ensure_authorized()?;
         let account = StorableAccount::try_from(store_request)
             .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
         self.account_command_tx.store_account(account).await
     }
 
     async fn handle_get_stored_mnemonic(&mut self) -> Result<String, AccountCommandError> {
+        self.ensure_authorized()?;
         let stored_account = self
             .account_command_tx
             .get_stored_account()
@@ -2080,6 +2129,7 @@ impl NymVpnService {
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
+        self.ensure_authorized()?;
         if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to forget account while connected",
@@ -2102,6 +2152,7 @@ impl NymVpnService {
     }
 
     async fn handle_delete_account(&mut self) -> Result<(), AccountCommandError> {
+        self.ensure_authorized()?;
         if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to delete account while connected",
@@ -2196,6 +2247,7 @@ impl NymVpnService {
         &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountCommandError> {
+        self.ensure_authorized()?;
         if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to reset device identity while connected",
@@ -2218,6 +2270,7 @@ impl NymVpnService {
     }
 
     async fn handle_get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+        self.ensure_authorized()?;
         Ok(self
             .account_command_tx
             .get_devices()
@@ -2228,6 +2281,7 @@ impl NymVpnService {
     }
 
     async fn handle_get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+        self.ensure_authorized()?;
         Ok(self
             .account_command_tx
             .get_active_devices()
@@ -2320,6 +2374,7 @@ impl NymVpnService {
         &self,
         params: GetDeeplinkParams,
     ) -> Result<AutologinResponse, AccountCommandError> {
+        self.ensure_authorized()?;
         let account_management = self
             .network_tx
             .borrow()
@@ -2349,6 +2404,7 @@ impl NymVpnService {
         &self,
         deeplink_url: String,
     ) -> Result<(), AccountCommandError> {
+        self.ensure_authorized()?;
         let deeplink_mnemonic = self
             .account_command_tx
             .derive_deeplink_mnemonic(deeplink_url)
@@ -2371,6 +2427,7 @@ impl NymVpnService {
     }
 
     async fn handle_start_pairing(&self) -> Result<QrUrl, AccountCommandError> {
+        self.ensure_authorized()?;
         self.account_command_tx.start_pairing().await
     }
 
@@ -2385,6 +2442,7 @@ impl NymVpnService {
         &self,
         session_id: u32,
     ) -> Result<(), AccountCommandError> {
+        self.ensure_authorized()?;
         self.account_command_tx
             .verified_pairing_pin(session_id)
             .await
