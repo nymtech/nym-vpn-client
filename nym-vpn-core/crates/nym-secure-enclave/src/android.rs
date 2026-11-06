@@ -9,12 +9,13 @@ use super::{Result, SecureEnclaveKey, SecureEnclaveProvider};
 
 // Traits that must be implemented in Android app
 #[uniffi::export(with_foreign)]
+#[async_trait::async_trait]
 pub trait AndroidSecureEnclaveKey: Send + Sync {
     /// Encrypt data using the key stored in secure enclave
-    fn encrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
+    async fn encrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
 
     /// Decrypt data using the key stored in secure enclave
-    fn decrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
+    async fn decrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
 }
 
 #[uniffi::export(with_foreign)]
@@ -115,18 +116,10 @@ impl AndroidKeyStoreKey {
 #[async_trait::async_trait]
 impl SecureEnclaveKey for AndroidKeyStoreKey {
     async fn decrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
-        let inner = self.inner.clone();
-        let bytes = bytes.to_vec();
-        tokio::task::spawn_blocking(move || inner.decrypt(bytes))
-            .await
-            .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
+        self.inner.decrypt(bytes.to_vec()).await
     }
 
     async fn encrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
-        let inner = self.inner.clone();
-        let bytes = bytes.to_vec();
-        tokio::task::spawn_blocking(move || inner.encrypt(bytes))
-            .await
-            .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
+        self.inner.encrypt(bytes.to_vec()).await
     }
 }

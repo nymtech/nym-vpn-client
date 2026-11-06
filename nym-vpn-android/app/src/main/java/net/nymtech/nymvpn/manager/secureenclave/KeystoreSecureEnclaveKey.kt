@@ -2,6 +2,8 @@ package net.nymtech.nymvpn.manager.secureenclave
 
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.UserNotAuthenticatedException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import nym_secure_enclave.AndroidSecureEnclaveKey
 import nym_secure_enclave.SecureEnclaveException
 import timber.log.Timber
@@ -35,21 +37,25 @@ class KeystoreSecureEnclaveKey(
 	private val session: SecureEnclaveSession,
 ) : AndroidSecureEnclaveKey {
 
-	override fun encrypt(bytes: ByteArray): ByteArray = try {
-		secureEnclaveCall {
-			val cipher = unlock { init(Cipher.ENCRYPT_MODE, secretKey) }
-			val iv = cipher.iv
-			check(iv.size == IV_SIZE) { "unexpected IV size: ${iv.size}" }
-			iv + cipher.doFinal(bytes)
+	override suspend fun encrypt(bytes: ByteArray): ByteArray = withContext(Dispatchers.IO) {
+		try {
+			secureEnclaveCall {
+				val cipher = unlock { init(Cipher.ENCRYPT_MODE, secretKey) }
+				val iv = cipher.iv
+				check(iv.size == IV_SIZE) { "unexpected IV size: ${iv.size}" }
+				iv + cipher.doFinal(bytes)
+			}
+		} finally {
+			bytes.fill(0)
 		}
-	} finally {
-		bytes.fill(0)
 	}
 
-	override fun decrypt(bytes: ByteArray): ByteArray = secureEnclaveCall {
-		require(bytes.size >= IV_SIZE + TAG_SIZE_BITS / Byte.SIZE_BITS) { "ciphertext is too short" }
-		val cipher = unlock { init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(TAG_SIZE_BITS, bytes, 0, IV_SIZE)) }
-		cipher.doFinal(bytes, IV_SIZE, bytes.size - IV_SIZE)
+	override suspend fun decrypt(bytes: ByteArray): ByteArray = withContext(Dispatchers.IO) {
+		secureEnclaveCall {
+			require(bytes.size >= IV_SIZE + TAG_SIZE_BITS / Byte.SIZE_BITS) { "ciphertext is too short" }
+			val cipher = unlock { init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(TAG_SIZE_BITS, bytes, 0, IV_SIZE)) }
+			cipher.doFinal(bytes, IV_SIZE, bytes.size - IV_SIZE)
+		}
 	}
 
 	private inline fun unlock(init: Cipher.() -> Unit): Cipher = when (userPresence) {
