@@ -19,6 +19,8 @@ type PlatformProvider = AppleSecureEnclaveProvider;
 
 /// Key type returned by [`SecureEnclave`] on the current platform.
 pub type PlatformSecureEnclaveKey = <PlatformProvider as SecureEnclaveProvider>::Key;
+/// Options for [`SecureEnclave::unlock`] on the current platform.
+pub type PlatformUnlockOptions = <PlatformProvider as SecureEnclaveProvider>::KeyUnlockOptions;
 
 pub struct SecureEnclave {
     inner: PlatformProvider,
@@ -59,17 +61,9 @@ impl SecureEnclave {
 
     /// Authenticate the user once, so that keys requiring user presence can be used without
     /// prompting until [`Self::lock`] is called.
-    #[tracing::instrument(skip(self))]
-    pub async fn unlock(&self, reason: &str) -> Result<()> {
-        self.inner.unlock(reason).await
-    }
-
-    /// Allow keys requiring user presence to be used, once the token obtained in the user's session
-    /// with [`crate::UnlockAuthorization`] is verified.
-    #[cfg(target_os = "macos")]
     #[tracing::instrument(skip_all)]
-    pub async fn unlock_with_token(&self, token: Vec<u8>) -> Result<()> {
-        self.inner.unlock_with_token(token).await
+    pub async fn unlock(&self, options: PlatformUnlockOptions) -> Result<()> {
+        self.inner.unlock(options).await
     }
 
     /// Revoke the authentication obtained with [`Self::unlock`].

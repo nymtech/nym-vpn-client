@@ -6,59 +6,13 @@ use std::sync::Mutex;
 use block2::RcBlock;
 use objc2::{rc::Retained, runtime::Bool};
 use objc2_foundation::{NSError, NSString};
-pub use objc2_local_authentication::LAErrorDomain;
-use objc2_local_authentication::{LAContext, LAError, LAPolicy};
+use objc2_local_authentication::{LAContext, LAPolicy};
 use tokio::sync::oneshot;
 
-use super::security::{SecError, SecResult};
-
-#[derive(Debug)]
-pub struct AuthError {
-    pub kind: AuthErrorKind,
-    pub description: String,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AuthErrorKind {
-    Failed,
-    Cancelled,
-    Other,
-}
-
-impl AuthError {
-    fn from_ns_error(error: &NSError) -> Self {
-        let is_la_error = error.domain().isEqualToString(unsafe { LAErrorDomain });
-        let kind = if is_la_error {
-            match LAError(error.code()) {
-                LAError::AuthenticationFailed => AuthErrorKind::Failed,
-                LAError::UserCancel | LAError::SystemCancel | LAError::AppCancel => {
-                    AuthErrorKind::Cancelled
-                }
-                _ => AuthErrorKind::Other,
-            }
-        } else {
-            AuthErrorKind::Other
-        };
-
-        Self {
-            kind,
-            description: error.localizedDescription().to_string(),
-        }
-    }
-
-    fn internal(description: &str) -> Self {
-        Self {
-            kind: AuthErrorKind::Other,
-            description: description.to_owned(),
-        }
-    }
-}
-
-impl std::fmt::Display for AuthError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.description)
-    }
-}
+use super::{
+    auth_error::AuthError,
+    security::{SecError, SecResult},
+};
 
 /// Create a context that does not allow user interaction, so that operations requiring user
 /// presence fail instead of prompting.
@@ -72,7 +26,6 @@ pub fn non_interactive_context() -> Retained<LAContext> {
 ///
 /// Keychain operations performed with the returned context do not prompt the user again until
 /// the context is invalidated.
-#[cfg_attr(target_os = "macos", allow(dead_code))]
 pub async fn authenticate(reason: &str) -> SecResult<Retained<LAContext>> {
     let context = unsafe { LAContext::new() };
     let reason = NSString::from_str(reason);

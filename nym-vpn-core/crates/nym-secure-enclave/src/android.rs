@@ -51,9 +51,15 @@ impl AndroidKeyStoreProvider {
     }
 }
 
+pub enum KeyUnlockOptions {
+    /// Authenticate the device owner. `reason` is shown to the user.
+    LocalAuthentication { reason: String },
+}
+
 #[async_trait::async_trait]
 impl SecureEnclaveProvider for AndroidKeyStoreProvider {
     type Key = AndroidKeyStoreKey;
+    type KeyUnlockOptions = KeyUnlockOptions;
 
     async fn create_key(&self, alias: &str, user_presence: bool) -> Result<Self::Key> {
         let inner = self.inner.clone();
@@ -85,9 +91,9 @@ impl SecureEnclaveProvider for AndroidKeyStoreProvider {
         .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
     }
 
-    async fn unlock(&self, reason: &str) -> Result<()> {
+    async fn unlock(&self, options: KeyUnlockOptions) -> Result<()> {
         let inner = self.inner.clone();
-        let reason = reason.to_owned();
+        let KeyUnlockOptions::LocalAuthentication { reason } = options;
         tokio::task::spawn_blocking(move || inner.unlock(reason))
             .await
             .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?

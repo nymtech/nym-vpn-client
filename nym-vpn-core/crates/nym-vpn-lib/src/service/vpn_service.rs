@@ -1391,7 +1391,13 @@ impl NymVpnService {
             }
             #[cfg(target_os = "macos")]
             VpnServiceCommand::UnlockKeychain(tx, token) => {
-                let _ = tx.send(self.secure_enclave.unlock_with_token(token).await);
+                let _ = tx.send(
+                    self.secure_enclave
+                        .unlock(
+                            nym_secure_enclave::PlatformUnlockOptions::AuthorizationToken { token },
+                        )
+                        .await,
+                );
             }
             #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
             VpnServiceCommand::LockKeychain(tx, ()) => {
@@ -2528,7 +2534,15 @@ impl NymVpnService {
         // Spawned because the user may take a while to respond to the authentication prompt.
         tokio::spawn(async move {
             completion_tx
-                .send(secure_enclave.unlock(&reason).await)
+                .send(
+                    secure_enclave
+                        .unlock(
+                            nym_secure_enclave::PlatformUnlockOptions::LocalAuthentication {
+                                reason,
+                            },
+                        )
+                        .await,
+                )
                 .ok();
         });
     }

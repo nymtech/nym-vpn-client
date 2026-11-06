@@ -1,11 +1,12 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod auth;
+mod auth_error;
 #[cfg(target_os = "macos")]
 mod authorization;
 #[cfg(target_os = "macos")]
 pub use authorization::{UnlockAuthorization, register_unlock_right};
+mod local_authentication;
 mod security;
 mod zeroing_allocator;
 
@@ -18,16 +19,13 @@ use objc2_security::{
     SecKey, errSecAuthFailed, errSecDataNotAvailable, errSecItemNotFound, errSecUserCanceled,
 };
 use tokio_util::task::LocalPoolHandle;
-use zeroize::Zeroizing;
+use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
-#[cfg(target_os = "ios")]
-use self::auth::authenticate;
-use self::{
-    auth::{AuthErrorKind, non_interactive_context},
-    security::{SecError, create_sec_key, decrypt_data, delete_sec_key, encrypt_data, get_sec_key},
-    zeroing_allocator::create_zeroing_allocator,
-};
 use crate::{Result, SecureEnclaveError, SecureEnclaveKey, SecureEnclaveProvider};
+use auth_error::AuthErrorKind;
+use local_authentication::{authenticate, non_interactive_context};
+use security::{SecError, create_sec_key, decrypt_data, delete_sec_key, encrypt_data, get_sec_key};
+use zeroing_allocator::create_zeroing_allocator;
 
 type KeyId = u64;
 
@@ -54,50 +52,73 @@ struct KeyEntry {
 }
 
 struct AuthState {
-    /// Context that keys are obtained with. When unlocked, it is the context evaluated by
-    /// `unlock()`. When locked, it does not allow user interaction, so that keys requiring user
-    /// presence fail instead of prompting.
-    context: Retained<LAContext>,
+    /// Context that keys are obtained with unless unlocked with local authentication. It does not
+    /// allow user interaction, so that keys requiring user presence fail instead of prompting.
+    non_interactive_context: Retained<LAContext>,
+    unlock_state: UnlockState,
     /// Incremented whenever the context changes, so that keys bound to an older context are
     /// fetched again.
     generation: u64,
-    /// Incremented on every `lock()`, so that an `unlock()` in flight does not install its
-    /// context after the enclave was locked.
+    /// Incremented on every `lock()`, so that an `unlock()` in flight does not take effect
+    /// after the enclave was locked.
     lock_epoch: u64,
-    /// Whether keys requiring user presence can be used. The daemon cannot satisfy the hardware
-    /// user presence check as root, so on macOS the check is enforced here instead.
+}
+
+enum UnlockState {
+    Locked,
+    /// Unlocked with the context evaluated by local authentication.
+    LocalAuthentication {
+        context: Retained<LAContext>,
+    },
+    /// Unlocked with the token obtained with [`UnlockAuthorization`].
     #[cfg(target_os = "macos")]
-    unlocked: bool,
+    Token,
 }
 
 impl AuthState {
     fn locked() -> Self {
         Self {
-            context: non_interactive_context(),
+            non_interactive_context: non_interactive_context(),
+            unlock_state: UnlockState::Locked,
             generation: 0,
             lock_epoch: 0,
-            #[cfg(target_os = "macos")]
-            unlocked: false,
         }
     }
 
-    #[cfg(target_os = "ios")]
-    fn unlock(&mut self, context: Retained<LAContext>) {
-        self.set_context(context);
+    /// Context to obtain keys with.
+    fn context(&self) -> &LAContext {
+        match &self.unlock_state {
+            UnlockState::LocalAuthentication { context } => context,
+            _ => &self.non_interactive_context,
+        }
+    }
+
+    /// Whether keys requiring user presence can be used. The daemon cannot satisfy the hardware
+    /// user presence check as root, so on macOS the check is enforced in software instead.
+    #[cfg(target_os = "macos")]
+    fn is_unlocked(&self) -> bool {
+        !matches!(self.unlock_state, UnlockState::Locked)
+    }
+
+    fn unlock_with_local_auth_context(&mut self, context: Retained<LAContext>) {
+        self.set_unlock_state(UnlockState::LocalAuthentication { context });
+    }
+
+    #[cfg(target_os = "macos")]
+    fn unlock_with_token(&mut self) {
+        self.set_unlock_state(UnlockState::Token);
     }
 
     fn lock(&mut self) {
         self.lock_epoch += 1;
-        #[cfg(target_os = "macos")]
-        {
-            self.unlocked = false;
-        }
-        self.set_context(non_interactive_context());
+        self.set_unlock_state(UnlockState::Locked);
     }
 
-    fn set_context(&mut self, context: Retained<LAContext>) {
-        let old_context = std::mem::replace(&mut self.context, context);
-        unsafe { old_context.invalidate() };
+    fn set_unlock_state(&mut self, unlock_state: UnlockState) {
+        let old_state = std::mem::replace(&mut self.unlock_state, unlock_state);
+        if let UnlockState::LocalAuthentication { context } = old_state {
+            unsafe { context.invalidate() };
+        }
         self.generation += 1;
     }
 }
@@ -144,12 +165,12 @@ impl WorkerState {
             .ok_or_else(|| SecureEnclaveError::Other("key is released".to_owned()))?;
 
         #[cfg(target_os = "macos")]
-        if entry.user_presence && !self.auth.unlocked {
+        if entry.user_presence && !self.auth.is_unlocked() {
             return Err(SecureEnclaveError::Locked);
         }
 
         if entry.auth_generation != self.auth.generation {
-            entry.key = get_sec_key(&entry.tag, &self.auth.context)?;
+            entry.key = get_sec_key(&entry.tag, self.auth.context())?;
             entry.auth_generation = self.auth.generation;
         }
 
@@ -170,34 +191,33 @@ impl Default for AppleSecureEnclaveProvider {
     }
 }
 
-#[cfg(target_os = "macos")]
-impl AppleSecureEnclaveProvider {
-    /// Allow keys requiring user presence to be used, once the token obtained with
-    /// [`authorization::UnlockAuthorization`] is verified.
-    pub async fn unlock_with_token(&self, token: Vec<u8>) -> Result<()> {
-        run_on_worker(&self.pool, move |state| {
-            authorization::verify_unlock_token(&token)?;
-            state.auth.unlocked = true;
-            Ok(())
-        })
-        .await
-    }
+#[derive(Zeroize, ZeroizeOnDrop)]
+pub enum KeyUnlockOptions {
+    /// Authenticate the device owner. `reason` is shown to the user.
+    LocalAuthentication { reason: String },
+
+    /// Verify the token obtained with [`UnlockAuthorization`] in the user's session.
+    #[cfg(target_os = "macos")]
+    AuthorizationToken { token: Vec<u8> },
 }
 
 #[async_trait::async_trait]
 impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
     type Key = OSSecureEnclaveKey;
+    type KeyUnlockOptions = KeyUnlockOptions;
 
     async fn create_key(&self, alias: &str, user_presence: bool) -> Result<Self::Key> {
         let alias_bytes = alias.as_bytes().to_vec();
         let id = run_on_worker(&self.pool, move |state| {
             // Prevent creating more than one key with the same alias.
-            match get_sec_key(&alias_bytes, &state.auth.context).map_err(SecureEnclaveError::from) {
+            match get_sec_key(&alias_bytes, state.auth.context()).map_err(SecureEnclaveError::from)
+            {
                 Ok(_) => Err(SecureEnclaveError::KeyAlreadyExists),
                 Err(SecureEnclaveError::KeyNotFound) => {
-                    // Root cannot satisfy the hardware check on macOS, see `AuthState::unlocked`.
+                    // Root cannot satisfy the hardware check on macOS, see `is_unlocked()`.
                     let hardware_presence = user_presence && cfg!(not(target_os = "macos"));
-                    let key = create_sec_key(&alias_bytes, hardware_presence, &state.auth.context)?;
+                    let key =
+                        create_sec_key(&alias_bytes, hardware_presence, state.auth.context())?;
                     Ok(state.insert(alias_bytes, key, user_presence))
                 }
                 Err(err) => Err(err),
@@ -215,37 +235,29 @@ impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
     async fn get_key(&self, alias: &str, user_presence: bool) -> Result<Self::Key> {
         let alias_bytes = alias.as_bytes().to_vec();
         let id = run_on_worker(&self.pool, move |state| {
-            let key = get_sec_key(&alias_bytes, &state.auth.context)?;
+            let key = get_sec_key(&alias_bytes, state.auth.context())?;
             Ok(state.insert(alias_bytes, key, user_presence))
         })
         .await?;
         Ok(OSSecureEnclaveKey::new(id, self.pool.clone()))
     }
 
-    #[cfg(target_os = "macos")]
-    async fn unlock(&self, _reason: &str) -> Result<()> {
-        Err(SecureEnclaveError::Other(
-            "unlocking requires an authorization token on macOS".to_owned(),
-        ))
-    }
-
-    #[cfg(target_os = "ios")]
-    async fn unlock(&self, reason: &str) -> Result<()> {
-        let reason = reason.to_owned();
+    async fn unlock(&self, options: KeyUnlockOptions) -> Result<()> {
         self.pool
             .spawn_pinned(move || async move {
-                let lock_epoch = WORKER_STATE.with_borrow(|state| state.auth.lock_epoch);
-                let context = authenticate(&reason).await?;
-
-                WORKER_STATE.with_borrow_mut(|state| {
-                    if state.auth.lock_epoch == lock_epoch {
-                        state.auth.unlock(context);
-                        Ok(())
-                    } else {
-                        unsafe { context.invalidate() };
-                        Err(SecureEnclaveError::UserCancelled)
+                match &options {
+                    KeyUnlockOptions::LocalAuthentication { reason } => {
+                        unlock_with_local_authentication(reason).await
                     }
-                })
+                    #[cfg(target_os = "macos")]
+                    KeyUnlockOptions::AuthorizationToken { token } => {
+                        WORKER_STATE.with_borrow_mut(|state| {
+                            authorization::verify_unlock_token(token)?;
+                            state.auth.unlock_with_token();
+                            Ok(())
+                        })
+                    }
+                }
             })
             .await
             .map_err(|_| SecureEnclaveError::Other("secure enclave worker panic".to_owned()))?
@@ -338,6 +350,23 @@ impl From<SecError> for SecureEnclaveError {
             }
         }
     }
+}
+
+/// Authenticate the device owner and unlock, unless the enclave was locked in the meantime. Must
+/// run on the worker thread.
+async fn unlock_with_local_authentication(reason: &str) -> Result<()> {
+    let lock_epoch = WORKER_STATE.with_borrow(|state| state.auth.lock_epoch);
+    let context = authenticate(reason).await?;
+
+    WORKER_STATE.with_borrow_mut(|state| {
+        if state.auth.lock_epoch == lock_epoch {
+            state.auth.unlock_with_local_auth_context(context);
+            Ok(())
+        } else {
+            unsafe { context.invalidate() };
+            Err(SecureEnclaveError::UserCancelled)
+        }
+    })
 }
 
 /// Run the closure on the worker thread and wait for it to complete.

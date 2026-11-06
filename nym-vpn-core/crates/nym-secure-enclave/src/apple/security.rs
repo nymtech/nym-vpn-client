@@ -9,7 +9,7 @@ use objc2_core_foundation::{
     CFBoolean, CFData, CFDictionary, CFError, CFIndex, CFNumber, CFRetained, CFString, CFType,
     kCFAllocatorNull, kCFErrorDomainOSStatus,
 };
-use objc2_local_authentication::LAError;
+use objc2_local_authentication::{LAError, LAErrorDomain};
 use objc2_security::{
     SecAccessControl, SecAccessControlCreateFlags, SecCopyErrorMessageString, SecItemCopyMatching,
     SecItemDelete, SecKey, SecKeyAlgorithm, errSecInteractionNotAllowed, errSecSuccess,
@@ -22,7 +22,7 @@ use objc2_security::{
     kSecUseDataProtectionKeychain,
 };
 
-use super::auth::{AuthError, LAErrorDomain};
+use super::auth_error::AuthError;
 
 const KEY_SIZE: i32 = 256;
 
