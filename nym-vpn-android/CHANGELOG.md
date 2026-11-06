@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cache flag resource IDs instead of calling getIdentifier for every row (https://github.com/nymtech/nym-vpn-client/pull/6959)
 - Use countryCodesForRegionSupport instead of a hardcoded "us" (https://github.com/nymtech/nym-vpn-client/pull/6959)
 
+### Fixed
+- Show a specific error when Enhanced connection is On and the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6974)
+
 ## [2026.15.0] - TBD
 
 ### Added
