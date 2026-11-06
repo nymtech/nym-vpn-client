@@ -1405,11 +1405,11 @@ impl NymVpnService {
             }
             #[cfg(target_os = "macos")]
             VpnServiceCommand::Authorize(tx, token) => {
-                let _ = tx.send(self.authorization_service.authorize_with_token(&token));
+                let _ = tx.send(self.authorization_service.authorize(&token));
             }
             #[cfg(target_os = "macos")]
             VpnServiceCommand::Deauthorize(tx, ()) => {
-                self.authorization_service.invalidate();
+                self.authorization_service.deauthorize();
                 let _ = tx.send(());
             }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

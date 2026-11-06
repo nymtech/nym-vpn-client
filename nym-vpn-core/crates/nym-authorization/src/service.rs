@@ -108,14 +108,13 @@ impl AuthorizationService {
     }
 
     /// Verify the token and mark as authorized. The token cannot be used again afterwards.
-    pub fn authorize_with_token(&mut self, token: &[u8]) -> Result<()> {
+    pub fn authorize(&mut self, token: &[u8]) -> Result<()> {
         verify_unlock_token(token)?;
         self.authorized_until = Some(continuous_time()? + AUTHORIZATION_TIMEOUT);
         Ok(())
     }
 
-    /// Invalidate authorization
-    pub fn invalidate(&mut self) {
+    pub fn deauthorize(&mut self) {
         self.authorized_until = None;
     }
 
@@ -236,7 +235,7 @@ mod tests {
     fn invalidate_revokes_authorization() {
         let now = continuous_time().unwrap();
         let mut service = service_authorized_until(now + AUTHORIZATION_TIMEOUT);
-        service.invalidate();
+        service.deauthorize();
         assert!(!service.is_authorized());
     }
 }
