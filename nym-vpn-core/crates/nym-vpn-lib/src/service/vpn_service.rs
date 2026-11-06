@@ -35,8 +35,8 @@ use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
 };
 use nym_vpn_account_controller::{
-    AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
-    NyxdClient,
+    AccountCommandSender, AccountController, AccountControllerChannels, AccountControllerClients,
+    AccountControllerConfig, AccountStateReceiver, NyxdClient,
 };
 use nym_vpn_api_client::api_urls_to_urls;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -53,9 +53,10 @@ use nym_vpn_lib_types::{
     DiagnosticRunParams, DnsServer, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags,
     Gateway, GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters,
     MixnetTrafficConfig, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork,
-    NymVpnUsage, ParsedAccountLinks, Profile, RecentGateways, RegistrationReport, StorableAccount,
-    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
-    TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    NymVpnUsage, ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways,
+    RegistrationReport, StorableAccount, StoreAccountRequest, StoredAccountMode, SystemMessage,
+    TargetState, TentativeGateways, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -222,6 +223,13 @@ pub enum VpnServiceCommand {
         GetDeeplinkParams,
     ),
     DeeplinkStoreAccount(oneshot::Sender<Result<(), AccountCommandError>>, String),
+    StartPairing(oneshot::Sender<Result<QrUrl, AccountCommandError>>, ()),
+    ScannedKey(
+        oneshot::Sender<Result<QrPairingConfirmation, AccountCommandError>>,
+        String,
+    ),
+    VerifiedPairingPin(oneshot::Sender<Result<(), AccountCommandError>>, u32),
+    CancelPairingProcess(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
     DeleteLogFile(oneshot::Sender<()>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
@@ -365,6 +373,9 @@ pub struct NymVpnService {
 
     // Discovery refresher join handle
     discovery_refresher_join_handle: JoinHandle<()>,
+
+    // Pairing event forwarder
+    pairing_event_handler: JoinHandle<()>,
 
     // VPN service shutdown token.
     shutdown_token: CancellationToken,
@@ -557,13 +568,22 @@ impl NymVpnService {
 
         let nyxd_client = NyxdClient::new(&network_env);
 
+        let (pairing_event_tx, mut pairing_event_rx) = mpsc::unbounded_channel();
+        let tunnel_event_tx_clone = tunnel_event_tx.clone();
+        let pairing_event_handler = tokio::spawn(async move {
+            while let Some(pairing_event) = pairing_event_rx.recv().await {
+                if let Err(err) = tunnel_event_tx_clone.send(TunnelEvent::Pairing(pairing_event)) {
+                    tracing::warn!("Failed to propagate pairing event: {err}");
+                }
+            }
+        });
+
         let account_controller = AccountController::new(
-            nym_vpn_api_client.clone(),
-            nyxd_client,
+            AccountControllerClients::new(nym_vpn_api_client.clone(), nyxd_client),
             account_controller_config,
             storage,
             connectivity_handle.clone(),
-            bandwidth_command_tx.clone(),
+            AccountControllerChannels::new(bandwidth_command_tx.clone(), pairing_event_tx),
             services_shutdown_token.child_token(),
         )
         .await
@@ -799,6 +819,7 @@ impl NymVpnService {
             gateway_cache_join_handle,
             discovery_refresher_event_rx,
             discovery_refresher_join_handle,
+            pairing_event_handler,
             sentry_enabled: parameters.sentry_enabled,
             statistics_event_sender,
             stats_control_commands_sender,
@@ -905,6 +926,10 @@ impl NymVpnService {
 
         if let Err(e) = self.discovery_refresher_join_handle.await {
             tracing::error!("Failed to join on discovery refresher handle: {e}");
+        }
+
+        if let Err(e) = self.pairing_event_handler.await {
+            tracing::error!("Failed to join on pairing event handle: {e}");
         }
 
         if let Err(e) = self.topology_service_join_handle.await {
@@ -1251,6 +1276,18 @@ impl NymVpnService {
                     self.handle_deeplink_store_account(deeplink_callback_url)
                         .await,
                 );
+            }
+            VpnServiceCommand::StartPairing(tx, ()) => {
+                let _ = tx.send(self.handle_start_pairing().await);
+            }
+            VpnServiceCommand::ScannedKey(tx, pub_key) => {
+                let _ = tx.send(self.handle_scanned_key(pub_key).await);
+            }
+            VpnServiceCommand::VerifiedPairingPin(tx, session_id) => {
+                let _ = tx.send(self.handle_verified_pairing_pin(session_id).await);
+            }
+            VpnServiceCommand::CancelPairingProcess(tx, ()) => {
+                let _ = tx.send(self.handle_cancel_pairing_process().await);
             }
             VpnServiceCommand::GetLogPath(tx, ()) => {
                 let _ = tx.send(self.paths.log_path.clone());
@@ -2331,6 +2368,30 @@ impl NymVpnService {
                 "Invalid deeplink kind".to_string(),
             )),
         }
+    }
+
+    async fn handle_start_pairing(&self) -> Result<QrUrl, AccountCommandError> {
+        self.account_command_tx.start_pairing().await
+    }
+
+    async fn handle_scanned_key(
+        &self,
+        pub_key: String,
+    ) -> Result<QrPairingConfirmation, AccountCommandError> {
+        self.account_command_tx.scanned_key(pub_key).await
+    }
+
+    async fn handle_verified_pairing_pin(
+        &self,
+        session_id: u32,
+    ) -> Result<(), AccountCommandError> {
+        self.account_command_tx
+            .verified_pairing_pin(session_id)
+            .await
+    }
+
+    async fn handle_cancel_pairing_process(&self) -> Result<(), AccountCommandError> {
+        self.account_command_tx.cancel_pairing_process().await
     }
 
     async fn handle_delete_log_file(&self) {

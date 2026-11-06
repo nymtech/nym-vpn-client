@@ -53,6 +53,7 @@ use crate::{
             Error, Result, Tombstone,
             wireguard::{
                 ConnectionData,
+                allowed_ips::allowed_ips,
                 two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
             },
         },
@@ -162,7 +163,7 @@ impl ConnectedTunnel {
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
             wg_exit_data,
             self.exit_wg_keypair,
-            AllowedIps::All,
+            AllowedIps::Specific(allowed_ips(&tunnel_constants)),
             options.dns,
             exit_mtu,
             #[cfg(target_os = "linux")]
@@ -307,7 +308,7 @@ impl ConnectedTunnel {
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
             wg_exit_data,
             self.exit_wg_keypair,
-            AllowedIps::All,
+            AllowedIps::Specific(allowed_ips(&tunnel_constants)),
             options.dns,
             exit_mtu,
             #[cfg(target_os = "linux")]

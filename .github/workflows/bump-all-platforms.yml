@@ -375,6 +375,7 @@ jobs:
               --base "$BASE_BRANCH" \
               --title "Bump version to \`v$CORE_VERSION\` across all platforms" \
               --milestone "no-milestone" \
+              --label "no-ticket" \
               --body "Unified version bump.
 
           - **core** (\`nym-vpn-core/Cargo.toml\`): \`${{ steps.version.outputs.core_version }}\`

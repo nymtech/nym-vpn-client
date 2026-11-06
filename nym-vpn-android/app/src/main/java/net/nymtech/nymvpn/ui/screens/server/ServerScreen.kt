@@ -437,7 +437,7 @@ internal fun ServerScreenContent(
 					) {
 						val emptyStateText = when {
 							uiState.error -> stringResource(R.string.country_load_failure)
-							uiState.filter == ServerListFilter.FAVORITES -> stringResource(R.string.server_no_favorites_text)
+							uiState.filter == ServerListFilter.FAVORITES && !uiState.isLoading -> stringResource(R.string.server_no_favorites_text)
 							uiState.filter == ServerListFilter.RECENT && !uiState.isLoading -> stringResource(R.string.server_no_recents_text)
 							else -> stringResource(R.string.loading)
 						}

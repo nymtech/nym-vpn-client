@@ -1,0 +1,130 @@
+name: set-changelog-release-date
+
+# Opens a PR against the given branch replacing `## [<version>] - TBD` with
+# `## [<version>] - <YYYY-MM-DD>` in every platform changelog.
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        description: "Branch to update and open the PR against"
+        type: string
+        required: true
+      version:
+        description: "Released version (X.Y.Z)"
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to update and open the PR against"
+        type: string
+        default: develop
+      version:
+        description: "Released version (X.Y.Z)"
+        type: string
+        required: true
+      dry_run:
+        description: "Print git diff only, do not commit or open PR"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  GIT_USER: NYM CI
+  GIT_EMAIL: ci@nymtech.net
+
+jobs:
+  set-release-date:
+    runs-on: arc-linux-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout ${{ inputs.branch }}
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+          ref: ${{ inputs.branch }}
+
+      - name: Resolve release date
+        id: date
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error:: unsupported version: ${VERSION} (expected X.Y.Z)"
+            exit 1
+          fi
+          echo "release_date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+      - name: Update nym-vpn-core/CHANGELOG.md
+        uses: ./.github/actions/set-changelog-release-date
+        with:
+          changelog: nym-vpn-core/CHANGELOG.md
+          version: ${{ inputs.version }}
+          release_date: ${{ steps.date.outputs.release_date }}
+
+      - name: Update nym-vpn-app/CHANGELOG.md
+        uses: ./.github/actions/set-changelog-release-date
+        with:
+          changelog: nym-vpn-app/CHANGELOG.md
+          version: ${{ inputs.version }}
+          release_date: ${{ steps.date.outputs.release_date }}
+
+      - name: Update nym-vpn-android/CHANGELOG.md
+        uses: ./.github/actions/set-changelog-release-date
+        with:
+          changelog: nym-vpn-android/CHANGELOG.md
+          version: ${{ inputs.version }}
+          release_date: ${{ steps.date.outputs.release_date }}
+
+      - name: Update nym-vpn-apple/CHANGELOG.md
+        uses: ./.github/actions/set-changelog-release-date
+        with:
+          changelog: nym-vpn-apple/CHANGELOG.md
+          version: ${{ inputs.version }}
+          release_date: ${{ steps.date.outputs.release_date }}
+
+      - name: Show diff
+        id: diff
+        run: |
+          git diff
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create PR
+        if: ${{ steps.diff.outputs.changed == 'true' && !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ inputs.version }}
+          RELEASE_DATE: ${{ steps.date.outputs.release_date }}
+          BASE_BRANCH: ${{ inputs.branch }}
+          BRANCH_NAME: automation/changelog-release-date-v${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          git config --global user.name "$GIT_USER"
+          git config --global user.email "$GIT_EMAIL"
+          git switch -C "$BRANCH_NAME"
+          git commit -a -m "Set ${VERSION} release date in changelogs"
+          git push --force origin "$BRANCH_NAME"
+
+          existing=$(gh pr list --head "$BRANCH_NAME" --json number --jq 'length')
+          if [ "$existing" != "0" ]; then
+            echo "::notice:: PR already exists for ${BRANCH_NAME}, updated branch"
+            exit 0
+          fi
+
+          gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$BRANCH_NAME" \
+            --title "Set ${VERSION} release date in changelogs" \
+            --milestone "no-milestone" \
+            --label "no-ticket" \
+            --body "Replaces \`## [${VERSION}] - TBD\` with \`## [${VERSION}] - ${RELEASE_DATE}\` in the platform changelogs."

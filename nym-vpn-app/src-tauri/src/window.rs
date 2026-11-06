@@ -97,6 +97,35 @@ impl AppWindow {
         Ok(AppWindow(window))
     }
 
+    /// Workaround for the GTK 3 bundled in the AppImage (3.24.33, Ubuntu 22.04):
+    /// on Wayland a `gtk-cursor-theme-size` of 0 makes the cursor theme fail to
+    /// load, and the first cursor change then aborts the process on a g_assert
+    /// (GTK issue #5700, fixed upstream in 3.24.38). XFCE is known to write 0 into
+    /// `org.gnome.desktop.interface cursor-size`. Setting a non-zero size makes
+    /// GTK reload the theme before any cursor is used.
+    ///
+    /// Known limit: the value set here is an application override, so if the
+    /// desktop cursor size changes later in this session GTK keeps 24 until the
+    /// app restarts. Only affects setups that had 0, where the size was broken anyway.
+    #[cfg(target_os = "linux")]
+    pub fn fix_zero_cursor_size() {
+        use gtk::prelude::{DisplayExtManual, GtkSettingsExt};
+        // X11 treats 0 as "use the Xcursor default", only Wayland aborts on it.
+        let Some(display) = gtk::gdk::Display::default() else {
+            return;
+        };
+        if !display.backend().is_wayland() {
+            return;
+        }
+        let Some(settings) = gtk::Settings::default() else {
+            return;
+        };
+        if settings.gtk_cursor_theme_size() == 0 {
+            warn!("gtk-cursor-theme-size is 0, forcing 24 to avoid GTK Wayland crash");
+            settings.set_gtk_cursor_theme_size(24);
+        }
+    }
+
     /// set the background color of the webview window from saved
     /// theme settings (if any)
     #[instrument(skip_all)]

@@ -42,6 +42,9 @@
         <p>For more details, see https://nym.com/en/download/linux</p>
     </description>
     <releases>
+        <release version="2026.15.0" date="2026-11-05">
+            <url type="details">https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-v2026.15.0</url>
+        </release>
         <release version="2026.14.0" date="2026-10-21">
             <url type="details">https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-v2026.14.0</url>
         </release>
@@ -208,37 +211,37 @@
     <screenshots>
         <screenshot type="default">
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/home-connected.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/e33568f/nym-vpn-app/.pkg/screenshots/home-connected.png
             </image>
             <caption>Connect in dVPN or Mixnet mode and choose your entry and exit servers</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/profiles.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/e33568f/nym-vpn-app/.pkg/screenshots/profiles.png
             </image>
             <caption>Connect quickly with a profile tuned for speed, anonymity, or variety</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/settings.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/e33568f/nym-vpn-app/.pkg/screenshots/settings.png
             </image>
             <caption>Manage privacy settings including the kill switch and ad blocker</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/anti-censorship.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/e33568f/nym-vpn-app/.pkg/screenshots/anti-censorship.png
             </image>
             <caption>Get past VPN blocking with anti-censorship bridges and traffic obfuscation</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/mixnet-tuning.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/e33568f/nym-vpn-app/.pkg/screenshots/mixnet-tuning.png
             </image>
             <caption>Tune Mixnet cover traffic and packet mixing to balance speed and anonymity</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/dns.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/e33568f/nym-vpn-app/.pkg/screenshots/dns.png
             </image>
             <caption>Add custom DNS servers for ad-blocking, filtering, or a preferred provider</caption>
         </screenshot>

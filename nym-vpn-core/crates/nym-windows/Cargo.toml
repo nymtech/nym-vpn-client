@@ -41,4 +41,5 @@ windows-sys = { workspace = true, features = [
 
 [target.'cfg(windows)'.dev-dependencies]
 tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt"] }
 tokio-stream = { workspace = true, features = ["net"] }

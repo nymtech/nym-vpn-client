@@ -29,8 +29,8 @@ jobs:
     steps:
       - name: Require JIRA ticket or nymtech GitHub issue
         if: >
-          github.actor != 'dependabot[bot]' &&
-          github.actor != 'github-actions[bot]' &&
+          github.event.pull_request.user.login != 'dependabot[bot]' &&
+          github.event.pull_request.user.login != 'github-actions[bot]' &&
           contains(github.event.pull_request.labels.*.name, 'no-ticket') == false
         run: |
           python3 - <<'PY'

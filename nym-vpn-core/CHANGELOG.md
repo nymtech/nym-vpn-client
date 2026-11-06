@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [Linux] Add NetworkManager VPN plugin that can be used to manage VPN connection from system menu. Note that removing VPN from system network settings also disconnects VPN. In all other cases VPN is only managed via UI interaction by user. (https://github.com/nymtech/nym-vpn-client/pull/6873, https://github.com/nymtech/nym-vpn-client/pull/6861)
+- Add `NYM_VPN_API_URL_OVERRIDE` compile time environment variable to override VPN API server in `nym-vpnd` during development (https://github.com/nymtech/nym-vpn-client/pull/6962)
+
+### Fixed
+
+- Restrict allowed IPs for exit gateway (https://github.com/nymtech/nym-vpn-client/pull/6952)
+
+### Security
+
+- [Android] Build C/C++ dependencies of `nym-vpn-lib` with `-fstack-protector-strong` (https://github.com/nymtech/nym-vpn-client/pull/6960)
 
 
 ## [2026.15.0] - TBD
@@ -43,6 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stop the internal SOCKS5 mixnet client and its listener on `127.0.0.1:1081` when SOCKS5 is disabled, so the next enable starts a new mixnet client instead of reusing the first session's (https://github.com/nymtech/nym-vpn-client/pull/6854)
 - Enabling SOCKS5 now fails when the SOCKS5 address is already in use, instead of reporting success while nothing listens on it (https://github.com/nymtech/nym-vpn-client/pull/6854)
 - Stop emitting the same tunnel state twice while connecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6852)
+- Top-up blocking the shutdown (https://github.com/nymtech/nym-vpn-client/pull/6912)
+- Respect cancellation during skew resync after registration failure (https://github.com/nymtech/nym-vpn-client/pull/6953)
 
 ### Security
 
@@ -58,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Publish the app update policy, with optional per-platform overrides, from discovery so clients can ask for or require an update (https://github.com/nymtech/nym-vpn-client/pull/6450)
 - Add `polkit-1-auth-agent` to deb package dependencies to ensure that components used for graphical password prompts are installed alongside (https://github.com/nymtech/nym-vpn-client/pull/6502)
 - Add `nym-vpnc completions <shell>` to generate shell completions, and install bash, zsh and fish completions with the macOS, deb and AUR packages (https://github.com/nymtech/nym-vpn-client/pull/6735)
+- [core] QR pairing (https://github.com/nymtech/nym-vpn-client/pull/6730)
 
 ### Fixed
 
