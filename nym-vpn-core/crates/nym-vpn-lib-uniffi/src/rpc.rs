@@ -20,7 +20,7 @@ use nym_vpn_lib_types::{
     VpnServiceInfo,
 };
 
-use crate::authorization_manager::AuthorizationToken;
+use crate::authorization_token::AuthorizationToken;
 
 #[derive(Clone, uniffi::Object)]
 struct RpcClient {
@@ -505,11 +505,9 @@ impl RpcClient {
         Ok(())
     }
 
-    /// Authorize account operations with the token obtained from [`AuthorizationManager`].
+    /// Authorize account operations with the token obtained from [`AuthorizationToken::new`].
     ///
     /// The token is held until the daemon has verified it.
-    ///
-    /// [`AuthorizationManager`]: crate::authorization_manager::AuthorizationManager
     pub async fn authorize(&self, token: Arc<AuthorizationToken>) -> Result<()> {
         self.inner.clone().authorize(token.bytes().to_vec()).await?;
         Ok(())
@@ -560,9 +558,7 @@ impl RpcError {
     }
 
     /// Whether the daemon requires the user to be present. Confirm it with
-    /// [`AuthorizationManager`] and [`RpcClient::authorize`] before retrying.
-    ///
-    /// [`AuthorizationManager`]: crate::authorization_manager::AuthorizationManager
+    /// [`AuthorizationToken`] and [`RpcClient::authorize`] before retrying.
     pub fn is_user_presence_required(&self) -> bool {
         matches!(&self.inner, InnerRpcError::RpcError(err) if err.is_user_presence_required())
     }

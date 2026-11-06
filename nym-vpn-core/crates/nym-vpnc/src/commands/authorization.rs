@@ -15,7 +15,7 @@ pub struct AuthorizeArgs {
 
 pub async fn authorize(mut rpc_client: RpcClient, args: AuthorizeArgs) -> Result<()> {
     // Kept alive until the daemon has verified the token.
-    let authorization = Authorization::new(&args.reason)?;
+    let authorization = Authorization::request(&args.reason)?;
     rpc_client.authorize(authorization.token()?).await?;
     println!("Authorized");
     Ok(())

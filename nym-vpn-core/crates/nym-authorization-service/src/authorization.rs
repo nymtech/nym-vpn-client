@@ -25,7 +25,9 @@ pub struct Authorization(AuthorizationRef);
 impl Authorization {
     /// Ask the user logged in to the current session to authenticate. Blocks while the prompt is
     /// shown. `prompt` is displayed in the authentication dialog.
-    pub fn new(prompt: &str) -> Result<Self> {
+    ///
+    /// Never race multiple requests for authorization as each may present a UI prompt.
+    pub fn request(prompt: &str) -> Result<Self> {
         let mut auth_ref: AuthorizationRef = ptr::null();
         check(unsafe {
             AuthorizationCreate(

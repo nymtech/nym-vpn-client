@@ -22,7 +22,6 @@ let kRpcReconnectDelay = Duration.seconds(5)
     let logger = Logger(label: "GRPC Manager")
     var rpcClient: RpcClient?
     var authorizationTask: Task<Void, Error>?
-    var authorizationManager: AuthorizationManager?
     /// Incremented each time the daemon accepts an authorization.
     var authorizationGeneration = 0
 
