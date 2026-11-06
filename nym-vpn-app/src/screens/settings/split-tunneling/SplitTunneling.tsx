@@ -37,6 +37,7 @@ function SplitTunneling() {
     removeCustomApp,
     allViaVpn,
     setAllViaVpn,
+    allAppsLoading,
     isSupported,
   } = useSplitTunnel();
 
@@ -283,6 +284,7 @@ function SplitTunneling() {
           title={t('split-tunneling.add-custom-app')}
           leadingIcon="add"
           onClick={addCustomApp}
+          disabled={allAppsLoading}
         />
       )}
 
@@ -310,9 +312,11 @@ function SplitTunneling() {
                   <Switch
                     checked={allViaVpn}
                     onChange={handleAllViaVpnChange}
+                    disabled={allAppsLoading}
                   />
                 }
                 onClick={handleAllViaVpnChange}
+                disabled={allAppsLoading}
               />
             )}
 
@@ -343,6 +347,7 @@ function SplitTunneling() {
                           isRunning={(runningApps[app.name]?.length ?? 0) > 0}
                           onLaunch={handleLaunch}
                           onRemove={handleRemove}
+                          disabled={allAppsLoading}
                         />
                         {i < groupedApps[letter].length - 1 && (
                           <div className="bg-surface-hair mx-4 h-px" />
