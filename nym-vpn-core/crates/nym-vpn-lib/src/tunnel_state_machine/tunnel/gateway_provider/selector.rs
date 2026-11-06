@@ -467,6 +467,12 @@ pub async fn select_gateways(
                         };
                         in_country(&all_gateways) && !in_country(&bridged)
                     }
+                    nym_vpn_lib_types::EntryPoint::Region { region } => {
+                        let in_region = |list: &GatewayList| {
+                            list.clone().into_iter().any(|g| g.is_in_region(region))
+                        };
+                        in_region(&all_gateways) && !in_region(&bridged)
+                    }
                     _ => bridged.is_empty(),
                 };
                 // Auto retries with bridges as a fallback, so only On makes a missing bridge fatal.
@@ -689,6 +695,58 @@ mod tests {
         let result = select_pinned_without_bridge(nym_vpn_lib_types::BridgeMode::Auto).await;
 
         assert!(!matches!(
+            result,
+            Err(GatewayProviderError::EntryGatewayHasNoBridge)
+        ));
+    }
+
+    #[tokio::test]
+    async fn bridge_mode_on_region_without_bridge_returns_error() {
+        use nym_vpn_api_client::response::{
+            BridgeInformation, BridgeParameters, QuicClientOptions,
+        };
+
+        let in_region = |id: &str, region: &str| {
+            Gateway::builder()
+                .identity(id.parse().unwrap())
+                .location(Location {
+                    region: region.to_string(),
+                    ..Default::default()
+                })
+        };
+        let bridged = in_region(GW_ID_2, "CA")
+            .bridge_params(Some(BridgeInformation {
+                version: String::from("1"),
+                transports: Vec::new(),
+                transports_v2: vec![BridgeParameters::QuicPlain(QuicClientOptions {
+                    addresses: vec!["1.2.3.4:4443".parse().unwrap()],
+                    host: None,
+                    id_pubkey: GW_ID_2.to_string(),
+                })],
+            }))
+            .build();
+        let gateways = Arc::new(RwLock::new(Some(vec![
+            in_region(GW_ID_1, "TX").build(),
+            bridged,
+        ])));
+        let mut settings = default_tunnel_settings();
+        settings.wireguard_tunnel_options.bridge_mode = nym_vpn_lib_types::BridgeMode::On;
+        *settings.entry_point = EntryPoint::Region {
+            region: "TX".to_string(),
+        };
+
+        let result = select_gateways(
+            MockGatewayCache::new(gateways),
+            &BlacklistedGateways::new(),
+            &settings,
+            true,
+            None,
+            None,
+            &WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await;
+
+        assert!(matches!(
             result,
             Err(GatewayProviderError::EntryGatewayHasNoBridge)
         ));
