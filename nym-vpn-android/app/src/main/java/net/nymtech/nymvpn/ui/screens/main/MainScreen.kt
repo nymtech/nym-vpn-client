@@ -76,6 +76,7 @@ import net.nymtech.nymvpn.util.extensions.toConnectMode
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.AmneziaProtocol
 import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.EntryPoint
@@ -435,8 +436,12 @@ private fun MainScreenContent(
 	val wireguardTunnel = (appUiState.managerState.connectionData?.tunnel as? TunnelConnectionData.Wireguard)
 		.takeIf { connectionState == ConnectionState.Connected }
 	val bridgeTransport = wireguardTunnel?.v1?.entryBridgeAddr?.transport
+	val amnezia = wireguardTunnel?.v1?.amnezia
+	val awgVersion = if (amnezia?.protocol == AmneziaProtocol.AWG31) "3.1" else "1.0"
 	val bridgeText = when {
 		bridgeTransport != null -> stringResource(R.string.connection_status_bridge, bridgeTransport.name)
+		amnezia?.viaTranslator == true -> stringResource(R.string.connection_status_awg_bridge, awgVersion)
+		amnezia != null -> stringResource(R.string.connection_status_awg, awgVersion)
 		wireguardTunnel != null && appUiState.settings.bridgeMode == BridgeMode.AUTO ->
 			stringResource(R.string.connection_status_direct)
 		else -> null

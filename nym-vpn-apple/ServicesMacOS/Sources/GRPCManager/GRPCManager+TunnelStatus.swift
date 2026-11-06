@@ -15,7 +15,9 @@ extension GRPCManager {
                 entryGatewayId: details.entryGateway.id,
                 exitGatewayId: details.exitGateway.id,
                 tunnelType: ConnectionTunnelType(details.tunnel),
-                bridgeTransport: details.tunnel.bridgeTransportName
+                bridgeTransport: details.tunnel.bridgeTransportName,
+                amneziaVersion: details.tunnel.amneziaVersion,
+                amneziaViaTranslator: details.tunnel.amneziaViaTranslator
             )
         case let .connecting(
             retryAttempt: retryAttempt,
@@ -31,7 +33,9 @@ extension GRPCManager {
                 entryGatewayId: connectionData?.entryGateway.id,
                 exitGatewayId: connectionData?.exitGateway.id,
                 tunnelType: ConnectionTunnelType(tunnelType),
-                bridgeTransport: connectionData?.tunnel?.bridgeTransportName
+                bridgeTransport: connectionData?.tunnel?.bridgeTransportName,
+                amneziaVersion: connectionData?.tunnel?.amneziaVersion,
+                amneziaViaTranslator: connectionData?.tunnel?.amneziaViaTranslator
             )
         case .disconnected:
             tunnelStatus = .disconnected
