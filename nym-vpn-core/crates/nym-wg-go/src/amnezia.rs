@@ -91,6 +91,28 @@ impl AmneziaConfig {
     /// wireguard peers.
     pub const BASE: Self = BASE;
 
+    /// Junk packets only, with the count and sizes drawn per connection, so the burst sent before
+    /// the handshake has no fixed shape. Compatible with plain WireGuard peers, which ignore it.
+    pub fn junk(rng: &mut impl Rng) -> Self {
+        let min = rng.random_range(40..=120);
+        Self {
+            junk_pkt_count: rng.random_range(3..=8),
+            junk_pkt_min_size: min,
+            junk_pkt_max_size: rng.random_range(min + 30..=min + 250),
+            ..OFF
+        }
+    }
+
+    /// True when only the junk packet settings differ from [`AmneziaConfig::OFF`].
+    pub fn is_junk_only(&self) -> bool {
+        Self {
+            junk_pkt_count: 0,
+            junk_pkt_min_size: 0,
+            junk_pkt_max_size: 0,
+            ..self.clone()
+        } == OFF
+    }
+
     /// Creates a randomized configuration with parameters within suggested ranges.
     ///
     /// Attempts to retry if there is a collision in [H1, H2, H3, H4]. This should
@@ -126,7 +148,7 @@ impl AmneziaConfig {
         config_builder.add("jmin", self.junk_pkt_min_size.to_string().as_str());
         config_builder.add("jmax", self.junk_pkt_max_size.to_string().as_str());
 
-        if self == &BASE {
+        if self.is_junk_only() {
             return;
         }
 
@@ -282,6 +304,27 @@ mod test {
             "ab".repeat(32)
         );
         assert_eq!(config_builder.into_bytes(), expected.as_bytes());
+    }
+
+    #[test]
+    fn junk_config_varies_stays_valid_and_emits_only_junk_settings() {
+        let mut rng = rand::rng();
+        let draws: Vec<AmneziaConfig> = (0..200).map(|_| AmneziaConfig::junk(&mut rng)).collect();
+
+        for config in &draws {
+            assert!(config.validate());
+            assert!(config.is_junk_only());
+            assert!((3..=8).contains(&config.junk_pkt_count));
+            assert!(config.junk_pkt_min_size < config.junk_pkt_max_size);
+            assert!(config.junk_pkt_max_size <= 1280);
+        }
+        assert!(draws.iter().any(|c| c != &draws[0]));
+
+        let mut builder = UapiConfigBuilder::new();
+        draws[0].append_to(&mut builder);
+        let emitted = String::from_utf8(builder.into_bytes()).unwrap();
+        assert!(emitted.starts_with("jc="));
+        assert!(!emitted.contains("s1="));
     }
 
     #[test]

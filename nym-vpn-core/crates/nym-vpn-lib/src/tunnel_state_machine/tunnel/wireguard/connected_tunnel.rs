@@ -158,8 +158,9 @@ impl ConnectedTunnel {
             Some(tunnel_constants.fwmark),
         );
         if entry_amnezia {
-            wg_entry_config = wg_entry_config
-                .with_amnezia_config(entry_amnezia_config.unwrap_or(AmneziaConfig::BASE));
+            wg_entry_config = wg_entry_config.with_amnezia_config(
+                entry_amnezia_config.unwrap_or_else(|| AmneziaConfig::junk(&mut rand::rng())),
+            );
         }
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
@@ -305,8 +306,9 @@ impl ConnectedTunnel {
         );
 
         if entry_amnezia {
-            wg_entry_config = wg_entry_config
-                .with_amnezia_config(entry_amnezia_config.unwrap_or(AmneziaConfig::BASE));
+            wg_entry_config = wg_entry_config.with_amnezia_config(
+                entry_amnezia_config.unwrap_or_else(|| AmneziaConfig::junk(&mut rand::rng())),
+            );
         }
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
