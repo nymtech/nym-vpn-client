@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{Error, Result, commands::ReturnSender};
-use nym_vpn_api_client::types::{Device, VpnAccount, VpnAccountMode};
+use nym_vpn_api_client::types::{Device, VpnAccount};
 use nym_vpn_lib_types::StorableAccount;
 use nym_vpn_store::{
     VpnStorage,

@@ -23,7 +23,7 @@ use wiremock::{Mock, MockServer};
 use crate::common::credential_proxy::MockCredentialProxy;
 use nym_vpn_api_client::api_urls_to_urls;
 use tokio::{
-    sync::{broadcast, mpsc, watch},
+    sync::{mpsc, watch},
     task::JoinHandle,
 };
 use tokio_util::sync::{CancellationToken, DropGuard};
