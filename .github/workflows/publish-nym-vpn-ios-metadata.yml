@@ -68,9 +68,10 @@ jobs:
           if find "$tmp/x" -type l | grep -q .; then
             echo "::error::archive contains a symlink"; exit 1
           fi
-          # Every entry must be an image under fastlane/screenshots/ios/<locale>/.
+          # Every entry must be an image under fastlane/screenshots/ios/<locale>/,
+          # anchored at the extraction root (rejects misplaced or decoy paths).
           if find "$tmp/x" -type f -regextype egrep \
-               ! -iregex '.*/fastlane/screenshots/ios/[^/]+/[^/]+\.(jpg|jpeg|png)' | grep -q .; then
+               ! -iregex "$tmp/x/fastlane/screenshots/ios/[^/]+/[^/]+\.(jpg|jpeg|png)" | grep -q .; then
             echo "::error::archive contains unexpected files"; find "$tmp/x" -type f | head; exit 1
           fi
           n=$(find "$tmp/x/fastlane/screenshots/ios" -type f | wc -l | tr -d ' ')

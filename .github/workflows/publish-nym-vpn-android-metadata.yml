@@ -84,9 +84,11 @@ jobs:
           if find "$tmp/x" -type l | grep -q .; then
             echo "::error::archive contains a symlink"; exit 1
           fi
-          # Every entry must be an image in a recognized Play screenshot dir for a locale.
+          # Every entry must be an image in a recognized Play screenshot dir under a
+          # single locale dir, anchored at the extraction root (rejects misplaced files
+          # like <locale>/extra/images/... that pass a loose match but supply ignores).
           if find "$tmp/x" -type f -regextype egrep \
-               ! -iregex '.*/images/(phone|sevenInch|tenInch|tv|wear)Screenshots/[^/]+\.(jpg|jpeg|png)' | grep -q .; then
+               ! -iregex "$tmp/x/fastlane/metadata/android/[^/]+/images/(phone|sevenInch|tenInch|tv|wear)Screenshots/[^/]+\.(jpg|jpeg|png)" | grep -q .; then
             echo "::error::archive contains unexpected files"; find "$tmp/x" -type f | head; exit 1
           fi
           n=$(find "$tmp/x/fastlane/metadata/android" -type f | wc -l | tr -d ' ')
