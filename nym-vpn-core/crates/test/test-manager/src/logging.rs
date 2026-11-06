@@ -177,6 +177,7 @@ impl From<Result<Result<(), Error>, Panic>> for TestResult {
 
 /// Result from a test execution. This may carry information in case the test failed during
 /// execution.
+#[derive(Debug)]
 pub enum TestResult {
     /// Test passed.
     Pass,
@@ -320,15 +321,16 @@ impl TestOutput {
 mod tests {
     use super::{Panic, TestResult, is_skip_error};
     use crate::summary;
+    use std::assert_matches;
 
     #[test]
     fn skip_prefix_maps_to_skip_not_failure() {
         let err = anyhow::anyhow!("{} no inventory", super::SKIP_PREFIX);
         assert!(is_skip_error(&err));
         let result = TestResult::from(Ok::<Result<(), anyhow::Error>, Panic>(Err(err)));
-        assert!(matches!(result, TestResult::Skip(_)));
+        assert_matches!(result, TestResult::Skip(_));
         assert!(!result.failure());
-        assert!(matches!(result.summary(), summary::TestResult::Skip));
+        assert_matches!(result.summary(), summary::TestResult::Skip);
         assert!(result.anyhow().is_ok());
     }
 
@@ -338,7 +340,7 @@ mod tests {
         let err = anyhow::anyhow!("{} gap", super::SKIP_PREFIX).context("outer wrapper");
         assert!(is_skip_error(&err));
         let result = TestResult::from(Ok::<Result<(), anyhow::Error>, Panic>(Err(err)));
-        assert!(matches!(result, TestResult::Skip(_)));
+        assert_matches!(result, TestResult::Skip(_));
     }
 
     #[test]
@@ -346,7 +348,7 @@ mod tests {
         let err = anyhow::anyhow!("real failure");
         assert!(!is_skip_error(&err));
         let result = TestResult::from(Ok::<Result<(), anyhow::Error>, Panic>(Err(err)));
-        assert!(matches!(result, TestResult::Fail(_)));
+        assert_matches!(result, TestResult::Fail(_));
         assert!(result.failure());
     }
 }

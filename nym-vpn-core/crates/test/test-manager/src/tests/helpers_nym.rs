@@ -1118,7 +1118,7 @@ mod tests {
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
     use futures::StreamExt;
     use nym_vpn_proto::rpc_client::Error as NymClientError;
-    use std::{cell::Cell, collections::VecDeque, sync::Mutex};
+    use std::{assert_matches, cell::Cell, collections::VecDeque, sync::Mutex};
 
     fn sample_addr() -> std::net::SocketAddr {
         "93.184.216.34:443"
@@ -1200,7 +1200,7 @@ mod tests {
     fn exit_retry_on_any_upstream_classification_after_dns_failure() {
         let all =
             classify_upstream_probes(&[probe("9.9.9.9:853", None), probe("1.1.1.1:853", None)]);
-        assert!(matches!(all, DnsUpstreamReachability::AllReachable { .. }));
+        assert_matches!(all, DnsUpstreamReachability::AllReachable { .. });
         assert!(all.should_retry_with_new_exit());
         assert!(
             all.summary().contains("DoT/query may still fail"),
@@ -1212,17 +1212,14 @@ mod tests {
             probe("9.9.9.9:853", Some("timed out")),
             probe("1.1.1.1:853", Some("timed out")),
         ]);
-        assert!(matches!(
-            none,
-            DnsUpstreamReachability::NoneReachable { .. }
-        ));
+        assert_matches!(none, DnsUpstreamReachability::NoneReachable { .. });
         assert!(none.should_retry_with_new_exit());
 
         let partial = classify_upstream_probes(&[
             probe("9.9.9.9:853", None),
             probe("1.1.1.1:853", Some("timed out")),
         ]);
-        assert!(matches!(partial, DnsUpstreamReachability::Partial { .. }));
+        assert_matches!(partial, DnsUpstreamReachability::Partial { .. });
         assert!(partial.should_retry_with_new_exit());
     }
 
@@ -1438,12 +1435,12 @@ mod tests {
         .await
         .expect("reached state is a success");
 
-        assert!(matches!(
+        assert_matches!(
             state,
             ObservedTunnelState::Connected {
                 tunnel_type: ObservedTunnelType::Wireguard
             }
-        ));
+        );
         assert_eq!(disconnect.disconnects, 0);
     }
 
@@ -1559,7 +1556,7 @@ mod tests {
         .await
         .expect("reached state is a success");
 
-        assert!(matches!(state, ObservedAccountState::ReadyToConnect));
+        assert_matches!(state, ObservedAccountState::ReadyToConnect);
     }
 
     #[tokio::test]
@@ -1687,14 +1684,14 @@ mod tests {
 
     #[test]
     fn connected_wait_drops_daemon_rpc_but_disconnect_does_not() {
-        assert!(matches!(
+        assert_matches!(
             tunnel_wait_params(&ExpectedTunnelState::Connected),
             (WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, true)
-        ));
-        assert!(matches!(
+        );
+        assert_matches!(
             tunnel_wait_params(&ExpectedTunnelState::Disconnected),
             (WAIT_FOR_TUNNEL_STATE_TIMEOUT, false)
-        ));
+        );
     }
 
     #[tokio::test(start_paused = true)]
@@ -1735,7 +1732,7 @@ mod tests {
         let client: Result<&str, Error> = Ok("recreated");
 
         let (state, got) = merge_wait_and_client(observed, client).expect("success pairs both");
-        assert!(matches!(state, ObservedTunnelState::Disconnected));
+        assert_matches!(state, ObservedTunnelState::Disconnected);
         assert_eq!(got, "recreated");
     }
 

@@ -37,6 +37,7 @@ const POST_EOF_DRAIN_TIMEOUT: Duration = Duration::from_secs(5);
 /// Cap resync byte-skipping per decode call so pathological noise cannot spin forever.
 const MAX_RESYNC_BYTES_PER_DECODE: usize = 64 * 1024;
 
+#[derive(Debug)]
 pub enum Frame {
     Handshake,
     TestRunner(Bytes),
@@ -814,7 +815,7 @@ mod tests {
     };
     use bytes::Bytes;
     use futures::{SinkExt, StreamExt};
-    use std::{io, time::Duration};
+    use std::{assert_matches, io, time::Duration};
     use tokio::io::{AsyncReadExt, AsyncWriteExt, duplex};
     use tokio_util::codec::{Decoder, LengthDelimitedCodec};
 
@@ -936,8 +937,9 @@ mod tests {
             ForwardOutcome::SessionRestart
         );
         let trailing = tokio::time::timeout(Duration::from_millis(50), framed_peer.next()).await;
-        assert!(
-            matches!(trailing, Err(_) | Ok(None)),
+        assert_matches!(
+            trailing,
+            Err(_) | Ok(None),
             "a stray EOF frame would close the session that follows the restart: {trailing:?}"
         );
     }
@@ -1303,7 +1305,7 @@ mod tests {
             .expect("server runner transport remains open")
             .expect("runner frame is valid");
 
-        assert!(matches!(received, tarpc::ClientMessage::Request(_)));
+        assert_matches!(received, tarpc::ClientMessage::Request(_));
         flood.abort();
         client_task.abort();
         server_task.abort();
@@ -1429,10 +1431,10 @@ mod tests {
                 .expect("encode");
             again
         });
-        assert!(matches!(
+        assert_matches!(
             codec.decode(&mut src2).expect("decode"),
             Some(Frame::TestRunner(_))
-        ));
+        );
     }
 
     #[test]
@@ -1449,11 +1451,9 @@ mod tests {
         let err = codec
             .encode(Frame::TestRunner(oversized), &mut dst)
             .expect_err("frame at max without room for type byte must fail");
-        assert!(
-            matches!(
-                err.kind(),
-                io::ErrorKind::InvalidData | io::ErrorKind::InvalidInput
-            ),
+        assert_matches!(
+            err.kind(),
+            io::ErrorKind::InvalidData | io::ErrorKind::InvalidInput,
             "unexpected error kind: {:?}",
             err.kind()
         );
