@@ -1,0 +1,7 @@
+Restez connecté là où les VPN sont bloqués : les nouveaux modes de pont Off / Auto / On vous maintiennent en ligne lorsque votre réseau tente de bloquer la connexion, en changeant automatiquement de canal de connexion pour passer.
+
+Également dans cette version :
+• Consomme moins de batterie
+• État de connexion plus précis
+• Changement du bloqueur de publicités plus fluide
+• Rappels de renouvellement plus clairs et formulation plus cohérente dans toute l'application

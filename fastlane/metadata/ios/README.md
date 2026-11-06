@@ -9,6 +9,7 @@ Connect — one folder per App Store localization:
       keywords.txt          # ≤ 100 (comma-separated, no spaces)
       promotional_text.txt  # ≤ 170
       description.txt       # ≤ 4000
+      release_notes.txt     # ≤ 4000  — "What's New", overwritten each release
 
 ## What's here
 
@@ -22,9 +23,16 @@ so the purchase sheet shows the real regional price (decided 2026-11-04).
   `supply` metadata under `fastlane/metadata/android`.
 - `ar-SA` keywords were captured from live App Store Connect (2026-11-04).
 
+## Release notes (What's New) — managed here, per release
+
+`release_notes.txt` holds the current version's "What's New". App Store Connect attaches
+What's New to the **single editable App Store Version** (there is no per-build changelog like
+Google Play's `supply`), so this file is **overwritten each release** and `deliver` pushes it
+to the version being prepared. First set for **v2026.15 "Yari"** (2026-11-06) across 17 locales
+— the 16 listing locales plus **`bn`** (release_notes only; Bengali has no listing fields here yet).
+
 ## Not managed here (by design)
 
 - **Screenshots** — follow in a separate commit under `fastlane/screenshots/ios/<locale>/`.
-- **`release_notes` (What's New)** — version-specific; sourced at release time from the changelog flow.
 - **support/marketing/privacy URLs, copyright, categories, review info (demo account)** — stable,
   left App-Store-Connect-managed; deliver only touches fields whose files exist here.

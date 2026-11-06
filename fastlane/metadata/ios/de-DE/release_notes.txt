@@ -1,0 +1,7 @@
+Bleib verbunden, wo VPNs blockiert werden: Die neuen Brücken-Modi Off / Auto / On halten dich online, wenn dein Netzwerk die Verbindung zu blockieren versucht, und wechseln dazu automatisch den Übertragungsweg.
+
+Außerdem in dieser Version:
+• Verbraucht weniger Akku während der Verbindung
+• Genauerer Verbindungsstatus
+• Flüssigeres Umschalten des Werbeblockers
+• Klarere Verlängerungserinnerungen und einheitlichere Formulierungen in der gesamten App
