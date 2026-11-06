@@ -86,7 +86,8 @@ jobs:
           if grep -qE '^l' <<<"$(unzip -Z "$tmp/shots.zip")"; then
             echo "::error::archive contains a symlink entry"; exit 1
           fi
-          shopt -s nocasematch
+          # Case-sensitive: supply's Dir.glob uses lowercase extensions (Ruby 3.3 does not
+          # casefold it), so an uppercase-extension file would be counted but upload nothing.
           count=0
           while IFS= read -r entry; do
             [ -z "$entry" ] && continue

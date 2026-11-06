@@ -69,18 +69,21 @@ jobs:
           if grep -qE '^l' <<<"$(unzip -Z "$tmp/shots.zip")"; then
             echo "::error::archive contains a symlink entry"; exit 1
           fi
-          shopt -s nocasematch
+          # Case-sensitive: deliver's Dir.glob uses lowercase extensions (Ruby 3.3 does
+          # not casefold it), so an uppercase-extension file would be counted here but
+          # upload nothing. README.md is the one tracked non-image allowed in this dir.
           count=0
           while IFS= read -r entry; do
             [ -z "$entry" ] && continue
             [ "${entry%/}" != "$entry" ] && continue              # directory entry
             case "$entry" in /*) echo "::error::absolute path: $entry"; exit 1 ;; esac
             case "/$entry/" in */../*) echo "::error::path traversal: $entry"; exit 1 ;; esac
-            case "$entry" in
-              fastlane/screenshots/ios/*) : ;;                    # inside the git-ignored dir
-              *) echo "::error::unexpected entry: $entry"; exit 1 ;;
-            esac
-            [[ "$entry" =~ ^fastlane/screenshots/ios/[^/]+/[^/]+\.(jpg|jpeg|png)$ ]] && count=$((count+1))
+            case "$entry" in fastlane/screenshots/ios/README.md) continue ;; esac
+            if [[ "$entry" =~ ^fastlane/screenshots/ios/[^/]+/[^/]+\.(jpg|jpeg|png)$ ]]; then
+              count=$((count+1))
+            else
+              echo "::error::unexpected entry: $entry"; exit 1
+            fi
           done < <(unzip -Z1 "$tmp/shots.zip")
           echo "Validated $count iOS screenshots"
           test "$count" -gt 0
