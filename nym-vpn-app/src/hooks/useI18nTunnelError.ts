@@ -41,6 +41,8 @@ function useI18nTunnelError() {
           return t('tunnel.invalid-entry-gw-id');
         case 'invalid-exit-gw-id':
           return t('tunnel.invalid-exit-gw-id');
+        case 'entry-gw-has-no-bridge':
+          return t('tunnel.entry-gw-has-no-bridge');
         case 'max-devices-reached':
           return t('tunnel.max-devices-reached');
         case 'bandwidth-exceeded':

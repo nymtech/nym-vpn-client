@@ -445,14 +445,34 @@ pub async fn select_gateways(
                 .map_err(GatewayProviderError::LookupGateways)?;
 
             let entry_gateways = if use_bridges {
-                GatewayList::new(
+                let bridged = GatewayList::new(
                     all_gateways.gw_type(),
                     all_gateways
                         .clone()
                         .into_iter()
                         .filter(Gateway::is_quic_enabled)
                         .collect(),
-                )
+                );
+                let has_no_bridge = match tunnel_settings.entry_point.as_ref() {
+                    nym_vpn_lib_types::EntryPoint::Gateway { identity } => all_gateways
+                        .gateway_with_identity(identity.inner())
+                        .is_some_and(|gateway| !gateway.is_quic_enabled()),
+                    nym_vpn_lib_types::EntryPoint::Country {
+                        two_letter_iso_country_code: code,
+                    } => {
+                        let in_country = |list: &GatewayList| {
+                            list.all_iso_codes()
+                                .iter()
+                                .any(|iso| iso.eq_ignore_ascii_case(code))
+                        };
+                        in_country(&all_gateways) && !in_country(&bridged)
+                    }
+                    _ => bridged.is_empty(),
+                };
+                if has_no_bridge {
+                    return Err(GatewayProviderError::EntryGatewayHasNoBridge);
+                }
+                bridged
             } else {
                 all_gateways.clone()
             };
@@ -622,6 +642,34 @@ mod tests {
         assert!(matches!(
             result,
             Err(GatewayProviderError::SameEntryAndExitGateway { .. })
+        ));
+    }
+
+    #[tokio::test]
+    async fn pinned_entry_gateway_without_bridge_returns_error_when_bridges_required() {
+        let gateways = Arc::new(RwLock::new(Some(vec![
+            gateway_id_to_gateway(GW_ID_1),
+            gateway_id_to_gateway(GW_ID_2),
+        ])));
+        let mut settings = default_tunnel_settings();
+        *settings.entry_point = EntryPoint::Gateway {
+            identity: GW_ID_1.parse().unwrap(),
+        };
+
+        let result = select_gateways(
+            MockGatewayCache::new(gateways),
+            &BlacklistedGateways::new(),
+            &settings,
+            true,
+            None,
+            None,
+            &WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await;
+
+        assert!(matches!(
+            result,
+            Err(GatewayProviderError::EntryGatewayHasNoBridge)
         ));
     }
 
