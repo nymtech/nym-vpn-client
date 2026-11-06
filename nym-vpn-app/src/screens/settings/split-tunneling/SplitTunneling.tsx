@@ -35,6 +35,9 @@ function SplitTunneling() {
     addCustomApp,
     remove,
     removeCustomApp,
+    allViaVpn,
+    setAllViaVpn,
+    allAppsLoading,
     isSupported,
   } = useSplitTunnel();
 
@@ -214,6 +217,10 @@ function SplitTunneling() {
     await setEnabled(!enabled);
   };
 
+  const handleAllViaVpnChange = async () => {
+    await setAllViaVpn(!allViaVpn);
+  };
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -277,6 +284,7 @@ function SplitTunneling() {
           title={t('split-tunneling.add-custom-app')}
           leadingIcon="add"
           onClick={addCustomApp}
+          disabled={allAppsLoading}
         />
       )}
 
@@ -294,6 +302,23 @@ function SplitTunneling() {
             <p className="text-text-primary text-base font-semibold select-none">
               {t('split-tunneling.apps')} ({apps.length})
             </p>
+
+            {/* Toggle every app at once, Windows only (Linux has no per-app control) */}
+            {os === 'windows' && (
+              <SettingsMenuCard
+                title={t('split-tunneling.all-apps')}
+                leadingIcon="shield"
+                trailingComponent={
+                  <Switch
+                    checked={allViaVpn}
+                    onChange={handleAllViaVpnChange}
+                    disabled={allAppsLoading}
+                  />
+                }
+                onClick={handleAllViaVpnChange}
+                disabled={allAppsLoading}
+              />
+            )}
 
             {/* App list with alphabetical sidebar */}
             <div className="flex items-stretch gap-0">
@@ -322,6 +347,7 @@ function SplitTunneling() {
                           isRunning={(runningApps[app.name]?.length ?? 0) > 0}
                           onLaunch={handleLaunch}
                           onRemove={handleRemove}
+                          disabled={allAppsLoading}
                         />
                         {i < groupedApps[letter].length - 1 && (
                           <div className="bg-surface-hair mx-4 h-px" />

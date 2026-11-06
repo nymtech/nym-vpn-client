@@ -28663,6 +28663,17 @@
         }
       }
     },
+    "splitTunnel.allApps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All apps via NymVPN"
+          }
+        }
+      }
+    },
     "splitTunnel.apps" : {
       "extractionState" : "manual",
       "localizations" : {
