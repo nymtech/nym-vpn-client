@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Show a specific error when Enhanced connection is On and the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6975)
 - Show app window with quit prompt when attempting to quit from app menu with no visible windows (https://github.com/nymtech/nym-vpn-client/pull/6899)
 
 

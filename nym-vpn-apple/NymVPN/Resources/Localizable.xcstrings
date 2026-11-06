@@ -7851,6 +7851,17 @@
         }
       }
     },
+    "errorReason.entryGatewayHasNoBridge" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This server doesn't offer a bridge. Choose another server or set Enhanced connection to Auto or Off."
+          }
+        }
+      }
+    },
     "errorReason.invalidEntryGatewayCountry" : {
       "extractionState" : "manual",
       "localizations" : {
