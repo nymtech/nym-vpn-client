@@ -478,6 +478,10 @@ impl NymVpnService {
         parameters: NymVpnServiceParameters,
         shutdown_token: CancellationToken,
     ) -> Result<Self> {
+        #[cfg(target_os = "macos")]
+        AuthorizationService::register_unlock_right()
+            .map_err(Error::RegisterAuthenticationServiceRights)?;
+
         let network_cache = parameters.network_cache;
         let network_env = network_cache
             .network()
@@ -508,11 +512,6 @@ impl NymVpnService {
             .create_directories()
             .await
             .map_err(Error::PathsSetup)?;
-
-        #[cfg(target_os = "macos")]
-        if let Err(err) = AuthorizationService::register_unlock_right() {
-            tracing::error!("Failed to register unlock right: {err}");
-        }
 
         let storage = crate::storage::VpnClientOnDiskStorage::new(paths.network_data_dir.clone());
 
