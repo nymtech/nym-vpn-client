@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Restrict allowed IPs for exit gateway (https://github.com/nymtech/nym-vpn-client/pull/6952)
+- Report a missing bridge for Region entry points (https://github.com/nymtech/nym-vpn-client/pull/6977)
 
 ### Security
 
