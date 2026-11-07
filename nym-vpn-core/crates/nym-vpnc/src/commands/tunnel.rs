@@ -99,7 +99,7 @@ impl Command {
                 println!("Two-hop: {}", display_on_off(config.enable_two_hop));
                 println!("Netstack: {}", display_on_off(config.netstack));
                 println!("Circumvention transports: {:?}", config.bridge_mode);
-                println!("AmneziaWG translator: {:?}", config.amnezia_mode);
+                println!("AmneziaWG mode: {:?}", config.amnezia_mode);
                 println!("Mixnet traffic configuration: {}", config.mixnet_traffic);
                 println!("Gateway independence: {}", config.gateway_independence);
 

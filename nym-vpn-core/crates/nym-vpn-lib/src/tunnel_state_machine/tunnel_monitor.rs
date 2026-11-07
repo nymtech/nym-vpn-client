@@ -904,7 +904,7 @@ impl TunnelMonitor {
                             ConnectionStatusEvent::IntermittentFailure { retry } => {
                                 tracing::info!("Tunnel connection is failing (retry: {retry})");
                             }
-                            ConnectionStatusEvent::Failed if via_amnezia && !has_sent_up_event => {
+                            ConnectionStatusEvent::Failed if via_amnezia && !metadata_endpoint_viable => {
                                 tracing::info!("AmneziaWG bridge tunnel never came up. Exiting");
                                 self.send_event(TunnelMonitorEvent::AmneziaFailed);
                                 break;
