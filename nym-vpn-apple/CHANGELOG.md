@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Show the AmneziaWG protocol as base or latest in the connection status instead of the version number
+
 ### Fixed
 
 - Show app window with quit prompt when attempting to quit from app menu with no visible windows (https://github.com/nymtech/nym-vpn-client/pull/6899)

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Show the AmneziaWG protocol as base or latest in the connection status instead of the version number
 - Build the server list off the main thread with search debounce (https://github.com/nymtech/nym-vpn-client/pull/6959)
 - Decode only the gateway list that changed in DataStoreGatewayRepository (https://github.com/nymtech/nym-vpn-client/pull/6959)
 - Cache flag resource IDs instead of calling getIdentifier for every row (https://github.com/nymtech/nym-vpn-client/pull/6959)
