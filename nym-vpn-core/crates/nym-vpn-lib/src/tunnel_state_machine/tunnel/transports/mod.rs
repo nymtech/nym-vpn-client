@@ -34,15 +34,17 @@ pub(crate) fn filter_bridge_params_ipv4_only(mut params: ClientConfig) -> Client
 const AMNEZIA_PROTOCOLS: [u16; 2] = [PROTOCOL_AWG_3_1, PROTOCOL_AWG_1_0];
 
 /// Bridge translator endpoint on the entry gateway's own IP and the AmneziaWG config to dial it
-/// with, for the most preferred protocol the gateway advertises with valid params.
+/// with, for the most preferred protocol of at least `min_version` the gateway advertises with
+/// valid params.
 pub(crate) fn amnezia_entry(
     params: &PersistedClientConfig,
     entry_endpoint: SocketAddr,
+    min_version: u16,
 ) -> Option<(SocketAddr, AmneziaProtocol, AmneziaConfig)> {
     AMNEZIA_PROTOCOLS.iter().find_map(|version| {
         params
             .amnezia_profiles()
-            .filter(|a| a.protocol_version == *version)
+            .filter(|a| a.protocol_version == *version && *version >= min_version)
             .find_map(|amnezia| {
                 let endpoint = *amnezia
                     .addresses
@@ -143,7 +145,7 @@ mod tests {
             2_028_465_083,
         );
 
-        let (endpoint, _, config) = amnezia_entry(&params, entry).unwrap();
+        let (endpoint, _, config) = amnezia_entry(&params, entry, 0).unwrap();
 
         assert_eq!(endpoint, "1.2.3.4:51830".parse().unwrap());
         assert_eq!(config.init_pkt_junk_size, 40);
@@ -172,11 +174,11 @@ mod tests {
             ..bridge_params(vec![], 0)
         };
 
-        assert!(amnezia_entry(&unknown_version, entry).is_none());
-        assert!(amnezia_entry(&other_ip, entry).is_none());
-        assert!(amnezia_entry(&colliding, entry).is_none());
-        assert!(amnezia_entry(&not_i32, entry).is_none());
-        assert!(amnezia_entry(&absent, entry).is_none());
+        assert!(amnezia_entry(&unknown_version, entry, 0).is_none());
+        assert!(amnezia_entry(&other_ip, entry, 0).is_none());
+        assert!(amnezia_entry(&colliding, entry, 0).is_none());
+        assert!(amnezia_entry(&not_i32, entry, 0).is_none());
+        assert!(amnezia_entry(&absent, entry, 0).is_none());
     }
 
     #[test]
@@ -198,7 +200,7 @@ mod tests {
             ..bridge_params(vec![], 0)
         };
 
-        let (endpoint, _, config) = amnezia_entry(&params, entry).unwrap();
+        let (endpoint, _, config) = amnezia_entry(&params, entry, 0).unwrap();
 
         assert_eq!(endpoint, "1.2.3.4:51831".parse().unwrap());
         assert_eq!(config.transport_pkt_junk_size, 16);
@@ -207,6 +209,15 @@ mod tests {
         assert_eq!(config.header_protection_key, Some("ab".repeat(32)));
         assert!(config.random_trailers);
         assert_eq!(config.init_pkt_magic_header, 1);
+    }
+
+    #[test]
+    fn amnezia_entry_skips_versions_below_the_minimum() {
+        let entry: SocketAddr = "1.2.3.4:51822".parse().unwrap();
+        let awg_1_0_only = bridge_params(vec!["1.2.3.4:51830".parse().unwrap()], 2_028_465_083);
+
+        assert!(amnezia_entry(&awg_1_0_only, entry, PROTOCOL_AWG_1_0).is_some());
+        assert!(amnezia_entry(&awg_1_0_only, entry, PROTOCOL_AWG_3_1).is_none());
     }
 
     #[test]
@@ -230,7 +241,7 @@ mod tests {
             ..bridge_params(vec![], 0)
         };
 
-        let (endpoint, _, config) = amnezia_entry(&params, entry).unwrap();
+        let (endpoint, _, config) = amnezia_entry(&params, entry, 0).unwrap();
 
         assert_eq!(endpoint, "1.2.3.4:51830".parse().unwrap());
         assert_eq!(config.transport_pkt_junk_size, 0);
@@ -269,7 +280,7 @@ mod tests {
             String::from_utf8(builder.into_bytes()).unwrap()
         };
 
-        let (endpoint, protocol, awg_3_1) = amnezia_entry(&params, entry).unwrap();
+        let (endpoint, protocol, awg_3_1) = amnezia_entry(&params, entry, 0).unwrap();
         assert_eq!(protocol, AmneziaProtocol::Awg31);
         assert_eq!(endpoint, "192.168.100.3:51831".parse().unwrap());
         assert_eq!(
@@ -283,7 +294,7 @@ mod tests {
             transports_v2: awg(params.amnezia_profiles().take(1).cloned().collect()),
             ..params
         };
-        let (endpoint, protocol, awg_1_0) = amnezia_entry(&awg_1_0_only, entry).unwrap();
+        let (endpoint, protocol, awg_1_0) = amnezia_entry(&awg_1_0_only, entry, 0).unwrap();
         assert_eq!(protocol, AmneziaProtocol::Awg10);
         assert_eq!(endpoint, "192.168.100.3:51830".parse().unwrap());
         assert_eq!(

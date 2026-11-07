@@ -35,5 +35,6 @@ typed-builder.workspace = true
 url.workspace = true
 
 [dev-dependencies]
+nym-crypto = { workspace = true, features = ["asymmetric"] }
 tempfile.workspace = true
 tokio = { workspace = true, features = ["full"] }
