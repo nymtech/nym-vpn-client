@@ -238,6 +238,12 @@ impl Network {
             .and_then(|ff| ff.bridge_transports_enabled())
     }
 
+    pub fn amnezia_enabled(&self) -> Option<bool> {
+        self.feature_flags
+            .as_ref()
+            .and_then(|ff| ff.amnezia_enabled())
+    }
+
     pub async fn vpn_api_addresses(&self) -> Vec<SocketAddr> {
         let mut unique: HashSet<SocketAddr> = HashSet::with_capacity(16);
 

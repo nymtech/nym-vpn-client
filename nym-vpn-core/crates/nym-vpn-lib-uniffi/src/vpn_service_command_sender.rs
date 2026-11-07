@@ -11,12 +11,13 @@ use nym_vpn_lib::service::{
 use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
-    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks, Profile,
-    QrPairingConfirmation, QrUrl, RecentGateways, RegisterAccountRequest, RegisterAccountResponse,
-    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
-    TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    AccountCommandError, AccountControllerState, AmneziaMode, AppCompatibility, AutologinResponse,
+    BridgeMode, DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode,
+    Gateway, GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks,
+    Profile, QrPairingConfirmation, QrUrl, RecentGateways, RegisterAccountRequest,
+    RegisterAccountResponse, StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState,
+    TentativeGateways, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig,
+    VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -148,6 +149,11 @@ impl NymVpnServiceCommandSender {
 
     pub async fn set_bridge_mode(&self, bridge_mode: BridgeMode) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::SetBridgeMode, bridge_mode)
+            .await
+    }
+
+    pub async fn set_amnezia_mode(&self, amnezia_mode: AmneziaMode) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetAmneziaMode, amnezia_mode)
             .await
     }
 

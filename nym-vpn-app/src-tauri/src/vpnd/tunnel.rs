@@ -53,11 +53,28 @@ pub enum BridgeTransport {
     Ssh,
 }
 
+#[derive(Serialize, Clone, Copy, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub struct AmneziaConnection {
+    pub protocol: AmneziaProtocol,
+    pub via_translator: bool,
+}
+
+#[derive(Serialize, Clone, Copy, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub enum AmneziaProtocol {
+    Awg10,
+    Awg31,
+}
+
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct WireguardData {
     pub entry_bridge_addr: Option<BridgeAddress>,
+    pub amnezia: Option<AmneziaConnection>,
     pub entry: WgNode,
     pub exit: WgNode,
 }
@@ -218,10 +235,23 @@ impl From<lib::BridgeTransport> for BridgeTransport {
     }
 }
 
+impl From<lib::AmneziaConnection> for AmneziaConnection {
+    fn from(amnezia: lib::AmneziaConnection) -> Self {
+        AmneziaConnection {
+            protocol: match amnezia.protocol {
+                lib::AmneziaProtocol::Awg10 => AmneziaProtocol::Awg10,
+                lib::AmneziaProtocol::Awg31 => AmneziaProtocol::Awg31,
+            },
+            via_translator: amnezia.via_translator,
+        }
+    }
+}
+
 impl From<lib::WireguardConnectionData> for WireguardData {
     fn from(data: lib::WireguardConnectionData) -> Self {
         WireguardData {
             entry_bridge_addr: data.entry_bridge_addr.map(BridgeAddress::from),
+            amnezia: data.amnezia.map(AmneziaConnection::from),
             entry: data.entry.into(),
             exit: data.exit.into(),
         }

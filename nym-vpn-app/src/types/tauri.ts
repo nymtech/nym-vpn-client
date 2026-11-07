@@ -30,6 +30,13 @@ export type AsnType = 'other' | 'residential';
 
 export type BackgroundCoverTrafficRate = { value: number; multiplier: string };
 
+export type AmneziaConnection = {
+  protocol: AmneziaProtocol;
+  viaTranslator: boolean;
+};
+
+export type AmneziaProtocol = 'awg10' | 'awg31';
+
 export type BridgeAddress = {
   listenAddr: string;
   remoteAddr: string;
@@ -656,6 +663,7 @@ export type WindowSize =
 
 export type WireguardData = {
   entryBridgeAddr: BridgeAddress | null;
+  amnezia: AmneziaConnection | null;
   entry: WgNode;
   exit: WgNode;
 };

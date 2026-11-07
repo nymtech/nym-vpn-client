@@ -27,6 +27,8 @@ export function NewBottomComponent() {
     tunnel && isWireguardData(tunnel.data)
       ? tunnel.data.entryBridgeAddr
       : undefined;
+  const amnezia =
+    tunnel && isWireguardData(tunnel.data) ? tunnel.data.amnezia : undefined;
   const bridgeStatus =
     state !== 'connected'
       ? null
@@ -34,9 +36,13 @@ export function NewBottomComponent() {
         ? t('connected-via-bridge', {
             transport: entryBridge.transport.toUpperCase(),
           })
-        : bridgeMode === 'auto' && tunnel && isWireguardData(tunnel.data)
-          ? t('connected-directly')
-          : null;
+        : amnezia
+          ? t(amnezia.viaTranslator ? 'connected-via-awg' : 'connected-awg', {
+              version: amnezia.protocol === 'awg31' ? '3.1' : '1.0',
+            })
+          : bridgeMode === 'auto' && tunnel && isWireguardData(tunnel.data)
+            ? t('connected-directly')
+            : null;
 
   const daemonUnavailable =
     daemonStatus === 'auth-denied' || daemonStatus === 'down';

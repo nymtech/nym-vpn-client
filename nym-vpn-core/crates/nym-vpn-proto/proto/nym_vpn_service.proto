@@ -332,6 +332,7 @@ message VpnServiceConfig {
   FrontingModes fronting_mode = 31;
   GatewayIndependence gateway_independence = 32;
   BridgeModes bridge_mode = 34;
+  AmneziaModes amnezia_mode = 35;
 }
 
 message NetworkStatsConfig {
@@ -564,6 +565,17 @@ message WireguardConnectionData {
   WireguardNode entry = 1;
   WireguardNode exit = 2;
   optional BridgeAddress entry_bridge_addr = 3;
+  optional AmneziaConnection amnezia = 4;
+}
+
+message AmneziaConnection {
+  AmneziaProtocol protocol = 1;
+  bool via_translator = 2;
+}
+
+enum AmneziaProtocol {
+  AMNEZIA_PROTOCOL_AWG_1_0 = 0;
+  AMNEZIA_PROTOCOL_AWG_3_1 = 1;
 }
 
 message WireguardNode {
@@ -1149,6 +1161,12 @@ enum BridgeModes {
   BRIDGE_MODES_AUTO = 2;
 }
 
+enum AmneziaModes {
+  AMNEZIA_MODES_JUNK = 0;
+  AMNEZIA_MODES_OFF = 1;
+  AMNEZIA_MODES_AUTO = 2;
+}
+
 enum FrontingModes {
   ON_RETRY = 0;
   ALWAYS = 1;
@@ -1161,6 +1179,10 @@ message FrontingModeRequest {
 
 message BridgeModeRequest {
   BridgeModes mode = 1;
+}
+
+message AmneziaModeRequest {
+  AmneziaModes mode = 1;
 }
 
 message PrivyDerivationMessage {
@@ -1323,6 +1345,7 @@ service NymVpnService {
   rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetBridgeMode(BridgeModeRequest) returns (google.protobuf.Empty) {}
+  rpc SetAmneziaMode(AmneziaModeRequest) returns (google.protobuf.Empty) {}
   rpc SetEnableAdBlocking(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableConflictDetection(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}

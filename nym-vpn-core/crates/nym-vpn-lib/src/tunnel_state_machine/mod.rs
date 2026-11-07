@@ -86,11 +86,11 @@ use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle, NodeIdentity};
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, BridgeMode, ConflictDetected,
-    ConnectionData, DiagnosticsSuggestionReason, DnsServer, EntryPoint, ErrorStateReason,
-    EstablishConnectionData, EstablishConnectionState, ExitPoint, GatewayIndependence,
-    GatewaySelectionAlgorithmConfig, GeoExclusionSettings, SelectorFallbackState,
-    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, AmneziaMode, BridgeMode,
+    ConflictDetected, ConnectionData, DiagnosticsSuggestionReason, DnsServer, EntryPoint,
+    ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
+    GatewayIndependence, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
+    SelectorFallbackState, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -403,6 +403,12 @@ impl TunnelSettings {
             {
                 diff.add(TunnelSettingsDiffFields::QUIC);
             }
+            // The translator choice is made on entering the connecting state, like the bridges.
+            if self.wireguard_tunnel_options.amnezia_mode
+                != other.wireguard_tunnel_options.amnezia_mode
+            {
+                diff.add(TunnelSettingsDiffFields::QUIC);
+            }
         }
         if self.gateway_performance_options != other.gateway_performance_options {
             diff.add(TunnelSettingsDiffFields::GatewayPerformanceOptions);
@@ -613,6 +619,7 @@ pub enum WireguardMultihopMode {
 pub struct WireguardTunnelOptions {
     pub multihop_mode: WireguardMultihopMode,
     pub bridge_mode: BridgeMode,
+    pub amnezia_mode: AmneziaMode,
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]

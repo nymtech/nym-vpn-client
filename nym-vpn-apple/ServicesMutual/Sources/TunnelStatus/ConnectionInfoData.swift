@@ -3,17 +3,23 @@ public struct ConnectionInfoData: Codable, Equatable {
     public let exitGatewayId: String?
     public let tunnelType: ConnectionTunnelType?
     public let bridgeTransport: String?
+    public let amneziaVersion: String?
+    public let amneziaViaTranslator: Bool?
 
     public init(
         entryGatewayId: String?,
         exitGatewayId: String?,
         tunnelType: ConnectionTunnelType? = nil,
-        bridgeTransport: String? = nil
+        bridgeTransport: String? = nil,
+        amneziaVersion: String? = nil,
+        amneziaViaTranslator: Bool? = nil
     ) {
         self.entryGatewayId = entryGatewayId
         self.exitGatewayId = exitGatewayId
         self.tunnelType = tunnelType
         self.bridgeTransport = bridgeTransport
+        self.amneziaVersion = amneziaVersion
+        self.amneziaViaTranslator = amneziaViaTranslator
     }
 }
 

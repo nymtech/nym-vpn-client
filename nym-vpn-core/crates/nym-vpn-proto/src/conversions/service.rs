@@ -60,6 +60,9 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
         let bridge_mode = proto::BridgeModes::try_from(value.bridge_mode)
             .map_err(|e| ConversionError::Decode("bridge_mode", e))?
             .into();
+        let amnezia_mode = proto::AmneziaModes::try_from(value.amnezia_mode)
+            .map_err(|e| ConversionError::Decode("amnezia_mode", e))?
+            .into();
         let fronting_mode = proto::FrontingModes::try_from(value.fronting_mode)
             .map_err(|e| ConversionError::Decode("fronting_mode", e))?
             .into();
@@ -77,6 +80,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
             bridge_mode,
+            amnezia_mode,
             enable_ad_blocking: value.enable_ad_blocking,
             enable_conflict_detection: value.enable_conflict_detection,
             fronting_mode,
@@ -117,6 +121,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
             bridge_mode: proto::BridgeModes::from(value.bridge_mode).into(),
+            amnezia_mode: proto::AmneziaModes::from(value.amnezia_mode).into(),
             enable_ad_blocking: value.enable_ad_blocking,
             enable_conflict_detection: value.enable_conflict_detection,
             fronting_mode: proto::FrontingModes::from(value.fronting_mode).into(),
@@ -198,6 +203,26 @@ impl From<proto::BridgeModes> for nym_vpn_lib_types::BridgeMode {
             proto::BridgeModes::Off => nym_vpn_lib_types::BridgeMode::Off,
             proto::BridgeModes::On => nym_vpn_lib_types::BridgeMode::On,
             proto::BridgeModes::Auto => nym_vpn_lib_types::BridgeMode::Auto,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::AmneziaMode> for proto::AmneziaModes {
+    fn from(value: nym_vpn_lib_types::AmneziaMode) -> Self {
+        match value {
+            nym_vpn_lib_types::AmneziaMode::Off => proto::AmneziaModes::Off,
+            nym_vpn_lib_types::AmneziaMode::Junk => proto::AmneziaModes::Junk,
+            nym_vpn_lib_types::AmneziaMode::Auto => proto::AmneziaModes::Auto,
+        }
+    }
+}
+
+impl From<proto::AmneziaModes> for nym_vpn_lib_types::AmneziaMode {
+    fn from(val: proto::AmneziaModes) -> Self {
+        match val {
+            proto::AmneziaModes::Off => nym_vpn_lib_types::AmneziaMode::Off,
+            proto::AmneziaModes::Junk => nym_vpn_lib_types::AmneziaMode::Junk,
+            proto::AmneziaModes::Auto => nym_vpn_lib_types::AmneziaMode::Auto,
         }
     }
 }

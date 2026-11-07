@@ -46,7 +46,7 @@ use nym_gateway_directory::{BlacklistReason, ResolvedConfig};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 use nym_vpn_lib_types::{
-    BridgeMode, EstablishConnectionData, EstablishConnectionState, GatewayLightInfo,
+    AmneziaMode, BridgeMode, EstablishConnectionData, EstablishConnectionState, GatewayLightInfo,
     SelectorFallbackState, TunnelType,
 };
 
@@ -74,6 +74,10 @@ pub struct ConnectingState {
     use_bridges: bool,
     /// Whether a bridge attempt falls back from QUIC to TLS and SSH, per the network flag.
     bridge_fallback: bool,
+    /// Entry AmneziaWG translator allowed: mode auto and the `amnezia.enabled` flag.
+    amnezia_translator: bool,
+    /// AmneziaWG junk packets on the plain WireGuard path: any mode but off.
+    amnezia_obfuscation: bool,
     last_connection_state: Option<EstablishConnectionState>,
     tunnel_monitor_handle: Option<TunnelMonitorHandle>,
     tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
@@ -119,6 +123,22 @@ impl ConnectingState {
             .borrow()
             .bridge_transports_enabled()
             .unwrap_or(false);
+        let amnezia_obfuscation = shared_state
+            .tunnel_settings
+            .wireguard_tunnel_options
+            .amnezia_mode
+            != AmneziaMode::Off;
+        let amnezia_translator = shared_state
+            .tunnel_settings
+            .wireguard_tunnel_options
+            .amnezia_mode
+            == AmneziaMode::Auto
+            && shared_state
+                .nym_config
+                .network_rx
+                .borrow()
+                .amnezia_enabled()
+                .unwrap_or(false);
 
         if selected_gateways.is_none() {
             let tunnel_settings = shared_state.tunnel_settings.clone();
@@ -246,6 +266,8 @@ impl ConnectingState {
             retry_attempt,
             use_bridges,
             bridge_fallback,
+            amnezia_translator,
+            amnezia_obfuscation,
             selector_fallback_state: Default::default(),
             selected_gateways,
             connection_data: initial_connection_data.clone(),
@@ -499,6 +521,8 @@ impl ConnectingState {
             selected_gateways: self.selected_gateways.clone(),
             use_bridges: self.use_bridges,
             bridge_fallback: self.bridge_fallback,
+            amnezia_translator: self.amnezia_translator,
+            amnezia_obfuscation: self.amnezia_obfuscation,
             user_agent: shared_state.user_agent.clone(),
             #[cfg(not(target_os = "android"))]
             filtering_resolver_addr: shared_state.filtering_resolver.listen_addr(),
@@ -856,6 +880,15 @@ impl TunnelStateHandler for ConnectingState {
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
+                    TunnelMonitorEvent::AmneziaFailed => {
+                        // The entry's AmneziaWG bridge did not connect. Retry the same gateways in
+                        // base mode on the plain WireGuard port; a second failure blacklists as usual.
+                        tracing::warn!("AmneziaWG bridge failed, retrying the entry gateway in base mode");
+                        if let Some(gateways) = self.selected_gateways.as_mut() {
+                            gateways.clear_entry_amnezia();
+                        }
+                        NextTunnelState::SameState(self)
+                    }
                     TunnelMonitorEvent::MetadataFailed { gateway_id } => {
                         shared_state.gateway_provider.add_blacklisted_gateway(
                             gateway_id,
@@ -1071,7 +1104,7 @@ fn bridge_endpoints_for(gateway: &Gateway, allow_fallback: bool) -> Vec<Endpoint
         .chain(&fallback)
         .flat_map(|params| {
             let protocol = match params {
-                ClientConfig::QuicPlain(_) => TransportProtocol::Udp,
+                ClientConfig::QuicPlain(_) | ClientConfig::Amnezia(_) => TransportProtocol::Udp,
                 ClientConfig::TlsPlain(_) | ClientConfig::SshPlain(_) => TransportProtocol::Tcp,
             };
             params

@@ -13,6 +13,6 @@ public struct GatewayBridgeInformation: Codable, Hashable {
 public extension GatewayBridgeInformation {
     init?(with info: PersistedClientConfig?) {
         guard let info else { return nil }
-        self.init(version: info.version, transports: info.transports.map { GatewayBridgeParameters(with: $0) })
+        self.init(version: info.version, transports: info.transports.compactMap { GatewayBridgeParameters(with: $0) })
     }
 }
