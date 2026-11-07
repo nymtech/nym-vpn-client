@@ -61,8 +61,8 @@ pub(crate) fn amnezia_entry(
                     header_protection_key: p.header_protection_key.clone(),
                     random_trailers: p.random_trailers,
                     // Handshake types stay WireGuard's (1, 2): the bridge cannot rewrite them.
-                    // Junk packets are drawn per connection, so their shape is not fixed.
-                    ..AmneziaConfig::junk(&mut rand::rng())
+                    // No junk packets: the translator ignores them and the burst is a fingerprint.
+                    ..AmneziaConfig::default()
                 };
                 config.validate().then_some((
                     endpoint,
@@ -148,7 +148,7 @@ mod tests {
         assert_eq!(endpoint, "1.2.3.4:51830".parse().unwrap());
         assert_eq!(config.init_pkt_junk_size, 40);
         assert_eq!(config.transport_pkt_magic_header, 2_028_465_083);
-        assert!((3..=8).contains(&config.junk_pkt_count));
+        assert_eq!(config.junk_pkt_count, 0);
         assert_eq!(config.init_pkt_magic_header, 1);
         assert_eq!(config.response_pkt_magic_header, 2);
     }
@@ -257,13 +257,6 @@ mod tests {
         let params: PersistedClientConfig = serde_json::from_str(LAB_BRIDGE_PARAMS).unwrap();
         let entry: SocketAddr = "192.168.100.3:51822".parse().unwrap();
         let uapi = |config: &AmneziaConfig| {
-            // Junk packets are drawn per connection; the lab verifies the rest with the BASE junk.
-            let config = AmneziaConfig {
-                junk_pkt_count: AmneziaConfig::BASE.junk_pkt_count,
-                junk_pkt_min_size: AmneziaConfig::BASE.junk_pkt_min_size,
-                junk_pkt_max_size: AmneziaConfig::BASE.junk_pkt_max_size,
-                ..config.clone()
-            };
             let mut builder = nym_wg_go::uapi::UapiConfigBuilder::new();
             config.append_to(&mut builder);
             String::from_utf8(builder.into_bytes()).unwrap()
@@ -274,7 +267,7 @@ mod tests {
         assert_eq!(endpoint, "192.168.100.3:51831".parse().unwrap());
         assert_eq!(
             uapi(&awg_3_1),
-            "jc=4\njmin=40\njmax=70\ns1=44\ns2=52\nh1=1\nh2=2\nh3=123456789-123456889\n\
+            "jc=0\njmin=0\njmax=0\ns1=44\ns2=52\nh1=1\nh2=2\nh3=123456789-123456889\n\
              h4=1623456789-1623456889\ns3=20\ns4=16\n\
              header_protection_key=0f1e2d3c4b5a69788796a5b4c3d2e1f00112233445566778899aabbccddeeff0\n\n"
         );
@@ -288,7 +281,7 @@ mod tests {
         assert_eq!(endpoint, "192.168.100.3:51830".parse().unwrap());
         assert_eq!(
             uapi(&awg_1_0),
-            "jc=4\njmin=40\njmax=70\ns1=44\ns2=52\nh1=1\nh2=2\nh3=123456789\nh4=1623456789\n\n"
+            "jc=0\njmin=0\njmax=0\ns1=44\ns2=52\nh1=1\nh2=2\nh3=123456789\nh4=1623456789\n\n"
         );
     }
 }
