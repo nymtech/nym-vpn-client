@@ -20253,7 +20253,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connected via AWG %@ bridge"
+            "value" : "Connected via AmneziaWG bridge (%@)"
           }
         }
       }
@@ -20264,7 +20264,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connected directly with AWG %@"
+            "value" : "Connected directly with AmneziaWG (%@)"
           }
         }
       }
