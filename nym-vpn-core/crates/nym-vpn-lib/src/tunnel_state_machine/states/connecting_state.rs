@@ -128,11 +128,13 @@ impl ConnectingState {
             .wireguard_tunnel_options
             .amnezia_mode
             != AmneziaMode::Off;
-        let amnezia_translator = shared_state
-            .tunnel_settings
-            .wireguard_tunnel_options
-            .amnezia_mode
-            == AmneziaMode::Auto
+        // The last attempt before giving up never depends on the translator.
+        let amnezia_translator = retry_attempt + 1 < MAX_RECONNECT_ATTEMPTS
+            && shared_state
+                .tunnel_settings
+                .wireguard_tunnel_options
+                .amnezia_mode
+                == AmneziaMode::Auto
             && shared_state
                 .nym_config
                 .network_rx
