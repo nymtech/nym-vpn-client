@@ -53,3 +53,6 @@ fastlane/readme.md
 # Maestro test output
 maestro-report.xml
 maestro-debug/
+
+# ts-rs generated bindings (cargo test --features typescript-bindings)
+nym-vpn-core/crates/nym-vpn-lib-types/bindings/
