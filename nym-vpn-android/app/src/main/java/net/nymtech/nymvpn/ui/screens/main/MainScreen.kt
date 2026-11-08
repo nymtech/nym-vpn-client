@@ -38,6 +38,7 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.billing.PLAY_STORE_LISTING_URL
 import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
@@ -331,7 +332,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	// ── Modals ───────────────────────────────────────────────────────────────
 
-	val downloadUrl = stringResource(R.string.download_url)
+	val downloadUrl = if (isPlayDistribution) PLAY_STORE_LISTING_URL else stringResource(R.string.download_url)
 	MainModals(
 		autologinState = autologinState,
 		showInfoDialog = showInfoDialog,

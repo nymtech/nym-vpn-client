@@ -19,6 +19,9 @@ val isPlayDistribution: Boolean get() = BuildConfig.FLAVOR == "general"
 /** Google Play's subscription center for this app; lists only subscriptions bought through Play. */
 const val PLAY_SUBSCRIPTIONS_URL = "https://play.google.com/store/account/subscriptions?package=${Constants.APP_ID}"
 
+/** This app's Google Play listing; the Play build updates from here instead of the website. */
+const val PLAY_STORE_LISTING_URL = "https://play.google.com/store/apps/details?id=${Constants.APP_ID}"
+
 /** (Re)connects to Play billing and waits until it is ready; false if unsupported or [timeout] passes. */
 suspend fun BillingManager.awaitReady(timeout: Duration): Boolean {
 	if (!isPlayBillingSupported()) return false
