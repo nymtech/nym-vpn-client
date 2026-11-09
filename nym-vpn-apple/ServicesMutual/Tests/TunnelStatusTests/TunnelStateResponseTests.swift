@@ -24,4 +24,19 @@ struct TunnelStateResponseTests {
         let decoded = try decoder.decode(TunnelStateResponse.self, from: encoder.encode(state))
         #expect(decoded.connectedAt == stamp)
     }
+
+    @Test func connectionInfoFromAnOlderPayloadHasNoAmnezia() throws {
+        let legacy = Data(#"{"entryGatewayId":"a","exitGatewayId":"b","tunnelType":"wireguard"}"#.utf8)
+        let decoded = try JSONDecoder().decode(ConnectionInfoData.self, from: legacy)
+        #expect(decoded.amneziaVersion == nil)
+        #expect(decoded.amneziaViaTranslator == nil)
+
+        let current = ConnectionInfoData(
+            entryGatewayId: "a",
+            exitGatewayId: "b",
+            amneziaVersion: "3.1",
+            amneziaViaTranslator: true
+        )
+        #expect(try JSONDecoder().decode(ConnectionInfoData.self, from: JSONEncoder().encode(current)) == current)
+    }
 }
