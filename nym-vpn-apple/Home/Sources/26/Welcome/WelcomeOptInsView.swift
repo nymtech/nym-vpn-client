@@ -85,67 +85,21 @@ private extension WelcomeOptInsView {
 
     var cards: some View {
         VStack(spacing: NymSpacing.small) {
-            optInCard(
+            TelemetryOptInCard(
                 icon: "chart.bar",
                 title: "welcomeOptIns.connection.title".localizedString,
                 subtitle: "welcomeOptIns.connection.subtitle".localizedString,
                 isOn: $isStatisticsEnabled,
-                info: connectionInfo()
+                onInfo: { infoContent = connectionInfo() }
             )
-            optInCard(
+            TelemetryOptInCard(
                 icon: "ladybug",
                 title: "welcomeOptIns.monitoring.title".localizedString,
                 subtitle: "welcomeOptIns.monitoring.subtitle".localizedString,
                 isOn: $isErrorReportingOn,
-                info: monitoringInfo()
+                onInfo: { infoContent = monitoringInfo() }
             )
         }
-    }
-
-    func optInCard(
-        icon: String,
-        title: String,
-        subtitle: String,
-        isOn: Binding<Bool>,
-        info: TelemetryInfoContent
-    ) -> some View {
-        HStack(spacing: NymSpacing.small) {
-            Image(systemName: icon)
-                .foregroundStyle(Color.Nym.textSecondary)
-                .frame(width: 24, height: 24)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(title)
-                        .nymTextStyle(.bodyDefaultBold)
-                        .foregroundStyle(Color.Nym.textPrimary)
-                    Button {
-                        infoContent = info
-                    } label: {
-                        Image(systemName: "info.circle")
-                            .foregroundStyle(Color.Nym.textSecondary)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(
-                        Text(String(format: "welcomeOptIns.info.accessibility".localizedString, title))
-                    )
-                }
-                Text(subtitle)
-                    .nymTextStyle(.bodySmall)
-                    .foregroundStyle(Color.Nym.textSecondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            Toggle("", isOn: isOn)
-                .labelsHidden()
-                .tint(Color.Nym.primary)
-                .accessibilityLabel(Text(title))
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.Nym.surfaceAlt)
-        )
     }
 
     func connectionInfo() -> TelemetryInfoContent {

@@ -110,12 +110,12 @@ private extension PrivacyAndDataView {
     }
 
     func statisticsSection() -> some View {
-        optInCard(
+        TelemetryOptInCard(
             icon: "chart.bar",
             title: "welcomeOptIns.connection.title".localizedString,
             subtitle: "welcomeOptIns.connection.subtitle".localizedString,
             isOn: $appSettings.isStatisticsEnabled,
-            info: connectionInfo()
+            onInfo: { infoContent = connectionInfo() }
         )
 #if os(macOS)
         .onChange(of: appSettings.isStatisticsEnabled) {
@@ -125,67 +125,18 @@ private extension PrivacyAndDataView {
     }
 
     func errorReportingSection() -> some View {
-        optInCard(
+        TelemetryOptInCard(
             icon: "ladybug",
             title: "welcomeOptIns.monitoring.title".localizedString,
             subtitle: "welcomeOptIns.monitoring.subtitle".localizedString,
             isOn: $appSettings.isErrorReportingOn,
-            info: monitoringInfo()
+            onInfo: { infoContent = monitoringInfo() }
         )
 #if os(macOS)
         .onChange(of: appSettings.isErrorReportingOn) {
             enableMacOSErrorReportingIfNeeded(with: appSettings.isErrorReportingOn)
         }
 #endif
-    }
-
-    // Matches the onboarding opt-in card (WelcomeOptInsView). The info sheet and
-    // its content are shared via UIComponents; only this small row layout is
-    // repeated across the two modules.
-    func optInCard(
-        icon: String,
-        title: String,
-        subtitle: String,
-        isOn: Binding<Bool>,
-        info: TelemetryInfoContent
-    ) -> some View {
-        HStack(spacing: NymSpacing.small) {
-            Image(systemName: icon)
-                .foregroundStyle(Color.Nym.textSecondary)
-                .frame(width: 24, height: 24)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(title)
-                        .nymTextStyle(.bodyDefaultBold)
-                        .foregroundStyle(Color.Nym.textPrimary)
-                    Button {
-                        infoContent = info
-                    } label: {
-                        Image(systemName: "info.circle")
-                            .foregroundStyle(Color.Nym.textSecondary)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(
-                        Text(String(format: "welcomeOptIns.info.accessibility".localizedString, title))
-                    )
-                }
-                Text(subtitle)
-                    .nymTextStyle(.bodySmall)
-                    .foregroundStyle(Color.Nym.textSecondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            Toggle("", isOn: isOn)
-                .labelsHidden()
-                .tint(Color.Nym.primary)
-                .accessibilityLabel(Text(title))
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.Nym.surfaceAlt)
-        )
     }
 
     func connectionInfo() -> TelemetryInfoContent {
