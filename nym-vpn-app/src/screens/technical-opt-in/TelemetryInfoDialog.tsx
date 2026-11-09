@@ -48,7 +48,7 @@ function TelemetryInfoDialog({ kind, onClose }: Props) {
     return null;
   }
 
-  const shares = t(`${kind}.shares`, { returnObjects: true }) as string[];
+  const shares = t(`${kind}.shares`).split('\n');
 
   return (
     <Dialog open onClose={onClose} data-testid="telemetry-info-dialog">
