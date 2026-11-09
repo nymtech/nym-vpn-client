@@ -1,0 +1,191 @@
+name: ci-nym-vpn-core-android-reproducible
+
+# Builds the Android native libraries twice, on separate runners and with
+# different checkout and NDK paths, and fails unless both builds are identical.
+# F-Droid rebuilds the app and only publishes it if its build matches ours.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "nym-vpn-core/crates/**"
+      - "nym-vpn-core/Cargo.toml"
+      - "nym-vpn-core/Cargo.lock"
+      - "nym-vpn-core/*.mk"
+      - "wireguard/**"
+      - ".env"
+      - ".github/workflows/ci-nym-vpn-core-android-reproducible.yml"
+      - ".github/scripts/android-reproducible/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+  # Same version as the F-Droid build recipe.
+  CARGO_NDK_VERSION: "4.1.2"
+
+jobs:
+  build:
+    name: build (${{ matrix.variant }})
+    runs-on: arc-linux-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        # baseline:     checkout and NDK where CI puts them
+        # fdroid-paths: checkout and NDK where F-Droid's build server puts them
+        variant: [baseline, fdroid-paths]
+    steps:
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
+
+      - name: Checkout repo
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - name: Install cargo-ndk
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-ndk
+          version: ${{ env.CARGO_NDK_VERSION }}
+
+      - name: Install Go
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+          cache: false
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: ${{ env.NDK_VERSION }}
+          add-to-path: false
+
+      - name: Prepare variant
+        env:
+          VARIANT: ${{ matrix.variant }}
+          NDK_PATH: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          set -euo pipefail
+          src_dir="$GITHUB_WORKSPACE"
+          ndk_dir="$NDK_PATH"
+          if [ "$VARIANT" = fdroid-paths ]; then
+            ndk_revision="$(sed -n 's/^Pkg.Revision *= *//p' "$NDK_PATH/source.properties")"
+            src_dir=/home/vagrant/build/net.nymtech.nymvpn
+            ndk_dir="/opt/android-sdk/ndk/$ndk_revision"
+            sudo mkdir -p "$src_dir" "$(dirname "$ndk_dir")"
+            sudo chown -R "$(id -u):$(id -g)" /home/vagrant /opt/android-sdk
+            rsync -a "$GITHUB_WORKSPACE/" "$src_dir/"
+            cp -a "$NDK_PATH" "$ndk_dir"
+          fi
+          {
+            echo "SRC_DIR=$src_dir"
+            echo "ANDROID_NDK_HOME=$ndk_dir"
+            echo "NDK_TOOLCHAIN_DIR=$ndk_dir/toolchains/llvm/prebuilt/linux-x86_64/bin"
+            echo "OUT_DIR=$RUNNER_TEMP/android-reproducible-$VARIANT"
+          } >> "$GITHUB_ENV"
+
+      # The same make invocation as F-Droid's build recipe, minus the bindings
+      # and license targets, which don't affect the native libraries.
+      - name: Build native libraries
+        run: make -C "$SRC_DIR/nym-vpn-core" -f Android.mk strip RELEASE=true
+
+      - name: Collect libraries
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          set -euo pipefail
+          jni_dir="$SRC_DIR/nym-vpn-android/core/src/main/jniLibs"
+          target_dir="$SRC_DIR/nym-vpn-core/target"
+          declare -A triples=([arm64-v8a]=aarch64-linux-android [armeabi-v7a]=armv7-linux-androideabi [x86_64]=x86_64-linux-android)
+          for abi in "${!triples[@]}"; do
+            mkdir -p "$OUT_DIR/$abi"
+            cp "$jni_dir/$abi/libnym_vpn_lib_uniffi.so" "$OUT_DIR/$abi/stripped.so"
+            cp "$target_dir/${triples[$abi]}/release/libnym_vpn_lib_uniffi.so" "$OUT_DIR/$abi/unstripped.so"
+          done
+          {
+            echo "variant: $VARIANT"
+            echo "commit: $(git -C "$SRC_DIR" rev-parse HEAD)"
+            echo "source dir: $SRC_DIR"
+            echo "ndk: $ANDROID_NDK_HOME"
+            rustc -vV
+            cargo ndk --version
+            (cd "$OUT_DIR" && sha256sum */*.so)
+          } | tee "$OUT_DIR/info.txt"
+
+      - name: Upload libraries
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: android-reproducible-${{ matrix.variant }}
+          path: ${{ env.OUT_DIR }}
+          if-no-files-found: error
+          retention-days: 7
+
+  compare:
+    needs: build
+    runs-on: arc-linux-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+          sparse-checkout: .github
+
+      - name: Download libraries
+        uses: actions/download-artifact@v8
+        with:
+          pattern: android-reproducible-*
+          path: builds
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Compare
+        run: |
+          set -euo pipefail
+          pip install pyelftools==0.32
+          status=0
+          python -I .github/scripts/android-reproducible/compare.py \
+            builds/android-reproducible-baseline builds/android-reproducible-fdroid-paths > report.md || status=$?
+          {
+            cat report.md
+            echo
+            echo "## Build info"
+            for info in builds/*/info.txt; do
+              echo
+              echo '```'
+              cat "$info"
+              echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" -ne 0 ]; then
+            echo "::error::The two Android builds differ. See the job summary for the report."
+          fi
+          exit "$status"
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: android-reproducible-report
+          path: report.md
+          retention-days: 7
