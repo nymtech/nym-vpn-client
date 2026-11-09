@@ -832,10 +832,10 @@ impl TryFrom<proto::AccountCommandResponse> for nym_vpn_lib_types::AccountComman
     fn try_from(value: proto::AccountCommandResponse) -> Result<Self, Self::Error> {
         let error = value
             .error
-            .map(nym_vpn_lib_types::AccountCommandError::try_from)
+            .map(nym_vpn_lib_types::AccountControllerError::try_from)
             .transpose()
             .map_err(|e| {
-                ConversionError::Generic(format!("failed to parse AccountCommandError: {e}"))
+                ConversionError::Generic(format!("failed to parse AccountControllerError: {e}"))
             })?;
 
         Ok(Self { error })
@@ -848,10 +848,10 @@ impl TryFrom<AccountCommandResponse> for proto::AccountCommandResponse {
     fn try_from(value: AccountCommandResponse) -> Result<Self, Self::Error> {
         let error = value
             .error
-            .map(proto::AccountCommandError::try_from)
+            .map(proto::AccountControllerError::try_from)
             .transpose()
             .map_err(|e| {
-                ConversionError::Generic(format!("failed to parse AccountCommandError: {e}"))
+                ConversionError::Generic(format!("failed to parse AccountControllerError: {e}"))
             })?;
 
         Ok(Self { error })

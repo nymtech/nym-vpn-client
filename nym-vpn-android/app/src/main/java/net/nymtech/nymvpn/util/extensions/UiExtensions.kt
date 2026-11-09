@@ -153,6 +153,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String = when (this) {
 	ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_error)
 	ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.error_ipv6_unavailable)
 	ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_device_logged_out)
+	ErrorStateReason.DeviceNotRegistered -> context.getString(R.string.error_device_not_registered)
 	ErrorStateReason.InactiveAccount -> context.getString(R.string.error_inactive_account)
 
 	ErrorStateReason.CredentialFetchingFailed -> context.getString(R.string.error_credential_fetching_failed)

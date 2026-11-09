@@ -48,6 +48,7 @@ public struct ErrorReason: LocalizedError, Codable {
         case needsDeviceLocation
         case connectionAttemptsExceeded
         case entryGatewayHasNoBridge
+        case deviceNotRegistered
     }
 
     public let code: Code
@@ -173,6 +174,8 @@ private extension ErrorReason.Code {
             self = .inactiveAccount
         case .deviceLoggedOut:
             self = .deviceLoggedOut
+        case .deviceNotRegistered:
+            self = .deviceNotRegistered
         case .credentialWastedOnEntryGateway:
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:

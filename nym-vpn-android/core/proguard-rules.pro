@@ -42,5 +42,6 @@
 #uniffi
 -keep class nym_vpn_lib.** { *; }
 -keep class nym_vpn_lib_types.** { *; }
+-keep class nym_secure_enclave.** { *; }
 -keep, includedescriptorclasses class org.rustls.platformverifier.** { *; }
 -keep class org.rustls.platformverifier.** { *; }

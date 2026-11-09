@@ -42,6 +42,7 @@
 	<string name="error_reason_inactive_subscription">You don\'t have an active subscription. Get or renew a plan, then refresh your account and reconnect.</string>
 	<string name="error_reason_max_devices_reached">You\'ve hit your device limit. Remove a device on nym.com or log out elsewhere, then reconnect.</string>
 	<string name="error_reason_device_logged_out">This device was logged out. Log in again to reconnect.</string>
+	<string name="error_reason_device_not_registered">This device is not registered with your account. Please authorize registration.</string>
 	<string name="error_reason_needs_device_location">Automatic routing is unavailable; device location could not be determined.</string>
 	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
 

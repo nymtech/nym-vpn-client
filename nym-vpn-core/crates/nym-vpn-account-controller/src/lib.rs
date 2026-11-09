@@ -26,7 +26,7 @@ pub use command_sender::AccountCommandSender;
 pub use config::AccountControllerConfig;
 pub use controller::{AccountController, AccountControllerChannels, AccountControllerClients};
 pub use deeplink::{CreateDeeplinkParams, Deeplink, DeeplinkError, DeeplinkMnemonic, Deeplinks};
-pub use error::Error;
+pub use error::{Error, Result};
 pub use event_sender::AccountControllerEventSender;
 pub use nyxd_client::NyxdClient;
 pub use state_receiver::AccountStateReceiver;

@@ -16,6 +16,8 @@ import net.nymtech.nymvpn.manager.freepass.FreepassManager
 import net.nymtech.nymvpn.manager.freepass.NymFreepassManager
 import net.nymtech.nymvpn.manager.pairing.NymPairingManager
 import net.nymtech.nymvpn.manager.pairing.PairingManager
+import net.nymtech.nymvpn.manager.secureenclave.KeystoreSecureEnclaveProvider
+import nym_secure_enclave.AndroidSecureEnclaveProvider
 import javax.inject.Singleton
 
 // BackendManager is bound per flavor in BackendModule.
@@ -38,6 +40,10 @@ abstract class ManagerModule {
 	@Binds
 	@Singleton
 	abstract fun bindDeviceAuthManager(impl: NymDeviceAuthManager): DeviceAuthManager
+
+	@Binds
+	@Singleton
+	abstract fun bindSecureEnclaveProvider(impl: KeystoreSecureEnclaveProvider): AndroidSecureEnclaveProvider
 
 	@Binds
 	@Singleton

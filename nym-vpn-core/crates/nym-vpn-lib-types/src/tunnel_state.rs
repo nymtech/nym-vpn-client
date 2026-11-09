@@ -310,6 +310,9 @@ pub enum ErrorStateReason {
     /// Device is logged out
     DeviceLoggedOut,
 
+    /// Device is not registered with the account
+    DeviceNotRegistered,
+
     /// Split tunnel needs full disk permissions (macOS only)
     NeedFullDiskPermissions,
 
@@ -360,6 +363,7 @@ impl std::fmt::Display for ErrorStateReason {
             Self::InactiveSubscription => f.write_str("InactiveSubscription"),
             Self::MaxDevicesReached => f.write_str("MaxDevicesReached"),
             Self::DeviceLoggedOut => f.write_str("DeviceLoggedOut"),
+            Self::DeviceNotRegistered => f.write_str("DeviceNotRegistered"),
             Self::NeedFullDiskPermissions => f.write_str("NeedFullDiskPermissions"),
             Self::SplitTunnel => f.write_str("SplitTunnel"),
             Self::NeedsRelaxedIndependenceCriteria => {

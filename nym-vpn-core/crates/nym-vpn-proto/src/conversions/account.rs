@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, AvailableTickets, DeeplinkClient, DeeplinkKind,
+    AccountControllerError, AutologinResponse, AvailableTickets, DeeplinkClient, DeeplinkKind,
     GetDeeplinkParams, NymVpnSubscription, NymVpnSubscriptionKind, NymVpnSubscriptionStatus,
     StoredAccountMode, Subscription, VpnAccountAuthMethod, VpnAccountStatus, VpnAccountSummary,
     VpnApiError, VpnApiErrorResponse,
@@ -18,70 +18,80 @@ use crate::{
     proto,
 };
 
-impl TryFrom<proto::AccountCommandError> for AccountCommandError {
+impl TryFrom<proto::AccountControllerError> for AccountControllerError {
     type Error = ConversionError;
 
-    fn try_from(value: proto::AccountCommandError) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::AccountControllerError) -> Result<Self, Self::Error> {
         let error_detail = value.error_detail.ok_or(ConversionError::NoValueSet(
             "StoreAccountError.error_detail",
         ))?;
         Ok(match error_detail {
-            proto::account_command_error::ErrorDetail::StorageError(err) => Self::Storage(err),
-            proto::account_command_error::ErrorDetail::Internal(err) => Self::Internal(err),
-            proto::account_command_error::ErrorDetail::VpnApi(vpn_api) => {
+            proto::account_controller_error::ErrorDetail::StorageError(err) => Self::Storage(err),
+            proto::account_controller_error::ErrorDetail::Internal(err) => Self::Internal(err),
+            proto::account_controller_error::ErrorDetail::VpnApi(vpn_api) => {
                 Self::VpnApi(vpn_api.try_into()?)
             }
-            proto::account_command_error::ErrorDetail::UnexpectedResponse(err) => {
+            proto::account_controller_error::ErrorDetail::UnexpectedResponse(err) => {
                 Self::UnexpectedVpnApiResponse(err)
             }
-            proto::account_command_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
-            proto::account_command_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
-            proto::account_command_error::ErrorDetail::ExistingAccount(_) => Self::ExistingAccount,
-            proto::account_command_error::ErrorDetail::Offline(_) => Self::Offline,
-            proto::account_command_error::ErrorDetail::InsufficientFunds(_) => {
+            proto::account_controller_error::ErrorDetail::NoAccountStored(_) => {
+                Self::NoAccountStored
+            }
+            proto::account_controller_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
+            proto::account_controller_error::ErrorDetail::ExistingAccount(_) => {
+                Self::ExistingAccount
+            }
+            proto::account_controller_error::ErrorDetail::Offline(_) => Self::Offline,
+            proto::account_controller_error::ErrorDetail::InsufficientFunds(_) => {
                 Self::InsufficientFunds
             }
-            proto::account_command_error::ErrorDetail::InvalidMnemonic(message) => {
+            proto::account_controller_error::ErrorDetail::InvalidMnemonic(message) => {
                 Self::InvalidMnemonic(message)
             }
-            proto::account_command_error::ErrorDetail::InvalidSecret(message) => {
+            proto::account_controller_error::ErrorDetail::InvalidSecret(message) => {
                 Self::InvalidSecret(message)
             }
-            proto::account_command_error::ErrorDetail::NyxdConnectionFailure(err) => {
+            proto::account_controller_error::ErrorDetail::NyxdConnectionFailure(err) => {
                 Self::NyxdConnectionFailure(err)
             }
-            proto::account_command_error::ErrorDetail::NyxdQueryFailure(err) => {
+            proto::account_controller_error::ErrorDetail::NyxdQueryFailure(err) => {
                 Self::NyxdQueryFailure(err)
             }
-            proto::account_command_error::ErrorDetail::AccountDoesntExistOnChain(_) => {
+            proto::account_controller_error::ErrorDetail::AccountDoesntExistOnChain(_) => {
                 Self::AccountDoesntExistOnChain
             }
-            proto::account_command_error::ErrorDetail::AccountDecentralised(_) => {
+            proto::account_controller_error::ErrorDetail::AccountDecentralised(_) => {
                 Self::AccountDecentralised
             }
-            proto::account_command_error::ErrorDetail::AccountNotDecentralised(_) => {
+            proto::account_controller_error::ErrorDetail::AccountNotDecentralised(_) => {
                 Self::AccountNotDecentralised
             }
-            proto::account_command_error::ErrorDetail::ZkNymAcquisitionFailure(err) => {
+            proto::account_controller_error::ErrorDetail::ZkNymAcquisitionFailure(err) => {
                 Self::ZkNymAcquisitionFailure(err)
             }
-            proto::account_command_error::ErrorDetail::DeeplinkError(message) => {
+            proto::account_controller_error::ErrorDetail::DeeplinkError(message) => {
                 Self::DeeplinkError(message)
             }
-            proto::account_command_error::ErrorDetail::InvalidPublicKey(err) => {
+            proto::account_controller_error::ErrorDetail::InvalidPublicKey(err) => {
                 Self::InvalidPublicKey(err)
             }
-            proto::account_command_error::ErrorDetail::PairingNotStarted(_) => {
+            proto::account_controller_error::ErrorDetail::PairingNotStarted(_) => {
                 Self::PairingNotStarted
             }
-            proto::account_command_error::ErrorDetail::PairingSessionIdMismatch(_) => {
+            proto::account_controller_error::ErrorDetail::PairingSessionIdMismatch(_) => {
                 Self::PairingSessionIdMismatch
             }
-            proto::account_command_error::ErrorDetail::NoPairingSharedSecret(_) => {
+            proto::account_controller_error::ErrorDetail::NoPairingSharedSecret(_) => {
                 Self::NoPairingSharedSecret
             }
-            proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err) => {
+            proto::account_controller_error::ErrorDetail::PairingDerivingSharedSecret(err) => {
                 Self::PairingDerivingSharedSecret(err)
+            }
+            proto::account_controller_error::ErrorDetail::CreateEcashKeyPair(err) => {
+                Self::CreateEcashKeyPair(err)
+            }
+            proto::account_controller_error::ErrorDetail::ErrorState(reason) => {
+                Self::ErrorState(reason.into())
             }
         })
     }
@@ -119,121 +129,139 @@ impl From<proto::VpnApiErrorResponse> for VpnApiErrorResponse {
     }
 }
 
-impl From<AccountCommandError> for proto::AccountCommandError {
-    fn from(value: AccountCommandError) -> Self {
+impl From<AccountControllerError> for proto::AccountControllerError {
+    fn from(value: AccountControllerError) -> Self {
         match value {
-            AccountCommandError::Internal(err) => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::Internal(err)),
+            AccountControllerError::Internal(err) => proto::AccountControllerError {
+                error_detail: Some(proto::account_controller_error::ErrorDetail::Internal(err)),
             },
-            AccountCommandError::Storage(err) => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::StorageError(err)),
+            AccountControllerError::Storage(err) => proto::AccountControllerError {
+                error_detail: Some(proto::account_controller_error::ErrorDetail::StorageError(
+                    err,
+                )),
             },
-            AccountCommandError::VpnApi(vpn_api_error) => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::VpnApi(
+            AccountControllerError::VpnApi(vpn_api_error) => proto::AccountControllerError {
+                error_detail: Some(proto::account_controller_error::ErrorDetail::VpnApi(
                     vpn_api_error.into(),
                 )),
             },
-            AccountCommandError::UnexpectedVpnApiResponse(err) => proto::AccountCommandError {
+            AccountControllerError::UnexpectedVpnApiResponse(err) => {
+                proto::AccountControllerError {
+                    error_detail: Some(
+                        proto::account_controller_error::ErrorDetail::UnexpectedResponse(err),
+                    ),
+                }
+            }
+            AccountControllerError::NoAccountStored => proto::AccountControllerError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::UnexpectedResponse(err),
+                    proto::account_controller_error::ErrorDetail::NoAccountStored(true),
                 ),
             },
-            AccountCommandError::NoAccountStored => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::NoAccountStored(
-                    true,
-                )),
-            },
-            AccountCommandError::NoDeviceStored => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::NoDeviceStored(
-                    true,
-                )),
-            },
-            AccountCommandError::ExistingAccount => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::ExistingAccount(
-                    true,
-                )),
-            },
-            AccountCommandError::Offline => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::Offline(true)),
-            },
-            AccountCommandError::InsufficientFunds => proto::AccountCommandError {
+            AccountControllerError::NoDeviceStored => proto::AccountControllerError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::InsufficientFunds(true),
+                    proto::account_controller_error::ErrorDetail::NoDeviceStored(true),
                 ),
             },
-            AccountCommandError::InvalidMnemonic(err) => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::InvalidMnemonic(
+            AccountControllerError::ExistingAccount => proto::AccountControllerError {
+                error_detail: Some(
+                    proto::account_controller_error::ErrorDetail::ExistingAccount(true),
+                ),
+            },
+            AccountControllerError::Offline => proto::AccountControllerError {
+                error_detail: Some(proto::account_controller_error::ErrorDetail::Offline(true)),
+            },
+            AccountControllerError::InsufficientFunds => proto::AccountControllerError {
+                error_detail: Some(
+                    proto::account_controller_error::ErrorDetail::InsufficientFunds(true),
+                ),
+            },
+            AccountControllerError::InvalidMnemonic(err) => proto::AccountControllerError {
+                error_detail: Some(
+                    proto::account_controller_error::ErrorDetail::InvalidMnemonic(err),
+                ),
+            },
+            AccountControllerError::InvalidSecret(err) => proto::AccountControllerError {
+                error_detail: Some(proto::account_controller_error::ErrorDetail::InvalidSecret(
                     err,
                 )),
             },
-            AccountCommandError::InvalidSecret(err) => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::InvalidSecret(
-                    err,
-                )),
-            },
-            AccountCommandError::InvalidPublicKey(err) => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::InvalidPublicKey(
-                    err,
-                )),
-            },
-            AccountCommandError::PairingNotStarted => proto::AccountCommandError {
+            AccountControllerError::InvalidPublicKey(err) => proto::AccountControllerError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::PairingNotStarted(true),
+                    proto::account_controller_error::ErrorDetail::InvalidPublicKey(err),
                 ),
             },
-            AccountCommandError::PairingSessionIdMismatch => proto::AccountCommandError {
+            AccountControllerError::PairingNotStarted => proto::AccountControllerError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::PairingSessionIdMismatch(true),
+                    proto::account_controller_error::ErrorDetail::PairingNotStarted(true),
                 ),
             },
-            AccountCommandError::NoPairingSharedSecret => proto::AccountCommandError {
+            AccountControllerError::PairingSessionIdMismatch => proto::AccountControllerError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::NoPairingSharedSecret(true),
+                    proto::account_controller_error::ErrorDetail::PairingSessionIdMismatch(true),
                 ),
             },
-            AccountCommandError::PairingDerivingSharedSecret(err) => proto::AccountCommandError {
+            AccountControllerError::NoPairingSharedSecret => proto::AccountControllerError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err),
+                    proto::account_controller_error::ErrorDetail::NoPairingSharedSecret(true),
                 ),
             },
-            AccountCommandError::NyxdConnectionFailure(err) => proto::AccountCommandError {
+            AccountControllerError::PairingDerivingSharedSecret(err) => {
+                proto::AccountControllerError {
+                    error_detail: Some(
+                        proto::account_controller_error::ErrorDetail::PairingDerivingSharedSecret(
+                            err,
+                        ),
+                    ),
+                }
+            }
+            AccountControllerError::CreateEcashKeyPair(err) => proto::AccountControllerError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::NyxdConnectionFailure(err),
+                    proto::account_controller_error::ErrorDetail::CreateEcashKeyPair(err),
                 ),
             },
-            AccountCommandError::NyxdQueryFailure(err) => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::NyxdQueryFailure(
-                    err,
-                )),
-            },
-            AccountCommandError::AccountDoesntExistOnChain => proto::AccountCommandError {
+            AccountControllerError::NyxdConnectionFailure(err) => proto::AccountControllerError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::AccountDoesntExistOnChain(true),
+                    proto::account_controller_error::ErrorDetail::NyxdConnectionFailure(err),
                 ),
             },
-            AccountCommandError::AccountNotDecentralised => proto::AccountCommandError {
+            AccountControllerError::NyxdQueryFailure(err) => proto::AccountControllerError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::AccountNotDecentralised(true),
+                    proto::account_controller_error::ErrorDetail::NyxdQueryFailure(err),
                 ),
             },
-            AccountCommandError::AccountDecentralised => proto::AccountCommandError {
+            AccountControllerError::AccountDoesntExistOnChain => proto::AccountControllerError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::AccountDecentralised(true),
+                    proto::account_controller_error::ErrorDetail::AccountDoesntExistOnChain(true),
                 ),
             },
-            AccountCommandError::ZkNymAcquisitionFailure(err) => proto::AccountCommandError {
+            AccountControllerError::AccountNotDecentralised => proto::AccountControllerError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::ZkNymAcquisitionFailure(err),
+                    proto::account_controller_error::ErrorDetail::AccountNotDecentralised(true),
                 ),
             },
-            AccountCommandError::DeeplinkError(message) => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::DeeplinkError(
+            AccountControllerError::AccountDecentralised => proto::AccountControllerError {
+                error_detail: Some(
+                    proto::account_controller_error::ErrorDetail::AccountDecentralised(true),
+                ),
+            },
+            AccountControllerError::ZkNymAcquisitionFailure(err) => proto::AccountControllerError {
+                error_detail: Some(
+                    proto::account_controller_error::ErrorDetail::ZkNymAcquisitionFailure(err),
+                ),
+            },
+            AccountControllerError::DeeplinkError(message) => proto::AccountControllerError {
+                error_detail: Some(proto::account_controller_error::ErrorDetail::DeeplinkError(
                     message,
                 )),
             },
+            AccountControllerError::ErrorState(reason) => proto::AccountControllerError {
+                error_detail: Some(proto::account_controller_error::ErrorDetail::ErrorState(
+                    reason.into(),
+                )),
+            },
             // Reported as an `Unauthenticated` status instead.
-            error @ AccountCommandError::UserPresenceRequired => proto::AccountCommandError {
-                error_detail: Some(proto::account_command_error::ErrorDetail::Internal(
+            error @ AccountControllerError::UserPresenceRequired => proto::AccountControllerError {
+                error_detail: Some(proto::account_controller_error::ErrorDetail::Internal(
                     error.to_string(),
                 )),
             },

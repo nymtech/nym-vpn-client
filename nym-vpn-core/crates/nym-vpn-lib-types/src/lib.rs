@@ -58,10 +58,10 @@ mod user_agent;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use account::RegisterAccountRequest;
 pub use account::{
-    AccountCommandError, NymVpnSubscription, NymVpnSubscriptionKind, NymVpnSubscriptionStatus,
+    AccountControllerError, NymVpnSubscription, NymVpnSubscriptionKind, NymVpnSubscriptionStatus,
     RegisterAccountResponse, StoredAccountMode, Subscription, VpnAccountAuthMethod,
     VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
-    controller_error::{AccountControllerError, AccountControllerErrorStateReason},
+    controller_error::AccountControllerErrorStateReason,
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
     deeplink::{AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams},

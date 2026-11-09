@@ -169,9 +169,7 @@ pub enum Connectivity {
 }
 
 impl Connectivity {
-    /// Create a new `Connectivity` instance that presumes the host is offline until
-    /// proven otherwise.
-    pub fn new_presume_offline() -> Self {
+    pub fn offline() -> Self {
         #[cfg(not(target_os = "android"))]
         return Connectivity::Status {
             ipv4: false,
@@ -180,6 +178,17 @@ impl Connectivity {
 
         #[cfg(target_os = "android")]
         return Connectivity::Status { connected: false };
+    }
+
+    pub fn online() -> Self {
+        #[cfg(not(target_os = "android"))]
+        return Connectivity::Status {
+            ipv4: true,
+            ipv6: true,
+        };
+
+        #[cfg(target_os = "android")]
+        return Connectivity::Status { connected: true };
     }
 
     /// Inverse of [`Connectivity::is_offline`].

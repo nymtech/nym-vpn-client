@@ -166,6 +166,7 @@
 	<string name="max_devices_error">You\'ve hit your device limit. Remove a device on nym.com or log out elsewhere, then reconnect.</string>
 	<string name="error_ipv6_unavailable">IPv6 is turned off on this system, but NymVPN is set to use it. Turn off IPv6 in NymVPN settings, then connect again.</string>
 	<string name="error_device_logged_out">This device was logged out. Log in again to reconnect.</string>
+	<string name="error_device_not_registered">This device is not registered with your account. Please authorize registration.</string>
 	<string name="error_inactive_account">Your account isn\'t active. Open Account and refresh, or contact support.</string>
 	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">Couldn\'t apply DNS settings. Reconnect. If it persists, run diagnostics in Settings or contact support.</string>
@@ -456,6 +457,8 @@
 	<string name="screen_lock_setup_not_now">Not now</string>
 	<string name="device_auth_error">Couldn\'t confirm it\'s you. Try again.</string>
 	<string name="device_auth_use_screen_lock">Use screen lock</string>
+	<string name="secure_enclave_auth_title">Confirm it\'s you</string>
+	<string name="secure_enclave_auth_subtitle">Unlock your account credentials</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Your account passphrase</string>
 	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>

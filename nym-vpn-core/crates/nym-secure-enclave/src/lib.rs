@@ -1,0 +1,81 @@
+// Copyright 2026 Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+#[cfg(target_os = "android")]
+mod android;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+mod apple;
+#[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
+mod secure_enclave;
+
+#[cfg(target_os = "android")]
+use android::AndroidKeyStoreProvider;
+#[cfg(target_os = "android")]
+pub use android::{AndroidSecureEnclaveKey, AndroidSecureEnclaveProvider};
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+use apple::AppleSecureEnclaveProvider;
+#[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
+pub use secure_enclave::{PlatformSecureEnclaveKey, SecureEnclave};
+
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[cfg_attr(target_os = "android", derive(uniffi::Error))]
+pub enum SecureEnclaveError {
+    #[error("Authentication failed")]
+    AuthenticationFailed,
+
+    #[error("access denied until device is unlocked")]
+    AccessDeniedUntilDeviceUnlocked,
+
+    #[error("Key is not found")]
+    KeyNotFound,
+
+    #[error("Key already exists")]
+    KeyAlreadyExists,
+
+    #[error("User cancelled")]
+    UserCancelled,
+
+    #[error("Secure enclave is locked")]
+    Locked,
+
+    #[error("Other error: {0}")]
+    Other(String),
+}
+
+pub type Result<T, E = SecureEnclaveError> = std::result::Result<T, E>;
+
+#[async_trait::async_trait]
+pub trait SecureEnclaveKey: Send + Sync {
+    /// Encrypt data using the key stored in secure enclave
+    async fn encrypt(&self, bytes: &[u8]) -> Result<Vec<u8>>;
+
+    /// Decrypt data using the key stored in secure enclave
+    async fn decrypt(&self, bytes: &[u8]) -> Result<Vec<u8>>;
+}
+
+#[async_trait::async_trait]
+pub trait SecureEnclaveProvider {
+    /// Object standing in-place of key stored in secure enclave
+    type Key: SecureEnclaveKey;
+
+    /// Create a new key in secure enclave with the given alias
+    async fn create_key(&self, alias: &str, user_presence: bool) -> Result<Self::Key>;
+
+    /// Delete the key with the given alias from secure enclave
+    async fn delete_key(&self, alias: &str) -> Result<()>;
+
+    /// Get object standing in-place of key that can be used to perform encryption or decryption.
+    async fn get_key(&self, alias: &str) -> Result<Self::Key>;
+
+    /// Authenticate the user once, so that keys requiring user presence can be used without
+    /// prompting until [`Self::lock`] is called. The `reason` is shown to the user when
+    /// authenticating the device owner.
+    async fn unlock(&self, reason: &str) -> Result<()>;
+
+    /// Revoke the authentication obtained with [`Self::unlock`]. Keys requiring user presence
+    /// prompt the user on every use again.
+    async fn lock(&self) -> Result<()>;
+}
+
+#[cfg(target_os = "android")]
+uniffi::setup_scaffolding!();

@@ -1915,6 +1915,9 @@ impl account::Error {
                 AcError::ErrorState(AccountControllerErrorStateReason::MaxDeviceReached) => {
                     Some(ErrorStateReason::MaxDevicesReached)
                 }
+                AcError::ErrorState(AccountControllerErrorStateReason::DeviceNotRegistered) => {
+                    Some(ErrorStateReason::DeviceNotRegistered)
+                }
                 AcError::ErrorState(AccountControllerErrorStateReason::Internal {
                     context,
                     details,
@@ -1933,6 +1936,7 @@ impl account::Error {
                 }) => Some(ErrorStateReason::Internal(format!(
                     "Account API failure: {context} {details}"
                 ))),
+                e => Some(ErrorStateReason::Internal(e.to_string())),
             },
         }
     }

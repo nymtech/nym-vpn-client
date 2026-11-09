@@ -11,7 +11,7 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, DeeplinkKind, NymVpnSubscription,
+    AccountControllerError, AutologinResponse, DeeplinkKind, NymVpnSubscription,
     QrPairingConfirmation, QrUrl, RegisterAccountResponse, StorableAccount, StoredAccountMode,
     VpnAccountSummary,
 };
@@ -33,12 +33,17 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
-    pub async fn store_account(&self, account: StorableAccount) -> Result<(), AccountCommandError> {
+    pub async fn store_account(
+        &self,
+        account: StorableAccount,
+    ) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::StoreAccount(tx, account))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
@@ -46,12 +51,14 @@ impl AccountCommandSender {
         &self,
         account: StorableAccount,
         platform: Platform,
-    ) -> Result<RegisterAccountResponse, AccountCommandError> {
+    ) -> Result<RegisterAccountResponse, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RegisterAccount(tx, account, platform))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self, account, code))]
@@ -59,217 +66,277 @@ impl AccountCommandSender {
         &self,
         account: StorableAccount,
         code: String,
-    ) -> Result<(), AccountCommandError> {
+    ) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RedeemFreepass(tx, account, code))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
     pub async fn link_account(
         &self,
         privy_account: StorableAccount,
-    ) -> Result<(), AccountCommandError> {
+    ) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::LinkAccount(tx, privy_account))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn start_pairing(&self) -> Result<QrUrl, AccountCommandError> {
+    pub async fn start_pairing(&self) -> Result<QrUrl, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::StartPairing(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self, pub_key))]
     pub async fn scanned_key(
         &self,
         pub_key: String,
-    ) -> Result<QrPairingConfirmation, AccountCommandError> {
+    ) -> Result<QrPairingConfirmation, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::ScannedKey(tx, pub_key))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn verified_pairing_pin(&self, session_id: u32) -> Result<(), AccountCommandError> {
+    pub async fn verified_pairing_pin(
+        &self,
+        session_id: u32,
+    ) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::VerifiedPairingPin(tx, session_id))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn cancel_pairing_process(&self) -> Result<(), AccountCommandError> {
+    pub async fn cancel_pairing_process(&self) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::CancelPairingProcess(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn get_stored_account(&self) -> Result<Option<StorableAccount>, AccountCommandError> {
+    pub async fn get_stored_account(
+        &self,
+    ) -> Result<Option<StorableAccount>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetStoredAccount(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn create_account_command(&self) -> Result<(), AccountCommandError> {
+    pub async fn create_account_command(&self) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::CreateAccount(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)??;
+            .map_err(AccountControllerError::internal)?;
+        rx.await.map_err(AccountControllerError::internal)??;
         Ok(())
     }
 
     #[instrument(skip(self))]
-    pub async fn get_account_id(&self) -> Result<Option<String>, AccountCommandError> {
+    pub async fn get_account_id(&self) -> Result<Option<String>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetAccountIdentity(
                 tx,
             )))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn get_canonical_account_id(&self) -> Result<Option<String>, AccountCommandError> {
+    pub async fn get_canonical_account_id(&self) -> Result<Option<String>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(
                 CommonCommand::GetCanonicalAccountIdentity(tx),
             ))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>, AccountCommandError> {
+    pub async fn get_account_mode(
+        &self,
+    ) -> Result<Option<StoredAccountMode>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetAccountMode(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn forget_account(&self) -> Result<(), AccountCommandError> {
+    pub async fn forget_account(&self) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::ForgetAccount(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn delete_account(&self) -> Result<(), AccountCommandError> {
+    pub async fn delete_account(&self) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::DeleteAccount(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn rotate_keys(&self) -> Result<(), AccountCommandError> {
+    pub async fn rotate_keys(&self) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RotateKeys(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn refresh_account_state(&self, force: bool) -> Result<(), AccountCommandError> {
+    pub async fn refresh_account_state(&self, force: bool) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RefreshAccountState(tx, force))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
     pub async fn reset_device_identity(
         &self,
         seed: Option<[u8; 32]>,
-    ) -> Result<(), AccountCommandError> {
+    ) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::ResetDeviceIdentity(tx, seed))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
+    pub async fn register_device(&self) -> Result<(), AccountControllerError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::RegisterDevice(tx))
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
+    }
+
+    #[instrument(skip(self))]
+    pub async fn get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetUsage(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn get_device_identity(&self) -> Result<Option<String>, AccountCommandError> {
+    pub async fn get_device_identity(&self) -> Result<Option<String>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetDeviceIdentity(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+    pub async fn get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetDevices(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+    pub async fn get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetActiveDevices(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
     pub async fn get_account_summary(
         &self,
-    ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
+    ) -> Result<Option<VpnAccountSummary>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetAccountSummary(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn is_trial_eligible(&self) -> Result<bool, AccountCommandError> {
+    pub async fn is_trial_eligible(&self) -> Result<bool, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::IsTrialEligible(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     /// Redeems a free pass code on the account and returns the subscription it grants.
@@ -277,14 +344,16 @@ impl AccountCommandSender {
     pub async fn apply_freepass(
         &self,
         code: String,
-    ) -> Result<NymVpnSubscription, AccountCommandError> {
+    ) -> Result<NymVpnSubscription, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::ApplyFreepass(
                 tx, code,
             )))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     /// The denying Apple introductory-offer token, or `None` when Apple's own rule should decide.
@@ -293,14 +362,16 @@ impl AccountCommandSender {
         &self,
         product_id: String,
         transaction_id: String,
-    ) -> Result<Option<String>, AccountCommandError> {
+    ) -> Result<Option<String>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(
                 CommonCommand::CheckAppleIntroOfferEligibility(tx, product_id, transaction_id),
             ))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
@@ -309,7 +380,7 @@ impl AccountCommandSender {
         kind: DeeplinkKind,
         name: String,
         base_url: Url,
-    ) -> Result<String, AccountCommandError> {
+    ) -> Result<String, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         let params = CreateDeeplinkParams {
             kind,
@@ -320,8 +391,10 @@ impl AccountCommandSender {
             .send(AccountCommand::Common(CommonCommand::GetDeeplink(
                 tx, params,
             )))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
@@ -330,7 +403,7 @@ impl AccountCommandSender {
         kind: DeeplinkKind,
         name: String,
         base_url: Url,
-    ) -> Result<AutologinResponse, AccountCommandError> {
+    ) -> Result<AutologinResponse, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         let params = CreateDeeplinkParams {
             kind,
@@ -341,68 +414,82 @@ impl AccountCommandSender {
             .send(AccountCommand::Common(CommonCommand::GetAutologinDeeplink(
                 tx, params,
             )))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip_all)]
     pub async fn derive_deeplink_mnemonic(
         &self,
         deeplink_callback_url: String,
-    ) -> Result<DeeplinkMnemonic, AccountCommandError> {
+    ) -> Result<DeeplinkMnemonic, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(
                 CommonCommand::DeriveDeeplinkMnemonic(tx, deeplink_callback_url),
             ))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn set_vpn_api_firewall_up(&self) -> Result<(), AccountCommandError> {
+    pub async fn set_vpn_api_firewall_up(&self) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::VpnApiFirewallUp(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn set_vpn_api_firewall_down(&self) -> Result<(), AccountCommandError> {
+    pub async fn set_vpn_api_firewall_down(&self) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::VpnApiFirewallDown(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn decentralised_balance(&self) -> Result<Vec<Coin>, AccountCommandError> {
+    pub async fn decentralised_balance(&self) -> Result<Vec<Coin>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::AccountBalance(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn decentralised_obtain_ticketbooks(&self) -> Result<(), AccountCommandError> {
+    pub async fn decentralised_obtain_ticketbooks(&self) -> Result<(), AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::ObtainTicketbooks(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 
     #[instrument(skip(self))]
-    pub async fn handle_subscription_payment(&self) -> Result<(), AccountCommandError> {
+    pub async fn handle_subscription_payment(&self) -> Result<(), AccountControllerError> {
         // A payment changes subscription status server-side, so we must re-fetch from the VPN API
         // rather than re-evaluating the stale cached summary.
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RefreshAccountState(tx, true))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
     }
 }
