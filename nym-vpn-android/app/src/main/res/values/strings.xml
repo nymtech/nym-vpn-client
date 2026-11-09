@@ -314,6 +314,22 @@
 	<string name="welcome_error_reports_description_end">)</string>
 	<string name="welcome_usage_title">Share usage analytics</string>
 	<string name="welcome_usage_description">Helps us improve the Nym network. No logging or activity tracked.</string>
+	<!-- Telemetry opt-in (onboarding + settings) -->
+	<string name="optin_connection_title">Your connection quality</string>
+	<string name="optin_connection_subtitle">Helps improve network connectivity</string>
+	<string name="optin_monitoring_title">Your app errors &amp; crashes</string>
+	<string name="optin_monitoring_subtitle">Helps improve app performance</string>
+	<string name="optin_privacy_link_text">Read our Privacy Statement</string>
+	<string name="optin_privacy_link" translatable="false">https://nym.com/vpn-privacy-statement</string>
+	<string name="optin_info_title">What\'s shared</string>
+	<string name="optin_info_got_it">Got it</string>
+	<string name="optin_info_never_label">Never:</string>
+	<string name="optin_connection_shares">Connect time and success\nRetries and drop-outs\nSession length\nMode (dVPN / Mixnet) and exit location\nConnection error codes</string>
+	<string name="optin_connection_never">your IP, browsing, or traffic contents.</string>
+	<string name="optin_connection_handling">Sent through the VPN tunnel to Nym. No third party.</string>
+	<string name="optin_monitoring_shares">Crashes and error messages\nFreezes, hangs, slow performance\nWhere it happened (stack traces)\nOS, device type, app version</string>
+	<string name="optin_monitoring_never">personal info, browsing, or traffic content.</string>
+	<string name="optin_monitoring_handling">Handled by Sentry, a third-party service. Nym never sees your IP.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">Welcome to NymVPN</string>
 	<string name="onboarding_welcome_description">Your private access to \nan **internet without walls.**</string>
