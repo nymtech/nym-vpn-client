@@ -62,10 +62,15 @@ public struct TelemetryInfoSheet: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(content.bullets, id: \.self) { bullet in
-                    Text(bullet)
-                        .nymTextStyle(.bodySmall)
-                        .foregroundStyle(Color.Nym.textSecondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    HStack(alignment: .top, spacing: 8) {
+                        Text("•")
+                            .nymTextStyle(.bodySmall)
+                            .foregroundStyle(Color.Nym.textSecondary)
+                        Text(bullet)
+                            .nymTextStyle(.bodySmall)
+                            .foregroundStyle(Color.Nym.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
             }
 
@@ -104,5 +109,8 @@ public struct TelemetryInfoSheet: View {
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.Nym.background.ignoresSafeArea())
+        #if os(macOS)
+        .frame(minWidth: 380, idealWidth: 420, minHeight: 440, idealHeight: 540)
+        #endif
     }
 }
