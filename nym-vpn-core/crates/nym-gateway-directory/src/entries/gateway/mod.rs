@@ -52,6 +52,10 @@ pub struct Gateway {
     pub nr_address: Option<String>,
     #[builder(default)]
     pub bridge_params: Option<BridgeInformation>,
+    /// The node's signature over its bridge descriptor verified, so `bridge_params` is not just
+    /// what the directory says.
+    #[builder(default)]
+    pub bridge_params_signed: bool,
     #[builder(default)]
     pub last_probe: Option<Probe>,
     #[builder(default=vec![])]
@@ -151,6 +155,7 @@ impl Gateway {
             authenticator_address,
             nr_address,
             bridge_params: None,
+            bridge_params_signed: false,
             last_probe: None,
             ips,
             host,
@@ -656,6 +661,30 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
                 }
             })?;
 
+        // A verified descriptor only keeps the advertised entries it contains: the directory may
+        // remove entries but not add or change them. A bad signature drops all of them.
+        let (bridge_params, bridge_params_signed) = match gateway.bridges_signed {
+            None => (gateway.bridges, false),
+            Some(signed) => match signed.verify(&identity) {
+                Some(verified) => (
+                    gateway.bridges.map(|mut bridges| {
+                        bridges
+                            .transports
+                            .retain(|t| verified.transports.contains(t));
+                        bridges
+                            .transports_v2
+                            .retain(|t| verified.transports_v2.contains(t));
+                        bridges
+                    }),
+                    true,
+                ),
+                None => {
+                    tracing::debug!("Dropping bridge params with a bad signature for {identity}");
+                    (None, false)
+                }
+            },
+        };
+
         let ipr_address = gateway
             .ip_packet_router
             .and_then(|ipr| IpPacketRouterAddress::try_from_base58_string(&ipr.address).ok());
@@ -715,7 +744,8 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             ipr_address,
             authenticator_address,
             nr_address: None,
-            bridge_params: gateway.bridges,
+            bridge_params,
+            bridge_params_signed,
             last_probe,
             ips: gateway.ip_addresses,
             host,

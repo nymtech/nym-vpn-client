@@ -74,6 +74,16 @@ impl FeatureFlags {
     pub fn amnezia_enabled(&self) -> Option<bool> {
         self.get_group_flag("amnezia", "enabled")
     }
+
+    /// If the AmneziaWG translator is only used with a gateway descriptor signed by the node, if set.
+    pub fn amnezia_require_signed(&self) -> Option<bool> {
+        self.get_group_flag("amnezia", "require_signed")
+    }
+
+    /// Lowest AmneziaWG protocol version the translator may use, if set.
+    pub fn amnezia_min_protocol_version(&self) -> Option<u16> {
+        self.get_group_flag("amnezia", "min_protocol_version")
+    }
 }
 
 impl From<HashMap<String, FlagValue>> for FeatureFlags {

@@ -6421,6 +6421,7 @@ dependencies = [
  "ipnetwork",
  "itertools 0.15.0",
  "nym-client-core",
+ "nym-crypto",
  "nym-http-api-client",
  "nym-network-defaults",
  "nym-offline-monitor",

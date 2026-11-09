@@ -1,3 +1,5 @@
+use nym_crypto::asymmetric::ed25519;
+
 use super::*;
 use crate::BlacklistReason;
 
@@ -555,6 +557,7 @@ fn sample_gateway_list(gw_type: GatewayType) -> GatewayList {
                 authenticator_address: aa,
                 nr_address: None,
                 bridge_params: None,
+                bridge_params_signed: false,
                 last_probe: None,
                 ips: Vec::new(),
                 host: None,
@@ -591,6 +594,7 @@ fn create_test_gateway(identity: &str, country: &str, score: ScoreValue) -> Gate
         authenticator_address: None,
         nr_address: None,
         bridge_params: None,
+        bridge_params_signed: false,
         last_probe: None,
         ips: Vec::new(),
         host: None,
@@ -658,6 +662,7 @@ fn create_response_nym_gateway(
             wss_port: Some(9001),
         },
         bridges: None,
+        bridges_signed: None,
         performance: Percent::zero(),
         performance_v2: Some(nym_vpn_api_client::response::DVpnGatewayPerformance {
             last_updated_utc: "2024-01-01T00:00:00Z".to_string(),
@@ -809,4 +814,133 @@ fn bridge_candidates_fall_back_to_tls_only_when_allowed() {
         (vec![quic.clone()], vec![])
     );
     assert_eq!(gateway.bridge_candidates(true), (vec![quic], vec![tls]));
+}
+
+const QUIC: &str = r#"{"transport_type":"quic_plain","args":{"addresses":["1.2.3.4:4443"],"host":null,"id_pubkey":"7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"}}"#;
+
+fn awg(version: u16, port: u16) -> String {
+    format!(
+        r#"{{"transport_type":"amnezia","args":{{"protocol_version":{version},"addresses":["1.2.3.4:{port}"],"params":{{"init_pkt_junk_size":40,"response_pkt_junk_size":50,"under_load_pkt_magic_header":1766607858,"transport_pkt_magic_header":2028465083}}}}}}"#
+    )
+}
+
+fn descriptor(awg_entries: &[String]) -> String {
+    let v2 = [QUIC.to_owned()]
+        .into_iter()
+        .chain(awg_entries.iter().cloned());
+    format!(
+        r#"{{"version":"1","transports":[{QUIC}],"transports_v2":[{}]}}"#,
+        v2.collect::<Vec<_>>().join(",")
+    )
+}
+
+/// A directory entry advertising `advertised`, with `signed` signed by the node when given.
+fn directory_gateway(
+    key: &ed25519::KeyPair,
+    advertised: &str,
+    signed: Option<&str>,
+) -> serde_json::Value {
+    let bridges_signed = signed.map(|payload| {
+        let message = [b"nym-bridge-client-params-v1\n", payload.as_bytes()].concat();
+        let signature = key.private_key().sign(message).to_base58_string();
+        serde_json::json!({ "payload": payload, "signature": signature })
+    });
+    serde_json::json!({
+        "identity_key": key.public_key().to_base58_string(),
+        "name": "gw",
+        "location": {
+            "two_letter_iso_country_code": "CH", "latitude": 0.0, "longitude": 0.0,
+            "city": "", "region": "", "asn": null
+        },
+        "ip_addresses": ["1.2.3.4"],
+        "mix_port": 1789,
+        "role": "entry",
+        "entry": { "hostname": null, "ws_port": 9000, "wss_port": null },
+        "bridges": serde_json::from_str::<serde_json::Value>(advertised).unwrap(),
+        "bridges_signed": bridges_signed,
+        "performance": "1",
+    })
+}
+
+fn gateway(directory_gateway: serde_json::Value) -> Gateway {
+    serde_json::from_value::<nym_vpn_api_client::response::NymDirectoryGateway>(directory_gateway)
+        .unwrap()
+        .try_into()
+        .unwrap()
+}
+
+fn awg_versions(gateway: &Gateway) -> Vec<u16> {
+    gateway
+        .bridge_params
+        .iter()
+        .flat_map(|b| &b.transports_v2)
+        .filter_map(|t| match t {
+            BridgeParameters::Amnezia(options) => Some(options.protocol_version),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn signed_bridge_params_keep_all_entries() {
+    let key = ed25519::KeyPair::new(&mut rand::rng());
+    let payload = descriptor(&[awg(2, 51830), awg(1, 51831)]);
+
+    let gateway = gateway(directory_gateway(&key, &payload, Some(&payload)));
+
+    assert!(gateway.bridge_params_signed);
+    assert_eq!(awg_versions(&gateway), [2, 1]);
+    assert_eq!(gateway.bridge_params.unwrap().transports.len(), 1);
+}
+
+#[test]
+fn bad_signature_drops_all_bridge_params() {
+    let key = ed25519::KeyPair::new(&mut rand::rng());
+    let payload = descriptor(&[awg(2, 51830)]);
+    let mut tampered = directory_gateway(&key, &payload, Some(&payload));
+    tampered["bridges_signed"]["payload"] = descriptor(&[awg(2, 51840)]).into();
+
+    let gateway = gateway(tampered);
+
+    assert!(!gateway.bridge_params_signed);
+    assert!(gateway.bridge_params.is_none());
+}
+
+#[test]
+fn signed_bridge_params_only_allow_removal() {
+    let key = ed25519::KeyPair::new(&mut rand::rng());
+    let signed = descriptor(&[awg(2, 51830), awg(1, 51831)]);
+
+    // The directory dropped 3.1, which is honoured.
+    let advertised = descriptor(&[awg(1, 51831)]);
+    assert_eq!(
+        awg_versions(&gateway(directory_gateway(
+            &key,
+            &advertised,
+            Some(&signed)
+        ))),
+        [1]
+    );
+
+    // The directory changed the 1.0 address, which is not in the signed set.
+    let advertised = descriptor(&[awg(2, 51830), awg(1, 51841)]);
+    assert_eq!(
+        awg_versions(&gateway(directory_gateway(
+            &key,
+            &advertised,
+            Some(&signed)
+        ))),
+        [2]
+    );
+}
+
+#[test]
+fn unsigned_bridge_params_are_used_as_advertised() {
+    let key = ed25519::KeyPair::new(&mut rand::rng());
+    let advertised = descriptor(&[awg(2, 51830)]);
+
+    let gateway = gateway(directory_gateway(&key, &advertised, None));
+
+    assert!(!gateway.bridge_params_signed);
+    assert_eq!(awg_versions(&gateway), [2]);
 }

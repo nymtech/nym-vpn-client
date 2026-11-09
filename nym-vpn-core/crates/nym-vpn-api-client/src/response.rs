@@ -15,6 +15,7 @@ use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 pub use nym_credential_proxy_requests::api::v1::ticketbook::models::UpgradeModeAttestation;
+use nym_crypto::asymmetric::ed25519;
 use nym_validator_client::models::described::type_translation::LewesProtocolDetailsV1;
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, UtcDateTime, format_description::well_known::Iso8601};
@@ -441,6 +442,8 @@ pub struct NymDirectoryGateway {
     pub role: Role,
     pub entry: EntryInformation,
     pub bridges: Option<BridgeInformation>,
+    /// The node's own descriptor with its signature, absent from older status APIs and nodes.
+    pub bridges_signed: Option<SignedBridgeParams>,
     // The performance data here originates from the nym-api, and is effectively mixnet performance
     // at the time of writing this
     pub performance: Percent,
@@ -451,6 +454,23 @@ pub struct NymDirectoryGateway {
     pub lewes_protocol_details: Option<LewesProtocolDetailsV1>,
     pub staking_data: Option<NodeStaking>,
     pub family_data: Option<NodeFamily>,
+}
+
+/// Bridge descriptor exactly as the node serves it, signed with the node identity key.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SignedBridgeParams {
+    pub payload: String,
+    pub signature: String,
+}
+
+impl SignedBridgeParams {
+    /// The descriptor, if the signature over the raw payload verifies against the node identity.
+    pub fn verify(&self, key: &ed25519::PublicKey) -> Option<BridgeInformation> {
+        let signature = ed25519::Signature::from_base58_string(&self.signature).ok()?;
+        let message = [b"nym-bridge-client-params-v1\n", self.payload.as_bytes()].concat();
+        key.verify(message, &signature).ok()?;
+        serde_json::from_str(&self.payload).ok()
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

@@ -616,13 +616,26 @@ impl TunnelMonitor {
                 if self.tunnel_parameters.amnezia_translator
                     && !self.tunnel_parameters.use_bridges =>
             {
-                selected_gateways
-                    .entry_gateway()
-                    .bridge_params
-                    .as_ref()
-                    .and_then(|params| {
-                        transports::amnezia_entry(params, result.entry_gateway_data().endpoint)
-                    })
+                let flags = self
+                    .tunnel_parameters
+                    .nym_config
+                    .network_rx
+                    .borrow()
+                    .feature_flags
+                    .clone()
+                    .unwrap_or_default();
+                let entry_gateway = selected_gateways.entry_gateway();
+                (entry_gateway.bridge_params_signed
+                    || !flags.amnezia_require_signed().unwrap_or(false))
+                .then_some(entry_gateway.bridge_params.as_ref())
+                .flatten()
+                .and_then(|params| {
+                    transports::amnezia_entry(
+                        params,
+                        result.entry_gateway_data().endpoint,
+                        flags.amnezia_min_protocol_version().unwrap_or(0),
+                    )
+                })
             }
             _ => None,
         };
