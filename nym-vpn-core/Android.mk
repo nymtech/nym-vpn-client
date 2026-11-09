@@ -67,7 +67,7 @@ LICENSES_FILE := $(ANDROID_DIR)/core/src/main/assets/licenses_rust.json
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-.PHONY: build clippy uniffi libwg strip clean prune-dep-cdylibs
+.PHONY: build clippy uniffi libwg strip clean prune-dep-cdylibs FORCE
 
 all: $(LIBWG_LIBS) build uniffi strip $(LICENSES_FILE)
 
@@ -132,6 +132,14 @@ ifneq ($(LIBWG_OTHERS),)
 $(LIBWG_OTHERS): $(LIBWG_FIRST)
 	@# built as a side effect of the wireguard build above
 endif
+
+# Rebuild when any selected ABI's libwg.so is missing, e.g. after building a
+# subset of ANDROID_ABIS.
+ifneq ($(filter-out $(wildcard $(LIBWG_LIBS)),$(LIBWG_LIBS)),)
+$(LIBWG_FIRST): FORCE
+endif
+
+FORCE:
 
 libwg: $(LIBWG_LIBS)
 
