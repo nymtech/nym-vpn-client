@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
+import { Description, Field, Label } from '@headlessui/react';
+import clsx from 'clsx';
 import { AnonNetworkStatsUrl, SentryPrivacyPolicyUrl } from '../../constants';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { Button, Link, Switch } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
-import SettingsGroup from '../settings/SettingsGroup';
 import { dispatch } from '../../store';
 import { InteractiveCard } from '../home/InteractiveCard';
 
@@ -26,14 +27,6 @@ function TechnicalOptin() {
     dispatch({ type: 'set-technical-optin-seen', seen: true });
     kvSet('technical-optin-seen', true);
     navigate(routes.root);
-  };
-
-  const toggleMonitoring = () => {
-    setMonitoring(!monitoring);
-  };
-
-  const toggleNetstats = () => {
-    setNetstats(!netstats);
   };
 
   const initMonitoring = async () => {
@@ -67,51 +60,70 @@ function TechnicalOptin() {
           <p className="text-text-tertiary text-sm">{t('description')}</p>
         </div>
 
-        {/* Buttons */}
-        <SettingsGroup
-          className="w-full"
-          settings={[
+        <div className="w-full" data-testid="welcome-netstats-group">
+          {[
             {
-              title: t('anonymous-network-stats'),
-              desc: (
-                <Link
-                  color="iron"
-                  text={t('privacy.network-stats.link', { ns: 'settings' })}
-                  url={AnonNetworkStatsUrl}
-                />
-              ),
-              leadingIcon: 'analytics',
-              trailing: (
-                <Switch
-                  checked={netstats}
-                  onChange={toggleNetstats}
-                  data-testid="welcome-netstats-switch"
-                />
-              ),
-              'data-testid': 'welcome-netstats-option',
+              id: 'welcome-netstats',
+              label: t('anonymous-network-stats'),
+              helpText: t('privacy.network-stats.link', { ns: 'settings' }),
+              helpUrl: AnonNetworkStatsUrl,
+              icon: 'analytics',
+              checked: netstats,
+              onChange: setNetstats,
             },
             {
-              title: t('error-and-crash-reports'),
-              desc: (
-                <Link
-                  color="iron"
-                  text={t('privacy.error-monitoring.link', { ns: 'settings' })}
-                  url={SentryPrivacyPolicyUrl}
-                />
-              ),
-              leadingIcon: 'bug_report',
-              trailing: (
-                <Switch
-                  checked={monitoring}
-                  onChange={toggleMonitoring}
-                  data-testid="welcome-monitoring-switch"
-                />
-              ),
-              'data-testid': 'welcome-monitoring-option',
+              id: 'welcome-monitoring',
+              label: t('error-and-crash-reports'),
+              helpText: t('privacy.error-monitoring.link', { ns: 'settings' }),
+              helpUrl: SentryPrivacyPolicyUrl,
+              icon: 'bug_report',
+              checked: monitoring,
+              onChange: setMonitoring,
             },
-          ]}
-          data-testid="welcome-netstats-group"
-        />
+          ].map(
+            (
+              { id, label, helpText, helpUrl, icon, checked, onChange },
+              index,
+            ) => (
+              <Field
+                key={id}
+                className={clsx(
+                  'bg-surface-elev hover:bg-surface-hair flex min-h-16 items-center gap-4 px-5 py-2 transition duration-75',
+                  index === 0
+                    ? 'rounded-t-2xl'
+                    : 'border-surface-bg rounded-b-2xl border-t',
+                )}
+                data-testid={`${id}-option`}
+              >
+                <span
+                  aria-hidden="true"
+                  className="font-icon text-text-secondary text-2xl select-none"
+                >
+                  {icon}
+                </span>
+                <div className="flex min-w-4 flex-1 flex-col justify-center">
+                  <Label
+                    as="span"
+                    className="text-text-primary truncate text-base select-none"
+                  >
+                    {label}
+                  </Label>
+                  <Description
+                    as="div"
+                    className="text-text-secondary truncate text-sm select-none"
+                  >
+                    <Link color="iron" text={helpText} url={helpUrl} />
+                  </Description>
+                </div>
+                <Switch
+                  checked={checked}
+                  onChange={onChange}
+                  data-testid={`${id}-switch`}
+                />
+              </Field>
+            ),
+          )}
+        </div>
         <Button onClick={handleContinue}>{t('continue-button')}</Button>
       </div>
     </InteractiveCard>

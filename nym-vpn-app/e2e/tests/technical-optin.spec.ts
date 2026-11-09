@@ -26,9 +26,8 @@ for (const { label, helpText, checked, expectedCommands } of cases) {
     });
 
     await page.goto('/technical-optin');
-    const card = page.getByRole('radio').filter({ hasText: label });
-    await expect(card.getByText(helpText, { exact: true })).toBeVisible();
-    const toggle = card.getByRole('switch');
+    await expect(page.getByText(helpText, { exact: true })).toBeVisible();
+    const toggle = page.getByRole('switch', { name: label });
     await expect(toggle).toHaveAttribute('aria-checked', checked);
     await toggle.click();
     await page.getByRole('button', { name: 'Continue' }).click();
@@ -37,3 +36,31 @@ for (const { label, helpText, checked, expectedCommands } of cases) {
     expect(commands).toEqual(expectedCommands);
   });
 }
+
+test('exposes independent telemetry switches to keyboard users', async ({
+  page,
+}) => {
+  await page.goto('/technical-optin');
+
+  const networkStats = page.getByRole('switch', {
+    name: 'Anonymous network stats',
+  });
+  const crashReports = page.getByRole('switch', {
+    name: 'Error & crash reports',
+  });
+
+  await expect(page.getByRole('radio')).toHaveCount(0, { timeout: 1500 });
+  await expect(networkStats).toBeChecked();
+  await expect(crashReports).not.toBeChecked();
+
+  await networkStats.focus();
+  await page.keyboard.press('Space');
+  await expect(networkStats).not.toBeChecked();
+  await expect(crashReports).not.toBeChecked();
+
+  await page.keyboard.press('Tab');
+  await expect(crashReports).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(crashReports).toBeChecked();
+  await expect(networkStats).not.toBeChecked();
+});
