@@ -9,12 +9,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.TelemetryInfoKind
 
 @Composable
-fun NetworkStatsSection(
-	statsEnabled: Boolean,
-	onNetworkStatsEnable: (enabled: Boolean) -> Unit,
-	onInfo: (TelemetryInfoKind) -> Unit,
-	shape: Shape = RoundedCornerShape(8.dp),
-) {
+fun NetworkStatsSection(statsEnabled: Boolean, onNetworkStatsEnable: (enabled: Boolean) -> Unit, onInfo: (TelemetryInfoKind) -> Unit, shape: Shape = RoundedCornerShape(8.dp)) {
 	TelemetryToggleCard(
 		title = stringResource(R.string.optin_connection_title),
 		subtitle = stringResource(R.string.optin_connection_subtitle),

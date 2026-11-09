@@ -9,12 +9,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.TelemetryInfoKind
 
 @Composable
-fun MonitoringSection(
-	sentryEnabled: Boolean,
-	onMonitoringEnable: (enabled: Boolean) -> Unit,
-	onInfo: (TelemetryInfoKind) -> Unit,
-	shape: Shape = RoundedCornerShape(8.dp),
-) {
+fun MonitoringSection(sentryEnabled: Boolean, onMonitoringEnable: (enabled: Boolean) -> Unit, onInfo: (TelemetryInfoKind) -> Unit, shape: Shape = RoundedCornerShape(8.dp)) {
 	TelemetryToggleCard(
 		title = stringResource(R.string.optin_monitoring_title),
 		subtitle = stringResource(R.string.optin_monitoring_subtitle),

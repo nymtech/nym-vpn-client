@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -68,11 +67,7 @@ fun SettingsSection(
 						) {
 							Icon(
 								Icons.Outlined.Info,
-								contentDescription =
-									stringResource(
-										R.string.optin_info_accessibility,
-										stringResource(R.string.optin_connection_title),
-									),
+								contentDescription = stringResource(R.string.optin_info_accessibility, stringResource(R.string.optin_connection_title)),
 								tint = MaterialTheme.colorScheme.onBackground,
 							)
 						}
@@ -115,11 +110,7 @@ fun SettingsSection(
 						) {
 							Icon(
 								Icons.Outlined.Info,
-								contentDescription =
-									stringResource(
-										R.string.optin_info_accessibility,
-										stringResource(R.string.optin_monitoring_title),
-									),
+								contentDescription = stringResource(R.string.optin_info_accessibility, stringResource(R.string.optin_monitoring_title)),
 								tint = MaterialTheme.colorScheme.onBackground,
 							)
 						}
