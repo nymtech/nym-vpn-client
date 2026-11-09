@@ -278,6 +278,16 @@ mod tests {
     }
 
     #[test]
+    fn rejects_empty_token() {
+        let mut service = AuthorizationService::default();
+        assert_eq!(
+            service.authorize(&[], CLIENT),
+            Err(Error::AuthenticationFailed)
+        );
+        assert!(!service.is_authorized(&CLIENT));
+    }
+
+    #[test]
     fn deauthorize_revokes_authorization() {
         let mut service = service_authorized_until(CLIENT, deadline());
         service.deauthorize(&CLIENT);

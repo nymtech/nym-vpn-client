@@ -74,6 +74,6 @@ impl Authorization {
 
 impl Drop for Authorization {
     fn drop(&mut self) {
-        free_authorization(self.0, AuthorizationFlags::Defaults);
+        free_authorization(self.0, AuthorizationFlags::DestroyRights);
     }
 }
