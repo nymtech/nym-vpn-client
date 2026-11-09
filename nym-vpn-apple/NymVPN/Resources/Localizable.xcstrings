@@ -31935,7 +31935,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Connect time and error codes\nSession length\nMode (dVPN / Mixnet) and exit server\nOS, device type, app version\nAn anonymous ID (not tied to your account)"
+            "value" : "Connect time and error codes\nSession date and length\nMode (dVPN / Mixnet) and exit server\nOS, device type, app version\nAn anonymous ID (not tied to your account)"
           }
         }
       }
