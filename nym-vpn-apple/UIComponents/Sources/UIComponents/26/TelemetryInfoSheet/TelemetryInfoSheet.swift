@@ -1,4 +1,5 @@
 import SwiftUI
+import Constants
 import Theme
 
 /// Content for the "What's shared" telemetry info sheet. Built by the caller
@@ -35,6 +36,27 @@ public struct TelemetryInfoContent: Identifiable {
         self.gotItTitle = gotItTitle
         self.privacyLinkTitle = privacyLinkTitle
         self.privacyURL = privacyURL
+    }
+
+    /// Builds the content for a telemetry toggle by resolving the shared string
+    /// keys, so the onboarding and settings screens don't each duplicate it.
+    public static func telemetry(
+        id: String,
+        sharesKey: String,
+        neverKey: String,
+        handlingKey: String
+    ) -> TelemetryInfoContent {
+        TelemetryInfoContent(
+            id: id,
+            title: "welcomeOptIns.info.title".localizedString,
+            bullets: sharesKey.localizedString.components(separatedBy: "\n"),
+            neverLabel: "welcomeOptIns.info.neverLabel".localizedString,
+            never: neverKey.localizedString,
+            handling: handlingKey.localizedString,
+            gotItTitle: "welcomeOptIns.info.gotIt".localizedString,
+            privacyLinkTitle: "welcomeOptIns.privacyLink".localizedString,
+            privacyURL: URL(string: Constants.privacyPolicyURL.rawValue)
+        )
     }
 }
 

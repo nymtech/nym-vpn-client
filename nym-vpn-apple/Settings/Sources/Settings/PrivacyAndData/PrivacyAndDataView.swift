@@ -1,6 +1,5 @@
 import SwiftUI
 import AppSettings
-import Constants
 import ImpactGenerator
 #if os(macOS)
 import GRPCManager
@@ -190,32 +189,20 @@ private extension PrivacyAndDataView {
     }
 
     func connectionInfo() -> TelemetryInfoContent {
-        TelemetryInfoContent(
+        .telemetry(
             id: "connection",
-            title: "welcomeOptIns.info.title".localizedString,
-            bullets: "welcomeOptIns.connection.shares".localizedString
-                .components(separatedBy: "\n"),
-            neverLabel: "welcomeOptIns.info.neverLabel".localizedString,
-            never: "welcomeOptIns.connection.never".localizedString,
-            handling: "welcomeOptIns.connection.handling".localizedString,
-            gotItTitle: "welcomeOptIns.info.gotIt".localizedString,
-            privacyLinkTitle: "welcomeOptIns.privacyLink".localizedString,
-            privacyURL: URL(string: Constants.privacyPolicyURL.rawValue)
+            sharesKey: "welcomeOptIns.connection.shares",
+            neverKey: "welcomeOptIns.connection.never",
+            handlingKey: "welcomeOptIns.connection.handling"
         )
     }
 
     func monitoringInfo() -> TelemetryInfoContent {
-        TelemetryInfoContent(
+        .telemetry(
             id: "monitoring",
-            title: "welcomeOptIns.info.title".localizedString,
-            bullets: "welcomeOptIns.monitoring.shares".localizedString
-                .components(separatedBy: "\n"),
-            neverLabel: "welcomeOptIns.info.neverLabel".localizedString,
-            never: "welcomeOptIns.monitoring.never".localizedString,
-            handling: "welcomeOptIns.monitoring.handling".localizedString,
-            gotItTitle: "welcomeOptIns.info.gotIt".localizedString,
-            privacyLinkTitle: "welcomeOptIns.privacyLink".localizedString,
-            privacyURL: URL(string: Constants.privacyPolicyURL.rawValue)
+            sharesKey: "welcomeOptIns.monitoring.shares",
+            neverKey: "welcomeOptIns.monitoring.never",
+            handlingKey: "welcomeOptIns.monitoring.handling"
         )
     }
 }
