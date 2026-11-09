@@ -71,6 +71,9 @@ rust-version = "1.97"
 
 [profile.release]
 lto = true
+debug = "line-tables-only"
+split-debuginfo = "packed"
+strip = "debuginfo"
 
 [profile.ci]
 inherits = "dev"
