@@ -68,6 +68,12 @@ impl FeatureFlags {
     pub fn bridge_transports_enabled(&self) -> Option<bool> {
         self.get_group_flag("bridge_transports", "enabled")
     }
+
+    /// If the AmneziaWG translator may be used, if set. Only has an effect when the AmneziaWG
+    /// mode is auto.
+    pub fn amnezia_enabled(&self) -> Option<bool> {
+        self.get_group_flag("amnezia", "enabled")
+    }
 }
 
 impl From<HashMap<String, FlagValue>> for FeatureFlags {

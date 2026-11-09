@@ -102,6 +102,10 @@ private extension OneClickView {
         if let bridgeTransport = viewModel.bridgeTransport {
             return String(format: "oneClick.bridge.connected".localizedString, bridgeTransport)
         }
+        if let version = viewModel.amneziaVersion {
+            let key = viewModel.amneziaViaTranslator == true ? "oneClick.amnezia.bridge" : "oneClick.amnezia.direct"
+            return String(format: key.localizedString, version)
+        }
         return viewModel.appSettings.bridgeMode == .auto ? "oneClick.bridge.direct".localizedString : nil
     }
 

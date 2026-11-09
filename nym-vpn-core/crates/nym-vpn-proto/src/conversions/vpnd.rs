@@ -471,7 +471,7 @@ impl From<BridgeInformation> for proto::BridgeInformation {
             .advertised()
             .iter()
             .cloned()
-            .map(proto::BridgeParameters::from)
+            .filter_map(bridge_parameters_to_proto)
             .collect::<Vec<_>>();
 
         Self {
@@ -597,26 +597,22 @@ impl TryFrom<proto::SshClientOptions> for SshClientOptions {
     }
 }
 
-impl From<BridgeParameters> for proto::BridgeParameters {
-    fn from(value: BridgeParameters) -> Self {
-        match value {
-            BridgeParameters::QuicPlain(options) => proto::BridgeParameters {
-                state: Some(proto::bridge_parameters::State::QuicPlain(
-                    proto::QuicClientOptions::from(options),
-                )),
-            },
-            BridgeParameters::TlsPlain(options) => proto::BridgeParameters {
-                state: Some(proto::bridge_parameters::State::TlsPlain(
-                    proto::TlsClientOptions::from(options),
-                )),
-            },
-            BridgeParameters::SshPlain(options) => proto::BridgeParameters {
-                state: Some(proto::bridge_parameters::State::SshPlain(
-                    proto::SshClientOptions::from(options),
-                )),
-            },
+/// Apps only see the bridge transports they can display. The AmneziaWG translator is dialed by
+/// the daemon, so it has no proto representation and is left out.
+fn bridge_parameters_to_proto(value: BridgeParameters) -> Option<proto::BridgeParameters> {
+    let state = match value {
+        BridgeParameters::QuicPlain(options) => {
+            proto::bridge_parameters::State::QuicPlain(proto::QuicClientOptions::from(options))
         }
-    }
+        BridgeParameters::TlsPlain(options) => {
+            proto::bridge_parameters::State::TlsPlain(proto::TlsClientOptions::from(options))
+        }
+        BridgeParameters::SshPlain(options) => {
+            proto::bridge_parameters::State::SshPlain(proto::SshClientOptions::from(options))
+        }
+        BridgeParameters::Amnezia(_) => return None,
+    };
+    Some(proto::BridgeParameters { state: Some(state) })
 }
 
 impl TryFrom<proto::BridgeParameters> for BridgeParameters {

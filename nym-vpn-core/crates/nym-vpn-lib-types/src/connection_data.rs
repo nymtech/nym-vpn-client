@@ -302,6 +302,40 @@ pub struct BridgeAddress {
     pub transport: BridgeTransport,
 }
 
+/// AmneziaWG on the entry hop.
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct AmneziaConnection {
+    pub protocol: AmneziaProtocol,
+
+    /// True through the gateway's AmneziaWG bridge translator, false straight to the node
+    pub via_translator: bool,
+}
+
+/// AmneziaWG protocol version in use.
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum AmneziaProtocol {
+    Awg10,
+    Awg31,
+}
+
 /// Transport carrying the bridge connection.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
@@ -331,6 +365,8 @@ pub enum BridgeTransport {
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct WireguardConnectionData {
     pub entry_bridge_addr: Option<BridgeAddress>,
+    /// AmneziaWG in use on the entry hop, if any
+    pub amnezia: Option<AmneziaConnection>,
     pub entry: WireguardNode,
     pub exit: WireguardNode,
 }

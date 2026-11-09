@@ -7,7 +7,8 @@ public enum GatewayBridgeParameters: Codable, Hashable {
 }
 
 public extension GatewayBridgeParameters {
-    init(with parameters: ClientConfig) {
+    /// The AmneziaWG translator is dialed by the daemon, not shown as a bridge transport.
+    init?(with parameters: ClientConfig) {
         switch parameters {
         case let .quicPlain(quicClientOptions):
             self = .quicPlain(GatewayQuicClientOptions(with: quicClientOptions))
@@ -15,6 +16,8 @@ public extension GatewayBridgeParameters {
             self = .tlsPlain(GatewayTlsClientOptions(with: tlsClientOptions))
         case let .sshPlain(sshOptions):
             self = .sshPlain(GatewaySshPlainClientOptions(with: sshOptions))
+        case .amnezia:
+            return nil
         }
     }
 }

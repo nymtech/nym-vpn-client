@@ -348,6 +348,8 @@ impl Gateway {
                         fallback.push(t.clone());
                     }
                 }
+                // Dialed by WireGuard as plain UDP, not through a bridge socket.
+                BridgeParameters::Amnezia(_) => {}
             }
         }
         (quic, fallback)

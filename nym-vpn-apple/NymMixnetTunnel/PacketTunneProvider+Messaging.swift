@@ -141,7 +141,9 @@ private extension TunnelStateResponse {
                     entryGatewayId: connectionData?.entryGateway.id,
                     exitGatewayId: connectionData?.exitGateway.id,
                     tunnelType: ConnectionTunnelType(tunnelType),
-                    bridgeTransport: connectionData?.tunnel?.bridgeTransportName
+                    bridgeTransport: connectionData?.tunnel?.bridgeTransportName,
+                    amneziaVersion: connectionData?.tunnel?.amneziaVersion,
+                    amneziaViaTranslator: connectionData?.tunnel?.amneziaViaTranslator
                 )
             )
         case let .connected(connectionData: connectionData):
@@ -150,7 +152,9 @@ private extension TunnelStateResponse {
                     entryGatewayId: connectionData.entryGateway.id,
                     exitGatewayId: connectionData.exitGateway.id,
                     tunnelType: ConnectionTunnelType(connectionData.tunnel),
-                    bridgeTransport: connectionData.tunnel.bridgeTransportName
+                    bridgeTransport: connectionData.tunnel.bridgeTransportName,
+                    amneziaVersion: connectionData.tunnel.amneziaVersion,
+                    amneziaViaTranslator: connectionData.tunnel.amneziaViaTranslator
                 ),
                 connectedAt: Date(timeIntervalSince1970: TimeInterval(connectionData.connectedAt))
             )

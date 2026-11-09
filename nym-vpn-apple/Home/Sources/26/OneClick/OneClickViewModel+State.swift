@@ -53,6 +53,8 @@ extension OneClickViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] info in
                 self?.bridgeTransport = info?.bridgeTransport
+                self?.amneziaVersion = info?.amneziaVersion
+                self?.amneziaViaTranslator = info?.amneziaViaTranslator
                 self?.refreshSelection()
             }
             .store(in: &cancellables)

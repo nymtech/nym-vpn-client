@@ -787,6 +787,11 @@ fn bridge_candidates_fall_back_to_tls_only_when_allowed() {
         host: None,
         id_pubkey: String::new(),
     });
+    // AmneziaWG is dialed by WireGuard, never as a bridge.
+    let amnezia: BridgeParameters = serde_json::from_str(
+        r#"{"transport_type":"amnezia","args":{"protocol_version":1,"addresses":["1.2.3.4:51830"],"params":{"init_pkt_junk_size":40,"response_pkt_junk_size":50,"under_load_pkt_magic_header":1766607858,"transport_pkt_magic_header":2028465083}}}"#,
+    )
+    .unwrap();
     let gateway = Gateway::builder()
         .identity(
             NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
@@ -795,7 +800,7 @@ fn bridge_candidates_fall_back_to_tls_only_when_allowed() {
         .bridge_params(Some(BridgeInformation {
             version: String::from("1"),
             transports: vec![quic.clone()],
-            transports_v2: vec![quic.clone(), tls.clone(), unpinned],
+            transports_v2: vec![quic.clone(), tls.clone(), unpinned, amnezia],
         }))
         .build();
 

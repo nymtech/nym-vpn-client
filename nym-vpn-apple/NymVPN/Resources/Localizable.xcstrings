@@ -20247,6 +20247,28 @@
         }
       }
     },
+    "oneClick.amnezia.bridge" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected via AWG %@ bridge"
+          }
+        }
+      }
+    },
+    "oneClick.amnezia.direct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected directly with AWG %@"
+          }
+        }
+      }
+    },
     "oneClick.bridge.connected" : {
       "extractionState" : "manual",
       "localizations" : {

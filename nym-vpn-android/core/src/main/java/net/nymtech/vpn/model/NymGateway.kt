@@ -77,6 +77,7 @@ data class NymGateway(
 			is SdkBridgeParameter.QuicPlain -> BridgeParameter.QuicPlain()
 			is SdkBridgeParameter.TlsPlain -> BridgeParameter.TlsPlain()
 			is SdkBridgeParameter.SshPlain -> BridgeParameter.SshPlain()
+			is SdkBridgeParameter.Amnezia -> BridgeParameter.Amnezia()
 		}
 	}
 
@@ -96,4 +97,7 @@ sealed class BridgeParameter {
 
 	@Serializable
 	class SshPlain : BridgeParameter()
+
+	@Serializable
+	class Amnezia : BridgeParameter()
 }

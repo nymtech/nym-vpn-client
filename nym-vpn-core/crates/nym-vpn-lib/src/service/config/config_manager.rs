@@ -157,6 +157,13 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_amnezia_mode(&mut self, amnezia_mode: nym_vpn_lib_types::AmneziaMode) {
+        if self.config.amnezia_mode != amnezia_mode {
+            self.config.amnezia_mode = amnezia_mode;
+            self.save_config_and_send_event().await;
+        }
+    }
+
     pub async fn set_enable_ad_blocking(&mut self, enable_ad_blocking: bool) {
         if self.config.enable_ad_blocking != enable_ad_blocking {
             self.config.enable_ad_blocking = enable_ad_blocking;
@@ -579,6 +586,7 @@ impl VpnServiceConfigManager {
                 #[cfg(any(target_os = "android", target_os = "ios"))]
                 multihop_mode: WireguardMultihopMode::Netstack,
                 bridge_mode: self.config.bridge_mode,
+                amnezia_mode: self.config.amnezia_mode,
             },
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),

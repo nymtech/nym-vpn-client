@@ -7,10 +7,10 @@ use std::{
 };
 
 use nym_vpn_lib_types::{
-    ActionAfterDisconnect, BridgeAddress, BridgeTransport, ConnectionData, ErrorStateReason,
-    EstablishConnectionData, EstablishConnectionState, GatewayId, GatewayLightInfo,
-    MixnetConnectionData, NymAddress, SelectorFallbackState, TunnelConnectionData, TunnelState,
-    TunnelType, WireguardConnectionData, WireguardNode,
+    ActionAfterDisconnect, AmneziaConnection, AmneziaProtocol, BridgeAddress, BridgeTransport,
+    ConnectionData, ErrorStateReason, EstablishConnectionData, EstablishConnectionState, GatewayId,
+    GatewayLightInfo, MixnetConnectionData, NymAddress, SelectorFallbackState,
+    TunnelConnectionData, TunnelState, TunnelType, WireguardConnectionData, WireguardNode,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -534,7 +534,38 @@ impl TryFrom<proto::WireguardConnectionData> for WireguardConnectionData {
                 .entry_bridge_addr
                 .map(BridgeAddress::try_from)
                 .transpose()?,
+            amnezia: value.amnezia.map(AmneziaConnection::try_from).transpose()?,
         })
+    }
+}
+
+impl TryFrom<proto::AmneziaConnection> for AmneziaConnection {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::AmneziaConnection) -> Result<Self, Self::Error> {
+        let protocol = match proto::AmneziaProtocol::try_from(value.protocol)
+            .map_err(|e| ConversionError::Decode("AmneziaConnection.protocol", e))?
+        {
+            proto::AmneziaProtocol::Awg10 => AmneziaProtocol::Awg10,
+            proto::AmneziaProtocol::Awg31 => AmneziaProtocol::Awg31,
+        };
+        Ok(Self {
+            protocol,
+            via_translator: value.via_translator,
+        })
+    }
+}
+
+impl From<AmneziaConnection> for proto::AmneziaConnection {
+    fn from(value: AmneziaConnection) -> Self {
+        Self {
+            protocol: match value.protocol {
+                AmneziaProtocol::Awg10 => proto::AmneziaProtocol::Awg10,
+                AmneziaProtocol::Awg31 => proto::AmneziaProtocol::Awg31,
+            }
+            .into(),
+            via_translator: value.via_translator,
+        }
     }
 }
 
@@ -584,6 +615,7 @@ impl From<WireguardConnectionData> for proto::WireguardConnectionData {
             entry: Some(proto::WireguardNode::from(value.entry)),
             exit: Some(proto::WireguardNode::from(value.exit)),
             entry_bridge_addr: value.entry_bridge_addr.map(proto::BridgeAddress::from),
+            amnezia: value.amnezia.map(proto::AmneziaConnection::from),
         }
     }
 }

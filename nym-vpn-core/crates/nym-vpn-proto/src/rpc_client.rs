@@ -12,9 +12,9 @@ use nym_vpn_lib_types::SplitApp;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
-    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AppCompatibility,
-    AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport, DnsServer, EntryPoint,
-    ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings,
+    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AmneziaMode,
+    AppCompatibility, AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport, DnsServer,
+    EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings,
     ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice,
     NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, QrPairingConfirmation,
     QrUrl, RecentGateways, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
@@ -181,6 +181,17 @@ impl RpcClient {
         self.0
             .set_bridge_mode(proto::BridgeModeRequest {
                 mode: proto::BridgeModes::from(bridge_mode).into(),
+            })
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn set_amnezia_mode(&mut self, amnezia_mode: AmneziaMode) -> Result<()> {
+        self.0
+            .set_amnezia_mode(proto::AmneziaModeRequest {
+                mode: proto::AmneziaModes::from(amnezia_mode).into(),
             })
             .await
             .map_err(Error::Rpc)?
