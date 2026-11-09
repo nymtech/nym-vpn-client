@@ -31,9 +31,6 @@ jobs:
             arch: "x86_64"
           - os: "ubuntu-22.04-arm"
             arch: "aarch64"
-            # The hosted runner stalls when too many fat-LTO links with debug
-            # info run in parallel.
-            cargo_build_jobs: 2
 
     if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-linux
@@ -115,12 +112,8 @@ jobs:
           # below. Sentry can't read split DWARF packages (.dwp).
           CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO: "off"
           CARGO_PROFILE_RELEASE_STRIP: none
-          JOBS: ${{ matrix.cargo_build_jobs }}
         run: |
           export RUSTFLAGS="--remap-path-prefix $HOME= --remap-path-prefix $GITHUB_WORKSPACE= --remap-path-prefix $(rustc --print sysroot)= -C link-arg=-Wl,--build-id=sha1"
-          if [ -n "$JOBS" ]; then
-            export CARGO_BUILD_JOBS="$JOBS"
-          fi
           cargo build --release
 
       - name: Split debug symbols from binaries
