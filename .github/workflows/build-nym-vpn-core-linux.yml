@@ -44,6 +44,16 @@ jobs:
       UPLOAD_DIR_DEB: ${{ env.UPLOAD_DIR_DEB }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
     steps:
+      # The hosted arm64 runner has about 14 GB of free disk space, too little
+      # for a release build that keeps debug info. Remove preinstalled
+      # toolchains we don't use.
+      - name: Free disk space
+        if: ${{ matrix.os == 'ubuntu-22.04-arm' }}
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          df -h /
+
       - name: Checkout repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
