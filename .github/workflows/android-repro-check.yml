@@ -1,0 +1,276 @@
+name: android-repro-check
+
+# Builds libnym_vpn_lib_uniffi.so for every Android ABI several times, varying
+# one property of the build environment per variant, and explains how each
+# result differs from the baseline, down to the .gcc_except_table input
+# sections from the lld map.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to build
+        default: nym-vpn-v2026.15.0
+      rust_version:
+        description: Rust toolchain
+        default: "1.99.1"
+      reference_apk_url:
+        description: APK whose native libraries are compared too (empty to skip)
+        default: https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-v2026.15.0/nym-vpn-fdroid-2026.15.0-release.apk
+  push:
+    branches:
+      - am/android-repro-check
+    paths:
+      - .github/workflows/android-repro-check.yml
+      - .github/scripts/android-repro/**
+
+permissions:
+  contents: read
+
+env:
+  BUILD_REF: ${{ inputs.ref || 'nym-vpn-v2026.15.0' }}
+  RUST_TOOLCHAIN: ${{ inputs.rust_version || '1.99.1' }}
+  REFERENCE_APK_URL: ${{ github.event_name == 'push' && 'https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-v2026.15.0/nym-vpn-fdroid-2026.15.0-release.apk' || inputs.reference_apk_url }}
+  CARGO_NDK_VERSION: "4.1.2"
+  # Identical in every variant so the link command line doesn't vary.
+  MAP_DIR: /tmp/android-repro-maps
+  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
+  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+  SCCACHE_REDIS_EXPIRATION: 86400
+
+jobs:
+  build:
+    name: build (${{ matrix.variant }})
+    runs-on: arc-linux-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        # baseline:     CI-like checkout path and NDK location, all CPUs
+        # rerun:        same as baseline on another runner
+        # fdroid-paths: checkout and NDK at the paths F-Droid's build server uses
+        # two-cpus:     same as baseline, restricted to two CPUs
+        # sccache:      same as baseline, compiled through the shared sccache like CI
+        variant: [baseline, rerun, fdroid-paths, two-cpus, sccache]
+    steps:
+      - name: Checkout build ref
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ env.BUILD_REF }}
+          fetch-depth: 1
+
+      - name: Checkout repro tooling
+        uses: actions/checkout@v7.0.1
+        with:
+          path: .repro-tools
+          sparse-checkout: .github
+
+      - name: Read toolchain versions
+        run: |
+          set -euo pipefail
+          grep -E '^(GOLANG_VERSION|NDK_VERSION)=' .env >> "$GITHUB_ENV"
+
+      - name: Setup sccache
+        if: ${{ matrix.variant == 'sccache' }}
+        uses: ./.repro-tools/.github/actions/setup-sccache
+
+      - name: Install deps
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync util-linux
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: ${{ env.NDK_VERSION }}
+          add-to-path: false
+
+      - name: Install Go
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+          cache: false
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - name: Install cargo-ndk
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-ndk
+          version: ${{ env.CARGO_NDK_VERSION }}
+
+      - name: Prepare variant
+        env:
+          VARIANT: ${{ matrix.variant }}
+          NDK_PATH: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          set -euo pipefail
+          src_dir="$GITHUB_WORKSPACE"
+          ndk_dir="$NDK_PATH"
+          run_prefix=""
+          case "$VARIANT" in
+            fdroid-paths)
+              src_dir=/home/vagrant/build/net.nymtech.nymvpn
+              ndk_dir=/opt/android-sdk/ndk/28.2.13676358
+              sudo mkdir -p "$src_dir" "$(dirname "$ndk_dir")"
+              sudo chown -R "$(id -u):$(id -g)" /home/vagrant /opt/android-sdk
+              rsync -a --exclude .repro-tools "$GITHUB_WORKSPACE/" "$src_dir/"
+              cp -a "$NDK_PATH" "$ndk_dir"
+              ;;
+            two-cpus)
+              run_prefix="taskset -c 0,1"
+              echo "CARGO_BUILD_JOBS=2" >> "$GITHUB_ENV"
+              ;;
+          esac
+          {
+            echo "SRC_DIR=$src_dir"
+            echo "ANDROID_NDK_HOME=$ndk_dir"
+            echo "NDK_TOOLCHAIN_DIR=$ndk_dir/toolchains/llvm/prebuilt/linux-x86_64/bin"
+            echo "RUN_PREFIX=$run_prefix"
+            echo "OUT_DIR=$RUNNER_TEMP/android-repro-$VARIANT"
+          } >> "$GITHUB_ENV"
+
+      - name: Build libwg
+        run: make -C "$SRC_DIR/nym-vpn-core" -f Android.mk libwg RELEASE=true
+
+      - name: Build native library
+        working-directory: ${{ env.SRC_DIR }}/nym-vpn-core
+        run: |
+          set -euo pipefail
+          # Take the reproducibility flags from Android.mk, so the build matches
+          # what F-Droid runs, but invoke cargo ndk once per ABI to give each
+          # final link its own map. `cargo rustc` passes the map flag to the
+          # final crate only and keeps -C metadata identical to `cargo build`.
+          printf 'print-var-%%:\n\t@echo $($*)\n' > "$RUNNER_TEMP/print-var.mk"
+          mk() { make -s --no-print-directory -f Android.mk -f "$RUNNER_TEMP/print-var.mk" "print-var-$1"; }
+          rustflags="$(mk IDEMPOTENT_RUSTFLAGS)"
+          env_flags="$(mk OTHER_IDEMPOTENT_FLAGS) $(mk HARDENING_FLAGS)"
+          echo "RUSTFLAGS=$rustflags"
+          echo "env: $env_flags"
+          if [ -n "${env_flags// }" ]; then
+            eval "export $env_flags"
+          fi
+          mkdir -p "$MAP_DIR"
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            RUSTFLAGS="$rustflags" $RUN_PREFIX cargo ndk -t "$abi" rustc --package nym-vpn-lib-uniffi --lib --release \
+              -- -C "link-arg=-Wl,-Map=$MAP_DIR/$abi.map"
+          done
+
+      - name: Collect libraries
+        working-directory: ${{ env.SRC_DIR }}/nym-vpn-core
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          set -euo pipefail
+          declare -A triples=([arm64-v8a]=aarch64-linux-android [armeabi-v7a]=armv7-linux-androideabi [x86_64]=x86_64-linux-android)
+          for abi in "${!triples[@]}"; do
+            dir="$OUT_DIR/$abi"
+            mkdir -p "$dir"
+            cp "target/${triples[$abi]}/release/libnym_vpn_lib_uniffi.so" "$dir/unstripped.so"
+            # Same flags as the strip target in Android.mk.
+            "$NDK_TOOLCHAIN_DIR/llvm-strip" --strip-unneeded --strip-debug --remove-section=.comment -o "$dir/stripped.so" "$dir/unstripped.so"
+            cp "$MAP_DIR/$abi.map" "$dir/link.map"
+          done
+          {
+            echo "variant: $VARIANT"
+            echo "ref: $BUILD_REF ($(git -C "$SRC_DIR" rev-parse HEAD))"
+            echo "source dir: $SRC_DIR"
+            echo "ndk: $ANDROID_NDK_HOME"
+            echo "nproc: $($RUN_PREFIX nproc)"
+            echo "run prefix: ${RUN_PREFIX:-none}"
+            echo "rustc wrapper: ${RUSTC_WRAPPER:-none}"
+            rustc -vV
+            cargo ndk --version
+            "$NDK_TOOLCHAIN_DIR/ld.lld" --version
+            (cd "$OUT_DIR" && sha256sum */*.so)
+          } | tee "$OUT_DIR/info.txt"
+          if [ -n "${RUSTC_WRAPPER:-}" ]; then
+            "$RUSTC_WRAPPER" --show-stats | tee -a "$OUT_DIR/info.txt"
+          fi
+
+      - name: Upload libraries
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: android-repro-${{ matrix.variant }}
+          path: ${{ env.OUT_DIR }}
+          if-no-files-found: error
+          retention-days: 7
+
+  reference:
+    name: extract reference APK
+    if: ${{ github.event_name == 'push' || inputs.reference_apk_url != '' }}
+    runs-on: arc-linux-latest
+    steps:
+      - name: Extract native libraries
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/android-repro-reference"
+          curl -sSfL -o "$RUNNER_TEMP/reference.apk" "$REFERENCE_APK_URL"
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            mkdir -p "$out/$abi"
+            unzip -p "$RUNNER_TEMP/reference.apk" "lib/$abi/libnym_vpn_lib_uniffi.so" > "$out/$abi/stripped.so"
+          done
+          {
+            echo "url: $REFERENCE_APK_URL"
+            (cd "$out" && sha256sum */*.so)
+          } | tee "$out/info.txt"
+          echo "OUT_DIR=$out" >> "$GITHUB_ENV"
+
+      - name: Upload libraries
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: android-repro-reference
+          path: ${{ env.OUT_DIR }}
+          if-no-files-found: error
+          retention-days: 7
+
+  compare:
+    needs: [build, reference]
+    if: ${{ !cancelled() }}
+    runs-on: arc-linux-latest
+    steps:
+      - name: Checkout repro tooling
+        uses: actions/checkout@v7.0.1
+        with:
+          sparse-checkout: .github
+
+      - name: Download libraries
+        uses: actions/download-artifact@v8
+        with:
+          pattern: android-repro-*
+          path: builds
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Compare
+        run: |
+          set -euo pipefail
+          pip install pyelftools==0.32
+          others=()
+          for variant in rerun fdroid-paths two-cpus sccache reference; do
+            [ -d "builds/android-repro-$variant" ] && others+=("builds/android-repro-$variant")
+          done
+          python -I .github/scripts/android-repro/compare.py builds/android-repro-baseline "${others[@]}" | tee report.md
+          {
+            cat report.md
+            echo
+            echo "## Build info"
+            for info in builds/*/info.txt; do
+              echo
+              echo '```'
+              cat "$info"
+              echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: android-repro-report
+          path: report.md
+          retention-days: 7
