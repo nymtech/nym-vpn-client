@@ -71,7 +71,6 @@ jobs:
             exit 0
           fi
 
-          find core_debug_symbols -maxdepth 3
           sentry-cli debug-files upload core_debug_symbols
 
       - name: Upload Apple debug symbols to Sentry
@@ -88,5 +87,4 @@ jobs:
             exit 0
           fi
 
-          find apple_debug_symbols -maxdepth 2
           sentry-cli debug-files upload apple_debug_symbols
