@@ -231,6 +231,12 @@ impl From<AccountCommandError> for proto::AccountCommandError {
                     message,
                 )),
             },
+            // Reported as an `Unauthenticated` status instead.
+            error @ AccountCommandError::UserPresenceRequired => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::Internal(
+                    error.to_string(),
+                )),
+            },
         }
     }
 }

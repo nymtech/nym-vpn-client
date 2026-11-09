@@ -21,6 +21,9 @@ let kRpcReconnectDelay = Duration.seconds(5)
 
     let logger = Logger(label: "GRPC Manager")
     var rpcClient: RpcClient?
+    var authorizationTask: Task<Void, Error>?
+    /// Incremented each time the daemon accepts an authorization.
+    var authorizationGeneration = 0
 
     @Published public var isServing = false
     @Published public var tunnelStatus: TunnelStatus = .unknown
