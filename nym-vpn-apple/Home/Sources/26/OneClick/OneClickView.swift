@@ -104,7 +104,8 @@ private extension OneClickView {
         }
         if let version = viewModel.amneziaVersion {
             let key = viewModel.amneziaViaTranslator == true ? "oneClick.amnezia.bridge" : "oneClick.amnezia.direct"
-            return String(format: key.localizedString, version)
+            let label = ["1.0": "base", "3.1": "latest"][version] ?? version
+            return String(format: key.localizedString, label)
         }
         return viewModel.appSettings.bridgeMode == .auto ? "oneClick.bridge.direct".localizedString : nil
     }

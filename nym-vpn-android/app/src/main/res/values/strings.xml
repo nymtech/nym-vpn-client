@@ -210,8 +210,10 @@
 	<string name="connection_status_anonymous">Mixnet protection</string>
 	<string name="connection_status_bridge">Connected via %1$s bridge</string>
 	<string name="connection_status_direct">Connected directly</string>
-	<string name="connection_status_awg_bridge">Connected via AWG %1$s bridge</string>
-	<string name="connection_status_awg">Connected directly with AWG %1$s</string>
+	<string name="connection_status_awg_bridge">Connected via AmneziaWG bridge (%1$s)</string>
+	<string name="connection_status_awg">Connected directly with AmneziaWG (%1$s)</string>
+	<string name="awg_version_base">base</string>
+	<string name="awg_version_latest">latest</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Auto</string>
 	<string name="gateway_random">Random server</string>

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Show the AmneziaWG protocol as base or latest in the connection status instead of the version number
+
 ## [2026.15.0] - 2026-11-05
 
 ### Fixed

@@ -38,7 +38,7 @@ export function NewBottomComponent() {
           })
         : amnezia
           ? t(amnezia.viaTranslator ? 'connected-via-awg' : 'connected-awg', {
-              version: amnezia.protocol === 'awg31' ? '3.1' : '1.0',
+              version: amnezia.protocol === 'awg31' ? 'latest' : 'base',
             })
           : bridgeMode === 'auto' && tunnel && isWireguardData(tunnel.data)
             ? t('connected-directly')

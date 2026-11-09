@@ -437,7 +437,7 @@ private fun MainScreenContent(
 		.takeIf { connectionState == ConnectionState.Connected }
 	val bridgeTransport = wireguardTunnel?.v1?.entryBridgeAddr?.transport
 	val amnezia = wireguardTunnel?.v1?.amnezia
-	val awgVersion = if (amnezia?.protocol == AmneziaProtocol.AWG31) "3.1" else "1.0"
+	val awgVersion = stringResource(if (amnezia?.protocol == AmneziaProtocol.AWG31) R.string.awg_version_latest else R.string.awg_version_base)
 	val bridgeText = when {
 		bridgeTransport != null -> stringResource(R.string.connection_status_bridge, bridgeTransport.name)
 		amnezia?.viaTranslator == true -> stringResource(R.string.connection_status_awg_bridge, awgVersion)
