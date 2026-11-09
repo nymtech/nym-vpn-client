@@ -268,14 +268,6 @@
 	<string name="battery_opt_settings_text">অ্যাপ সেটিংস থেকে যেকোনো সময় ব্যাটারি অপটিমাইজেশন সেটিং পরিবর্তন করা যাবে।</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">ডেটা, গোপনীয়তা এবং লগ</string>
-	<string name="privacy_anonymous_stats_title">বেনামী নেটওয়ার্ক পরিসংখ্যান</string>
-	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
-	<string name="privacy_anonymous_stats_link_text">ঠিক কী শেয়ার করা হয়েছে তা জানুন</string>
-	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
-	<string name="privacy_error_reports_title">ত্রুটি &amp; ক্র্যাশ রিপোর্ট</string>
-	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
-	<string name="privacy_error_reports_link_text">Sentry গোপনীয়তা নীতি দেখুন</string>
-	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">পরিবর্তন প্রযোজ্য হবে অ্যাপ পুনরায় চালুর পর।</string>
 	<string name="modal_network_stats_title">আপনার অভিজ্ঞতা উন্নত করুন</string>
 	<string name="modal_network_stats_descr">আপনার অঞ্চলের বেনামী নেটওয়ার্ক পরিসংখ্যান শেয়ার করে NymVPN-কে উন্নত করতে সাহায্য করুন। \n\nআপনার ডেটা ব্যক্তিগত এবং সুরক্ষিত থাকে।</string>
@@ -289,12 +281,6 @@
 	<string name="welcome_continue">চালিয়ে যান</string>
 	<string name="welcome_title">NymVPN উন্নত করতে আমাদের সহায়তা করুন</string>
 	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
-	<string name="welcome_error_reports_title">ত্রুটি প্রতিবেদন শেয়ার করুন</string>
-	<string name="welcome_error_reports_description_start">আমাদেরকে বাগ দ্রুত সমাধান করতে সাহায্য করে, কোনো ব্যক্তিগত তথ্য সংগ্রহ করা হয় না (এর মাধ্যমে </string>
-	<string name="welcome_error_reports_link_text">Sentry</string>
-	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">ব্যবহার বিশ্লেষণ শেয়ার করুন</string>
-	<string name="welcome_usage_description">এটি আমাদের Nym নেটওয়ার্ক উন্নত করতে সাহায্য করে। কোনো লগিং বা কার্যকলাপ ট্র্যাক করা হয় না।</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">NymVPN-এ স্বাগতম</string>
 	<string name="onboarding_welcome_description">আপনার ব্যক্তিগত প্রবেশাধিকার **দেয়ালবিহীন ইন্টারনেটে।**</string>

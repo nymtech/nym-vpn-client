@@ -278,14 +278,6 @@
 	<string name="battery_opt_settings_text">يمكن تغيير إعداد تحسين البطارية في أي وقت من إعدادات التطبيق.</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">البيانات والخصوصية &amp; والسجلّات</string>
-	<string name="privacy_anonymous_stats_title">إحصائيات الشبكة المجهولة</string>
-	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
-	<string name="privacy_anonymous_stats_link_text">تعلم بالضبط ما هو مشترك</string>
-	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
-	<string name="privacy_error_reports_title">تقارير الأخطاء &amp; والأعطال</string>
-	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
-	<string name="privacy_error_reports_link_text">عرض سياسة خصوصية الحراسة</string>
-	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">ستُطبَّق التغييرات بعد إعادة تشغيل التطبيق.</string>
 	<string name="modal_network_stats_title">طوّر تجربتك</string>
 	<string name="modal_network_stats_descr">ساعد في تحسين NymVPN من خلال مشاركة إحصاءات شبكة مجهولة من منطقتك. \n\nتبقى بياناتك خاصة وآمنة.</string>
@@ -299,12 +291,6 @@
 	<string name="welcome_continue">المتابعة</string>
 	<string name="welcome_title">ساعدنا على تحسين NymVPN</string>
 	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
-	<string name="welcome_error_reports_title">مشاركة تقارير الأخطاء</string>
-	<string name="welcome_error_reports_description_start">يساعدنا على إصلاح الأخطاء بشكل أسرع، لا توجد بيانات شخصية تم جمعها (من خلال </string>
-	<string name="welcome_error_reports_link_text">الحراسة</string>
-	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">مشاركة تحليلات الاستخدام</string>
-	<string name="welcome_usage_description">يساعدنا على تحسين شبكة نيم. لا تسجيل أو تتبع النشاط.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">مرحبا بكم في NymVPN</string>
 	<string name="onboarding_welcome_description">وصولك الخاص إلى \nan **الإنترنت بلا حدود.**</string>

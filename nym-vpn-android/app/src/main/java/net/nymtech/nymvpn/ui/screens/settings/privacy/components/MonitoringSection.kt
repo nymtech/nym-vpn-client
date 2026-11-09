@@ -58,7 +58,11 @@ fun MonitoringSection(
 					) {
 						Icon(
 							Icons.Outlined.Info,
-							contentDescription = stringResource(R.string.optin_info_title),
+							contentDescription =
+								stringResource(
+									R.string.optin_info_accessibility,
+									stringResource(R.string.optin_monitoring_title),
+								),
 							tint = MaterialTheme.colorScheme.onBackground,
 						)
 					}
