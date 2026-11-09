@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cache flag resource IDs instead of calling getIdentifier for every row (https://github.com/nymtech/nym-vpn-client/pull/6959)
 - Use countryCodesForRegionSupport instead of a hardcoded "us" (https://github.com/nymtech/nym-vpn-client/pull/6959)
 
-## [2026.15.0] - TBD
+## [2026.15.0] - 2026-11-05
 
 ### Added
 - Hide overlay windows on sensitive screens (https://github.com/nymtech/nym-vpn-client/pull/6780)
