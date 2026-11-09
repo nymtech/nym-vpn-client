@@ -436,7 +436,7 @@ jobs:
           cp -R "$DSYMS_DIR"/*.dSYM "$DEBUG_SYMBOLS_DIR/"
 
           # Sources are bundled here because they're only available on this machine.
-          sentry-cli debug-files bundle-sources -o "$DEBUG_SYMBOLS_DIR" "$DSYMS_DIR"/*.dSYM
+          sentry-cli debug-files bundle-sources -o "$DEBUG_SYMBOLS_DIR" "$DSYMS_DIR"/*.dSYM/Contents/Resources/DWARF/*
 
       - name: Upload debug symbols
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
