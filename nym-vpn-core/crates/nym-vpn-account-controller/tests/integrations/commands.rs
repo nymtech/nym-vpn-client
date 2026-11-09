@@ -5,7 +5,7 @@ use crate::common::{TestBench, account_summary::*, endpoints, mock_account, mock
 
 use nym_vpn_api_client::response::NymVpnDeviceStatus;
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
+    AccountControllerError, AccountControllerErrorStateReason, AccountControllerState,
     StoredAccountMode,
 };
 
@@ -31,7 +31,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
 
     assert_eq!(
         test_bench.command_sender.refresh_account_state(false).await,
-        Err(AccountCommandError::NoAccountStored)
+        Err(AccountControllerError::NoAccountStored)
     );
 
     assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));
@@ -52,15 +52,15 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
 
     assert_eq!(
         test_bench.command_sender.get_active_devices().await,
-        Err(AccountCommandError::NoAccountStored)
+        Err(AccountControllerError::NoAccountStored)
     );
     assert_eq!(
         test_bench.command_sender.get_devices().await,
-        Err(AccountCommandError::NoAccountStored)
+        Err(AccountControllerError::NoAccountStored)
     );
     assert_eq!(
         test_bench.command_sender.get_usage().await,
-        Err(AccountCommandError::NoAccountStored)
+        Err(AccountControllerError::NoAccountStored)
     );
 
     assert_eq!(
@@ -121,12 +121,12 @@ async fn offline_state_command() -> anyhow::Result<()> {
 
     assert_eq!(
         test_bench.command_sender.refresh_account_state(false).await,
-        Err(AccountCommandError::Offline)
+        Err(AccountControllerError::Offline)
     );
 
     assert_eq!(
         test_bench.command_sender.forget_account().await,
-        Err(AccountCommandError::Offline)
+        Err(AccountControllerError::Offline)
     );
 
     assert_eq!(test_bench.command_sender.rotate_keys().await, Ok(()));
@@ -137,20 +137,20 @@ async fn offline_state_command() -> anyhow::Result<()> {
 
     assert_eq!(
         test_bench.command_sender.get_active_devices().await,
-        Err(AccountCommandError::Offline)
+        Err(AccountControllerError::Offline)
     );
     assert_eq!(
         test_bench.command_sender.get_devices().await,
-        Err(AccountCommandError::Offline)
+        Err(AccountControllerError::Offline)
     );
     assert_eq!(
         test_bench.command_sender.get_usage().await,
-        Err(AccountCommandError::Offline)
+        Err(AccountControllerError::Offline)
     );
 
     assert_eq!(
         test_bench.command_sender.reset_device_identity(None).await,
-        Err(AccountCommandError::Offline)
+        Err(AccountControllerError::Offline)
     );
 
     // Offline, no account stored
@@ -313,7 +313,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
 
     assert_eq!(
         test_bench.command_sender.create_account_command().await,
-        Err(AccountCommandError::ExistingAccount)
+        Err(AccountControllerError::ExistingAccount)
     );
 
     assert_eq!(
@@ -321,7 +321,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
             .command_sender
             .store_account(mock_account(StoredAccountMode::Api))
             .await,
-        Err(AccountCommandError::ExistingAccount)
+        Err(AccountControllerError::ExistingAccount)
     );
 
     assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));
@@ -429,7 +429,7 @@ async fn error_state_command() -> anyhow::Result<()> {
 
     assert_eq!(
         test_bench.command_sender.create_account_command().await,
-        Err(AccountCommandError::ExistingAccount)
+        Err(AccountControllerError::ExistingAccount)
     );
 
     assert_eq!(
@@ -437,7 +437,7 @@ async fn error_state_command() -> anyhow::Result<()> {
             .command_sender
             .store_account(mock_account(StoredAccountMode::Api))
             .await,
-        Err(AccountCommandError::ExistingAccount)
+        Err(AccountControllerError::ExistingAccount)
     );
 
     assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));

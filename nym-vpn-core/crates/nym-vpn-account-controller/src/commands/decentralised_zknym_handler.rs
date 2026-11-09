@@ -1,17 +1,16 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::shared_state::SharedAccountState;
+use crate::{Error, Result, shared_state::SharedAccountState};
 use nym_bandwidth_controller::AvailableTicketbooks;
 
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_validator_client::nyxd::Coin;
-use nym_vpn_lib_types::AccountCommandError;
 use tracing::info;
 
 pub(crate) async fn handle_obtain_ticketbooks<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<(), AccountCommandError> {
+) -> Result<()> {
     info!("attempting to obtain ticketbooks of each type");
 
     shared_state.use_decentralised_fetcher().await?;
@@ -21,7 +20,7 @@ pub(crate) async fn handle_obtain_ticketbooks<C: ConnectivityMonitor>(
         .bandwidth_control_command_tx
         .wait_for_ticketbooks(AvailableTicketbooks::ticketbook_types())
         .await
-        .map_err(|e| AccountCommandError::ZkNymAcquisitionFailure(format!("{e:?}")));
+        .map_err(|e| Error::ZkNymAcquisitionFailure(format!("{e:?}").into()));
 
     shared_state.clear_credential_fetcher().await?;
 
@@ -30,11 +29,11 @@ pub(crate) async fn handle_obtain_ticketbooks<C: ConnectivityMonitor>(
 
 pub(crate) async fn handle_account_balance<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<Vec<Coin>, AccountCommandError> {
+) -> Result<Vec<Coin>> {
     info!("retrieving account balance");
-    let Some(account) = shared_state.vpn_api_account.as_ref() else {
-        return Err(AccountCommandError::NoAccountStored);
-    };
+
+    let account = shared_state.load_vpn_api_account().await?;
+
     shared_state
         .nyxd_client
         .account_balance(&account.get_mnemonic())

@@ -618,6 +618,7 @@ message TunnelState {
     NEEDS_DEVICE_LOCATION = 27;
     CONNECTION_ATTEMPTS_EXCEEDED = 28;
     ENTRY_GATEWAY_HAS_NO_BRIDGE = 30;
+    DEVICE_NOT_REGISTERED = 31;
     INTERNAL = 17;
   }
 
@@ -777,7 +778,7 @@ message GetLogPathResponse {
   optional LogPath log_path = 1;
 }
 
-message AccountCommandError {
+message AccountControllerError {
   oneof error_detail {
     string internal = 1;
     string storage_error = 2;
@@ -802,6 +803,8 @@ message AccountCommandError {
     bool pairing_session_id_mismatch = 21;
     bool no_pairing_shared_secret = 22;
     string pairing_deriving_shared_secret = 23;
+    string create_ecash_key_pair = 24;
+    AccountControllerState.Error error_state = 25;
   }
 }
 
@@ -836,6 +839,7 @@ message AccountControllerState {
     ACCOUNT_STATUS_NOT_ACTIVE = 4;
     INACTIVE_SUBSCRIPTION = 5;
     MAX_DEVICE_REACHED = 6;
+    DEVICE_NOT_REGISTERED = 7;
   }
 
   message LoggedOut {}
@@ -911,7 +915,7 @@ message RefreshAccountStateRequest {
 }
 
 message AccountCommandResponse {
-  optional AccountCommandError error = 1;
+  optional AccountControllerError error = 1;
 }
 
 message BalanceList {
@@ -920,7 +924,7 @@ message BalanceList {
 
 message AccountBalanceResponse {
   oneof account_balance {
-    AccountCommandError error = 1;
+    AccountControllerError error = 1;
     BalanceList balance = 2;
   }
 }
@@ -1425,6 +1429,9 @@ service NymVpnService {
 
   // Reset the device identity
   rpc ResetDeviceIdentity(ResetDeviceIdentityRequest) returns (google.protobuf.Empty) {}
+
+  // Register the device with the account if it is not registered yet
+  rpc RegisterDevice(google.protobuf.Empty) returns (AccountCommandResponse) {}
 
   // Get the device identity
   rpc GetDeviceIdentity(google.protobuf.Empty) returns (GetDeviceIdentityResponse) {}

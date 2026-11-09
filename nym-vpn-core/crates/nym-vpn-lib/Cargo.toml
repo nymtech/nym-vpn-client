@@ -63,6 +63,7 @@ nym-network-defaults.workspace = true
 nym-offline-monitor.workspace = true
 nym-registration-client.workspace = true
 nym-registration-common.workspace = true
+nym-secure-enclave.workspace = true
 nym-split-tunnel.workspace = true
 nym-socks5-proxy-ipc.workspace = true
 nym-statistics.workspace = true
@@ -160,6 +161,7 @@ nym-firewall.workspace = true
 
 # Apple-specific dependencies
 [target.'cfg(target_os = "macos")'.dependencies]
+nym-authorization-service.workspace = true
 nym-macos.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]

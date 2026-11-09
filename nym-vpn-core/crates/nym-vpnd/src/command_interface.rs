@@ -17,8 +17,9 @@ use tonic::{Request, Response, Status, transport::Server};
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
-    AccountCommandError, DnsServer, EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams,
-    ListGatewaysOptions, LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
+    AccountControllerError, DnsServer, EnableSocks5Request, EntryPoint, ExitPoint,
+    GetDeeplinkParams, ListGatewaysOptions, LookupGatewayFilters, ProfileOptions, TargetState,
+    TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
@@ -819,6 +820,21 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn register_device(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let result = self
+            .send_and_wait(VpnServiceCommand::RegisterDevice, ())
+            .await?;
+
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountControllerError::from),
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn get_device_identity(
         &self,
         _request: tonic::Request<()>,
@@ -1588,23 +1604,23 @@ fn unknown_client() -> Status {
 /// Missing user presence is reported as an `Unauthenticated` status, so clients can prompt the
 /// user and retry regardless of the response type.
 fn user_presence_required() -> Status {
-    Status::unauthenticated(AccountCommandError::UserPresenceRequired.to_string())
+    Status::unauthenticated(AccountControllerError::UserPresenceRequired.to_string())
 }
 
 fn account_command_response(
-    result: std::result::Result<(), AccountCommandError>,
+    result: std::result::Result<(), AccountControllerError>,
 ) -> Result<Response<proto::AccountCommandResponse>> {
     match result {
-        Err(AccountCommandError::UserPresenceRequired) => Err(user_presence_required()),
+        Err(AccountControllerError::UserPresenceRequired) => Err(user_presence_required()),
         result => Ok(Response::new(proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
+            error: result.err().map(proto::AccountControllerError::from),
         })),
     }
 }
 
-fn account_command_status(context: &str, err: AccountCommandError) -> Status {
+fn account_command_status(context: &str, err: AccountControllerError) -> Status {
     match err {
-        AccountCommandError::UserPresenceRequired => user_presence_required(),
+        AccountControllerError::UserPresenceRequired => user_presence_required(),
         err => Status::internal(format!("{context}: {err}")),
     }
 }

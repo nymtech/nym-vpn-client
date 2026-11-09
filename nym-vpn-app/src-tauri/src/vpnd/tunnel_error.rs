@@ -22,6 +22,7 @@ pub enum TunnelError {
     BandwidthExceeded,
     InactiveSubscription,
     DeviceLoggedOut,
+    DeviceNotRegistered,
     Ipv6Unavailable,
     TunDevice,
     TunnelProvider,
@@ -68,6 +69,7 @@ impl From<lib::ErrorStateReason> for TunnelError {
             }
             lib::ErrorStateReason::InactiveAccount => TunnelError::InactiveAccount,
             lib::ErrorStateReason::DeviceLoggedOut => TunnelError::DeviceLoggedOut,
+            lib::ErrorStateReason::DeviceNotRegistered => TunnelError::DeviceNotRegistered,
             lib::ErrorStateReason::CredentialWastedOnEntryGateway => {
                 TunnelError::CredentialWastedOnEntryGateway
             }

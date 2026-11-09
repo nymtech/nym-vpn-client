@@ -148,6 +148,15 @@ pub fn unregistered_account() -> NymErrorResponse {
     }
 }
 
+pub fn device_not_found() -> NymErrorResponse {
+    NymErrorResponse {
+        message: "Device not found".to_string(),
+        message_id: Some("nym-vpn-website.public-api.device.not-found".to_string()),
+        code_reference_id: None,
+        status: "access_denied".to_string(),
+    }
+}
+
 pub fn unrelated_error() -> NymErrorResponse {
     NymErrorResponse {
         message: "Access denied".to_string(),

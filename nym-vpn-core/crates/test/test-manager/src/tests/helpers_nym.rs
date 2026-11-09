@@ -7,7 +7,7 @@ use super::{
     config_nym::TEST_CONFIG_NYM,
 };
 use crate::nym_daemon::RpcClientProvider;
-use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types::AccountControllerError;
 use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
 use std::{
     future::Future,
@@ -247,7 +247,7 @@ async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Re
         };
         match nym_client.store_account(request).await {
             Ok(response) => match response.error {
-                None | Some(AccountCommandError::ExistingAccount) => break,
+                None | Some(AccountControllerError::ExistingAccount) => break,
                 Some(err) => anyhow::bail!("store_account error: {err}"),
             },
             Err(NymClientError::Rpc(status))

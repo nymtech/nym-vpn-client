@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{Error, Result};
 use nym_bandwidth_controller::{AvailableTicketbooks, requests::BandwidthControllerRequestSender};
 use nym_bandwidth_fetcher::NyxdCredentialFetcher;
 use nym_offline_monitor::ConnectivityMonitor;
@@ -8,17 +9,21 @@ use nym_vpn_api_client::{
     VpnApiClient,
     types::{Device, VpnAccount},
 };
-use nym_vpn_lib_types::{AccountCommandError, VpnAccountSummary};
+use nym_vpn_lib_types::{StorableAccount, VpnAccountSummary};
 use std::sync::Arc;
 
 use nym_vpn_credential_fetcher::VpnApiCredentialFetcher;
-use nym_vpn_store::keys::wireguard::WireguardKeysDb;
+use nym_vpn_store::{device_state::StoredDeviceState, keys::wireguard::WireguardKeysDb};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    AccountControllerConfig, AccountControllerEventSender, deeplink::Deeplinks,
-    nyxd_client::NyxdClient, qr_pairing::QrPairingHandler, storage::AccountStorageOp,
+    AccountControllerConfig, AccountControllerEventSender,
+    commands::ReturnSender,
+    deeplink::Deeplinks,
+    nyxd_client::NyxdClient,
+    qr_pairing::QrPairingHandler,
+    storage::{AccountStorageOp, request_stored_account, request_vpn_api_account},
 };
 
 /// This shared state is the sole propriety of the AccountController and contains the element that must be passed around the different states
@@ -42,13 +47,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// Nyxd RPC client
     pub(crate) nyxd_client: NyxdClient,
 
-    /// Stored account
-    pub(crate) vpn_api_account: Option<Arc<VpnAccount>>,
-
-    /// Account summary. The persistent copy lives in the platform storage (see
-    /// [`AccountSummaryStorage`](nym_vpn_store::account_summary::AccountSummaryStorage)); this is the
-    /// in-memory working copy, kept in sync via the storage-op channel.
-    pub(crate) vpn_account_summary: Option<VpnAccountSummary>,
+    /// Current device state
+    /// Includes metadata such as account summary when available.
+    pub(crate) device_state: StoredDeviceState,
 
     /// Registered device
     pub(crate) device: Option<Device>,
@@ -85,14 +86,12 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         wireguard_keys_storage: WireguardKeysDb,
         vpn_api_client: VpnApiClient,
         nyxd_client: NyxdClient,
-        vpn_api_account: Option<VpnAccount>,
-        vpn_account_summary: Option<VpnAccountSummary>,
+        device_state: StoredDeviceState,
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         event_sender: AccountControllerEventSender,
         cancel_token: CancellationToken,
     ) -> Self {
-        let deeplinks = Deeplinks::default();
         let qr_pairing_handler = QrPairingHandler::new(vpn_api_client.clone());
 
         Self {
@@ -102,10 +101,9 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             wireguard_keys_storage,
             vpn_api_client,
             nyxd_client,
-            vpn_api_account: vpn_api_account.map(Arc::new),
-            vpn_account_summary,
+            device_state,
             device,
-            deeplinks,
+            deeplinks: Deeplinks::default(),
             firewall_active: false,
             current_credential_fetcher: CredentialFetcherInUse::None,
             storage_op_sender,
@@ -113,6 +111,16 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             qr_pairing_handler,
             cancel_token,
         }
+    }
+
+    /// Retrieves the stored account, which requires step-up authentication.
+    pub(crate) async fn load_stored_account(&self) -> Result<Option<StorableAccount>> {
+        request_stored_account(&self.storage_op_sender).await
+    }
+
+    /// Materializes the stored account, which requires step-up authentication.
+    pub(crate) async fn load_vpn_api_account(&self) -> Result<VpnAccount> {
+        request_vpn_api_account(&self.storage_op_sender).await
     }
 
     // Set the firewall_active flag to `active`. Returns wethere the status had to be updated or not
@@ -132,7 +140,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
 
     /// Ensure the VPN-API credential fetcher is installed on the bandwidth controller. No-op if it is
     /// already the active fetcher.
-    pub(crate) async fn use_vpn_api_fetcher(&mut self) -> Result<(), AccountCommandError> {
+    pub(crate) async fn use_vpn_api_fetcher(&mut self) -> Result<()> {
         if matches!(
             self.current_credential_fetcher,
             CredentialFetcherInUse::VpnApi(_)
@@ -140,14 +148,23 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             return Ok(());
         }
 
-        let (Some(account), Some(device)) = (self.vpn_api_account.clone(), self.device.clone())
+        let StoredDeviceState::LoggedIn {
+            account_identity,
+            ecash_keypair,
+            ..
+        } = &self.device_state
         else {
-            return Err(AccountCommandError::NoAccountStored);
+            return Err(Error::NoAccountStored);
+        };
+
+        let Some(device) = self.device.clone() else {
+            return Err(Error::NoDeviceStored);
         };
 
         let fetcher = match VpnApiCredentialFetcher::new(
             self.vpn_api_client.clone(),
-            account,
+            account_identity.id.clone(),
+            ecash_keypair.clone(),
             device,
             self.config.data_dir.clone(),
             self.cancel_token.child_token(),
@@ -156,7 +173,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         {
             Ok(fetcher) => Arc::new(fetcher),
             Err(err) => {
-                return Err(AccountCommandError::internal(format!(
+                return Err(Error::internal(format!(
                     "failed to construct VPN-API credential fetcher: {err}"
                 )));
             }
@@ -171,7 +188,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             .set_credential_fetcher(fetcher.clone())
             .await
             .map_err(|err| {
-                AccountCommandError::internal(format!(
+                Error::internal(format!(
                     "failed to install credential fetcher on the bandwidth controller: {err}"
                 ))
             })?;
@@ -183,7 +200,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
 
     /// Ensure the decentralised setup is installed on the bandwidth controller. No-op if it is
     /// already active.
-    pub(crate) async fn use_decentralised_fetcher(&mut self) -> Result<(), AccountCommandError> {
+    pub(crate) async fn use_decentralised_fetcher(&mut self) -> Result<()> {
         if matches!(
             self.current_credential_fetcher,
             CredentialFetcherInUse::Decentralised
@@ -192,14 +209,13 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         }
 
         // No check to ensure decentralised account, that is up to the caller
-        let Some(account) = self.vpn_api_account.as_ref() else {
-            tracing::warn!("cannot install Nyxd credential fetcher: missing stored account");
-            return Err(AccountCommandError::NoAccountStored);
-        };
-
-        let ecash_seed = account.ecash_keypair_seed().map_err(|err| {
-            AccountCommandError::internal(format!("ecash seed derivation failure: {err}"))
+        let account = self.load_vpn_api_account().await.inspect_err(|err| {
+            tracing::warn!("cannot install Nyxd credential fetcher: {err}");
         })?;
+
+        let ecash_seed = account
+            .ecash_keypair_seed()
+            .map_err(|err| Error::internal(format!("ecash seed derivation failure: {err}")))?;
 
         let client = self.nyxd_client.inner_client(&account.get_mnemonic())?;
 
@@ -211,7 +227,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             )
             .await
             .map_err(|err| {
-                AccountCommandError::internal(format!(
+                Error::internal(format!(
                     "failed to construct Nyxd credential fetcher: {err}"
                 ))
             })?,
@@ -220,18 +236,16 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         if !fetcher
             .check_balance(AvailableTicketbooks::ticketbook_types().len() as u128)
             .await
-            .map_err(|err| {
-                AccountCommandError::internal(format!("failed check account balance: {err}"))
-            })?
+            .map_err(|err| Error::internal(format!("failed check account balance: {err}")))?
         {
-            return Err(AccountCommandError::InsufficientFunds);
+            return Err(Error::InsufficientFunds);
         }
 
         self.bandwidth_control_command_tx
             .set_credential_fetcher(fetcher.clone())
             .await
             .map_err(|err| {
-                AccountCommandError::internal(format!(
+                Error::internal(format!(
                     "failed to install credential fetcher on the bandwidth controller: {err}"
                 ))
             })?;
@@ -242,7 +256,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
     }
 
     /// Remove any credential fetcher from the bandwidth controller. No-op if none is installed.
-    pub(crate) async fn clear_credential_fetcher(&mut self) -> Result<(), AccountCommandError> {
+    pub(crate) async fn clear_credential_fetcher(&mut self) -> Result<()> {
         if matches!(
             self.current_credential_fetcher,
             CredentialFetcherInUse::None
@@ -254,7 +268,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             .unset_credential_fetcher()
             .await
             .map_err(|err| {
-                AccountCommandError::internal(format!(
+                Error::internal(format!(
                     "failed to remove credential fetcher from the bandwidth controller: {err}"
                 ))
             })?;
@@ -264,26 +278,44 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         Ok(())
     }
 
-    // Mark the summary as stale and best effort to propagate to disk
-    pub(crate) fn mark_summary_as_stale(&mut self) {
-        if let Some(summary) = self.vpn_account_summary.as_mut() {
-            summary.stale = true;
-            let _ = self
-                .storage_op_sender
-                .send(AccountStorageOp::StoreAccountSummary(Box::new(
-                    summary.clone(),
-                )));
-        }
+    /// Marks the cached summary as stale and persists it. No-op when no summary is cached.
+    pub(crate) async fn mark_summary_as_stale(&mut self) -> Result<()> {
+        let StoredDeviceState::LoggedIn {
+            summary: Some(account_summary),
+            ..
+        } = &mut self.device_state
+        else {
+            return Ok(());
+        };
+        account_summary.stale = true;
+        self.persist_device_state().await
     }
 
-    // Store the account summary in memory and best effort to propagate to disk
-    pub(crate) fn store_summary(&mut self, summary: VpnAccountSummary) {
-        let _ = self
-            .storage_op_sender
-            .send(AccountStorageOp::StoreAccountSummary(Box::new(
-                summary.clone(),
-            )));
-        self.vpn_account_summary = Some(summary);
+    /// Stores the account summary in memory and persists it.
+    pub(crate) async fn store_summary(
+        &mut self,
+        new_account_summary: VpnAccountSummary,
+    ) -> Result<()> {
+        let StoredDeviceState::LoggedIn {
+            summary: account_summary,
+            ..
+        } = &mut self.device_state
+        else {
+            return Err(Error::NoAccountStored);
+        };
+        account_summary.replace(new_account_summary);
+        self.persist_device_state().await
+    }
+
+    async fn persist_device_state(&self) -> Result<()> {
+        let (tx, rx) = ReturnSender::new();
+        self.storage_op_sender
+            .send(AccountStorageOp::StoreDeviceState(
+                tx,
+                self.device_state.clone(),
+            ))
+            .map_err(Error::internal)?;
+        rx.await.map_err(Error::internal)?
     }
 }
 

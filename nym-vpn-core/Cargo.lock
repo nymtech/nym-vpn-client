@@ -4970,11 +4970,12 @@ dependencies = [
 
 [[package]]
 name = "libsqlite3-sys"
-version = "0.37.0"
+version = "0.30.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1f111c8c41e7c61a49cd34e44c7619462967221a6443b0ec299e0ac30cfb9b1"
+checksum = "2e99fb7a497b1e3339bc746195567ed8d3e24945ecd636e3619d20b9de9e9149"
 dependencies = [
  "cc",
+ "openssl-sys",
  "pkg-config",
  "vcpkg",
 ]
@@ -5534,8 +5535,8 @@ dependencies = [
 
 [[package]]
 name = "nym-api-requests"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bs58",
  "celes 2.8.2",
@@ -5590,8 +5591,8 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-client"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bincode",
  "futures",
@@ -5614,8 +5615,8 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-requests"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -5649,8 +5650,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bandwidth-controller"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "async-trait",
  "log",
@@ -5671,14 +5672,15 @@ dependencies = [
 
 [[package]]
 name = "nym-bandwidth-fetcher"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "anyhow",
  "async-trait",
  "log",
  "nym-bandwidth-controller",
  "nym-credentials",
+ "nym-credentials-interface",
  "nym-crypto",
  "nym-ecash-time",
  "nym-validator-client",
@@ -5692,8 +5694,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bin-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "const-str",
  "log",
@@ -5786,8 +5788,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -5847,8 +5849,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-config-types"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -5863,8 +5865,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-gateways-storage"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5883,8 +5885,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-surb-storage"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5901,8 +5903,8 @@ dependencies = [
 
 [[package]]
 name = "nym-coconut-dkg-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5915,8 +5917,8 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -5932,8 +5934,8 @@ dependencies = [
 
 [[package]]
 name = "nym-compact-ecash"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bincode",
  "bs58",
@@ -5955,8 +5957,8 @@ dependencies = [
 
 [[package]]
 name = "nym-config"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "dirs 6.0.0",
  "handlebars",
@@ -5970,8 +5972,8 @@ dependencies = [
 
 [[package]]
 name = "nym-config-score"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cosmwasm-std",
  "nym-contracts-common",
@@ -6012,8 +6014,8 @@ dependencies = [
 
 [[package]]
 name = "nym-contract-attestation"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "async-trait",
  "blake3",
@@ -6030,8 +6032,8 @@ dependencies = [
 
 [[package]]
 name = "nym-contracts-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -6045,8 +6047,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-proxy-requests"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -6066,8 +6068,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-storage"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6086,8 +6088,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credentials"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bincode",
  "cosmrs",
@@ -6112,8 +6114,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credentials-interface"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-bls12_381-fork",
  "nym-compact-ecash",
@@ -6131,8 +6133,8 @@ dependencies = [
 
 [[package]]
 name = "nym-crypto"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "aead 0.6.1",
  "aes 0.9.4",
@@ -6225,8 +6227,8 @@ dependencies = [
 
 [[package]]
 name = "nym-directory-contract-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6264,8 +6266,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-contract-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -6278,8 +6280,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-signer-check-types"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-coconut-dkg-common",
  "nym-crypto",
@@ -6294,8 +6296,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-time"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -6312,8 +6314,8 @@ dependencies = [
 
 [[package]]
 name = "nym-exit-policy"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "serde",
  "serde_json",
@@ -6385,8 +6387,8 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-client"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "futures",
  "getrandom 0.2.17",
@@ -6452,8 +6454,8 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-requests"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bs58",
  "futures",
@@ -6482,8 +6484,8 @@ dependencies = [
 
 [[package]]
 name = "nym-geolocation-contract-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6496,8 +6498,8 @@ dependencies = [
 
 [[package]]
 name = "nym-group-contract-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -6508,8 +6510,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-client"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -6545,8 +6547,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-client-macro"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -6557,8 +6559,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bincode",
  "serde",
@@ -6568,8 +6570,8 @@ dependencies = [
 
 [[package]]
 name = "nym-id"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -6596,8 +6598,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-client"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bincode",
  "bytes",
@@ -6613,8 +6615,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-requests"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bincode",
  "bytes",
@@ -6661,8 +6663,8 @@ dependencies = [
 
 [[package]]
 name = "nym-kkt"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "libcrux-chacha20poly1305",
  "libcrux-ecdh",
@@ -6682,8 +6684,8 @@ dependencies = [
 
 [[package]]
 name = "nym-kkt-ciphersuite"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "blake3",
  "libcrux-sha3",
@@ -6696,8 +6698,8 @@ dependencies = [
 
 [[package]]
 name = "nym-kkt-context"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "num_enum",
  "nym-kkt-ciphersuite",
@@ -6706,14 +6708,14 @@ dependencies = [
 
 [[package]]
 name = "nym-lp"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bs58",
  "bytes",
  "getrandom 0.4.3",
  "libcrux-psq",
- "nym-common 1.22.3",
+ "nym-common 2.0.0",
  "nym-crypto",
  "nym-kkt",
  "nym-kkt-ciphersuite",
@@ -6728,12 +6730,12 @@ dependencies = [
 
 [[package]]
 name = "nym-lp-data"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bytes",
  "num_enum",
- "nym-common 1.22.3",
+ "nym-common 2.0.0",
  "semver",
  "thiserror 2.0.21",
  "tracing",
@@ -6741,8 +6743,8 @@ dependencies = [
 
 [[package]]
 name = "nym-lp-gateway-client"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bincode",
  "bytes",
@@ -6756,8 +6758,8 @@ dependencies = [
 
 [[package]]
 name = "nym-lthash"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "blake3",
  "digest 0.10.7",
@@ -6775,8 +6777,8 @@ dependencies = [
 
 [[package]]
 name = "nym-metrics"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -6786,8 +6788,8 @@ dependencies = [
 
 [[package]]
 name = "nym-mixnet-client"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "dashmap",
  "futures",
@@ -6804,8 +6806,8 @@ dependencies = [
 
 [[package]]
 name = "nym-mixnet-contract-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -6825,8 +6827,8 @@ dependencies = [
 
 [[package]]
 name = "nym-multisig-contract-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6841,8 +6843,8 @@ dependencies = [
 
 [[package]]
 name = "nym-network-defaults"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cargo_metadata 0.19.2",
  "dotenvy",
@@ -6857,8 +6859,8 @@ dependencies = [
 
 [[package]]
 name = "nym-network-monitors-contract-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6887,8 +6889,8 @@ dependencies = [
 
 [[package]]
 name = "nym-node-families-contract-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6903,8 +6905,8 @@ dependencies = [
 
 [[package]]
 name = "nym-node-requests"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "celes 2.8.2",
  "humantime-serde",
@@ -6928,8 +6930,8 @@ dependencies = [
 
 [[package]]
 name = "nym-noise"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "arc-swap",
  "bytes",
@@ -6949,8 +6951,8 @@ dependencies = [
 
 [[package]]
 name = "nym-noise-keys"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-crypto",
  "schemars 0.8.22",
@@ -6960,8 +6962,8 @@ dependencies = [
 
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -6990,8 +6992,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ordered-buffer"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "log",
  "thiserror 2.0.21",
@@ -6999,8 +7001,8 @@ dependencies = [
 
 [[package]]
 name = "nym-pemstore"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "pem 0.8.3",
  "pkcs8 0.11.0",
@@ -7012,8 +7014,8 @@ dependencies = [
 
 [[package]]
 name = "nym-performance-contract-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7050,8 +7052,8 @@ dependencies = [
 
 [[package]]
 name = "nym-registration-client"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bincode",
  "bytes",
@@ -7081,8 +7083,8 @@ dependencies = [
 
 [[package]]
 name = "nym-registration-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bincode",
  "nym-authenticator-requests",
@@ -7119,8 +7121,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sdk"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -7170,9 +7172,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-secure-enclave"
+version = "2026.17.0-beta.1"
+dependencies = [
+ "async-trait",
+ "block2",
+ "futures-util",
+ "libc",
+ "objc2",
+ "objc2-core-foundation",
+ "objc2-foundation",
+ "objc2-local-authentication",
+ "objc2-security",
+ "thiserror 2.0.21",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uniffi",
+ "zeroize",
+]
+
+[[package]]
 name = "nym-serde-helpers"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "serde",
  "serde_with",
@@ -7181,8 +7204,8 @@ dependencies = [
 
 [[package]]
 name = "nym-service-provider-requests-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "serde",
  "thiserror 2.0.21",
@@ -7190,8 +7213,8 @@ dependencies = [
 
 [[package]]
 name = "nym-service-providers-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "async-trait",
  "log",
@@ -7216,8 +7239,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-client-core"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "anyhow",
  "dirs 6.0.0",
@@ -7276,8 +7299,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy-helpers"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bytes",
  "futures",
@@ -7299,8 +7322,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-requests"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bincode",
  "log",
@@ -7315,8 +7338,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-crypto",
  "nym-metrics",
@@ -7341,8 +7364,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-acknowledgements"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -7359,8 +7382,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-addressing"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -7370,8 +7393,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-anonymous-replies"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -7388,8 +7411,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-chunking"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "dashmap",
  "log",
@@ -7407,8 +7430,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-cover"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -7425,8 +7448,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-forwarding"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-anonymous-replies",
@@ -7437,8 +7460,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-framing"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "bytes",
  "cfg-if",
@@ -7454,8 +7477,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-params"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -7465,8 +7488,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-routing"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -7475,8 +7498,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-types"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "sphinx-packet",
  "thiserror 2.0.21",
@@ -7554,8 +7577,8 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "futures",
  "log",
@@ -7578,9 +7601,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-store-cipher"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
+dependencies = [
+ "aes-gcm 0.11.1",
+ "argon2",
+ "hybrid-array",
+ "rand 0.10.3",
+ "serde",
+ "thiserror 2.0.21",
+ "zeroize",
+]
+
+[[package]]
 name = "nym-task"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cfg-if",
  "futures",
@@ -7596,8 +7633,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ticketbooks-merkle"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -7611,8 +7648,8 @@ dependencies = [
 
 [[package]]
 name = "nym-topology"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -7631,8 +7668,8 @@ dependencies = [
 
 [[package]]
 name = "nym-upgrade-mode-check"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "jwt-simple",
  "nym-crypto",
@@ -7648,8 +7685,8 @@ dependencies = [
 
 [[package]]
 name = "nym-validator-client"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -7703,8 +7740,8 @@ dependencies = [
 
 [[package]]
 name = "nym-vesting-contract-common"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7890,6 +7927,7 @@ dependencies = [
  "nym-registration-common",
  "nym-routing",
  "nym-sdk",
+ "nym-secure-enclave",
  "nym-socks5-proxy",
  "nym-socks5-proxy-ipc",
  "nym-split-tunnel",
@@ -8002,6 +8040,7 @@ dependencies = [
  "nym-offline-monitor",
  "nym-platform-metadata",
  "nym-sdk",
+ "nym-secure-enclave",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-lib",
@@ -8073,9 +8112,18 @@ version = "2026.17.0-beta.1"
 dependencies = [
  "anyhow",
  "async-trait",
+ "base64-url",
  "bip39",
+ "bs58",
+ "futures",
+ "libsqlite3-sys",
+ "nym-credentials-interface",
  "nym-crypto",
  "nym-pemstore",
+ "nym-secure-enclave",
+ "nym-store-cipher",
+ "nym-validator-client",
+ "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "rand 0.10.3",
  "rand 0.8.8",
@@ -8086,7 +8134,9 @@ dependencies = [
  "thiserror 2.0.21",
  "time",
  "tokio",
+ "tokio-util",
  "tracing",
+ "tracing-test",
  "zeroize",
 ]
 
@@ -8145,8 +8195,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wasm-utils"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "futures",
  "getrandom 0.2.17",
@@ -8210,8 +8260,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-private-metadata-client"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "async-trait",
  "nym-http-api-client",
@@ -8221,8 +8271,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-private-metadata-shared"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "axum",
  "bincode",
@@ -8235,8 +8285,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-types"
-version = "1.22.3"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
+version = "2.0.0"
+source = "git+https://github.com/nymtech/nym?rev=0d1c3671159865b479e2993d799fcced9340a1f7#0d1c3671159865b479e2993d799fcced9340a1f7"
 dependencies = [
  "base64 0.22.1",
  "nym-crypto",
@@ -8373,6 +8423,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "objc2-local-authentication"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e48e0b8b339e0d9d2ed4416b7f93f9d4daadff7d4dd797f89867cde11aeac607"
+dependencies = [
+ "block2",
+ "objc2",
+ "objc2-foundation",
+ "objc2-security",
+]
+
+[[package]]
 name = "objc2-quartz-core"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8488,6 +8550,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e036b411754132fd6b74e94b74e9a13c5cf606fa93d1885c35860d3060820b1"
 
 [[package]]
+name = "openssl-src"
+version = "300.6.1+3.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46eb8fb9fb3b61ce1c0f8a026c4c1a0714d3a9e138e7fbde78753ce2babc3846"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "openssl-sys"
 version = "0.9.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8495,6 +8566,7 @@ checksum = "19c413d6ec9ebaf5e1c829d355cb3e9f783778d700f135be0921d52fce3c60ae"
 dependencies = [
  "cc",
  "libc",
+ "openssl-src",
  "pkg-config",
  "vcpkg",
 ]
@@ -8730,6 +8802,7 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aab41826031698d6ffcd9cff78ef56ef998e39dc7e5067cdfebe373842d4723b"
 dependencies = [
+ "getrandom 0.4.3",
  "phc",
 ]
 
@@ -8928,6 +9001,7 @@ checksum = "44dc769b75f93afdddd8c7fa12d685292ddeff1e66f7f0f3a234cf1818afe892"
 dependencies = [
  "base64ct",
  "ctutils",
+ "getrandom 0.4.3",
 ]
 
 [[package]]

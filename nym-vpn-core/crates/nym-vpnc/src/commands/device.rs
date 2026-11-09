@@ -32,6 +32,8 @@ pub enum Command {
         #[arg(long)]
         seed: Option<String>,
     },
+    /// Register this device with the account if it is not registered yet.
+    Register,
 }
 
 impl Args {
@@ -64,6 +66,16 @@ impl Args {
                     .await?;
                 println!("Device identity has been reset");
                 Ok(())
+            }
+            Command::Register => {
+                let response = rpc_client.register_device().await?;
+                if let Some(err) = response.error {
+                    println!("Failed to register device: {err}");
+                    Err(err.into())
+                } else {
+                    println!("Device is registered");
+                    Ok(())
+                }
             }
         }
     }

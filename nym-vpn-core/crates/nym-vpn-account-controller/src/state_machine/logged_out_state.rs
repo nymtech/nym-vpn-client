@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    SharedAccountState,
+    Error, SharedAccountState,
     commands::{AccountCommand, CommonCommand, ReturnSender, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState,
@@ -10,7 +10,6 @@ use crate::{
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_lib_types::AccountCommandError;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -62,13 +61,17 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                         return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                     }
                     AccountCommand::StoreAccount(return_sender, storable_account) => {
-                        return if let Err(e) = handler::handle_store_account(shared_state, storable_account).await{
-                            return_sender.send(Err(e));
-                            NextAccountControllerState::SameState(self)
-                        } else {
-                            return_sender.send(Ok(()));
-                            shared_state.qr_pairing_handler.cancel_get_pairing_secret();
-                            NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await)
+                        return match handler::handle_store_account(shared_state, storable_account).await {
+                            Err(e) => {
+                                return_sender.send(Err(e));
+                                NextAccountControllerState::SameState(self)
+                            }
+                            Ok(vpn_account) => {
+                                return_sender.send(Ok(()));
+                                shared_state.qr_pairing_handler.cancel_get_pairing_secret();
+                                handler::handle_register_device_on_login(shared_state, &vpn_account).await;
+                                NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await)
+                            }
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
@@ -90,6 +93,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
 
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_account(return_sender),
                     AccountCommand::RedeemFreepass(return_sender, _, _) => return_no_account(return_sender),
+                    AccountCommand::RegisterDevice(return_sender) => return_no_account(return_sender),
                     AccountCommand::RefreshAccountState(return_sender, _) => return_no_account(return_sender),
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
                         shared_state.set_firewall_state(false);
@@ -137,9 +141,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
     }
 }
 
-fn return_no_account<S>(result_tx: ReturnSender<S, AccountCommandError>)
+fn return_no_account<S>(result_tx: ReturnSender<S, Error>)
 where
     S: std::fmt::Debug + std::marker::Send,
 {
-    result_tx.send(Err(AccountCommandError::NoAccountStored))
+    result_tx.send(Err(Error::NoAccountStored))
 }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_http_api_client::HttpClientError;
-use nym_vpn_lib_types::{AccountCommandError, AccountControllerError};
+use nym_vpn_lib_types::AccountControllerError;
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
 pub enum VpnError {
@@ -69,6 +69,9 @@ pub enum VpnError {
     #[error("shared secret could not be derived for pairing process: {details}")]
     PairingDerivingSharedSecret { details: String },
 
+    #[error("failed to create ecash keypair: {details}")]
+    CreateEcashKeyPair { details: String },
+
     #[error("failed to remove device from nym vpn api: {details}")]
     UnregisterDevice { details: String },
 
@@ -126,43 +129,55 @@ impl VpnError {
     }
 }
 
-impl From<AccountCommandError> for VpnError {
-    fn from(value: AccountCommandError) -> Self {
+impl From<AccountControllerError> for VpnError {
+    fn from(value: AccountControllerError) -> Self {
         match value {
-            AccountCommandError::Internal(err) => Self::InternalError { details: err },
-            AccountCommandError::Storage(err) => Self::Storage { details: err },
-            AccountCommandError::VpnApi(e) => Self::VpnApi { details: e },
-            AccountCommandError::UnexpectedVpnApiResponse(e) => Self::InternalError { details: e },
-            AccountCommandError::NoAccountStored => Self::NoAccountStored,
-            AccountCommandError::NoDeviceStored => Self::NoDeviceIdentity,
-            AccountCommandError::Offline => Self::NetworkConnectionError {
+            AccountControllerError::Internal(err) => Self::InternalError { details: err },
+            AccountControllerError::Storage(err) => Self::Storage { details: err },
+            AccountControllerError::VpnApi(e) => Self::VpnApi { details: e },
+            AccountControllerError::UnexpectedVpnApiResponse(e) => {
+                Self::InternalError { details: e }
+            }
+            AccountControllerError::NoAccountStored => Self::NoAccountStored,
+            AccountControllerError::NoDeviceStored => Self::NoDeviceIdentity,
+            AccountControllerError::Offline => Self::NetworkConnectionError {
                 details: "Unable to proceed with command since we are offline".to_owned(),
             },
-            AccountCommandError::ExistingAccount => Self::ExistingAccount,
-            AccountCommandError::InvalidMnemonic(details) => Self::InvalidMnemonic { details },
-            AccountCommandError::InvalidSecret(details) => Self::InvalidSecret { details },
-            AccountCommandError::NyxdConnectionFailure(details) => {
+            AccountControllerError::ExistingAccount => Self::ExistingAccount,
+            AccountControllerError::InvalidMnemonic(details) => Self::InvalidMnemonic { details },
+            AccountControllerError::InvalidSecret(details) => Self::InvalidSecret { details },
+            AccountControllerError::NyxdConnectionFailure(details) => {
                 Self::NyxdConnectionFailure { details }
             }
-            AccountCommandError::NyxdQueryFailure(details) => Self::NyxdQueryFailure { details },
-            AccountCommandError::AccountDoesntExistOnChain => Self::AccountDoesntExistOnChain,
-            AccountCommandError::AccountNotDecentralised => Self::AccountNotDecentralised,
-            AccountCommandError::AccountDecentralised => Self::AccountDecentralised,
-            AccountCommandError::InsufficientFunds => Self::InsufficientFunds,
-            AccountCommandError::ZkNymAcquisitionFailure(details) => {
+            AccountControllerError::NyxdQueryFailure(details) => Self::NyxdQueryFailure { details },
+            AccountControllerError::AccountDoesntExistOnChain => Self::AccountDoesntExistOnChain,
+            AccountControllerError::AccountNotDecentralised => Self::AccountNotDecentralised,
+            AccountControllerError::AccountDecentralised => Self::AccountDecentralised,
+            AccountControllerError::InsufficientFunds => Self::InsufficientFunds,
+            AccountControllerError::ZkNymAcquisitionFailure(details) => {
                 Self::ZkNymAcquisitionFailure { details }
             }
-            AccountCommandError::DeeplinkError(message) => Self::DeeplinkError { details: message },
-            AccountCommandError::InvalidPublicKey(err) => Self::InvalidPublicKey { details: err },
-            error @ AccountCommandError::UserPresenceRequired => Self::InternalError {
+            AccountControllerError::DeeplinkError(message) => {
+                Self::DeeplinkError { details: message }
+            }
+            AccountControllerError::InvalidPublicKey(err) => {
+                Self::InvalidPublicKey { details: err }
+            }
+            error @ AccountControllerError::UserPresenceRequired => Self::InternalError {
                 details: error.to_string(),
             },
-            AccountCommandError::PairingNotStarted => Self::PairingNotStarted,
-            AccountCommandError::PairingSessionIdMismatch => Self::PairingSessionIdMismatch,
-            AccountCommandError::NoPairingSharedSecret => Self::NoPairingSharedSecret,
-            AccountCommandError::PairingDerivingSharedSecret(err) => {
+            AccountControllerError::PairingNotStarted => Self::PairingNotStarted,
+            AccountControllerError::PairingSessionIdMismatch => Self::PairingSessionIdMismatch,
+            AccountControllerError::NoPairingSharedSecret => Self::NoPairingSharedSecret,
+            AccountControllerError::PairingDerivingSharedSecret(err) => {
                 Self::PairingDerivingSharedSecret { details: err }
             }
+            AccountControllerError::CreateEcashKeyPair(details) => {
+                Self::CreateEcashKeyPair { details }
+            }
+            error @ AccountControllerError::ErrorState(_) => Self::Storage {
+                details: error.to_string(),
+            },
         }
     }
 }
@@ -184,16 +199,8 @@ impl From<nym_vpn_store::keys::device::OnDiskKeysError> for VpnError {
     }
 }
 
-impl From<nym_vpn_store::account::on_disk::OnDiskMnemonicStorageError> for VpnError {
-    fn from(value: nym_vpn_store::account::on_disk::OnDiskMnemonicStorageError) -> Self {
-        Self::Storage {
-            details: value.to_string(),
-        }
-    }
-}
-
-impl From<AccountControllerError> for VpnError {
-    fn from(value: AccountControllerError) -> Self {
+impl From<nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError> for VpnError {
+    fn from(value: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError) -> Self {
         Self::Storage {
             details: value.to_string(),
         }

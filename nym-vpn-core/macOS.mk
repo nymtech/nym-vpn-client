@@ -65,7 +65,7 @@ else
     $(error Unknown ARCH: $(ARCH). Please use 'x86_64', 'arm64', or 'fat')
 endif
 
-.PHONY: all $(BIN_TARGETS) create-upload-dir build-dev build-all binaries lib swift-package clean
+.PHONY: all $(BIN_TARGETS) create-upload-dir build-dev install-cli build-all binaries lib swift-package clean
 
 all: build-all
 
@@ -90,6 +90,17 @@ build-dev:
 # Usage: make -f macOS.mk run -- -v
 run: build-dev
 	sudo -E "$(CURDIR)/target/debug/NymVPND.app/Contents/MacOS/nym-vpnd" $(RUN_ARGS)
+
+# Build nym-vpnc and copy it to INSTALL_BIN_DIR.
+# Authorization Services fail for binaries running from external volumes, so this lets the
+# repository live on one while nym-vpnc runs from the internal disk.
+# Usage: make -f macOS.mk install-cli
+INSTALL_BIN_DIR ?= $(HOME)/.local/bin
+
+install-cli:
+	$(CARGO) build --package nym-vpnc
+	$(MKDIR) "$(INSTALL_BIN_DIR)"
+	cp "$(CURDIR)/target/debug/nym-vpnc" "$(INSTALL_BIN_DIR)/nym-vpnc"
 
 build-all: binaries swift-package
 

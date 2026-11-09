@@ -49,9 +49,10 @@ import PathManager
     var registrationCapturedEnvironment: NymEnvironment?
     var registrationCapturedEnvString: String?
     private var accountRegistrationTask: Task<Void, Error>?
-    var accountControllerShutdown: (() async -> Void)?
     /// Receives the account controller events, such as QR pairing results. Nothing consumes them yet.
     let accountControllerEventListener = AccountControllerEventListener()
+    /// Last task running an account controller. Completes once the controller is shut down.
+    var accountControllerTask: Task<Void, Never>?
     private(set) var isLoggingOut = false
     var hasPreparedRegisteredAccountThisSession = false
 #endif
@@ -357,7 +358,7 @@ import PathManager
         hasPreparedRegisteredAccountThisSession = false
         accountSummaryUpdateTask?.cancel()
         accountSummaryUpdateTask = nil
-        await shutdownControllersAndWait()
+        await shutdownAccountControllerAndWait()
 #endif
     }
 

@@ -40,6 +40,7 @@ pub use nym_sdk::{
     UserAgent,
     mixnet::{NodeIdentity, Recipient, StoragePaths},
 };
+pub use nym_secure_enclave::SecureEnclaveError;
 
 pub use crate::{
     mixnet::{

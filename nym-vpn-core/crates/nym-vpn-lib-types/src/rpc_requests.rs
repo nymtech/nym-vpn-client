@@ -64,7 +64,7 @@ impl TryFrom<StoreAccountRequest> for StorableAccount {
 #[derive(Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct AccountCommandResponse {
-    pub error: Option<crate::AccountCommandError>,
+    pub error: Option<crate::AccountControllerError>,
 }
 
 #[derive(Clone, Debug)]
@@ -108,5 +108,5 @@ impl From<nym_validator_client::nyxd::Coin> for Coin {
 #[derive(Debug)]
 //#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct AccountBalanceResponse {
-    pub result: Result<Vec<Coin>, crate::AccountCommandError>,
+    pub result: Result<Vec<Coin>, crate::AccountControllerError>,
 }

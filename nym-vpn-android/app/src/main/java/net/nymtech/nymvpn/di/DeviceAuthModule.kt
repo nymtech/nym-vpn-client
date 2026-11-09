@@ -6,6 +6,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import net.nymtech.nymvpn.manager.deviceauth.NymDeviceAuthManager
 import net.nymtech.nymvpn.manager.deviceauth.DeviceAuthManager
+import net.nymtech.nymvpn.manager.secureenclave.KeystoreSecureEnclaveProvider
+import nym_secure_enclave.AndroidSecureEnclaveProvider
 import javax.inject.Singleton
 
 @Module
@@ -15,4 +17,8 @@ abstract class DeviceAuthModule {
 	@Binds
 	@Singleton
 	abstract fun bindDeviceAuthManager(impl: NymDeviceAuthManager): DeviceAuthManager
+
+	@Binds
+	@Singleton
+	abstract fun bindSecureEnclaveProvider(impl: KeystoreSecureEnclaveProvider): AndroidSecureEnclaveProvider
 }

@@ -42,6 +42,9 @@ pub enum AccountControllerErrorStateReason {
 
     /// Max device numbers reached
     MaxDeviceReached,
+
+    /// Device is not registered with the account
+    DeviceNotRegistered,
 }
 
 impl AccountControllerErrorStateReason {
@@ -91,22 +94,9 @@ impl std::fmt::Display for AccountControllerErrorStateReason {
             AccountControllerErrorStateReason::MaxDeviceReached => {
                 write!(f, "Max device numbers reached")
             }
+            AccountControllerErrorStateReason::DeviceNotRegistered => {
+                write!(f, "Device is not registered")
+            }
         }
     }
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, thiserror::Error)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Error))]
-pub enum AccountControllerError {
-    #[error("Account controller is offline")]
-    Offline,
-
-    #[error("Account controller has no account stored")]
-    NoAccountStored,
-
-    #[error("Internal error : {0}")]
-    Internal(String),
-
-    #[error("Account controller is in error state. Reason : {0}")]
-    ErrorState(AccountControllerErrorStateReason),
 }

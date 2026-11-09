@@ -9,7 +9,7 @@ use crate::common::{TestBench, account_summary::*, endpoints};
 
 use nym_vpn_api_client::response::NymErrorResponse;
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
+    AccountControllerError, AccountControllerErrorStateReason, AccountControllerState,
 };
 
 fn account_not_found() -> NymErrorResponse {
@@ -159,7 +159,7 @@ async fn logged_out_account_has_no_trial_eligibility() -> anyhow::Result<()> {
 
     assert_eq!(
         test_bench.command_sender.is_trial_eligible().await,
-        Err(AccountCommandError::NoAccountStored)
+        Err(AccountControllerError::NoAccountStored)
     );
     Ok(())
 }

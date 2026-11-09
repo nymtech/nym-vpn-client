@@ -10,7 +10,7 @@ use crate::common::{TestBench, account_summary::*, endpoints};
 
 use nym_vpn_api_client::response::NymErrorResponse;
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
+    AccountControllerError, AccountControllerErrorStateReason, AccountControllerState,
 };
 
 const PRODUCT_ID: &str = "1_year_may_2025";
@@ -42,7 +42,7 @@ fn signing_not_configured() -> NymErrorResponse {
     }
 }
 
-async fn check(test_bench: &TestBench) -> Result<Option<String>, AccountCommandError> {
+async fn check(test_bench: &TestBench) -> Result<Option<String>, AccountControllerError> {
     test_bench
         .command_sender
         .check_apple_intro_offer_eligibility(PRODUCT_ID.into(), APP_TRANSACTION_ID.into())
@@ -146,7 +146,7 @@ async fn signing_not_configured_is_an_error_not_a_verdict() -> anyhow::Result<()
 
     let result = check(&test_bench).await;
     assert!(
-        matches!(result, Err(AccountCommandError::VpnApi(_))),
+        matches!(result, Err(AccountControllerError::VpnApi(_))),
         "expected a VPN API error, got {result:?}"
     );
     Ok(())
@@ -161,7 +161,7 @@ async fn logged_out_account_cannot_check_eligibility() -> anyhow::Result<()> {
 
     assert_eq!(
         check(&test_bench).await,
-        Err(AccountCommandError::NoAccountStored)
+        Err(AccountControllerError::NoAccountStored)
     );
     Ok(())
 }

@@ -16,7 +16,7 @@ use nym_vpn_store::keys::{
     wireguard::DB_NAME,
 };
 
-use crate::Error;
+use crate::{Error, Result};
 
 // TODO: implement functionality where the owning code of these files delete them instead. To
 // protect us against the names drifting out of sync.
@@ -24,7 +24,7 @@ use crate::Error;
 pub async fn remove_files_for_account(
     data_dir: &Path,
     remove_wireguard_keys_db: bool,
-) -> Result<(), Error> {
+) -> Result<()> {
     let storage_paths =
         StoragePaths::new_from_dir(data_dir).map_err(|err| Error::StoragePaths(Box::new(err)))?;
 
@@ -82,19 +82,6 @@ pub async fn remove_files_for_account(
         }
     }
 
-    // Warn if there are any files left in the data directory
-    let mut dir_stream = ReadDirStream::new(
-        tokio::fs::read_dir(data_dir)
-            .await
-            .map_err(Error::internal)?,
-    );
-
-    while let Some(entry_result) = dir_stream.next().await {
-        if let Ok(entry) = entry_result {
-            tracing::info!("File left in data directory: {}", entry.path().display());
-        }
-    }
-
     Ok(())
 }
 
@@ -130,7 +117,7 @@ async fn remove_file(file_path: &Path) -> bool {
     }
 }
 
-async fn get_list_of_corrupted_files(data_dir: &Path) -> Result<Vec<PathBuf>, Error> {
+async fn get_list_of_corrupted_files(data_dir: &Path) -> Result<Vec<PathBuf>> {
     let base_name = StoragePaths::new_from_dir(data_dir)
         .map_err(|err| Error::StoragePaths(Box::new(err)))?
         .reply_surb_database_path;

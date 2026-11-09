@@ -29,6 +29,7 @@
     "tunnel-provider": "Couldn't start the VPN on this device. Reconnect, and allow the VPN connection if prompted. If it persists, contact support.",
     "inactive-account": "Your account isn't active. Open Account and refresh, or contact support.",
     "device-logged-out": "This device was logged out. Log in again to reconnect.",
+    "device-not-registered": "This device is not registered with your account. Please authorize registration.",
     "needs-relaxed-independence-criteria": "These entry and exit servers aren't fully independent. Choose different servers, or connect anyway.",
     "needs-device-location": "Automatic routing isn't available right now. Try again later or choose your own servers.",
     "credential-fetching-failed": "Couldn't get your connection credentials. Try again shortly. If it persists, restart the app or contact support.",

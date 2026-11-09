@@ -35,6 +35,7 @@ subprojects {
 			exclude("**/generated/**")
 			exclude("**/nym_vpn_lib/**")
 			exclude("**/nym_vpn_lib_types/**")
+			exclude("**/nym_secure_enclave/**")
 			exclude("**/tun_provider/**")
 			exclude("**/nym_bridges_types/**")
 			include("**/kotlin/**")
@@ -47,6 +48,6 @@ subprojects {
 		buildUponDefaultConfig = true
 	}
 	tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
-		exclude("**/nym_vpn_lib/**", "**/nym_vpn_lib_types/**", "**/tun_provider/**", "**/nym_bridges_types/**")
+		exclude("**/nym_vpn_lib/**", "**/nym_vpn_lib_types/**", "**/nym_secure_enclave/**", "**/tun_provider/**", "**/nym_bridges_types/**")
 	}
 }

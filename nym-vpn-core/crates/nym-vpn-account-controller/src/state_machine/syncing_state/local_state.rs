@@ -1,7 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use crate::Error;
+use std::time::Duration;
 
 use crate::{
     SharedAccountState,
@@ -12,16 +13,14 @@ use crate::{
         PrivateAccountControllerState, ReadyState,
         syncing_state::{SyncMode, SyncingNetworkState},
     },
+    storage::{AccountStorageOp, request_vpn_api_account},
 };
 use futures::{FutureExt, future::Fuse};
+use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_api_client::{
-    VpnApiClient,
-    types::{Device, VpnAccount},
-};
-use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerErrorStateReason, VpnAccountSummary,
-};
+use nym_vpn_api_client::{VpnApiClient, types::Device};
+use nym_vpn_lib_types::{AccountControllerErrorStateReason, StoredAccountMode, VpnAccountSummary};
+use nym_vpn_store::device_state::StoredDeviceState;
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
@@ -68,12 +67,19 @@ impl SyncingLocalState {
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
-        let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
-            return LoggedOutState::enter(shared_state).await;
-        };
-        if vpn_api_account.mode().is_decentralised() {
-            return DecentralisedState::enter();
+        match &shared_state.device_state {
+            StoredDeviceState::LoggedIn {
+                account_identity: account,
+                ..
+            } if account.mode == StoredAccountMode::Decentralised => {
+                return DecentralisedState::enter();
+            }
+            StoredDeviceState::LoggedOut => {
+                return LoggedOutState::enter(shared_state).await;
+            }
+            StoredDeviceState::LoggedIn { .. } => {}
         }
+
         let Some(device) = shared_state.device.clone() else {
             return ErrorState::enter(
                 shared_state,
@@ -86,7 +92,7 @@ impl SyncingLocalState {
         };
 
         // Nothing to check locally without a cached summary: go fetch one from the network.
-        let Some(summary) = shared_state.vpn_account_summary.clone() else {
+        let Some(summary) = shared_state.device_state.account_summary().clone() else {
             return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await;
         };
 
@@ -97,6 +103,7 @@ impl SyncingLocalState {
         }
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
+        let storage_op_sender = shared_state.storage_op_sender.clone();
 
         let (result_tx, result_rx) = oneshot::channel();
         let sync_cancel_token = CancellationToken::new();
@@ -106,7 +113,7 @@ impl SyncingLocalState {
                 SyncingLocalState::check_account(
                     result_tx,
                     vpn_api_client,
-                    vpn_api_account,
+                    storage_op_sender,
                     device,
                     summary,
                 ),
@@ -124,7 +131,7 @@ impl SyncingLocalState {
     async fn check_account(
         result_tx: oneshot::Sender<Result<bool, SyncError>>,
         vpn_api_client: VpnApiClient,
-        vpn_api_account: Arc<VpnAccount>,
+        storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         device: Device,
         summary: VpnAccountSummary,
     ) {
@@ -146,7 +153,7 @@ impl SyncingLocalState {
             } else if !summary.fair_usage_left() {
                 Err(SyncError::FairUsageDepleted)
             } else {
-                Self::register_device(&vpn_api_client, &vpn_api_account, &device).await
+                Self::register_device(&vpn_api_client, &storage_op_sender, &device).await
             }
         } else {
             Ok(false)
@@ -157,11 +164,16 @@ impl SyncingLocalState {
 
     async fn register_device(
         vpn_api_client: &VpnApiClient,
-        vpn_api_account: &VpnAccount,
+        storage_op_sender: &mpsc::UnboundedSender<AccountStorageOp>,
         device: &Device,
     ) -> Result<bool, SyncError> {
+        let vpn_api_account = request_vpn_api_account(storage_op_sender)
+            .await
+            .map_err(|err| SyncError::UnregisteredDevice {
+                details: err.to_string(),
+            })?;
         vpn_api_client
-            .register_device(vpn_api_account, device)
+            .register_device(&vpn_api_account, device)
             .await
             .map_err(|err| SyncError::UnregisteredDevice {
                 details: err.to_string(),
@@ -199,13 +211,15 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         // (memory + disk) so a restart doesn't try to register again, without
                         // needing a full re-fetch.
                         if device_registration
-                            && let Some(mut summary) = shared_state.vpn_account_summary.clone()
+                            && let Some(mut summary) = shared_state.device_state.account_summary().clone()
                             && !summary.is_device_active
                         {
                             summary.is_device_active = true;
                             // Guarded above: we only register when a slot is free, so this is > 0.
                             summary.remaining_devices = summary.remaining_devices.saturating_sub(1);
-                            shared_state.store_summary(summary);
+                            if let Err(err) = shared_state.store_summary(summary).await {
+                                trace_err_chain!(err, "failed to store account summary");
+                            }
                         }
                         NextAccountControllerState::NewState(ReadyState::enter(shared_state).await)
                     }
@@ -226,8 +240,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
             }
             Some(command) = command_rx.recv() => {
                 match command {
-                    AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
-                    AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(Error::ExistingAccount)),
+                    AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(Error::ExistingAccount)),
                     AccountCommand::RegisterAccount(return_sender, account, platform) => {
                         let res = handler::handle_register_account(shared_state, account, platform).await;
                         return_sender.send(res);
@@ -264,7 +278,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         let res = handler::handle_qr_pair_account(shared_state).await;
                         return_sender.send(res);
                     },
-                    AccountCommand::ScannedKey(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::ScannedKey(return_sender, _) => return_sender.send(Err(Error::ExistingAccount)),
                     AccountCommand::VerifiedPairingPin(return_sender, session_id) => {
                         let res = handler::handle_qr_verified_pairing_pin(shared_state, session_id).await;
                         return_sender.send(res);
@@ -276,15 +290,21 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         let res = handler::handle_rotate_keys(shared_state).await;
                         return_sender.send(res);
                     },
-                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
-                    AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(Error::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(Error::AccountNotDecentralised)),
+                    AccountCommand::RegisterDevice(return_sender) => {
+                        let res = handler::handle_register_device(shared_state).await;
+                        return_sender.send(res);
+                    },
                     AccountCommand::RefreshAccountState(return_sender, force) => {
                         return_sender.send(Ok(()));
                         return if shared_state.firewall_active {
                             NextAccountControllerState::SameState(self)
                         } else {
                             if force {
-                                shared_state.mark_summary_as_stale();
+                                if let Err(err) = shared_state.mark_summary_as_stale().await {
+                                    trace_err_chain!(err, "failed to mark account summary as stale");
+                                }
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                             } else {
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);
