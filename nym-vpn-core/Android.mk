@@ -96,8 +96,8 @@ build: $(ARM64_V8_BUILD_DIR)/libwg.so $(ARMEABI_V7_BUILD_DIR)/libwg.so $(X86_64_
 	$(CARGO_ENV) $(HARDENING_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_ARMEABI_V7) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
 	$(MAKE) -f Android.mk prune-dep-cdylibs
 
-# cargo ndk copies every `.so` cargo emits, but android does not load them.
-# clear out all libs except that ones android app needs.
+# cargo ndk copies every `.so` cargo emits, but the app only loads these.
+# Remove the rest, including stale copies from earlier builds.
 JNI_LIBS_KEEP := libnym_vpn_lib_uniffi.so libwg.so
 
 prune-dep-cdylibs:
