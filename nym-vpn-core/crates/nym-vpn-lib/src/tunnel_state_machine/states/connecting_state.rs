@@ -46,8 +46,8 @@ use nym_gateway_directory::{BlacklistReason, ResolvedConfig};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 use nym_vpn_lib_types::{
-    AmneziaMode, BridgeMode, EstablishConnectionData, EstablishConnectionState, GatewayLightInfo,
-    SelectorFallbackState, TunnelType,
+    AmneziaMode, BridgeMode, EntryPoint, EstablishConnectionData, EstablishConnectionState,
+    GatewayLightInfo, SelectorFallbackState, TunnelType,
 };
 
 /// Initial delay between retry attempts.
@@ -128,11 +128,13 @@ impl ConnectingState {
             .wireguard_tunnel_options
             .amnezia_mode
             != AmneziaMode::Off;
-        let amnezia_translator = shared_state
-            .tunnel_settings
-            .wireguard_tunnel_options
-            .amnezia_mode
-            == AmneziaMode::Auto
+        // The last attempt before giving up never depends on the translator.
+        let amnezia_translator = retry_attempt + 1 < MAX_RECONNECT_ATTEMPTS
+            && shared_state
+                .tunnel_settings
+                .wireguard_tunnel_options
+                .amnezia_mode
+                == AmneziaMode::Auto
             && shared_state
                 .nym_config
                 .network_rx
@@ -881,11 +883,26 @@ impl TunnelStateHandler for ConnectingState {
                         NextTunnelState::SameState(self)
                     }
                     TunnelMonitorEvent::AmneziaFailed => {
-                        // The entry's AmneziaWG bridge did not connect. Retry the same gateways in
-                        // base mode on the plain WireGuard port; a second failure blacklists as usual.
-                        tracing::warn!("AmneziaWG bridge failed, retrying the entry gateway in base mode");
+                        // The entry's AmneziaWG bridge did not connect. Plain WireGuard to the same IP
+                        // right away would tell a censor who blocked the translator that this is a
+                        // WireGuard user, so move to another entry. A pinned entry is the user's call
+                        // and the blacklist skips it, so that one keeps the base mode retry.
+                        tracing::warn!("AmneziaWG bridge failed for the entry gateway");
+                        let pinned = matches!(
+                            shared_state.tunnel_settings.entry_point.as_ref(),
+                            EntryPoint::Gateway { .. }
+                        );
                         if let Some(gateways) = self.selected_gateways.as_mut() {
-                            gateways.clear_entry_amnezia();
+                            if pinned {
+                                gateways.clear_entry_amnezia();
+                            } else {
+                                let entry = gateways.entry_gateway().identity();
+                                shared_state.gateway_provider.add_blacklisted_gateway(
+                                    entry,
+                                    BlacklistReason::EntryMetadataEndpointUnreachable,
+                                ).await;
+                                self.selected_gateways = None;
+                            }
                         }
                         NextTunnelState::SameState(self)
                     }
