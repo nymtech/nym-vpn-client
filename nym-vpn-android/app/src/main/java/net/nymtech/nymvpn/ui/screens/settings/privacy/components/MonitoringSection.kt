@@ -49,6 +49,7 @@ fun MonitoringSection(
 				Row(verticalAlignment = Alignment.CenterVertically) {
 					Text(
 						text = stringResource(R.string.optin_monitoring_title),
+						modifier = Modifier.weight(1f, fill = false),
 						style = MaterialTheme.typography.titleMedium,
 						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
