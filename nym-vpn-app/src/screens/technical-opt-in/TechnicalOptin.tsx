@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
-import { AnonNetworkStatsUrl, PrivacyPolicyUrl } from '../../constants';
+import { AnonNetworkStatsUrl, SentryPrivacyPolicyUrl } from '../../constants';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { Button, Link, Switch } from '../../ui';
@@ -18,7 +18,7 @@ function TechnicalOptin() {
   const [monitoring, setMonitoring] = useState<boolean>(defaultSentry);
   const [netstats, setNetstats] = useState<boolean>(defaultNetstats);
   const navigate = useNavigate();
-  const { t } = useTranslation('welcome');
+  const { t } = useTranslation(['welcome', 'settings']);
 
   const handleContinue = () => {
     initMonitoring();
@@ -76,27 +76,8 @@ function TechnicalOptin() {
               desc: (
                 <Link
                   color="iron"
-                  text={t('anonymous-network-stats-toggle-desc')}
+                  text={t('privacy.network-stats.link', { ns: 'settings' })}
                   url={AnonNetworkStatsUrl}
-                />
-              ),
-              leadingIcon: 'bug_report',
-              trailing: (
-                <Switch
-                  checked={monitoring}
-                  onChange={toggleMonitoring}
-                  data-testid="welcome-monitoring-switch"
-                />
-              ),
-              'data-testid': 'welcome-monitoring-option',
-            },
-            {
-              title: t('error-and-crash-reports'),
-              desc: (
-                <Link
-                  color="iron"
-                  text={t('error-and-crash-reports-toggle-desc')}
-                  url={PrivacyPolicyUrl}
                 />
               ),
               leadingIcon: 'analytics',
@@ -108,6 +89,25 @@ function TechnicalOptin() {
                 />
               ),
               'data-testid': 'welcome-netstats-option',
+            },
+            {
+              title: t('error-and-crash-reports'),
+              desc: (
+                <Link
+                  color="iron"
+                  text={t('privacy.error-monitoring.link', { ns: 'settings' })}
+                  url={SentryPrivacyPolicyUrl}
+                />
+              ),
+              leadingIcon: 'bug_report',
+              trailing: (
+                <Switch
+                  checked={monitoring}
+                  onChange={toggleMonitoring}
+                  data-testid="welcome-monitoring-switch"
+                />
+              ),
+              'data-testid': 'welcome-monitoring-option',
             },
           ]}
           data-testid="welcome-netstats-group"

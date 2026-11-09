@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix the desktop onboarding toggles for anonymous network statistics and crash reporting (https://github.com/nymtech/nym-vpn-client/issues/6984).
+
 ## [2026.15.0] - 2026-11-05
 
 ### Fixed
