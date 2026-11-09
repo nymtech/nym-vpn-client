@@ -1,91 +1,90 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::deeplink::{CreateDeeplinkParams, DeeplinkMnemonic};
+use crate::{
+    Error,
+    deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
+};
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, NymVpnSubscription, QrPairingConfirmation, QrUrl,
-    RegisterAccountResponse, StorableAccount, StoredAccountMode, VpnAccountSummary,
+    AutologinResponse, NymVpnSubscription, QrPairingConfirmation, QrUrl, RegisterAccountResponse,
+    StorableAccount, StoredAccountMode, VpnAccountSummary,
 };
 use tokio::sync::oneshot;
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
     /// Generate a mnemonic and store it
-    CreateAccount(ReturnSender<(), AccountCommandError>),
+    CreateAccount(ReturnSender<(), Error>),
 
     /// Store the given account
-    StoreAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
+    StoreAccount(ReturnSender<(), Error>, StorableAccount),
 
     /// Register the given account (meant to take the stored mnemonic). DOES NOT STORE IT. This is only used my mobile for IAP at the moment
     RegisterAccount(
-        ReturnSender<RegisterAccountResponse, AccountCommandError>,
+        ReturnSender<RegisterAccountResponse, Error>,
         StorableAccount,
         Platform,
     ),
 
     /// Create the given account on the API with a free pass applied. DOES NOT STORE IT.
-    RedeemFreepass(
-        ReturnSender<(), AccountCommandError>,
-        StorableAccount,
-        String,
-    ),
+    RedeemFreepass(ReturnSender<(), Error>, StorableAccount, String),
 
     /// Delete the stored account and every associated data
-    ForgetAccount(ReturnSender<(), AccountCommandError>),
+    ForgetAccount(ReturnSender<(), Error>),
 
     /// Delete the account on the VPN API, then delete the stored account and every associated data
-    DeleteAccount(ReturnSender<(), AccountCommandError>),
+    DeleteAccount(ReturnSender<(), Error>),
 
     /// Link another account with the currently logged-on API account
-    LinkAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
+    LinkAccount(ReturnSender<(), Error>, StorableAccount),
 
     /// Pair another device to this logged-on account via a QR code
-    StartPairing(ReturnSender<QrUrl, AccountCommandError>),
+    StartPairing(ReturnSender<QrUrl, Error>),
 
     /// Pair this device to a logged-on device account via a QR code
-    ScannedKey(
-        ReturnSender<QrPairingConfirmation, AccountCommandError>,
-        String,
-    ),
+    ScannedKey(ReturnSender<QrPairingConfirmation, Error>, String),
 
     /// After confirming PIN match, the account mnemonic can be shared, encrypted
-    VerifiedPairingPin(ReturnSender<(), AccountCommandError>, u32),
+    VerifiedPairingPin(ReturnSender<(), Error>, u32),
 
     /// Stop the running pairing process, e.g. when the user closes the pairing window
-    CancelPairingProcess(ReturnSender<(), AccountCommandError>),
+    CancelPairingProcess(ReturnSender<(), Error>),
 
     /// Rotate the wireguard keys
-    RotateKeys(ReturnSender<(), AccountCommandError>),
+    RotateKeys(ReturnSender<(), Error>),
 
     /// Retrieve current, on-chain, balance of the account. Only applicable for decentralised accounts
-    AccountBalance(ReturnSender<Vec<Coin>, AccountCommandError>),
+    AccountBalance(ReturnSender<Vec<Coin>, Error>),
 
     /// Attempt to obtain one ticketbook (per type) for the decentralised account
-    ObtainTicketbooks(ReturnSender<(), AccountCommandError>),
+    ObtainTicketbooks(ReturnSender<(), Error>),
 
     /// Reset the device identity, optionally take a seed for reproducibility
-    ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>),
+    ResetDeviceIdentity(ReturnSender<(), Error>, Option<[u8; 32]>),
+
+    /// Register the device with the account if it is not registered yet
+    RegisterDevice(ReturnSender<(), Error>),
 
     /// Re-evaluates the account state
-    RefreshAccountState(ReturnSender<(), AccountCommandError>, bool),
+    RefreshAccountState(ReturnSender<(), Error>, bool),
 
     /// Tells the AC it's firewalled off the VPN API, so it should stop/pause network communication
-    VpnApiFirewallUp(ReturnSender<(), AccountCommandError>),
+    VpnApiFirewallUp(ReturnSender<(), Error>),
 
     /// Tells the AC free to go ahead
-    VpnApiFirewallDown(ReturnSender<(), AccountCommandError>),
+    VpnApiFirewallDown(ReturnSender<(), Error>),
 
     /// Read-only commands
     Common(CommonCommand),
 }
 
 impl AccountCommand {
-    pub fn return_error(self, error: AccountCommandError) {
+    pub fn return_error(self, error: Error) {
         match self {
             AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
@@ -102,6 +101,7 @@ impl AccountCommand {
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::RegisterDevice(return_sender) => return_sender.send(Err(error)),
             AccountCommand::RefreshAccountState(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::VpnApiFirewallUp(return_sender) => return_sender.send(Err(error)),
             AccountCommand::VpnApiFirewallDown(return_sender) => return_sender.send(Err(error)),
@@ -138,66 +138,53 @@ impl AccountCommand {
 #[derive(Debug, strum::Display)]
 pub enum CommonCommand {
     /// Returns Some(account) if an account is stored, None otherwise
-    GetStoredAccount(ReturnSender<Option<StorableAccount>, AccountCommandError>),
+    GetStoredAccount(ReturnSender<Option<StorableAccount>, Error>),
 
     /// Returns Some(address) if an account is stored, None otherwise
-    GetAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),
+    GetAccountIdentity(ReturnSender<Option<String>, Error>),
 
     /// Returns the identifier of the canonical (API) account, or error.
-    GetCanonicalAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),
+    GetCanonicalAccountIdentity(ReturnSender<Option<String>, Error>),
 
     /// Returns Some(mode) if an account is logged-in, None otherwise
-    GetAccountMode(ReturnSender<Option<StoredAccountMode>, AccountCommandError>),
+    GetAccountMode(ReturnSender<Option<StoredAccountMode>, Error>),
 
     /// Returns Some(id) if the current device has an identity (is registered), None otherwise
-    GetDeviceIdentity(ReturnSender<Option<String>, AccountCommandError>),
+    GetDeviceIdentity(ReturnSender<Option<String>, Error>),
 
     /// Returns the state of the account
-    GetUsage(ReturnSender<Vec<NymVpnUsage>, AccountCommandError>),
+    GetUsage(ReturnSender<Vec<NymVpnUsage>, Error>),
 
     /// Get the list of devices registered to that account
-    GetDevices(ReturnSender<Vec<NymVpnDevice>, AccountCommandError>),
+    GetDevices(ReturnSender<Vec<NymVpnDevice>, Error>),
 
     /// Get the list of active devices registered to that account
-    GetActiveDevices(ReturnSender<Vec<NymVpnDevice>, AccountCommandError>),
+    GetActiveDevices(ReturnSender<Vec<NymVpnDevice>, Error>),
 
     /// Returns the VPN account summary if the account is logged-in
-    GetAccountSummary(ReturnSender<Option<VpnAccountSummary>, AccountCommandError>),
+    GetAccountSummary(ReturnSender<Option<VpnAccountSummary>, Error>),
 
     /// Asks the API whether the account may be offered a free trial. True when the API says so,
     /// or when the account is not registered with the API yet (no history). False otherwise.
-    IsTrialEligible(ReturnSender<bool, AccountCommandError>),
+    IsTrialEligible(ReturnSender<bool, Error>),
 
     /// Asks the API for a signed Apple introductory-offer eligibility token for the given product
     /// id and transaction id. The token is present only when the account may not be offered a
     /// free trial; an eligible account, or one not registered with the API yet, gets `None` and
     /// Apple's own rule decides.
-    CheckAppleIntroOfferEligibility(
-        ReturnSender<Option<String>, AccountCommandError>,
-        String,
-        String,
-    ),
+    CheckAppleIntroOfferEligibility(ReturnSender<Option<String>, Error>, String, String),
 
     /// Redeems a free pass code on the account and returns the subscription it grants.
-    ApplyFreepass(
-        ReturnSender<NymVpnSubscription, AccountCommandError>,
-        String,
-    ),
+    ApplyFreepass(ReturnSender<NymVpnSubscription, Error>, String),
 
     /// Return the deeplink URL for the specfied deeplink kind and name
-    GetDeeplink(
-        ReturnSender<String, AccountCommandError>,
-        CreateDeeplinkParams,
-    ),
+    GetDeeplink(ReturnSender<String, Error>, CreateDeeplinkParams),
 
     /// Return the autologin deeplink URL for the specfied deeplink kind and name
-    GetAutologinDeeplink(
-        ReturnSender<AutologinResponse, AccountCommandError>,
-        CreateDeeplinkParams,
-    ),
+    GetAutologinDeeplink(ReturnSender<AutologinResponse, Error>, CreateDeeplinkParams),
 
     /// Derive the mnemonic from the deeplink callback URL
-    DeriveDeeplinkMnemonic(ReturnSender<DeeplinkMnemonic, AccountCommandError>, String),
+    DeriveDeeplinkMnemonic(ReturnSender<DeeplinkMnemonic, Error>, String),
 }
 
 #[derive(Debug)]

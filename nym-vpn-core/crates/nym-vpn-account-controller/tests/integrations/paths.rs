@@ -478,3 +478,122 @@ async fn optimistic_refresh_falls_back_but_force_refresh_surfaces_error_test() -
         .await;
     Ok(())
 }
+
+#[tokio::test]
+async fn device_not_found_does_not_register_device_test() -> anyhow::Result<()> {
+    let mut test_bench = TestBench::new().await?;
+
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_403(device_not_found()),
+        // Only the log-in registers, syncing doesn't
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(1),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::DeviceNotRegistered,
+        ))
+        .await;
+    Ok(())
+}
+
+#[tokio::test]
+async fn register_device_exits_error_state_test() -> anyhow::Result<()> {
+    let mut test_bench = TestBench::new().await?;
+
+    let credential_proxy = test_bench.credential_proxy.clone();
+
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_403(device_not_found()).up_to_n_times(1),
+        endpoints::account_summary_with_device_200(account_ready_to_connect()),
+        endpoints::get_device_403(device_not_found()).expect(1),
+        endpoints::register_device_403(unrelated_error()).up_to_n_times(1),
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(1),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::DeviceNotRegistered,
+        ))
+        .await;
+
+    assert_eq!(test_bench.command_sender.register_device().await, Ok(()));
+
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+    Ok(())
+}
+
+#[tokio::test]
+async fn register_device_skips_registered_device_test() -> anyhow::Result<()> {
+    let mut test_bench = TestBench::new().await?;
+
+    let credential_proxy = test_bench.credential_proxy.clone();
+
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_ready_to_connect()),
+        endpoints::get_device_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(1),
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(1),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+
+    assert_eq!(test_bench.command_sender.register_device().await, Ok(()));
+
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+    Ok(())
+}
+
+#[tokio::test]
+async fn login_registers_device_test() -> anyhow::Result<()> {
+    let mut test_bench = TestBench::new().await?;
+
+    let credential_proxy = test_bench.credential_proxy.clone();
+
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::get_device_403(device_not_found()).expect(0),
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(1),
+        endpoints::account_summary_with_device_200(account_ready_to_connect()),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+    Ok(())
+}

@@ -60,7 +60,7 @@ pub struct RegisterAccountResponse {
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Error))]
-pub enum AccountCommandError {
+pub enum AccountControllerError {
     // Internal error that should not happen
     #[error("internal error: {0}")]
     Internal(String),
@@ -128,31 +128,22 @@ pub enum AccountCommandError {
     #[error("shared secret could not be derived for pairing process: {0}")]
     PairingDerivingSharedSecret(String),
 
+    #[error("failed to create ecash keypair: {0}")]
+    CreateEcashKeyPair(String),
+
     #[error("deeplink error: {0}")]
     DeeplinkError(String),
+
+    #[error("account controller is in error state. Reason : {0}")]
+    ErrorState(controller_error::AccountControllerErrorStateReason),
 
     #[error("user presence required")]
     UserPresenceRequired,
 }
 
-impl AccountCommandError {
+impl AccountControllerError {
     pub fn internal(message: impl ToString) -> Self {
-        AccountCommandError::Internal(message.to_string())
-    }
-
-    pub fn storage(message: impl ToString) -> Self {
-        AccountCommandError::Storage(message.to_string())
-    }
-
-    pub fn unexpected_response(message: impl std::fmt::Debug) -> Self {
-        AccountCommandError::UnexpectedVpnApiResponse(format!("{message:?}"))
-    }
-}
-
-#[cfg(feature = "nym-type-conversions")]
-impl From<nym_validator_client::nyxd::error::NyxdError> for AccountCommandError {
-    fn from(e: nym_validator_client::nyxd::error::NyxdError) -> Self {
-        AccountCommandError::NyxdQueryFailure(e.to_string())
+        AccountControllerError::Internal(message.to_string())
     }
 }
 
@@ -227,13 +218,13 @@ impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_vpn_api_client::error::VpnApiClientError> for AccountCommandError {
+impl From<nym_vpn_api_client::error::VpnApiClientError> for AccountControllerError {
     fn from(err: nym_vpn_api_client::error::VpnApiClientError) -> Self {
         use nym_vpn_api_client::response::NymErrorResponse;
         // TODO: Another example of losing information about the original error cause
         match NymErrorResponse::try_from(err) {
-            Ok(err) => AccountCommandError::VpnApi(VpnApiError::Response(err.into())),
-            Err(e) => AccountCommandError::Internal(e.to_string()),
+            Ok(err) => AccountControllerError::VpnApi(VpnApiError::Response(err.into())),
+            Err(e) => AccountControllerError::Internal(e.to_string()),
         }
     }
 }

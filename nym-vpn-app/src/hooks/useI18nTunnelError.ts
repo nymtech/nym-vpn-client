@@ -25,6 +25,8 @@ function useI18nTunnelError() {
           return t('tunnel.inactive-account');
         case 'device-logged-out':
           return t('tunnel.device-logged-out');
+        case 'device-not-registered':
+          return t('tunnel.device-not-registered');
         case 'set-firewall-policy':
           return t('tunnel.firewall');
         case 'set-routing':

@@ -34,6 +34,7 @@ public enum OnboardingAccountPreparationPolicy {
             case internalError(context: String, details: String)
             case bandwidthExceeded(context: String)
             case maxDeviceReached
+            case deviceNotRegistered
         }
     }
 
@@ -71,6 +72,8 @@ public enum OnboardingAccountPreparationPolicy {
             return "Bandwidth exceeded: \(context)"
         case .maxDeviceReached:
             return "Max device numbers reached"
+        case .deviceNotRegistered:
+            return "Device is not registered"
         }
     }
 }

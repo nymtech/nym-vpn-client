@@ -104,7 +104,7 @@ struct NymVPNApp: App {
                 configureSecureScreen(with: newPhase)
 #if os(iOS)
                 if newPhase == .background {
-                    credentialsManager.shutdownControllers()
+                    credentialsManager.shutdownAccountController()
                     BackgroundRefreshScheduler.scheduleAppRefresh()
                 }
 #endif

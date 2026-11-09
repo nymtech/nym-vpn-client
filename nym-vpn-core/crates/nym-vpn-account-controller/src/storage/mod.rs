@@ -4,6 +4,8 @@
 mod account;
 mod cleanup;
 
-pub(crate) use account::{AccountStorage, AccountStorageOp};
+pub(crate) use account::{
+    AccountStorage, AccountStorageOp, request_stored_account, request_vpn_api_account,
+};
 
 pub use cleanup::remove_files_for_account;

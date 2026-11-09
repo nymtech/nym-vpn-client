@@ -38,6 +38,10 @@ extension CredentialsManager {
         if let pairingController {
             return pairingController
         }
+        await accountControllerTask?.value
+        if let pairingController {
+            return pairingController
+        }
         guard !isTunnelActive else {
             throw VPNErrorReason.accountStoreBusy
         }

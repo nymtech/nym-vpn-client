@@ -11,21 +11,16 @@ import AppVersionProvider
 @_exported import AccountPrefetchGates
 
 extension CredentialsManager {
-    public func shutdownControllers() {
-        if let shutdown = accountControllerShutdown {
-            accountControllerShutdown = nil
-            Task { await shutdown() }
-        }
+    public func shutdownAccountController() {
+        accountControllerTask?.cancel()
         if pairingController != nil {
             Task { await closePairingController() }
         }
     }
 
-    func shutdownControllersAndWait() async {
-        if let shutdown = accountControllerShutdown {
-            accountControllerShutdown = nil
-            await shutdown()
-        }
+    public func shutdownAccountControllerAndWait() async {
+        accountControllerTask?.cancel()
+        await accountControllerTask?.value
         await closePairingController()
     }
 
@@ -33,34 +28,58 @@ extension CredentialsManager {
         AccountTunnelPrefetchGate.isTunnelActive(status: TunnelsManager.shared.activeTunnel?.status)
     }
 
-    func withController<T>(_ body: (NymAccountController) async throws -> T) async throws -> T {
-        guard !isTunnelActive else {
-            throw VPNErrorReason.accountStoreBusy
+    /// Runs `body` with a new account controller once the previous one is shut down.
+    func withController<T: Sendable>(
+        _ body: @escaping @MainActor (NymAccountController) async throws -> T
+    ) async throws -> T {
+        let previousTask = accountControllerTask
+        let task = Task {
+            await previousTask?.value
+            try Task.checkCancellation()
+
+            guard !isTunnelActive else {
+                throw VPNErrorReason.accountStoreBusy
+            }
+
+            if let pairingController {
+                return try await body(pairingController)
+            }
+
+            let env = try resolvedRegistrationEnvironment()
+            let dataDir = try PathManager.dataFolderURL().path()
+            let offlineMonitor = await NymOfflineMonitor()
+
+            let controller = try await NymAccountController(
+                dataDir: dataDir,
+                userAgent: .appUserAgent,
+                networkEnv: env,
+                offlineMonitor: offlineMonitor,
+                eventListener: accountControllerEventListener
+            )
+            do {
+                let result = try await body(controller)
+                await controller.shutdownAndWait()
+                return result
+            } catch {
+                await controller.shutdownAndWait()
+
+                throw error
+            }
         }
-        try Task.checkCancellation()
-
-        if let pairingController {
-            return try await body(pairingController)
+        accountControllerTask = Task {
+            await withTaskCancellationHandler {
+                _ = await task.result
+            } onCancel: {
+                previousTask?.cancel()
+                task.cancel()
+            }
         }
 
-        let env = try resolvedRegistrationEnvironment()
-        let dataDir = try PathManager.dataFolderURL().path()
-        let offlineMonitor = await NymOfflineMonitor()
-
-        let controller = try await NymAccountController(
-            dataDir: dataDir,
-            userAgent: .appUserAgent,
-            networkEnv: env,
-            offlineMonitor: offlineMonitor,
-            eventListener: accountControllerEventListener
-        )
-        accountControllerShutdown = { await controller.shutdownAndWait() }
-        defer {
-            accountControllerShutdown = nil
-            Task { await controller.shutdownAndWait() }
+        return try await withTaskCancellationHandler {
+            try await task.value
+        } onCancel: {
+            task.cancel()
         }
-
-        return try await body(controller)
     }
 
     func prepareRegisteredAccount(environment env: NymEnvironment) async throws {
@@ -77,7 +96,7 @@ extension CredentialsManager {
                 logger: logger
             ) {
                 try await withController { controller in
-                    try await waitForOnboardingAccountPrepared(
+                    try await self.waitForOnboardingAccountPrepared(
                         controller: controller,
                         timeout: 120,
                         onAccountPhaseChange: onAccountPhaseChange
@@ -178,6 +197,8 @@ extension CredentialsManager {
             return .bandwidthExceeded(context: context)
         case .maxDeviceReached:
             return .maxDeviceReached
+        case .deviceNotRegistered:
+            return .deviceNotRegistered
         }
     }
 
@@ -264,7 +285,7 @@ extension CredentialsManager {
                     guard let summary = try await controller.getAccountSummary() else {
                         continue
                     }
-                    applyVpnAccountSummary(summary)
+                    self.applyVpnAccountSummary(summary)
                     if untilActive {
                         if summary.isSubscriptionActive() {
                             return

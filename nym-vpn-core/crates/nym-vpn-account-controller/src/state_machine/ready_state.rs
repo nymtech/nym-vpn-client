@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::Error;
 use std::pin::Pin;
 
 use crate::{
@@ -12,8 +13,8 @@ use crate::{
         SyncingNetworkState,
     },
 };
+use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_lib_types::AccountCommandError;
 use tokio::{sync::mpsc, time::Sleep};
 use tokio_util::sync::CancellationToken;
 
@@ -126,8 +127,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                         let res = handler::handle_rotate_keys(shared_state).await;
                         return_sender.send(res);
                     },
-                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
-                    AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(Error::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(Error::AccountNotDecentralised)),
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         let res = handler::handle_reset_device_identity(shared_state, seed).await;
                         let error = res.is_err();
@@ -138,13 +139,19 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                             return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                         }
                     },
+                    AccountCommand::RegisterDevice(return_sender) => {
+                        let res = handler::handle_register_device(shared_state).await;
+                        return_sender.send(res);
+                    },
                     AccountCommand::RefreshAccountState(return_sender, force) => {
                         return_sender.send(Ok(()));
                         if shared_state.firewall_active {
                             return NextAccountControllerState::SameState(self);
                         } else {
                             if force {
-                                shared_state.mark_summary_as_stale();
+                                if let Err(err) = shared_state.mark_summary_as_stale().await {
+                                    trace_err_chain!(err, "failed to mark account summary as stale");
+                                }
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                             } else {
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);
@@ -179,9 +186,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
     }
 }
 
-fn return_existing_account<S>(result_tx: ReturnSender<S, AccountCommandError>)
+fn return_existing_account<S>(result_tx: ReturnSender<S, Error>)
 where
     S: std::fmt::Debug + std::marker::Send,
 {
-    result_tx.send(Err(AccountCommandError::ExistingAccount))
+    result_tx.send(Err(Error::ExistingAccount))
 }
