@@ -12,7 +12,7 @@
   "connection": {
     "label": "Your connection quality",
     "desc": "Helps improve network connectivity",
-    "shares": "Connect time and error codes\nSession length\nMode (dVPN / Mixnet) and exit server\nOS, device type, app version\nAn anonymous ID (not tied to your account)",
+    "shares": "Connect time and error codes\nSession date and length\nMode (dVPN / Mixnet) and exit server\nOS, device type, app version\nAn anonymous ID (not tied to your account)",
     "never": "your IP, browsing, or traffic contents.",
     "handling": "Sent through the VPN tunnel to Nym. No third party."
   },
