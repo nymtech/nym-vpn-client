@@ -32646,6 +32646,171 @@
           }
         }
       }
+    },
+    "welcomeOptIns.privacyLink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Read our Privacy Statement"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your connection quality"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Helps improve network connectivity"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.shares" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "• Connect time and success\n• Retries and drop-outs\n• Session length\n• Mode (dVPN / Mixnet) and exit location\n• Connection error codes"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.never" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "your IP, browsing, or traffic contents."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.handling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Sent through the VPN tunnel to Nym. No third party."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your app errors & crashes"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Helps improve app performance"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.shares" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "• Crashes and error messages\n• Freezes, hangs, slow performance\n• Where it happened (stack traces)\n• OS, device type, app version"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.never" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "personal info, browsing, or traffic content."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.handling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Handled by Sentry, a third-party service. Nym never sees your IP."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "What's shared"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.gotIt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Got it"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.neverLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Never:"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.accessibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "What's shared: %@"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

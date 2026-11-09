@@ -15,8 +15,7 @@ public struct PrivacyAndDataView: View {
     @EnvironmentObject private var grpcManager: GRPCManager
 #endif
     @Binding private var path: NavigationPath
-    @State private var isHovered = false
-    @State private var hoveredId: Int?
+    @State private var infoContent: TelemetryInfoContent?
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -45,6 +44,11 @@ public struct PrivacyAndDataView: View {
         .background {
             Color.Nym.background
                 .ignoresSafeArea()
+        }
+        .sheet(item: $infoContent) { content in
+            TelemetryInfoSheet(content: content) {
+                infoContent = nil
+            }
         }
     }
 
@@ -107,16 +111,12 @@ private extension PrivacyAndDataView {
     }
 
     func statisticsSection() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: $appSettings.isStatisticsEnabled
-                ),
-                title: "privacyData.anonymousStats".localizedString,
-                multilineText: privacyMultilineText(),
-                position: .init(isFirst: true, isLast: true),
-                action: {}
-            )
+        optInCard(
+            icon: "chart.bar",
+            title: "welcomeOptIns.connection.title".localizedString,
+            subtitle: "welcomeOptIns.connection.subtitle".localizedString,
+            isOn: $appSettings.isStatisticsEnabled,
+            info: connectionInfo()
         )
 #if os(macOS)
         .onChange(of: appSettings.isStatisticsEnabled) {
@@ -125,38 +125,13 @@ private extension PrivacyAndDataView {
 #endif
     }
 
-    func privacyMultilineText() -> AttributedString? {
-        let first  = "privacyData.anonymousStats.subtitle1".localizedString
-        let second = "privacyData.anonymousStats.subtitle2".localizedString
-        let third  = "privacyData.anonymousStats.subtitle3".localizedString
-        let link   = Constants.anonymousStatsURL.rawValue
-        let markdown = """
-\(first)
-
-\(second)
-
-[\(third)](\(link))
-"""
-
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        guard var text = try? AttributedString(markdown: markdown, options: options) else { return nil }
-        if let range = text.range(of: third) {
-            text[range].underlineStyle = .single
-        }
-        return text
-    }
-
     func errorReportingSection() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: $appSettings.isErrorReportingOn
-                ),
-                title: "privacyData.errorCrashReports".localizedString,
-                multilineText: errorReportingMultilineText(),
-                position: .init(isFirst: true, isLast: true),
-                action: {}
-            )
+        optInCard(
+            icon: "ladybug",
+            title: "welcomeOptIns.monitoring.title".localizedString,
+            subtitle: "welcomeOptIns.monitoring.subtitle".localizedString,
+            isOn: $appSettings.isErrorReportingOn,
+            info: monitoringInfo()
         )
 #if os(macOS)
         .onChange(of: appSettings.isErrorReportingOn) {
@@ -165,22 +140,83 @@ private extension PrivacyAndDataView {
 #endif
     }
 
-    func errorReportingMultilineText() -> AttributedString? {
-        let first  = "privacyData.errorCrashReports.subtitle1".localizedString
-        let second = "privacyData.errorCrashReports.subtitle2".localizedString
-        let link   = Constants.sentryPrivacyURL.rawValue
-        let markdown = """
-\(first)
-
-[\(second)](\(link))
-"""
-
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        guard var text = try? AttributedString(markdown: markdown, options: options) else { return nil }
-        if let range = text.range(of: second) {
-            text[range].underlineStyle = .single
+    // Matches the onboarding opt-in card (WelcomeOptInsView). The info sheet and
+    // its content are shared via UIComponents; only this small row layout is
+    // repeated across the two modules.
+    func optInCard(
+        icon: String,
+        title: String,
+        subtitle: String,
+        isOn: Binding<Bool>,
+        info: TelemetryInfoContent
+    ) -> some View {
+        HStack(spacing: NymSpacing.small) {
+            Image(systemName: icon)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .frame(width: 24, height: 24)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(title)
+                        .nymTextStyle(.bodyDefaultBold)
+                        .foregroundStyle(Color.Nym.textPrimary)
+                    Button {
+                        infoContent = info
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(Color.Nym.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(
+                        Text(String(format: "welcomeOptIns.info.accessibility".localizedString, title))
+                    )
+                }
+                Text(subtitle)
+                    .nymTextStyle(.bodySmall)
+                    .foregroundStyle(Color.Nym.textSecondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+                .tint(Color.Nym.primary)
+                .accessibilityLabel(Text(title))
         }
-        return text
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.Nym.surfaceAlt)
+        )
+    }
+
+    func connectionInfo() -> TelemetryInfoContent {
+        TelemetryInfoContent(
+            id: "connection",
+            title: "welcomeOptIns.info.title".localizedString,
+            bullets: "welcomeOptIns.connection.shares".localizedString
+                .components(separatedBy: "\n"),
+            neverLabel: "welcomeOptIns.info.neverLabel".localizedString,
+            never: "welcomeOptIns.connection.never".localizedString,
+            handling: "welcomeOptIns.connection.handling".localizedString,
+            gotItTitle: "welcomeOptIns.info.gotIt".localizedString,
+            privacyLinkTitle: "welcomeOptIns.privacyLink".localizedString,
+            privacyURL: URL(string: Constants.privacyPolicyURL.rawValue)
+        )
+    }
+
+    func monitoringInfo() -> TelemetryInfoContent {
+        TelemetryInfoContent(
+            id: "monitoring",
+            title: "welcomeOptIns.info.title".localizedString,
+            bullets: "welcomeOptIns.monitoring.shares".localizedString
+                .components(separatedBy: "\n"),
+            neverLabel: "welcomeOptIns.info.neverLabel".localizedString,
+            never: "welcomeOptIns.monitoring.never".localizedString,
+            handling: "welcomeOptIns.monitoring.handling".localizedString,
+            gotItTitle: "welcomeOptIns.info.gotIt".localizedString,
+            privacyLinkTitle: "welcomeOptIns.privacyLink".localizedString,
+            privacyURL: URL(string: Constants.privacyPolicyURL.rawValue)
+        )
     }
 }
 

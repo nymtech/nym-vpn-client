@@ -15,6 +15,8 @@ public struct WelcomeOptInsView: View {
 
     @EnvironmentObject private var appSettings: AppSettings
 
+    @State private var infoContent: TelemetryInfoContent?
+
     private let onContinue: () -> Void
 
     public init(onContinue: @escaping () -> Void) {
@@ -27,6 +29,7 @@ public struct WelcomeOptInsView: View {
             VStack(spacing: AuthLayout.stackSpacing) {
                 heading
                 subtitle
+                privacyLink
             }
             cards
             continueButton
@@ -37,6 +40,11 @@ public struct WelcomeOptInsView: View {
         // SentryManager observes this publisher; AppStorage alone would not reach it until relaunch.
         .onChange(of: isErrorReportingOn) {
             appSettings.isErrorReportingOnPublisher = isErrorReportingOn
+        }
+        .sheet(item: $infoContent) { content in
+            TelemetryInfoSheet(content: content) {
+                infoContent = nil
+            }
         }
     }
 }
@@ -63,59 +71,110 @@ private extension WelcomeOptInsView {
             .padding(.horizontal, NymSpacing.component)
     }
 
+    @ViewBuilder
+    var privacyLink: some View {
+        if let url = URL(string: Constants.privacyPolicyURL.rawValue) {
+            Link(destination: url) {
+                Text("welcomeOptIns.privacyLink".localizedString)
+                    .nymTextStyle(.bodySmall)
+                    .foregroundStyle(Color.Nym.info)
+                    .underline()
+            }
+        }
+    }
+
     var cards: some View {
         VStack(spacing: NymSpacing.small) {
             optInCard(
-                title: "welcomeOptIns.stats.title".localizedString,
-                linkTitle: "welcomeOptIns.stats.link".localizedString,
-                linkURL: URL(string: Constants.anonymousStatsURL.rawValue),
-                isOn: $isStatisticsEnabled
+                icon: "chart.bar",
+                title: "welcomeOptIns.connection.title".localizedString,
+                subtitle: "welcomeOptIns.connection.subtitle".localizedString,
+                isOn: $isStatisticsEnabled,
+                info: connectionInfo()
             )
             optInCard(
-                title: "welcomeOptIns.error.title".localizedString,
-                linkTitle: "welcomeOptIns.error.link".localizedString,
-                linkURL: URL(string: Constants.sentryURL.rawValue),
-                isOn: $isErrorReportingOn
+                icon: "ladybug",
+                title: "welcomeOptIns.monitoring.title".localizedString,
+                subtitle: "welcomeOptIns.monitoring.subtitle".localizedString,
+                isOn: $isErrorReportingOn,
+                info: monitoringInfo()
             )
         }
     }
 
     func optInCard(
+        icon: String,
         title: String,
-        linkTitle: String,
-        linkURL: URL?,
-        isOn: Binding<Bool>
+        subtitle: String,
+        isOn: Binding<Bool>,
+        info: TelemetryInfoContent
     ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: NymSpacing.small) {
-                Text(title)
-                    .nymTextStyle(.bodyDefaultBold)
-                    .foregroundStyle(Color.Nym.textPrimary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Toggle("", isOn: isOn)
-                    .labelsHidden()
-                    .tint(Color.Nym.primary)
-                    .accessibilityLabel(Text(title))
-            }
-            if let linkURL {
-                Link(destination: linkURL) {
-                    Text(linkTitle)
-                        .nymTextStyle(.bodySmall)
-                        .foregroundStyle(Color.Nym.info)
-                        .underline()
+        HStack(spacing: NymSpacing.small) {
+            Image(systemName: icon)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .frame(width: 24, height: 24)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(title)
+                        .nymTextStyle(.bodyDefaultBold)
+                        .foregroundStyle(Color.Nym.textPrimary)
+                    Button {
+                        infoContent = info
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(Color.Nym.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(
+                        Text(String(format: "welcomeOptIns.info.accessibility".localizedString, title))
+                    )
                 }
-            } else {
-                Text(linkTitle)
+                Text(subtitle)
                     .nymTextStyle(.bodySmall)
-                    .foregroundStyle(Color.Nym.info)
-                    .underline()
+                    .foregroundStyle(Color.Nym.textSecondary)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+                .tint(Color.Nym.primary)
+                .accessibilityLabel(Text(title))
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.Nym.surfaceAlt)
+        )
+    }
+
+    func connectionInfo() -> TelemetryInfoContent {
+        TelemetryInfoContent(
+            id: "connection",
+            title: "welcomeOptIns.info.title".localizedString,
+            bullets: "welcomeOptIns.connection.shares".localizedString
+                .components(separatedBy: "\n"),
+            neverLabel: "welcomeOptIns.info.neverLabel".localizedString,
+            never: "welcomeOptIns.connection.never".localizedString,
+            handling: "welcomeOptIns.connection.handling".localizedString,
+            gotItTitle: "welcomeOptIns.info.gotIt".localizedString,
+            privacyLinkTitle: "welcomeOptIns.privacyLink".localizedString,
+            privacyURL: URL(string: Constants.privacyPolicyURL.rawValue)
+        )
+    }
+
+    func monitoringInfo() -> TelemetryInfoContent {
+        TelemetryInfoContent(
+            id: "monitoring",
+            title: "welcomeOptIns.info.title".localizedString,
+            bullets: "welcomeOptIns.monitoring.shares".localizedString
+                .components(separatedBy: "\n"),
+            neverLabel: "welcomeOptIns.info.neverLabel".localizedString,
+            never: "welcomeOptIns.monitoring.never".localizedString,
+            handling: "welcomeOptIns.monitoring.handling".localizedString,
+            gotItTitle: "welcomeOptIns.info.gotIt".localizedString,
+            privacyLinkTitle: "welcomeOptIns.privacyLink".localizedString,
+            privacyURL: URL(string: Constants.privacyPolicyURL.rawValue)
         )
     }
 
