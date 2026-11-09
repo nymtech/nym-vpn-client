@@ -49,9 +49,8 @@ jobs:
         # baseline:     CI-like checkout path and NDK location, all CPUs
         # rerun:        same as baseline on another runner
         # fdroid-paths: checkout and NDK at the paths F-Droid's build server uses
-        # two-cpus:     same as baseline, restricted to two CPUs
         # sccache:      same as baseline, compiled through the shared sccache like CI
-        variant: [baseline, rerun, fdroid-paths, two-cpus, sccache]
+        variant: [baseline, rerun, fdroid-paths, sccache]
     steps:
       - name: Checkout build ref
         uses: actions/checkout@v7.0.1
@@ -110,7 +109,6 @@ jobs:
           set -euo pipefail
           src_dir="$GITHUB_WORKSPACE"
           ndk_dir="$NDK_PATH"
-          run_prefix=""
           case "$VARIANT" in
             fdroid-paths)
               src_dir=/home/vagrant/build/net.nymtech.nymvpn
@@ -120,16 +118,11 @@ jobs:
               rsync -a --exclude .repro-tools "$GITHUB_WORKSPACE/" "$src_dir/"
               cp -a "$NDK_PATH" "$ndk_dir"
               ;;
-            two-cpus)
-              run_prefix="taskset -c 0,1"
-              echo "CARGO_BUILD_JOBS=2" >> "$GITHUB_ENV"
-              ;;
           esac
           {
             echo "SRC_DIR=$src_dir"
             echo "ANDROID_NDK_HOME=$ndk_dir"
             echo "NDK_TOOLCHAIN_DIR=$ndk_dir/toolchains/llvm/prebuilt/linux-x86_64/bin"
-            echo "RUN_PREFIX=$run_prefix"
             echo "OUT_DIR=$RUNNER_TEMP/android-repro-$VARIANT"
           } >> "$GITHUB_ENV"
 
@@ -155,7 +148,7 @@ jobs:
           fi
           mkdir -p "$MAP_DIR"
           for abi in arm64-v8a armeabi-v7a x86_64; do
-            RUSTFLAGS="$rustflags" $RUN_PREFIX cargo ndk -t "$abi" rustc --package nym-vpn-lib-uniffi --lib --release \
+            RUSTFLAGS="$rustflags" cargo ndk -t "$abi" rustc --package nym-vpn-lib-uniffi --lib --release \
               -- -C "link-arg=-Wl,-Map=$MAP_DIR/$abi.map"
           done
 
@@ -179,8 +172,7 @@ jobs:
             echo "ref: $BUILD_REF ($(git -C "$SRC_DIR" rev-parse HEAD))"
             echo "source dir: $SRC_DIR"
             echo "ndk: $ANDROID_NDK_HOME"
-            echo "nproc: $($RUN_PREFIX nproc)"
-            echo "run prefix: ${RUN_PREFIX:-none}"
+            echo "nproc: $(nproc)"
             echo "rustc wrapper: ${RUSTC_WRAPPER:-none}"
             rustc -vV
             cargo ndk --version
@@ -252,7 +244,7 @@ jobs:
           set -euo pipefail
           pip install pyelftools==0.32
           others=()
-          for variant in rerun fdroid-paths two-cpus sccache reference; do
+          for variant in rerun fdroid-paths sccache reference; do
             [ -d "builds/android-repro-$variant" ] && others+=("builds/android-repro-$variant")
           done
           python -I .github/scripts/android-repro/compare.py builds/android-repro-baseline "${others[@]}" | tee report.md
