@@ -23,9 +23,7 @@ test.describe('Technical opt-in', () => {
 
     const errors = page.getByTestId('welcome-monitoring-option');
     await expect(errors.getByText('Your app errors & crashes')).toBeVisible();
-    await expect(
-      errors.getByTestId('welcome-monitoring-switch'),
-    ).toBeVisible();
+    await expect(errors.getByTestId('welcome-monitoring-switch')).toBeVisible();
   });
 
   test('toggling one switch leaves the other unchanged', async ({ page }) => {
@@ -55,7 +53,7 @@ test.describe('Technical opt-in', () => {
     await page.getByTestId('welcome-netstats-info').click();
     await expect(dialog.getByText("What's shared")).toBeVisible();
     await expect(
-      dialog.getByText('Mode (dVPN / Mixnet) and exit location'),
+      dialog.getByText('Mode (dVPN / Mixnet) and exit server'),
     ).toBeVisible();
     await expect(
       dialog.getByText('Sent through the VPN tunnel to Nym. No third party.'),

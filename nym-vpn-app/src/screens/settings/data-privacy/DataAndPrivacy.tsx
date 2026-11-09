@@ -103,7 +103,14 @@ function DataAndPrivacy() {
                 data-testid="data-privacy-monitoring-info"
               />
             ),
-            desc: t('monitoring.desc', { ns: 'welcome' }),
+            desc: (
+              <div className="flex flex-col">
+                <span>{t('monitoring.desc', { ns: 'welcome' })}</span>
+                <span className="text-text-tertiary">
+                  {t('privacy.monitoring-restart-note')}
+                </span>
+              </div>
+            ),
             leadingIcon: 'bug_report',
             trailing: (
               <Switch

@@ -76,7 +76,10 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
                 </div>
                 <Description
                   as="div"
-                  className="text-text-secondary truncate text-sm select-none"
+                  className={clsx([
+                    'text-text-secondary text-sm select-none',
+                    typeof setting.desc === 'string' && 'truncate',
+                  ])}
                 >
                   {typeof setting.desc === 'string' ? (
                     <span>{setting.desc}</span>
