@@ -1,4 +1,4 @@
-name: check-fdroid-reproducible
+name: check-core-android-reproducible
 
 # Builds the arm64-v8a Android native library twice, on separate runners and
 # with different checkout and NDK paths, and fails unless both builds are
@@ -15,7 +15,7 @@ on:
       - "nym-vpn-core/*.mk"
       - "wireguard/**"
       - ".env"
-      - ".github/workflows/check-fdroid-reproducible.yml"
+      - ".github/workflows/check-core-android-reproducible.yml"
   workflow_dispatch:
 
 concurrency:
