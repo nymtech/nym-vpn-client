@@ -3,13 +3,14 @@
 
 Usage: compare.py BASELINE_DIR OTHER_DIR [OTHER_DIR...]
 
-Each directory holds one subdirectory per ABI with:
+Each directory holds one subdirectory per ABI, e.g. arm64-v8a, with:
   stripped.so    library as packaged (required)
   unstripped.so  library before stripping (optional)
   link.map       lld map of the final link (optional)
 
-Prints a Markdown report to stdout. Exits with status 1 if any library is
-missing or differs from the baseline.
+Compares every ABI present in either directory. Prints a Markdown report to
+stdout. Exits with status 1 if any library is missing or differs from the
+baseline.
 """
 
 import bisect
@@ -21,7 +22,6 @@ from pathlib import Path
 
 from elftools.elf.elffile import ELFFile
 
-ABIS = ["arm64-v8a", "armeabi-v7a", "x86_64"]
 EXCEPT_TABLE = ".gcc_except_table"
 MAP_LINE = re.compile(r"^\s*([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+(\d+)( +)(\S.*)$")
 HEX_RUN = re.compile(r"[0-9a-f]{8,}")
@@ -349,7 +349,11 @@ def main():
     identical = True
     for other in map(Path, sys.argv[2:]):
         out.append(f"## `{other.name}`")
-        for abi in ABIS:
+        abis = sorted({d.name for root in (base, other) for d in root.iterdir() if d.is_dir()})
+        if not abis:
+            out.append("- no libraries found ❌")
+            identical = False
+        for abi in abis:
             identical &= compare_abi(base, other, abi, out)
         out.append("")
     print("\n".join(out))
