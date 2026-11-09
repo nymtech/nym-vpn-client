@@ -67,7 +67,7 @@ LICENSES_FILE := $(ANDROID_DIR)/core/src/main/assets/licenses_rust.json
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-.PHONY: build clippy uniffi libwg strip clean prune-dep-cdylibs FORCE
+.PHONY: build clippy uniffi libwg strip clean prune-dep-cdylibs prune-stale-abis FORCE
 
 all: $(LIBWG_LIBS) build uniffi strip $(LICENSES_FILE)
 
@@ -78,7 +78,7 @@ build: $(LIBWG_LIBS)
 		echo "Sentry DSN is set!" ; \
 	fi
 	$(ALL_IDEMPOTENT_FLAGS) $(HARDENING_FLAGS) cargo ndk $(CARGO_NDK_TARGETS) -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
-	$(MAKE) -f Android.mk prune-dep-cdylibs
+	$(MAKE) -f Android.mk prune-dep-cdylibs prune-stale-abis
 
 # cargo ndk copies every `.so` cargo emits, including the hashed cdylibs that
 # dependencies such as boringtun, nym-bridges and nym-bridges-types declare
@@ -99,6 +99,11 @@ prune-dep-cdylibs:
 		[ -d "$$dir" ] || continue ; \
 		find "$$dir" -maxdepth 1 -type f -name 'lib*-$(CARGO_HASH_GLOB).so' -print -delete ; \
 	done
+
+# Remove the libraries of ABIs that aren't in ANDROID_ABIS, left over from
+# earlier builds, so they can't be packaged together with this build.
+prune-stale-abis:
+	[ ! -d "$(JNI_LIBS_DIR)" ] || find "$(JNI_LIBS_DIR)" -mindepth 1 -maxdepth 1 -type d $(foreach abi,$(ANDROID_ABIS),! -name '$(abi)') -print -exec rm -rf {} +
 
 clippy:
 	$(ALL_IDEMPOTENT_FLAGS) $(HARDENING_FLAGS) cargo ndk $(CARGO_NDK_TARGETS) -o $(JNI_LIBS_DIR) clippy --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
