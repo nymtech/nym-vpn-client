@@ -16,7 +16,6 @@ on:
       - "wireguard/**"
       - ".env"
       - ".github/workflows/ci-nym-vpn-core-android-reproducible.yml"
-      - ".github/scripts/android-reproducible/**"
   workflow_dispatch:
 
 concurrency:
@@ -101,7 +100,6 @@ jobs:
             echo "SRC_DIR=$src_dir"
             echo "ANDROID_NDK_HOME=$ndk_dir"
             echo "NDK_TOOLCHAIN_DIR=$ndk_dir/toolchains/llvm/prebuilt/linux-x86_64/bin"
-            echo "OUT_DIR=$RUNNER_TEMP/android-reproducible-$VARIANT"
           } >> "$GITHUB_ENV"
 
       # The same make invocation as F-Droid's build recipe, minus the bindings
@@ -111,29 +109,11 @@ jobs:
       - name: Build native libraries
         run: make -C "$SRC_DIR/nym-vpn-core" -f Android.mk strip RELEASE=true ANDROID_ABIS=arm64-v8a
 
-      - name: Collect libraries
-        env:
-          VARIANT: ${{ matrix.variant }}
-        run: |
-          set -euo pipefail
-          mkdir -p "$OUT_DIR/arm64-v8a"
-          cp "$SRC_DIR/nym-vpn-android/core/src/main/jniLibs/arm64-v8a/libnym_vpn_lib_uniffi.so" "$OUT_DIR/arm64-v8a/stripped.so"
-          cp "$SRC_DIR/nym-vpn-core/target/aarch64-linux-android/release/libnym_vpn_lib_uniffi.so" "$OUT_DIR/arm64-v8a/unstripped.so"
-          {
-            echo "variant: $VARIANT"
-            echo "commit: $(git -C "$SRC_DIR" rev-parse HEAD)"
-            echo "source dir: $SRC_DIR"
-            echo "ndk: $ANDROID_NDK_HOME"
-            rustc -vV
-            cargo ndk --version
-            (cd "$OUT_DIR" && sha256sum */*.so)
-          } | tee "$OUT_DIR/info.txt"
-
-      - name: Upload libraries
+      - name: Upload library
         uses: actions/upload-artifact@v7.0.1
         with:
           name: android-reproducible-${{ matrix.variant }}
-          path: ${{ env.OUT_DIR }}
+          path: ${{ env.SRC_DIR }}/nym-vpn-android/core/src/main/jniLibs/arm64-v8a/libnym_vpn_lib_uniffi.so
           if-no-files-found: error
           retention-days: 7
 
@@ -141,49 +121,19 @@ jobs:
     needs: build
     runs-on: arc-linux-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v7.0.1
-        with:
-          fetch-depth: 1
-          sparse-checkout: .github
-
       - name: Download libraries
         uses: actions/download-artifact@v8
         with:
           pattern: android-reproducible-*
           path: builds
 
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.13"
-
       - name: Compare
         run: |
           set -euo pipefail
-          pip install pyelftools==0.32
-          status=0
-          python -I .github/scripts/android-reproducible/compare.py \
-            builds/android-reproducible-baseline builds/android-reproducible-fdroid-paths > report.md || status=$?
-          {
-            cat report.md
-            echo
-            echo "## Build info"
-            for info in builds/*/info.txt; do
-              echo
-              echo '```'
-              cat "$info"
-              echo '```'
-            done
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [ "$status" -ne 0 ]; then
-            echo "::error::The two Android builds differ. See the job summary for the report."
+          baseline=builds/android-reproducible-baseline/libnym_vpn_lib_uniffi.so
+          fdroid_paths=builds/android-reproducible-fdroid-paths/libnym_vpn_lib_uniffi.so
+          sha256sum "$baseline" "$fdroid_paths"
+          if ! cmp "$baseline" "$fdroid_paths"; then
+            echo "::error::libnym_vpn_lib_uniffi.so differs between the two builds"
+            exit 1
           fi
-          exit "$status"
-
-      - name: Upload report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: android-reproducible-report
-          path: report.md
-          retention-days: 7
