@@ -80,15 +80,15 @@ function TechnicalOptin() {
                   url={AnonNetworkStatsUrl}
                 />
               ),
-              leadingIcon: 'bug_report',
+              leadingIcon: 'analytics',
               trailing: (
                 <Switch
-                  checked={monitoring}
-                  onChange={toggleMonitoring}
-                  data-testid="welcome-monitoring-switch"
+                  checked={netstats}
+                  onChange={toggleNetstats}
+                  data-testid="welcome-netstats-switch"
                 />
               ),
-              'data-testid': 'welcome-monitoring-option',
+              'data-testid': 'welcome-netstats-option',
             },
             {
               title: t('error-and-crash-reports'),
@@ -99,15 +99,15 @@ function TechnicalOptin() {
                   url={PrivacyPolicyUrl}
                 />
               ),
-              leadingIcon: 'analytics',
+              leadingIcon: 'bug_report',
               trailing: (
                 <Switch
-                  checked={netstats}
-                  onChange={toggleNetstats}
-                  data-testid="welcome-netstats-switch"
+                  checked={monitoring}
+                  onChange={toggleMonitoring}
+                  data-testid="welcome-monitoring-switch"
                 />
               ),
-              'data-testid': 'welcome-netstats-option',
+              'data-testid': 'welcome-monitoring-option',
             },
           ]}
           data-testid="welcome-netstats-group"
