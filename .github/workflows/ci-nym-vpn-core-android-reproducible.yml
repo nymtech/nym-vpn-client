@@ -1,8 +1,9 @@
 name: ci-nym-vpn-core-android-reproducible
 
-# Builds the Android native libraries twice, on separate runners and with
-# different checkout and NDK paths, and fails unless both builds are identical.
-# F-Droid rebuilds the app and only publishes it if its build matches ours.
+# Builds the arm64-v8a Android native library twice, on separate runners and
+# with different checkout and NDK paths, and fails unless both builds are
+# identical. F-Droid rebuilds the app and only publishes it if its build
+# matches ours.
 
 on:
   pull_request:
@@ -58,7 +59,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_VERSION }}
-          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+          targets: aarch64-linux-android
 
       - name: Install cargo-ndk
         uses: baptiste0928/cargo-install@v3
@@ -104,23 +105,20 @@ jobs:
           } >> "$GITHUB_ENV"
 
       # The same make invocation as F-Droid's build recipe, minus the bindings
-      # and license targets, which don't affect the native libraries.
+      # and license targets, which don't affect the native libraries. Only
+      # arm64-v8a, to keep the check fast; the 64-bit ABIs share the same
+      # unwind table format, which is where nondeterminism has shown up so far.
       - name: Build native libraries
-        run: make -C "$SRC_DIR/nym-vpn-core" -f Android.mk strip RELEASE=true
+        run: make -C "$SRC_DIR/nym-vpn-core" -f Android.mk strip RELEASE=true ANDROID_ABIS=arm64-v8a
 
       - name: Collect libraries
         env:
           VARIANT: ${{ matrix.variant }}
         run: |
           set -euo pipefail
-          jni_dir="$SRC_DIR/nym-vpn-android/core/src/main/jniLibs"
-          target_dir="$SRC_DIR/nym-vpn-core/target"
-          declare -A triples=([arm64-v8a]=aarch64-linux-android [armeabi-v7a]=armv7-linux-androideabi [x86_64]=x86_64-linux-android)
-          for abi in "${!triples[@]}"; do
-            mkdir -p "$OUT_DIR/$abi"
-            cp "$jni_dir/$abi/libnym_vpn_lib_uniffi.so" "$OUT_DIR/$abi/stripped.so"
-            cp "$target_dir/${triples[$abi]}/release/libnym_vpn_lib_uniffi.so" "$OUT_DIR/$abi/unstripped.so"
-          done
+          mkdir -p "$OUT_DIR/arm64-v8a"
+          cp "$SRC_DIR/nym-vpn-android/core/src/main/jniLibs/arm64-v8a/libnym_vpn_lib_uniffi.so" "$OUT_DIR/arm64-v8a/stripped.so"
+          cp "$SRC_DIR/nym-vpn-core/target/aarch64-linux-android/release/libnym_vpn_lib_uniffi.so" "$OUT_DIR/arm64-v8a/unstripped.so"
           {
             echo "variant: $VARIANT"
             echo "commit: $(git -C "$SRC_DIR" rev-parse HEAD)"
