@@ -29,11 +29,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
-enum class TelemetryInfoKind {
-	CONNECTION,
-	MONITORING,
-}
-
 /** "What's shared" popup for the telemetry opt-in toggles, shared by the onboarding
  *  opt-in screen and the Data & privacy settings screen. A Dialog (not a bottom
  *  sheet) so it layers cleanly over the onboarding bottom sheet. */
