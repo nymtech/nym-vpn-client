@@ -310,7 +310,7 @@
 	<string name="optin_info_accessibility">What\'s shared: %1$s</string>
 	<string name="optin_info_got_it">Got it</string>
 	<string name="optin_info_never_label">Never:</string>
-	<string name="optin_connection_shares">Connect time and error codes\nSession length\nMode (dVPN / Mixnet) and exit server\nOS, device type, app version\nAn anonymous ID (not tied to your account)</string>
+	<string name="optin_connection_shares">Connect time and error codes\nSession date and length\nMode (dVPN / Mixnet) and exit server\nOS, device type, app version\nAn anonymous ID (not tied to your account)</string>
 	<string name="optin_connection_never">your IP, browsing, or traffic contents.</string>
 	<string name="optin_connection_handling">Sent through the VPN tunnel to Nym. No third party.</string>
 	<string name="optin_monitoring_shares">Crashes and error messages\nFreezes, hangs, slow performance\nWhere it happened (stack traces)\nOS, device type, app version</string>
