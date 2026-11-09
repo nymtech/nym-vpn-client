@@ -80,25 +80,6 @@ function TechnicalOptin() {
                   url={AnonNetworkStatsUrl}
                 />
               ),
-              leadingIcon: 'bug_report',
-              trailing: (
-                <Switch
-                  checked={monitoring}
-                  onChange={toggleMonitoring}
-                  data-testid="welcome-monitoring-switch"
-                />
-              ),
-              'data-testid': 'welcome-monitoring-option',
-            },
-            {
-              title: t('error-and-crash-reports'),
-              desc: (
-                <Link
-                  color="iron"
-                  text={t('error-and-crash-reports-toggle-desc')}
-                  url={PrivacyPolicyUrl}
-                />
-              ),
               leadingIcon: 'analytics',
               trailing: (
                 <Switch
@@ -109,8 +90,27 @@ function TechnicalOptin() {
               ),
               'data-testid': 'welcome-netstats-option',
             },
+            {
+              title: t('error-and-crash-reports'),
+              desc: (
+                <Link
+                  color="iron"
+                  text={t('error-and-crash-reports-toggle-desc')}
+                  url={PrivacyPolicyUrl}
+                />
+              ),
+              leadingIcon: 'bug_report',
+              trailing: (
+                <Switch
+                  checked={monitoring}
+                  onChange={toggleMonitoring}
+                  data-testid="welcome-monitoring-switch"
+                />
+              ),
+              'data-testid': 'welcome-monitoring-option',
+            },
           ]}
-          data-testid="welcome-netstats-group"
+          data-testid="welcome-optin-group"
         />
         <Button onClick={handleContinue}>{t('continue-button')}</Button>
       </div>
