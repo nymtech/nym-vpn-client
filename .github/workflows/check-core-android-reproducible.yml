@@ -1,6 +1,6 @@
 name: check-core-android-reproducible
 
-# Builds the arm64-v8a Android native library twice, on separate runners and
+# Builds the arm64-v8a Android native libraries twice, on separate runners and
 # with different checkout and NDK paths, and fails unless both builds are
 # identical. F-Droid rebuilds the app and only publishes it if its build
 # matches ours.
@@ -109,11 +109,13 @@ jobs:
       - name: Build native libraries
         run: make -C "$SRC_DIR/nym-vpn-core" -f Android.mk strip RELEASE=true ANDROID_ABIS=arm64-v8a
 
-      - name: Upload library
+      - name: Upload libraries
         uses: actions/upload-artifact@v7.0.1
         with:
           name: android-reproducible-${{ matrix.variant }}
-          path: ${{ env.SRC_DIR }}/nym-vpn-android/core/src/main/jniLibs/arm64-v8a/libnym_vpn_lib_uniffi.so
+          path: |
+            ${{ env.SRC_DIR }}/nym-vpn-android/core/src/main/jniLibs/arm64-v8a/libnym_vpn_lib_uniffi.so
+            ${{ env.SRC_DIR }}/nym-vpn-android/core/src/main/jniLibs/arm64-v8a/libwg.so
           if-no-files-found: error
           retention-days: 7
 
@@ -130,10 +132,14 @@ jobs:
       - name: Compare
         run: |
           set -euo pipefail
-          baseline=builds/android-reproducible-baseline/libnym_vpn_lib_uniffi.so
-          fdroid_paths=builds/android-reproducible-fdroid-paths/libnym_vpn_lib_uniffi.so
-          sha256sum "$baseline" "$fdroid_paths"
-          if ! cmp "$baseline" "$fdroid_paths"; then
-            echo "::error::libnym_vpn_lib_uniffi.so differs between the two builds"
-            exit 1
-          fi
+          status=0
+          for lib in libnym_vpn_lib_uniffi.so libwg.so; do
+            baseline="builds/android-reproducible-baseline/$lib"
+            fdroid_paths="builds/android-reproducible-fdroid-paths/$lib"
+            sha256sum "$baseline" "$fdroid_paths"
+            if ! cmp "$baseline" "$fdroid_paths"; then
+              echo "::error::$lib differs between the two builds"
+              status=1
+            fi
+          done
+          exit "$status"
