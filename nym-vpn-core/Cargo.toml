@@ -77,7 +77,7 @@ strip = "debuginfo"
 
 [profile.ci]
 inherits = "dev"
-debug = 1
+debug = false
 
 [workspace.lints.clippy]
 large_futures = "warn"
