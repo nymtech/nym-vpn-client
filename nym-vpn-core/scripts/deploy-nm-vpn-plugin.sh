@@ -31,9 +31,9 @@ done
 cd "$CORE_DIR"
 DEB_DIR="target/debian"
 
-# Debug packages use faster (lighter) compression
+# Debug packages use faster (lighter) compression and keep debug info
 DEB_FLAGS=(--no-build --profile "$PROFILE")
-[[ $PROFILE == release ]] || DEB_FLAGS+=(--fast)
+[[ $PROFILE == release ]] || DEB_FLAGS+=(--fast --no-strip)
 
 if (( BUILD )); then
   echo "==> Profile: $PROFILE"
