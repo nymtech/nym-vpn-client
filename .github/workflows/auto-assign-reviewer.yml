@@ -8,8 +8,8 @@ on:
 jobs:
   assign_reviewer:
     runs-on: arc-linux-latest
-    # do not run while in draft mode
-    if: github.event.pull_request.draft == false
+    # do not run while in draft mode or for dependabot, which assigns via dependabot.yml
+    if: github.event.pull_request.draft == false && github.event.pull_request.user.login != 'dependabot[bot]'
     steps:
       - uses: shufo/auto-assign-reviewer-by-files@0a7fae44d02e841755d0caaac2ef05ad12a3bbc9 # v1.2.1
         with:
