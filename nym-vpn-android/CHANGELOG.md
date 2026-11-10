@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Decode only the gateway list that changed in DataStoreGatewayRepository (https://github.com/nymtech/nym-vpn-client/pull/6959)
 - Cache flag resource IDs instead of calling getIdentifier for every row (https://github.com/nymtech/nym-vpn-client/pull/6959)
 - Use countryCodesForRegionSupport instead of a hardcoded "us" (https://github.com/nymtech/nym-vpn-client/pull/6959)
+- Let the Android Gradle plugin strip all native libraries, including `libjnidispatch.so` from JNA (https://github.com/nymtech/nym-vpn-client/pull/7018)
 
 ## [2026.15.0] - TBD
 
