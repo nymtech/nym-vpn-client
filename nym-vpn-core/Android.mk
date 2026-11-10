@@ -1,8 +1,21 @@
 # Makefile used for building `nym-vpn-lib` for Android
 
-# cargo ndk always builds for Linux/Android
-OS := Linux
-include reproducible_builds.mk
+include remap_paths.mk
+
+# Directory to write separate debug symbols of libnym_vpn_lib_uniffi.so to.
+# When unset, the build is made reproducible instead, so that F-Droid can
+# verify it byte for byte against its own build.
+VPNLIB_DEBUG_SYMBOLS_DIR ?=
+
+ifeq ($(strip $(VPNLIB_DEBUG_SYMBOLS_DIR)),)
+export CARGO_PROFILE_RELEASE_DEBUG := false
+CARGO_ENV = RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS) -C link-args=-Wl,--build-id=none" \
+	SOURCE_DATE_EPOCH=0 \
+	VERGEN_IDEMPOTENT=1 \
+	VERGEN_GIT_BRANCH="VERGEN_IDEMPOTENT_OUTPUT"
+else
+CARGO_ENV = RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS) -C link-args=-Wl,--build-id=sha1"
+endif
 
 RELEASE ?= true
 DOCKER ?= false
@@ -19,84 +32,109 @@ RELEASE_FLAG := --release
 TARGET_DIR := release
 endif
 
+# When enabled, debug info stays in the libraries until the `strip`
+# target splits it off.
+export CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO := off
+export CARGO_PROFILE_RELEASE_STRIP := none
+
 ifeq ($(DOCKER), true)
 DOCKER_FLAG := --docker
 endif
 
-ARCH_ARM64_V8 := arm64-v8a
-ARCH_ARMEABI_V7 := armeabi-v7a
-ARCH_X86_64 := x86_64
-STRIP_TOOL_BIN := llvm-strip
+# ABIs to build. Override to build a subset, e.g. ANDROID_ABIS=arm64-v8a.
+ANDROID_ABIS ?= arm64-v8a armeabi-v7a x86_64
 
+# Rust target triple and wireguard-go build script architecture of each ABI.
+RUST_TRIPLE_arm64-v8a := aarch64-linux-android
+RUST_TRIPLE_armeabi-v7a := armv7-linux-androideabi
+RUST_TRIPLE_x86_64 := x86_64-linux-android
+GO_ARCH_arm64-v8a := aarch64
+GO_ARCH_armeabi-v7a := armv7
+GO_ARCH_x86_64 := x86_64
+
+CARGO_NDK_TARGETS := $(addprefix -t ,$(ANDROID_ABIS))
+
+# Converts a Windows path (C:\x\y) to an MSYS2/Git Bash path (/C/x/y), e.g.
+# NDK_TOOLCHAIN_DIR set by the Android Gradle plugin on Windows. No-op on
+# Linux/macOS.
+to_unix_path = $(shell echo '$(subst \,/,$(1))' | sed 's|^\([A-Za-z]\):/|/\1/|')
+
+# NDK toolchain bin directory. Evaluated on first use only and then cached, so
+# targets that don't need NDK tools don't require cargo-ndk or jq.
 ifneq ($(strip $(NDK_TOOLCHAIN_DIR)),)
-# NDK_TOOLCHAIN_DIR may be a Windows-style path (e.g. C:\path\to\bin) when set
-# by the Android Gradle plugin on Windows. Use Make's $(subst) to convert
-# backslashes to forward slashes first (Make handles this reliably), then use
-# sed to rewrite the drive-letter prefix (C:/ -> /C/) for MSYS2/Git Bash.
-# On Linux/macOS neither transformation has any effect.
-STRIP_TOOL := $(shell echo '$(subst \,/,$(NDK_TOOLCHAIN_DIR))' | sed 's|^\([A-Za-z]\):/|/\1/|')/$(STRIP_TOOL_BIN)
+NDK_BIN_DIR = $(eval NDK_BIN_DIR := $(call to_unix_path,$(NDK_TOOLCHAIN_DIR)))$(NDK_BIN_DIR)
 else
-# Infer location of llvm-strip from cargo ndk using the same path conversion.
-STRIP_TOOL := $(shell p=$$(cargo ndk-env --json -t $(ARCH_ARM64_V8) | jq -r .CLANG_PATH | sed 's|\\|/|g; s|^\([A-Za-z]\):/|/\1/|') ; dirname "$$p")/$(STRIP_TOOL_BIN)
+NDK_BIN_DIR = $(eval NDK_BIN_DIR := $(shell dirname "$(call to_unix_path,$(shell cargo ndk-env --json -t $(firstword $(ANDROID_ABIS)) | jq -r .CLANG_PATH))"))$(NDK_BIN_DIR)
 endif
+
+STRIP_TOOL = $(NDK_BIN_DIR)/llvm-strip
+OBJCOPY_TOOL = $(NDK_BIN_DIR)/llvm-objcopy
+READELF_TOOL = $(NDK_BIN_DIR)/llvm-readelf
+
+DEBUG_SYMBOLS_ABS_DIR := $(if $(strip $(VPNLIB_DEBUG_SYMBOLS_DIR)),$(abspath $(VPNLIB_DEBUG_SYMBOLS_DIR)))
 
 ANDROID_DIR := $(CURDIR)/../nym-vpn-android
 UNIFFI_OUT_DIR := $(ANDROID_DIR)/core/src/main/java/net/nymtech/vpn
 JNI_LIBS_DIR := $(ANDROID_DIR)/core/src/main/jniLibs
-ARM64_V8_BUILD_DIR := $(JNI_LIBS_DIR)/$(ARCH_ARM64_V8)
-ARMEABI_V7_BUILD_DIR := $(JNI_LIBS_DIR)/$(ARCH_ARMEABI_V7)
-X86_64_BUILD_DIR := $(JNI_LIBS_DIR)/$(ARCH_X86_64)
+ABI_BUILD_DIRS := $(addprefix $(JNI_LIBS_DIR)/,$(ANDROID_ABIS))
+LIBWG_LIBS := $(addsuffix /libwg.so,$(ABI_BUILD_DIRS))
 
-DYNAMIC_LIB_PATH := $(CURDIR)/target/aarch64-linux-android/$(TARGET_DIR)/libnym_vpn_lib_uniffi.so
+DYNAMIC_LIB_PATH := $(CURDIR)/target/$(RUST_TRIPLE_$(firstword $(ANDROID_ABIS)))/$(TARGET_DIR)/libnym_vpn_lib_uniffi.so
 WIREGUARD_DIR := $(CURDIR)/../wireguard
 LICENSES_FILE := $(ANDROID_DIR)/core/src/main/assets/licenses_rust.json
 
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-.PHONY: build clippy uniffi libwg strip clean prune-dep-cdylibs
+.PHONY: build clippy uniffi libwg strip clean prune-dep-cdylibs prune-stale-abis FORCE
 
-all: $(ARM64_V8_BUILD_DIR)/libwg.so $(ARMEABI_V7_BUILD_DIR)/libwg.so $(X86_64_BUILD_DIR)/libwg.so build uniffi strip $(LICENSES_FILE)
+all: $(LIBWG_LIBS) build uniffi strip $(LICENSES_FILE)
 
-build: $(ARM64_V8_BUILD_DIR)/libwg.so $(ARMEABI_V7_BUILD_DIR)/libwg.so $(X86_64_BUILD_DIR)/libwg.so
+build: $(LIBWG_LIBS)
 	@if [ -z "$(VPNLIB_SENTRY_DSN)" ]; then \
 		echo "Sentry DSN not set!" ; \
 	else \
 		echo "Sentry DSN is set!" ; \
 	fi
-	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_ARMEABI_V7) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
-	$(MAKE) -f Android.mk prune-dep-cdylibs
+	$(CARGO_ENV) cargo ndk $(CARGO_NDK_TARGETS) -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
+	$(MAKE) -f Android.mk prune-dep-cdylibs prune-stale-abis
 
-# cargo ndk copies every `.so` cargo emits, including the hashed cdylibs that
-# dependencies such as boringtun, nym-bridges and nym-bridges-types declare
-# (e.g. libboringtun-90e121147d2f7746.so, a 16-hex-digit cargo metadata hash).
-# The hash embeds the target triple, so each ABI ends up with a differently
-# named file, which F-Droid's "APK has different libs in different ABI" lint
-# rejects. Nothing loads them:
-# libnym_vpn_lib_uniffi.so links those crates statically and its DT_NEEDED is
-# only libwg.so plus system libs. Drop them (and any stale copies from
-# earlier builds) so the ABI directories ship an identical set of libraries.
-# Only files named lib<crate>-<16 hex digits>.so match, i.e. cargo's metadata
-# hash naming; libnym_vpn_lib_types.so, libwg.so and other unhashed libraries
-# are never touched.
-CARGO_HASH_GLOB := $(subst X,[0-9a-f],XXXXXXXXXXXXXXXX)
+# cargo ndk copies every `.so` cargo emits, but the app only loads these.
+# Remove the rest, including stale copies from earlier builds.
+JNI_LIBS_KEEP := libnym_vpn_lib_uniffi.so libwg.so
 
 prune-dep-cdylibs:
-	for dir in $(ARM64_V8_BUILD_DIR) $(ARMEABI_V7_BUILD_DIR) $(X86_64_BUILD_DIR); do \
+	for dir in $(ABI_BUILD_DIRS); do \
 		[ -d "$$dir" ] || continue ; \
-		find "$$dir" -maxdepth 1 -type f -name 'lib*-$(CARGO_HASH_GLOB).so' -print -delete ; \
+		find "$$dir" -maxdepth 1 -type f -name '*.so' $(foreach lib,$(JNI_LIBS_KEEP),! -name '$(lib)') -print -exec rm -f {} + || exit 1 ; \
 	done
 
+# Remove the libraries of ABIs that aren't in ANDROID_ABIS, left over from
+# earlier builds, so they can't be packaged together with this build.
+prune-stale-abis:
+	[ ! -d "$(JNI_LIBS_DIR)" ] || find "$(JNI_LIBS_DIR)" -mindepth 1 -maxdepth 1 -type d $(foreach abi,$(ANDROID_ABIS),! -name '$(abi)') -print -exec rm -rf {} +
+
 clippy:
-	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_ARMEABI_V7) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) clippy --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
+	$(CARGO_ENV) cargo ndk $(CARGO_NDK_TARGETS) -o $(JNI_LIBS_DIR) clippy --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
 
 strip: build
-	for dir in $(ARM64_V8_BUILD_DIR) $(ARMEABI_V7_BUILD_DIR) $(X86_64_BUILD_DIR); do \
+	for dir in $(ABI_BUILD_DIRS); do \
 		cd $$dir ; \
+		if [ -n "$(DEBUG_SYMBOLS_ABS_DIR)" ]; then \
+			lib=libnym_vpn_lib_uniffi.so ; \
+			if ! "$(READELF_TOOL)" -n "$$lib" | grep -q "Build ID" ; then \
+				echo "$$lib in $$dir has no GNU build ID" ; \
+				exit 1 ; \
+			fi ; \
+			out_dir="$(DEBUG_SYMBOLS_ABS_DIR)/$$(basename $$dir)" ; \
+			mkdir -p "$$out_dir" || exit 1 ; \
+			echo "Extracting debug symbols of $$lib into $$out_dir" ; \
+			"$(OBJCOPY_TOOL)" --only-keep-debug "$$lib" "$$out_dir/$$lib.debug" || exit 1 ; \
+		fi ; \
 		for file in *.so; do \
 			if [ -f "$$file" ]; then \
 				echo "Stripping $$file in $$dir" ; \
-				$(STRIP_TOOL) --strip-unneeded --strip-debug --remove-section=.comment -o "stripped_$$file" "$$file" ; \
+				"$(STRIP_TOOL)" --strip-unneeded --strip-debug --remove-section=.comment -o "stripped_$$file" "$$file" ; \
 				mv "stripped_$$file" "$$file" ; \
 			fi ; \
 		done ; \
@@ -108,21 +146,29 @@ uniffi: build
 		--library $(DYNAMIC_LIB_PATH) \
 		--language kotlin --out-dir $(UNIFFI_OUT_DIR) -n
 
-$(ARM64_V8_BUILD_DIR)/libwg.so: $(LIBWG_SOURCES)
-	$(WIREGUARD_DIR)/build-wireguard-go.sh --android $(DOCKER_FLAG)
+# One wireguard-go build produces libwg.so for every ABI in ANDROID_ABIS.
+LIBWG_FIRST := $(firstword $(LIBWG_LIBS))
+LIBWG_OTHERS := $(filter-out $(LIBWG_FIRST),$(LIBWG_LIBS))
 
-$(ARMEABI_V7_BUILD_DIR)/libwg.so: $(ARM64_V8_BUILD_DIR)/libwg.so
-	@# built as a side effect of the arm64 wireguard build above
+$(LIBWG_FIRST): $(LIBWG_SOURCES)
+	ARCHITECTURES="$(foreach abi,$(ANDROID_ABIS),$(GO_ARCH_$(abi)))" $(WIREGUARD_DIR)/build-wireguard-go.sh --android $(DOCKER_FLAG)
 
-$(X86_64_BUILD_DIR)/libwg.so: $(ARM64_V8_BUILD_DIR)/libwg.so
-	@# built as a side effect of the arm64 wireguard build above
+ifneq ($(LIBWG_OTHERS),)
+$(LIBWG_OTHERS): $(LIBWG_FIRST)
+	@# built as a side effect of the wireguard build above
+endif
 
-libwg: $(ARM64_V8_BUILD_DIR)/libwg.so $(ARMEABI_V7_BUILD_DIR)/libwg.so $(X86_64_BUILD_DIR)/libwg.so
+# Rebuild when any selected ABI's libwg.so is missing, e.g. after building a
+# subset of ANDROID_ABIS.
+ifneq ($(filter-out $(wildcard $(LIBWG_LIBS)),$(LIBWG_LIBS)),)
+$(LIBWG_FIRST): FORCE
+endif
+
+FORCE:
+
+libwg: $(LIBWG_LIBS)
 
 clean:
-	rm -rf $(ARM64_V8_BUILD_DIR) || true
-	rm -rf $(ARMEABI_V7_BUILD_DIR) || true
-	rm -rf $(X86_64_BUILD_DIR) || true
 	rm -rf $(JNI_LIBS_DIR) || true
 
 $(LICENSES_FILE): $(CURDIR)/Cargo.lock

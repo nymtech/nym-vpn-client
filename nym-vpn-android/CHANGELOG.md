@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Let the Android Gradle plugin strip all native libraries, including `libjnidispatch.so` from JNA (https://github.com/nymtech/nym-vpn-client/pull/7018)
+
 ## [2026.15.0] - 2026-11-05
 
 ### Added
