@@ -61,10 +61,6 @@ android {
 		}
 	}
 
-	packaging {
-		jniLibs.keepDebugSymbols += setOf("**/libnym_vpn_lib_uniffi.so", "**/libwg.so")
-	}
-
 	compileOptions {
 		isCoreLibraryDesugaringEnabled = true
 		sourceCompatibility = Constants.JAVA_VERSION

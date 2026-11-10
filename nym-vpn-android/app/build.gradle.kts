@@ -187,9 +187,6 @@ android {
 		resources {
 			excludes += "/META-INF/{AL2.0,LGPL2.1}"
 		}
-		jniLibs {
-			keepDebugSymbols += setOf("**/libnym_vpn_lib_uniffi.so", "**/libwg.so")
-		}
 	}
 }
 
