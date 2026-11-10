@@ -199,7 +199,7 @@
       },
       "link": "Learn more",
       "error": "Failed to change the enhanced connection setting",
-      "snackbar": "The enhanced connection setting will apply when you reconnect."
+      "snackbar": "Reconnecting to apply the enhanced connection setting."
     },
     "stealth-api": {
       "label": "Stealth API connect",
