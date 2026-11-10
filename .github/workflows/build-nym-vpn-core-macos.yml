@@ -111,7 +111,7 @@ jobs:
             UPLOAD_DIR_MAC="${{ github.workspace }}/${{ env.UPLOAD_DIR_MACOS }}"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.UPLOAD_DIR_MACOS }}
           path: ${{ env.UPLOAD_DIR_MACOS }}
@@ -191,7 +191,7 @@ jobs:
           mv "nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib" "${{ env.NYM_LIB_ARTIFACTS_MACOS }}"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.NYM_LIB_ARTIFACTS_MACOS }}
           path: ${{ env.NYM_LIB_ARTIFACTS_MACOS }}
@@ -246,7 +246,7 @@ jobs:
           mv "${{ env.NYM_LIB_ARTIFACTS_MACOS }}/NymVPNLib" "${{ env.CORE_ARTIFACTS_MACOS }}"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.CORE_ARTIFACTS_MACOS }}
           path: ${{ env.CORE_ARTIFACTS_MACOS }}
