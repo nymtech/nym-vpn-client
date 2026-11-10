@@ -2,12 +2,13 @@
 
 include remap_paths.mk
 
-# Directory to write separate debug symbols of libnym_vpn_lib_uniffi.so to.
-# When unset, the build is made reproducible instead, so that F-Droid can
+# Build libnym_vpn_lib_uniffi.so with debug info and a GNU build ID, so that
+# the Android Gradle plugin can extract debug symbols before stripping it.
+# When disabled, the build is made reproducible instead, so that F-Droid can
 # verify it byte for byte against its own build.
-VPNLIB_DEBUG_SYMBOLS_DIR ?=
+VPNLIB_DEBUG_SYMBOLS ?= false
 
-ifeq ($(strip $(VPNLIB_DEBUG_SYMBOLS_DIR)),)
+ifneq ($(VPNLIB_DEBUG_SYMBOLS), true)
 export CARGO_PROFILE_RELEASE_DEBUG := false
 CARGO_ENV = RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS) -C link-args=-Wl,--build-id=none" \
 	SOURCE_DATE_EPOCH=0 \
@@ -32,8 +33,7 @@ RELEASE_FLAG := --release
 TARGET_DIR := release
 endif
 
-# When enabled, debug info stays in the libraries until the `strip`
-# target splits it off.
+# Debug info stays in the libraries until the Android Gradle plugin strips it.
 export CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO := off
 export CARGO_PROFILE_RELEASE_STRIP := none
 
@@ -59,25 +59,6 @@ CARGO_NDK_TARGETS := $(addprefix -t ,$(ANDROID_ABIS))
 # flags with the per-target flags set by cargo ndk and leaves host builds alone.
 HARDENING_FLAGS := TARGET_CFLAGS="-fstack-protector-strong" TARGET_CXXFLAGS="-fstack-protector-strong"
 
-# Converts a Windows path (C:\x\y) to an MSYS2/Git Bash path (/C/x/y), e.g.
-# NDK_TOOLCHAIN_DIR set by the Android Gradle plugin on Windows. No-op on
-# Linux/macOS.
-to_unix_path = $(shell echo '$(subst \,/,$(1))' | sed 's|^\([A-Za-z]\):/|/\1/|')
-
-# NDK toolchain bin directory. Evaluated on first use only and then cached, so
-# targets that don't need NDK tools don't require cargo-ndk or jq.
-ifneq ($(strip $(NDK_TOOLCHAIN_DIR)),)
-NDK_BIN_DIR = $(eval NDK_BIN_DIR := $(call to_unix_path,$(NDK_TOOLCHAIN_DIR)))$(NDK_BIN_DIR)
-else
-NDK_BIN_DIR = $(eval NDK_BIN_DIR := $(shell dirname "$(call to_unix_path,$(shell cargo ndk-env --json -t $(firstword $(ANDROID_ABIS)) | jq -r .CLANG_PATH))"))$(NDK_BIN_DIR)
-endif
-
-STRIP_TOOL = $(NDK_BIN_DIR)/llvm-strip
-OBJCOPY_TOOL = $(NDK_BIN_DIR)/llvm-objcopy
-READELF_TOOL = $(NDK_BIN_DIR)/llvm-readelf
-
-DEBUG_SYMBOLS_ABS_DIR := $(if $(strip $(VPNLIB_DEBUG_SYMBOLS_DIR)),$(abspath $(VPNLIB_DEBUG_SYMBOLS_DIR)))
-
 ANDROID_DIR := $(CURDIR)/../nym-vpn-android
 UNIFFI_OUT_DIR := $(ANDROID_DIR)/core/src/main/java/net/nymtech/vpn
 JNI_LIBS_DIR := $(ANDROID_DIR)/core/src/main/jniLibs
@@ -91,9 +72,9 @@ LICENSES_FILE := $(ANDROID_DIR)/core/src/main/assets/licenses_rust.json
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-.PHONY: build clippy uniffi libwg strip clean prune-dep-cdylibs prune-stale-abis FORCE
+.PHONY: build clippy uniffi libwg clean prune-dep-cdylibs prune-stale-abis FORCE
 
-all: $(LIBWG_LIBS) build uniffi strip $(LICENSES_FILE)
+all: $(LIBWG_LIBS) build uniffi $(LICENSES_FILE)
 
 build: $(LIBWG_LIBS)
 	@if [ -z "$(VPNLIB_SENTRY_DSN)" ]; then \
@@ -121,30 +102,6 @@ prune-stale-abis:
 
 clippy:
 	$(CARGO_ENV) $(HARDENING_FLAGS) cargo ndk $(CARGO_NDK_TARGETS) -o $(JNI_LIBS_DIR) clippy --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
-
-strip: build
-	for dir in $(ABI_BUILD_DIRS); do \
-		cd $$dir ; \
-		if [ -n "$(DEBUG_SYMBOLS_ABS_DIR)" ]; then \
-			lib=libnym_vpn_lib_uniffi.so ; \
-			if ! "$(READELF_TOOL)" -n "$$lib" | grep -q "Build ID" ; then \
-				echo "$$lib in $$dir has no GNU build ID" ; \
-				exit 1 ; \
-			fi ; \
-			out_dir="$(DEBUG_SYMBOLS_ABS_DIR)/$$(basename $$dir)" ; \
-			mkdir -p "$$out_dir" || exit 1 ; \
-			echo "Extracting debug symbols of $$lib into $$out_dir" ; \
-			"$(OBJCOPY_TOOL)" --only-keep-debug "$$lib" "$$out_dir/$$lib.debug" || exit 1 ; \
-		fi ; \
-		for file in *.so; do \
-			if [ -f "$$file" ]; then \
-				echo "Stripping $$file in $$dir" ; \
-				"$(STRIP_TOOL)" --strip-unneeded --strip-debug --remove-section=.comment -o "stripped_$$file" "$$file" ; \
-				mv "stripped_$$file" "$$file" ; \
-			fi ; \
-		done ; \
-		cd - ; \
-	done
 
 uniffi: build
 	cargo run --bin uniffi-bindgen generate \
