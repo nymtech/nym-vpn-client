@@ -1,25 +1,21 @@
+import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import {
-  CardSwitch,
-  Link,
-  MsIcon,
-  PageAnim,
-  SettingsMenuCardBig,
-} from '../../../ui';
+import { MsIcon, PageAnim, Switch } from '../../../ui';
 import { dispatch, useMainState } from '../../../store';
-import {
-  AnonNetworkStatsUrl,
-  SentryPrivacyPolicyUrl,
-} from '../../../constants';
 import SettingsGroup from '../SettingsGroup';
 import { routes } from '../../../router';
+import TelemetryInfoDialog, {
+  InfoButton,
+  TelemetryInfoKind,
+} from '../../technical-opt-in/TelemetryInfoDialog';
 
 function DataAndPrivacy() {
   const { monitoring, networkStats } = useMainState();
+  const [info, setInfo] = useState<TelemetryInfoKind | null>(null);
 
-  const { t } = useTranslation('settings');
+  const { t } = useTranslation(['settings', 'welcome']);
   const navigate = useNavigate();
 
   const onNetStatsChange = async () => {
@@ -73,54 +69,62 @@ function DataAndPrivacy() {
         ]}
       />
 
-      <SettingsMenuCardBig
-        header={
-          <CardSwitch
-            header={t('privacy.network-stats.label')}
-            subheader={t('privacy.network-stats.sublabel')}
-            subheaderColor="king-nacho"
-            checked={networkStats}
-            onClick={onNetStatsChange}
-          />
-        }
-      >
-        <div className="flex flex-col gap-2">
-          <p className="text-text-secondary text-sm whitespace-pre-line">
-            {t('privacy.network-stats.desc')}
-          </p>
-          <Link
-            className="mt-2 w-fit text-sm"
-            text={t('privacy.network-stats.link')}
-            url={AnonNetworkStatsUrl}
-            color="primary"
-            icon
-          />
-        </div>
-      </SettingsMenuCardBig>
-      <SettingsMenuCardBig
-        header={
-          <CardSwitch
-            header={t('privacy.error-monitoring.label')}
-            subheader={t('privacy.error-monitoring.sublabel')}
-            subheaderColor="king-nacho"
-            checked={monitoring}
-            onClick={onMonitoringChange}
-          />
-        }
-      >
-        <div className="flex flex-col gap-2">
-          <p className="text-text-secondary text-sm whitespace-pre-line">
-            {t('privacy.error-monitoring.desc')}
-          </p>
-          <Link
-            className="mt-2 w-fit text-sm"
-            text={t('privacy.error-monitoring.link')}
-            url={SentryPrivacyPolicyUrl}
-            color="primary"
-            icon
-          />
-        </div>
-      </SettingsMenuCardBig>
+      {/* Telemetry opt-ins — identical to the onboarding screen */}
+      <SettingsGroup
+        settings={[
+          {
+            title: t('connection.label', { ns: 'welcome' }),
+            titleTrailing: (
+              <InfoButton
+                kind="connection"
+                label={t('connection.label', { ns: 'welcome' })}
+                onOpen={setInfo}
+                data-testid="data-privacy-netstats-info"
+              />
+            ),
+            desc: t('connection.desc', { ns: 'welcome' }),
+            leadingIcon: 'analytics',
+            trailing: (
+              <Switch
+                checked={networkStats}
+                onChange={onNetStatsChange}
+                data-testid="data-privacy-netstats-switch"
+              />
+            ),
+            'data-testid': 'data-privacy-netstats-option',
+          },
+          {
+            title: t('monitoring.label', { ns: 'welcome' }),
+            titleTrailing: (
+              <InfoButton
+                kind="monitoring"
+                label={t('monitoring.label', { ns: 'welcome' })}
+                onOpen={setInfo}
+                data-testid="data-privacy-monitoring-info"
+              />
+            ),
+            desc: (
+              <div className="flex flex-col">
+                <span>{t('monitoring.desc', { ns: 'welcome' })}</span>
+                <span className="text-text-tertiary">
+                  {t('privacy.monitoring-restart-note')}
+                </span>
+              </div>
+            ),
+            leadingIcon: 'bug_report',
+            trailing: (
+              <Switch
+                checked={monitoring}
+                onChange={onMonitoringChange}
+                data-testid="data-privacy-monitoring-switch"
+              />
+            ),
+            'data-testid': 'data-privacy-monitoring-option',
+          },
+        ]}
+      />
+
+      <TelemetryInfoDialog kind={info} onClose={() => setInfo(null)} />
     </PageAnim>
   );
 }
