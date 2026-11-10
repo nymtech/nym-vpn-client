@@ -29,7 +29,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Set up JDK 21
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -162,7 +162,7 @@ jobs:
       # not fatal - the composer degrades to a "(no test report)" message.
       - name: Download Maestro report
         continue-on-error: true
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: maestro-android-report
           path: downloaded-report
@@ -204,7 +204,7 @@ jobs:
       # Deliberately not continue-on-error: a missing TEST_UI_ZULIP_TOPIC must
       # go red, because an absent message looks identical to a night with no run.
       - name: Send Zulip notification
-        uses: zulip/github-actions-zulip/send-message@v2
+        uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b # v2.0.2
         with:
           api-key: ${{ secrets.TEST_HARNESS_ZULIP_BOT_API_KEY }}
           email: ${{ secrets.TEST_HARNESS_ZULIP_BOT_EMAIL }}

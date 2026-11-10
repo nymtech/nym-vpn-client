@@ -78,7 +78,7 @@ const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 const DEFAULT_SENTRY_ENABLED: bool = false;
-const DEFAULT_NETSTATS_ENABLED: bool = true;
+const DEFAULT_NETSTATS_ENABLED: bool = false;
 const DEFAULT_BRIDGE_MODE: BridgeMode = BridgeMode::Off;
 const DEFAULT_DEBUG_LOGGING: bool = true;
 

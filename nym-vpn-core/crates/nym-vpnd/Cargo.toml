@@ -35,6 +35,7 @@ tracing.workspace = true
 nym-bin-common.workspace = true
 nym-sdk.workspace = true
 
+nym-authorization-service.workspace = true
 nym-ipc = { workspace = true, features = ["daemon"] }
 nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-vpn-lib = { workspace = true }

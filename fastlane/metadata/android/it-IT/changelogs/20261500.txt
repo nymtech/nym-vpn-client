@@ -1,0 +1,9 @@
+Resta connesso dove le VPN sono bloccate: le nuove modalità bridge Off / Auto / On cambiano automaticamente metodo di connessione per tenerti online quando una rete blocca la connessione.
+
+Anche in questa versione:
+• Consuma meno batteria durante la connessione
+• Elimina il tuo account direttamente nell'app
+• Schermate sensibili protette da screenshot e overlay
+• Elenco dei server più veloce
+• Stato della connessione più preciso
+• Promemoria di rinnovo più chiari e terminologia più coerente

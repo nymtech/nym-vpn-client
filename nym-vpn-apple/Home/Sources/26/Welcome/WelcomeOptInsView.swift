@@ -8,7 +8,7 @@ import UIComponents
 public struct WelcomeOptInsView: View {
 
     @AppStorage(AppSettingKey.statistics.rawValue)
-    private var isStatisticsEnabled = true
+    private var isStatisticsEnabled = false
 
     @AppStorage(AppSettingKey.errorReporting.rawValue)
     private var isErrorReportingOn = false

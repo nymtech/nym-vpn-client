@@ -1,0 +1,145 @@
+name: check-core-android-reproducible
+
+# Builds the arm64-v8a Android native libraries twice, on separate runners and
+# with different checkout and NDK paths, and fails unless both builds are
+# identical. F-Droid rebuilds the app and only publishes it if its build
+# matches ours.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "nym-vpn-core/crates/**"
+      - "nym-vpn-core/Cargo.toml"
+      - "nym-vpn-core/Cargo.lock"
+      - "nym-vpn-core/*.mk"
+      - "wireguard/**"
+      - ".env"
+      - ".github/workflows/check-core-android-reproducible.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+  # Same version as the F-Droid build recipe.
+  CARGO_NDK_VERSION: "4.1.2"
+
+jobs:
+  build:
+    name: build (${{ matrix.variant }})
+    runs-on: arc-linux-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        # baseline:     checkout and NDK where CI puts them
+        # fdroid-paths: checkout and NDK where F-Droid's build server puts them
+        variant: [baseline, fdroid-paths]
+    steps:
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
+
+      - name: Checkout repo
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: aarch64-linux-android
+
+      - name: Install cargo-ndk
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
+        with:
+          crate: cargo-ndk
+          version: ${{ env.CARGO_NDK_VERSION }}
+
+      - name: Install Go
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+          cache: false
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779 # v1.6.0
+        id: setup-ndk
+        with:
+          ndk-version: ${{ env.NDK_VERSION }}
+          add-to-path: false
+
+      - name: Prepare variant
+        env:
+          VARIANT: ${{ matrix.variant }}
+          NDK_PATH: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          set -euo pipefail
+          src_dir="$GITHUB_WORKSPACE"
+          ndk_dir="$NDK_PATH"
+          if [ "$VARIANT" = fdroid-paths ]; then
+            ndk_revision="$(sed -n 's/^Pkg.Revision *= *//p' "$NDK_PATH/source.properties")"
+            src_dir=/home/vagrant/build/net.nymtech.nymvpn
+            ndk_dir="/opt/android-sdk/ndk/$ndk_revision"
+            sudo mkdir -p "$src_dir" "$(dirname "$ndk_dir")"
+            sudo chown -R "$(id -u):$(id -g)" /home/vagrant /opt/android-sdk
+            rsync -a "$GITHUB_WORKSPACE/" "$src_dir/"
+            cp -a "$NDK_PATH" "$ndk_dir"
+          fi
+          {
+            echo "SRC_DIR=$src_dir"
+            echo "ANDROID_NDK_HOME=$ndk_dir"
+            echo "NDK_TOOLCHAIN_DIR=$ndk_dir/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          } >> "$GITHUB_ENV"
+
+      # The same make invocation as F-Droid's build recipe, minus the bindings
+      # and license targets, which don't affect the native libraries. Only
+      # arm64-v8a, to keep the check fast; the 64-bit ABIs share the same
+      # unwind table format, which is where nondeterminism has shown up so far.
+      - name: Build native libraries
+        run: make -C "$SRC_DIR/nym-vpn-core" -f Android.mk strip RELEASE=true ANDROID_ABIS=arm64-v8a
+
+      - name: Upload libraries
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: android-reproducible-${{ matrix.variant }}
+          path: |
+            ${{ env.SRC_DIR }}/nym-vpn-android/core/src/main/jniLibs/arm64-v8a/libnym_vpn_lib_uniffi.so
+            ${{ env.SRC_DIR }}/nym-vpn-android/core/src/main/jniLibs/arm64-v8a/libwg.so
+          if-no-files-found: error
+          retention-days: 7
+
+  compare:
+    needs: build
+    runs-on: arc-linux-latest
+    steps:
+      - name: Download libraries
+        uses: actions/download-artifact@v8
+        with:
+          pattern: android-reproducible-*
+          path: builds
+
+      - name: Compare
+        run: |
+          set -euo pipefail
+          status=0
+          for lib in libnym_vpn_lib_uniffi.so libwg.so; do
+            baseline="builds/android-reproducible-baseline/$lib"
+            fdroid_paths="builds/android-reproducible-fdroid-paths/$lib"
+            sha256sum "$baseline" "$fdroid_paths"
+            if ! cmp "$baseline" "$fdroid_paths"; then
+              echo "::error::$lib differs between the two builds"
+              status=1
+            fi
+          done
+          exit "$status"

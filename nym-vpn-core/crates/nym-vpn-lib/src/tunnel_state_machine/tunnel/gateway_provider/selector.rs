@@ -637,6 +637,41 @@ mod tests {
         ));
     }
 
+    async fn select_pinned_without_bridge(
+        bridge_mode: nym_vpn_lib_types::BridgeMode,
+    ) -> Result<SelectedGateways, GatewayProviderError> {
+        let gateways = Arc::new(RwLock::new(Some(vec![
+            gateway_id_to_gateway(GW_ID_1),
+            gateway_id_to_gateway(GW_ID_2),
+        ])));
+        let mut settings = default_tunnel_settings();
+        settings.wireguard_tunnel_options.bridge_mode = bridge_mode;
+        *settings.entry_point = EntryPoint::Gateway {
+            identity: GW_ID_1.parse().unwrap(),
+        };
+
+        select_gateways(
+            MockGatewayCache::new(gateways),
+            &BlacklistedGateways::new(),
+            &settings,
+            true,
+            None,
+            None,
+            &WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await
+    }
+
+    #[tokio::test]
+    async fn bridge_mode_on_pinned_entry_without_bridge_returns_error() {
+        let result = select_pinned_without_bridge(nym_vpn_lib_types::BridgeMode::On).await;
+
+        assert!(matches!(
+            result,
+            Err(GatewayProviderError::EntryGatewayHasNoBridge)
+        ));
+    }
+
     #[tokio::test]
     async fn active_independence_criteria_triggers_needs_relaxed_error() {
         // Both gateways share the same ASN so no independent pair can be found with the default

@@ -45,26 +45,26 @@ jobs:
         run: git config --system core.longpaths true
 
       - name: Checkout repo
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
       - name: Dotenv Action
-        uses: xom9ikk/dotenv@v2.4.0
+        uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
 
       - name: Setup sccache
         uses: ./.github/actions/setup-sccache
 
       - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         with:
           toolchain: ${{ env.RUST_VERSION }}
           targets: i686-pc-windows-msvc
           components: rustfmt, clippy
 
       - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
         with:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -75,24 +75,24 @@ jobs:
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
       - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
           crate: cargo-get
 
       - name: Download wireguard-go-windows artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: build/lib
 
       - name: Download winfw artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: winfw_x64
           path: ${{ env.WINFW_PATH }}
 
       - name: Download st-driver artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: st-driver
           path: ${{ env.STDRIVER_PATH }}

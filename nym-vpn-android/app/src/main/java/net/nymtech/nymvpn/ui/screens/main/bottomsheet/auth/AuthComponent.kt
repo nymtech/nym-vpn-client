@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.Route
@@ -97,6 +98,7 @@ fun AuthComponent(
 			LoginView(
 				onBackClick = { localNavController.popBackStack() },
 				onSocialClick = { uiState.socialLink?.let { context.openWebUrl(it) } },
+				showSocial = !isPlayDistribution,
 				onPassphraseClick = { localNavController.navigate(AuthRoute.Passphrase) },
 			)
 		}
@@ -110,6 +112,7 @@ fun AuthComponent(
 				onAccountClick = {
 					if (signUpLockGate.isOpen()) viewModel.onAnonymousAccountClick()
 				},
+				showSocial = !isPlayDistribution,
 			)
 		}
 
