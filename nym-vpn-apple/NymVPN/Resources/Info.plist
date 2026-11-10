@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>ApplicationVersion</key>
-	<string>2026.15.1</string>
+	<string>2026.15.2</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>net.nymtech.vpn.refresh</string>
