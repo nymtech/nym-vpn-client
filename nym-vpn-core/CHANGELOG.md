@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Require user presence with password or Touch ID for account-related operations. Affects the app and the CLI. Use `nym-vpnc authorize` and `nym-vpnc deauthorize` to manage authorization (https://github.com/nymtech/nym-vpn-client/pull/6980)
 
 
-## [2026.15.0] - TBD
+## [2026.15.0] - 2026-11-05
 
 ### Added
 
