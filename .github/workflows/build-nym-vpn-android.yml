@@ -241,6 +241,7 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralRelease --info
         env:
+          FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -249,6 +250,7 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralPrerelease --info
         env:
+          FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -257,6 +259,7 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralNightly --info
         env:
+          FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -348,6 +351,34 @@ jobs:
 
             echo "artifact_path=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
             echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+
+      # The Android Gradle plugin only warns when it can't strip a library.
+      - name: Check native libraries are stripped
+        working-directory: ${{ github.workspace }}
+        env:
+          ARTIFACT_PATH: ${{ steps.output-path.outputs.artifact_path }}
+        run: |
+          set -euo pipefail
+          case "$ARTIFACT_PATH" in
+            *.aab) libs_prefix=base/lib ;;
+            *) libs_prefix=lib ;;
+          esac
+          libs_dir="$(mktemp -d)"
+          unzip -q "$ARTIFACT_PATH" "$libs_prefix/*.so" -d "$libs_dir" || [ $? -eq 11 ]
+          libs="$(find "$libs_dir" -name '*.so' | sort)"
+          if [ -z "$libs" ]; then
+            echo "::error::No native libraries found in $ARTIFACT_PATH"
+            exit 1
+          fi
+          status=0
+          while IFS= read -r lib; do
+            sections="$("$NDK_TOOLCHAIN_DIR/llvm-readelf" -SW "$lib")"
+            if grep -q ' \.debug_' <<< "$sections"; then
+              echo "::error::${lib#"$libs_dir"/} contains debug info"
+              status=1
+            fi
+          done <<< "$libs"
+          exit "$status"
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
