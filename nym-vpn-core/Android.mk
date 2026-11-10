@@ -15,6 +15,7 @@ CARGO_ENV = RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS) -C link-args=-Wl,--build-id=none"
 	VERGEN_IDEMPOTENT=1 \
 	VERGEN_GIT_BRANCH="VERGEN_IDEMPOTENT_OUTPUT"
 else
+export CARGO_PROFILE_RELEASE_DEBUG := line-tables-only
 CARGO_ENV = RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS) -C link-args=-Wl,--build-id=sha1"
 endif
 
