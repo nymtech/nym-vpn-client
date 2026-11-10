@@ -22,7 +22,7 @@ on:
         required: true
         default: apk
         options:
-          - bundle
+          - aab
           - apk
       build_flavor:
         type: choice
