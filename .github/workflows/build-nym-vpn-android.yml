@@ -249,7 +249,6 @@ jobs:
           FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-          VPNLIB_DEBUG_SYMBOLS_DIR: ${{ github.workspace }}/${{ env.DEBUG_SYMBOLS_DIR_ANDROID }}
 
       - name: Build Google Play Prerelease Bundle
         if: ${{ env.BUILD_FLAVOR == 'play' && env.BUILD_TYPE == 'prerelease' && env.BUILD_FORMAT == 'aab' }}
@@ -259,7 +258,6 @@ jobs:
           FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-          VPNLIB_DEBUG_SYMBOLS_DIR: ${{ github.workspace }}/${{ env.DEBUG_SYMBOLS_DIR_ANDROID }}
 
       - name: Build Google Play Nightly Bundle
         if: ${{ env.BUILD_FLAVOR == 'play' && env.BUILD_TYPE == 'nightly' && env.BUILD_FORMAT == 'aab' }}
@@ -269,7 +267,6 @@ jobs:
           FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-          VPNLIB_DEBUG_SYMBOLS_DIR: ${{ github.workspace }}/${{ env.DEBUG_SYMBOLS_DIR_ANDROID }}
 
       - name: Build Fdroid Release Apk
         # F-Droid rebuilds without VPNLIB_SENTRY_DSN; baking it changes libnym_vpn_lib.so.
@@ -392,6 +389,20 @@ jobs:
           path: ${{ steps.output-path.outputs.artifact_path }}
           if-no-files-found: error
           retention-days: 1
+
+      - name: Collect debug symbols
+        if: ${{ env.BUILD_FLAVOR == 'play' }}
+        working-directory: ${{ github.workspace }}
+        env:
+          ARTIFACT_PATH: ${{ steps.output-path.outputs.artifact_path }}
+        run: |
+          set -euo pipefail
+          symbols_prefix=BUNDLE-METADATA/com.android.tools.build.debugsymbols
+          bundle_dir="$(mktemp -d)"
+          unzip -q "$ARTIFACT_PATH" "$symbols_prefix/*/libnym_vpn_lib_uniffi.so.dbg" -d "$bundle_dir"
+          rm -rf "$DEBUG_SYMBOLS_DIR_ANDROID"
+          mv "$bundle_dir/$symbols_prefix" "$DEBUG_SYMBOLS_DIR_ANDROID"
+          find "$DEBUG_SYMBOLS_DIR_ANDROID" -type f
 
       - name: Upload debug symbols
         if: ${{ env.BUILD_FLAVOR == 'play' }}
