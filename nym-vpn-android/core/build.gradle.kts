@@ -62,7 +62,7 @@ android {
 	}
 
 	packaging {
-		jniLibs.keepDebugSymbols.add("**/*.so")
+		jniLibs.keepDebugSymbols += setOf("**/libnym_vpn_lib_uniffi.so", "**/libwg.so")
 	}
 
 	compileOptions {
