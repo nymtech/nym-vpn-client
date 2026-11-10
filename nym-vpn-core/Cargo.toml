@@ -79,12 +79,11 @@ strip = "debuginfo"
 inherits = "dev"
 debug = 1
 
-# Android builds that F-Droid reproduces byte for byte.
 [profile.fdroid]
 inherits = "release"
 debug = false
 
-# Android builds whose debug symbols the Android Gradle plugin extracts.
+# debug symbols are extracted and stripped by gradle
 [profile.android]
 inherits = "release"
 split-debuginfo = "off"
