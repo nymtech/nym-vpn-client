@@ -137,9 +137,6 @@ jobs:
         working-directory: nym-vpn-core
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-          # Stripping on MSVC disables PDB generation; the executables carry no
-          # debug info either way.
-          CARGO_PROFILE_RELEASE_STRIP: none
         run: |
           $sysroot = rustc --print sysroot
           $rustflags = "--remap-path-prefix=$env:USERPROFILE=", "--remap-path-prefix=$env:GITHUB_WORKSPACE=", "--remap-path-prefix=$sysroot="
