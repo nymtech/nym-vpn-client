@@ -127,7 +127,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install cargo-license
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3
         with:
           crate: cargo-license
 
@@ -142,7 +142,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install cargo-get
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3
         with:
           crate: cargo-get
 
