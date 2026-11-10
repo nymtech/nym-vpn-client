@@ -107,7 +107,7 @@ jobs:
       # arm64-v8a, to keep the check fast; the 64-bit ABIs share the same
       # unwind table format, which is where nondeterminism has shown up so far.
       - name: Build native libraries
-        run: make -C "$SRC_DIR/nym-vpn-core" -f Android.mk strip RELEASE=true ANDROID_ABIS=arm64-v8a
+        run: make -C "$SRC_DIR/nym-vpn-core" -f Android.mk build RELEASE=true ANDROID_ABIS=arm64-v8a
 
       - name: Upload libraries
         uses: actions/upload-artifact@v7.0.1
