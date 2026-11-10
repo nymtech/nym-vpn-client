@@ -155,6 +155,7 @@ jobs:
       - name: Install NDK
         run: |
           ndk_version="$(sed -n 's/.*const val NDK_VERSION = "\(.*\)".*/\1/p' buildSrc/src/main/kotlin/Constants.kt)"
+          [ -n "$ndk_version" ] || { echo "::error::Cannot parse NDK_VERSION from Constants.kt"; exit 1; }
           sdkmanager --install "ndk;$ndk_version"
           ndk_home="$ANDROID_HOME/ndk/$ndk_version"
           echo "ANDROID_NDK_HOME=$ndk_home" >> "$GITHUB_ENV"
@@ -373,8 +374,8 @@ jobs:
           status=0
           while IFS= read -r lib; do
             sections="$("$NDK_TOOLCHAIN_DIR/llvm-readelf" -SW "$lib")"
-            if grep -q ' \.debug_' <<< "$sections"; then
-              echo "::error::${lib#"$libs_dir"/} contains debug info"
+            if grep -qE ' \.(debug_|symtab )' <<< "$sections"; then
+              echo "::error::${lib#"$libs_dir"/} is not stripped"
               status=1
             fi
           done <<< "$libs"

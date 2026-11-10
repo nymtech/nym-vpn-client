@@ -67,6 +67,7 @@ jobs:
       - name: Install NDK
         run: |
           ndk_version="$(sed -n 's/.*const val NDK_VERSION = "\(.*\)".*/\1/p' nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt)"
+          [ -n "$ndk_version" ] || { echo "::error::Cannot parse NDK_VERSION from Constants.kt"; exit 1; }
           sdkmanager --install "ndk;$ndk_version"
           ndk_home="$ANDROID_HOME/ndk/$ndk_version"
           echo "ANDROID_NDK_HOME=$ndk_home" >> "$GITHUB_ENV"
