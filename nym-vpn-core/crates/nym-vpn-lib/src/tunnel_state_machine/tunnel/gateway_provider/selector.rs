@@ -335,17 +335,9 @@ fn select_entry(
     );
     if entry_gateway.is_err() && use_bridges {
         entry_filters.remove(&GatewayFilter::QuicEnabled);
-        let direct =
-            find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters);
-        if direct.is_ok() {
-            // Auto connects directly; only On makes a missing bridge fatal.
-            return if tunnel_settings.wireguard_tunnel_options.bridge_mode
-                == nym_vpn_lib_types::BridgeMode::On
-            {
-                Err(GatewayProviderError::EntryGatewayHasNoBridge)
-            } else {
-                direct.map_err(GatewayProviderError::EntryGatewayUnavailable)
-            };
+        if find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters).is_ok()
+        {
+            return Err(GatewayProviderError::EntryGatewayHasNoBridge);
         }
     }
     entry_gateway.map_err(GatewayProviderError::EntryGatewayUnavailable)
@@ -642,51 +634,6 @@ mod tests {
         assert!(matches!(
             result,
             Err(GatewayProviderError::SameEntryAndExitGateway { .. })
-        ));
-    }
-
-    async fn select_pinned_without_bridge(
-        bridge_mode: nym_vpn_lib_types::BridgeMode,
-    ) -> Result<SelectedGateways, GatewayProviderError> {
-        let gateways = Arc::new(RwLock::new(Some(vec![
-            gateway_id_to_gateway(GW_ID_1),
-            gateway_id_to_gateway(GW_ID_2),
-        ])));
-        let mut settings = default_tunnel_settings();
-        settings.wireguard_tunnel_options.bridge_mode = bridge_mode;
-        *settings.entry_point = EntryPoint::Gateway {
-            identity: GW_ID_1.parse().unwrap(),
-        };
-
-        select_gateways(
-            MockGatewayCache::new(gateways),
-            &BlacklistedGateways::new(),
-            &settings,
-            true,
-            None,
-            None,
-            &WireguardKeysDb::Ephemeral(Default::default()),
-        )
-        .await
-    }
-
-    #[tokio::test]
-    async fn bridge_mode_on_pinned_entry_without_bridge_returns_error() {
-        let result = select_pinned_without_bridge(nym_vpn_lib_types::BridgeMode::On).await;
-
-        assert!(matches!(
-            result,
-            Err(GatewayProviderError::EntryGatewayHasNoBridge)
-        ));
-    }
-
-    #[tokio::test]
-    async fn bridge_mode_auto_pinned_entry_without_bridge_keeps_generic_error() {
-        let result = select_pinned_without_bridge(nym_vpn_lib_types::BridgeMode::Auto).await;
-
-        assert!(!matches!(
-            result,
-            Err(GatewayProviderError::EntryGatewayHasNoBridge)
         ));
     }
 
