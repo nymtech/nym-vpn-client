@@ -2,20 +2,21 @@
 
 include remap_paths.mk
 
-# Build libnym_vpn_lib_uniffi.so with debug info and a GNU build ID, so that
-# the Android Gradle plugin can extract debug symbols before stripping it.
-# When disabled, the build is made reproducible instead, so that F-Droid can
-# verify it byte for byte against its own build.
-VPNLIB_DEBUG_SYMBOLS ?= false
+# Build libnym_vpn_lib_uniffi.so reproducibly, so that F-Droid can verify it
+# byte for byte against its own build. F-Droid's build recipe relies on this
+# being the default. When disabled, it's built with debug info and a GNU build
+# ID instead, so that the Android Gradle plugin can extract debug symbols
+# before stripping it.
+FDROID ?= true
 
-ifneq ($(VPNLIB_DEBUG_SYMBOLS), true)
-export CARGO_PROFILE_RELEASE_DEBUG := false
+ifeq ($(FDROID), true)
+RELEASE_PROFILE := fdroid
 CARGO_ENV = RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS) -C link-args=-Wl,--build-id=none" \
 	SOURCE_DATE_EPOCH=0 \
 	VERGEN_IDEMPOTENT=1 \
 	VERGEN_GIT_BRANCH="VERGEN_IDEMPOTENT_OUTPUT"
 else
-export CARGO_PROFILE_RELEASE_DEBUG := line-tables-only
+RELEASE_PROFILE := android
 CARGO_ENV = RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS) -C link-args=-Wl,--build-id=sha1"
 endif
 
@@ -30,13 +31,9 @@ TARGET_DIR := debug
 DOCKER_FLAG :=
 
 ifeq ($(RELEASE), true)
-RELEASE_FLAG := --release
-TARGET_DIR := release
+RELEASE_FLAG := --profile $(RELEASE_PROFILE)
+TARGET_DIR := $(RELEASE_PROFILE)
 endif
-
-# Debug info stays in the libraries until the Android Gradle plugin strips it.
-export CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO := off
-export CARGO_PROFILE_RELEASE_STRIP := none
 
 ifeq ($(DOCKER), true)
 DOCKER_FLAG := --docker
