@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Linux] Add NetworkManager VPN plugin that can be used to manage VPN connection from system menu. Note that removing VPN from system network settings also disconnects VPN. In all other cases VPN is only managed via UI interaction by user. (https://github.com/nymtech/nym-vpn-client/pull/6873, https://github.com/nymtech/nym-vpn-client/pull/6861)
 - Add `NYM_VPN_API_URL_OVERRIDE` compile time environment variable to override VPN API server in `nym-vpnd` during development (https://github.com/nymtech/nym-vpn-client/pull/6962)
 
+### Changed
+
+- Strip debug info in release builds (https://github.com/nymtech/nym-vpn-client/pull/7018)
+
 ### Fixed
 
 - Restrict allowed IPs for exit gateway (https://github.com/nymtech/nym-vpn-client/pull/6952)
@@ -22,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Require user presence with password or Touch ID for account-related operations. Affects the app and the CLI. Use `nym-vpnc authorize` and `nym-vpnc deauthorize` to manage authorization (https://github.com/nymtech/nym-vpn-client/pull/6980)
 
 
-## [2026.15.0] - TBD
+## [2026.15.0] - 2026-11-05
 
 ### Added
 

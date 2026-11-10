@@ -148,19 +148,19 @@ jobs:
       ios: ${{ steps.resolve.outputs.ios }}
       macos: ${{ steps.resolve.outputs.macos }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
       - name: Dotenv Action
-        uses: xom9ikk/dotenv@v2.4.0
+        uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
 
       - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         with:
           toolchain: ${{ env.RUST_VERSION }}
 
-      - uses: baptiste0928/cargo-install@v3
+      - uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
           crate: cargo-get
 
@@ -395,12 +395,12 @@ jobs:
         vpnc_macos_installer_url: ${{ steps.extract_urls.outputs.vpnc_macos_installer_url }}
         android_apk_url: ${{ steps.extract_urls.outputs.android_apk_url }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
 
       - name: Prepare build output directory
         shell: bash
@@ -616,7 +616,7 @@ jobs:
           fi
 
       - name: Upload release assets list
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.RELEASE_ASSETS_ARTIFACT }}
           path: ${{ env.RELEASE_ASSETS }}
@@ -678,7 +678,7 @@ jobs:
           gh release view "$TAG" --json assets --repo "$GITHUB_REPOSITORY" > "${{ env.RELEASE_PAYLOAD }}"
 
       - name: Upload release payload
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ inputs.publish_github == true }}
         with:
           name: ${{ env.RELEASE_PAYLOAD_ARTIFACT }}
