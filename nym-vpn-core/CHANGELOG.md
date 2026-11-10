@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Restrict allowed IPs for exit gateway (https://github.com/nymtech/nym-vpn-client/pull/6952)
+- [iOS] Limit adblocker SQLite memory per connection instead of setting process-wide heap limits that affected other SQLite databases (https://github.com/nymtech/nym-vpn-client/pull/6963)
 
 ### Security
 
