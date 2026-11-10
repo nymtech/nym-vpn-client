@@ -125,6 +125,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup sccache
+        if: ${{ inputs.build_flavor != 'fdroid' || inputs.build_type == 'debug' }}
         uses: ./.github/actions/setup-sccache
 
       - name: Apply orchestrated version
