@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+### Fixed
 
-- Strip native libraries with the pinned NDK in F-Droid builds (https://github.com/nymtech/nym-vpn-client/pull/7057)
+- Strip prebuilt native libraries such as `libjnidispatch.so` in CI release builds, so they match F-Droid's (https://github.com/nymtech/nym-vpn-client/pull/7057)
 
 
 ## [2026.15.2] - 2026-11-10
