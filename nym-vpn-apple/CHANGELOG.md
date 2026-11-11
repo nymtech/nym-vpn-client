@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- iOS: when the Apple ID's subscription belongs to another NymVPN account, the plan screen now explains it and opens Apple's subscription settings instead of letting a second account pay into that subscription (https://github.com/nymtech/nym-vpn-client/pull/6915)
 - Show app window with quit prompt when attempting to quit from app menu with no visible windows (https://github.com/nymtech/nym-vpn-client/pull/6899)
 
 
-## [2026.15.0] - TBD
+## [2026.15.0] - 2026-11-05
 
 
 ## [2026.14.0] - 2026-10-22
@@ -49,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account bar refresh on iOS and macOS (https://github.com/nymtech/nym-vpn-client/pull/6458)
 - Home and exit server caret alignment (https://github.com/nymtech/nym-vpn-client/pull/6464, https://github.com/nymtech/nym-vpn-client/pull/6518)
 - Disable Sentry PII collection (https://github.com/nymtech/nym-vpn-client/pull/6441)
+- Geo Exclusion port display format (https://github.com/nymtech/nym-vpn-client/pull/6070)
 
 ## [2026.12.3] - 2026-08-27
 
@@ -92,9 +94,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Default mixnet tunnel configuration name is now "NymVPN" (https://github.com/nymtech/nym-vpn-client/pull/5875)
 - Connect circle color for mixnet mode (https://github.com/nymtech/nym-vpn-client/pull/6009)
 
-## [2026.12.0] - TBD
-
-
 ### Fixed
 
 - Fix switching between modes to always land on the last selected mode (https://github.com/nymtech/nym-vpn-client/pull/6023)
@@ -102,9 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sync daemon settings on rpc connect. Fixes issues with stale configuration being displayed in UI (https://github.com/nymtech/nym-vpn-client/pull/6067)
 - Handle `NeedsDeviceLocation` error and explain Safest routing errors (https://github.com/nymtech/nym-vpn-client/pull/6106)
 - macOS: crash when logged out or during onboarding (https://github.com/nymtech/nym-vpn-client/pull/6082)
-- Geo Exclusion port display format (https://github.com/nymtech/nym-vpn-client/pull/6070)
 - macOS: favorites not persisted (https://github.com/nymtech/nym-vpn-client/pull/5929)
-
 
 ## [2.11.0]
 

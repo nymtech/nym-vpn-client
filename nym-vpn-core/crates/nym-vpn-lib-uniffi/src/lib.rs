@@ -187,6 +187,8 @@ mod gateway_cache;
 mod offline_monitor;
 
 #[cfg(target_os = "macos")]
+mod authorization_token;
+#[cfg(target_os = "macos")]
 mod rpc;
 
 #[cfg(target_os = "ios")]

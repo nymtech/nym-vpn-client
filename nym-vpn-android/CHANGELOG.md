@@ -12,11 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Decode only the gateway list that changed in DataStoreGatewayRepository (https://github.com/nymtech/nym-vpn-client/pull/6959)
 - Cache flag resource IDs instead of calling getIdentifier for every row (https://github.com/nymtech/nym-vpn-client/pull/6959)
 - Use countryCodesForRegionSupport instead of a hardcoded "us" (https://github.com/nymtech/nym-vpn-client/pull/6959)
+- Let the Android Gradle plugin strip all native libraries, including `libjnidispatch.so` from JNA (https://github.com/nymtech/nym-vpn-client/pull/7018)
+- Extract native debug symbols with the Android Gradle plugin for Google Play builds (https://github.com/nymtech/nym-vpn-client/pull/7021)
 
 ### Fixed
 - Show a specific error when Enhanced connection is On and the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6974)
 
-## [2026.15.0] - TBD
+## [2026.15.0] - 2026-11-05
 
 ### Added
 - Hide overlay windows on sensitive screens (https://github.com/nymtech/nym-vpn-client/pull/6780)

@@ -15,6 +15,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
+import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.MnemonicError
 import net.nymtech.nymvpn.util.Constants
@@ -64,7 +65,7 @@ class AuthViewModel @Inject constructor(
 
 	private fun loadInitialData() = viewModelScope.launch {
 		runCatching {
-			val link = backendManager.getDeeplink(DeeplinkKind.PRIVY)
+			val link = if (isPlayDistribution) null else backendManager.getDeeplink(DeeplinkKind.PRIVY)
 			val accountLinks = backendManager.getAccountLinks()
 			_uiState.update { it.copy(socialLink = link, signUpLink = accountLinks?.signUp) }
 		}.onFailure { t ->
