@@ -22,7 +22,7 @@ on:
         required: true
         default: apk
         options:
-          - bundle
+          - aab
           - apk
       build_flavor:
         type: choice
@@ -125,6 +125,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup sccache
+        if: ${{ inputs.build_flavor != 'fdroid' || inputs.build_type == 'debug' }}
         uses: ./.github/actions/setup-sccache
 
       - name: Apply orchestrated version
@@ -137,7 +138,7 @@ jobs:
         uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
 
       - name: Set up JDK 21
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: "temurin"
           java-version: "21"
@@ -152,40 +153,20 @@ jobs:
         with:
           packages: platform-tools
 
-      - name: Cache NDK
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id: cache-ndk
-        with:
-          path: /usr/local/lib/android/sdk/ndk/${{ env.NDK_VERSION }}
-          key: ndk-${{ env.NDK_VERSION }}
-          restore-keys: |
-            ndk-
-
-      - name: Setup NDK
-        uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779 # v1.6.0
-        id: setup-ndk
-        timeout-minutes: 10
-        with:
-          ndk-version: ${{ env.NDK_VERSION }}
-          add-to-path: false
-
-      - name: Verify NDK Setup
+      - name: Install NDK
         run: |
-          echo "NDK Path: ${{ steps.setup-ndk.outputs.ndk-path }}"
-          if [ ! -d "${{ steps.setup-ndk.outputs.ndk-path }}" ]; then
-            echo "Error: NDK directory not found at ${{ steps.setup-ndk.outputs.ndk-path }}"
-            exit 1
-          fi
-          echo "NDK setup successful"
-          ls -la "${{ steps.setup-ndk.outputs.ndk-path }}"
+          ndk_version="$(sed -n 's/.*const val NDK_VERSION = "\(.*\)".*/\1/p' buildSrc/src/main/kotlin/Constants.kt)"
+          [ -n "$ndk_version" ] || { echo "::error::Cannot parse NDK_VERSION from Constants.kt"; exit 1; }
+          sdkmanager --install "ndk;$ndk_version"
+          ndk_home="$ANDROID_HOME/ndk/$ndk_version"
+          echo "ANDROID_NDK_HOME=$ndk_home" >> "$GITHUB_ENV"
+          echo "NDK_TOOLCHAIN_DIR=$ndk_home/toolchains/llvm/prebuilt/linux-x86_64/bin" >> "$GITHUB_ENV"
 
       - name: Set env
         shell: bash
         env:
           NIGHTLY_TIMESTAMP: ${{ inputs.nightly_timestamp }}
         run: |
-          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
-          echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
           # Used by gradle to name nightly apks
           if [ -n "$NIGHTLY_TIMESTAMP" ]; then
             echo "NIGHTLY_TIMESTAMP=$NIGHTLY_TIMESTAMP" >> "$GITHUB_ENV"
@@ -262,7 +243,7 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralRelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -271,7 +252,7 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralPrerelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -280,7 +261,7 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralNightly --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -290,7 +271,6 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidRelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Release Bundle
@@ -298,7 +278,6 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidRelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Prerelease Apk
@@ -306,7 +285,6 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidPrerelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Prerelease Bundle
@@ -314,7 +292,6 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidPrerelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Nightly Apk
@@ -322,7 +299,6 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidNightly --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Nightly Bundle
@@ -330,7 +306,6 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidNightly --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Debug Apk
@@ -338,7 +313,6 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidDebug --stacktrace
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Debug Bundle
@@ -346,7 +320,6 @@ jobs:
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidDebug --stacktrace
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Get output path
@@ -380,6 +353,34 @@ jobs:
 
             echo "artifact_path=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
             echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+
+      # The Android Gradle plugin only warns when it can't strip a library.
+      - name: Check native libraries are stripped
+        working-directory: ${{ github.workspace }}
+        env:
+          ARTIFACT_PATH: ${{ steps.output-path.outputs.artifact_path }}
+        run: |
+          set -euo pipefail
+          case "$ARTIFACT_PATH" in
+            *.aab) libs_prefix=base/lib ;;
+            *) libs_prefix=lib ;;
+          esac
+          libs_dir="$(mktemp -d)"
+          unzip -q "$ARTIFACT_PATH" "$libs_prefix/*.so" -d "$libs_dir" || [ $? -eq 11 ]
+          libs="$(find "$libs_dir" -name '*.so' | sort)"
+          if [ -z "$libs" ]; then
+            echo "::error::No native libraries found in $ARTIFACT_PATH"
+            exit 1
+          fi
+          status=0
+          while IFS= read -r lib; do
+            sections="$("$NDK_TOOLCHAIN_DIR/llvm-readelf" -SW "$lib")"
+            if grep -qE ' \.(debug_|symtab )' <<< "$sections"; then
+              echo "::error::${lib#"$libs_dir"/} is not stripped"
+              status=1
+            fi
+          done <<< "$libs"
+          exit "$status"
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -1816,6 +1816,9 @@ impl tunnel::Error {
                 GatewayProviderError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
                 }
+                GatewayProviderError::EntryGatewayHasNoBridge => {
+                    Some(ErrorStateReason::EntryGatewayHasNoBridge)
+                }
                 GatewayProviderError::EntryGatewayUnavailable(err) => Some(match err {
                     // Only ever returned for a pinned entry gateway identity: it exists but
                     // is currently excluded from selection (e.g. blacklisted), or doesn't

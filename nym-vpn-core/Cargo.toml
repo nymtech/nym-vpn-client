@@ -79,6 +79,16 @@ strip = "debuginfo"
 inherits = "dev"
 debug = 1
 
+[profile.fdroid]
+inherits = "release"
+debug = false
+
+# debug symbols are extracted and stripped by gradle
+[profile.android]
+inherits = "release"
+split-debuginfo = "off"
+strip = "none"
+
 [workspace.lints.clippy]
 large_futures = "warn"
 

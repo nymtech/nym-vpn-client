@@ -63,6 +63,7 @@ gross {
 android {
 	namespace = Constants.APP_ID
 	compileSdk = Constants.COMPILE_SDK
+	ndkVersion = Constants.NDK_VERSION
 
 	androidResources {
 		generateLocaleConfig = true
@@ -163,6 +164,9 @@ android {
 			dimension = Constants.TYPE
 			proguardFile("proguard-rules.pro")
 			buildConfigField("String", Constants.FLAVOR, "\"${Constants.GENERAL}\"")
+			ndk {
+				debugSymbolLevel = "FULL"
+			}
 		}
 		create(Constants.MOCK) {
 			dimension = Constants.TYPE

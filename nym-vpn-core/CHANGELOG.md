@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Restrict allowed IPs for exit gateway (https://github.com/nymtech/nym-vpn-client/pull/6952)
+- Show a specific error when Enhanced connection is On and the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6973)
 
 ### Security
 
