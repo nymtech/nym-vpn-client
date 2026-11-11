@@ -8121,6 +8121,7 @@ dependencies = [
  "clap",
  "eventlog",
  "futures",
+ "nix 0.31.3",
  "nym-authorization-service",
  "nym-bin-common",
  "nym-ipc",

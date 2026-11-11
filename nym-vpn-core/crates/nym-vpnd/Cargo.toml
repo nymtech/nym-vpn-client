@@ -43,6 +43,9 @@ nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 nym-vpn-network-config = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+nix = { workspace = true, features = ["process"] }
+
 [target.'cfg(windows)'.dependencies]
 windows-service.workspace = true
 eventlog.workspace = true
