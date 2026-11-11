@@ -17,21 +17,21 @@ on:
         required: true
     secrets:
       GARAGE_AWS_ACCESS_KEY_ID:
-        required: false
+        required: true
       GARAGE_AWS_SECRET_ACCESS_KEY:
-        required: false
+        required: true
       VPND_SENTRY_CLI_AUTH_TOKEN:
-        required: false
+        required: true
       VPND_SENTRY_CLI_ORG:
-        required: false
+        required: true
       VPND_SENTRY_CLI_PROJECT:
-        required: false
+        required: true
       APPLE_SENTRY_CLI_AUTH_TOKEN:
-        required: false
+        required: true
       APPLE_SENTRY_CLI_ORG:
-        required: false
+        required: true
       APPLE_SENTRY_CLI_PROJECT:
-        required: false
+        required: true
 
 permissions:
   contents: read
@@ -80,11 +80,6 @@ jobs:
 
           if [[ ! -d core_debug_symbols ]]; then
             echo "No core debug symbols, skip uploading"
-            exit 0
-          fi
-
-          if [[ -z "$SENTRY_AUTH_TOKEN" || -z "$SENTRY_ORG" || -z "$SENTRY_PROJECT" ]]; then
-            echo "::warning::Sentry CLI credentials for core are not set, skip uploading"
             exit 0
           fi
 
