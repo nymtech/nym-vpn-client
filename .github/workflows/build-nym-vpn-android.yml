@@ -96,14 +96,18 @@ on:
       CROWDIN_PERSONAL_TOKEN:
         required: true
 env:
-  UPLOAD_DIR_ANDROID: android_artifacts_${{ inputs.build_flavor }}
+  # Inputs are empty on pull_request, so fall back to a debug F-Droid APK.
+  BUILD_TYPE: ${{ inputs.build_type || 'debug' }}
+  BUILD_FORMAT: ${{ inputs.build_format || 'apk' }}
+  BUILD_FLAVOR: ${{ inputs.build_flavor || 'fdroid' }}
+  UPLOAD_DIR_ANDROID: android_artifacts_${{ inputs.build_flavor || 'fdroid' }}
   SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
   SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
   SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-nym-vpn-app-android:
-    name: build-nym-vpn-android (${{ inputs.build_flavor }})
+    name: build-nym-vpn-android (${{ inputs.build_flavor || 'fdroid' }})
     runs-on: arc-linux-latest
     timeout-minutes: 90
     env:
@@ -125,7 +129,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup sccache
-        if: ${{ inputs.build_flavor != 'fdroid' || inputs.build_type == 'debug' }}
+        if: ${{ env.BUILD_FLAVOR != 'fdroid' || env.BUILD_TYPE == 'debug' }}
         uses: ./.github/actions/setup-sccache
 
       - name: Apply orchestrated version
@@ -209,7 +213,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
 
       - name: Decode Keystore
-        if: ${{ inputs.build_type != 'debug' }}
+        if: ${{ env.BUILD_TYPE != 'debug' }}
         id: decode_keystore
         uses: timheuer/base64-to-file@dfa5a5dd38803cb4f5c3a081eeb28e8362d43e9c # v2.0.0
         with:
@@ -218,19 +222,17 @@ jobs:
           encodedString: ${{ secrets.ANDROID_KEYSTORE }}
 
       - name: Create keystore path env var
-        if: ${{ inputs.build_type != 'debug' }}
+        if: ${{ env.BUILD_TYPE != 'debug' }}
         run: |
           store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
           echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
 
       - name: Create service_account.json
-        if: ${{ inputs.build_type != 'debug' }}
+        if: ${{ env.BUILD_TYPE != 'debug' }}
         id: createServiceAccount
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
       - name: Guard F-Droid compile env
-        env:
-          BUILD_FLAVOR: ${{ inputs.build_flavor }}
         run: |
           set -euo pipefail
           if [ "$BUILD_FLAVOR" = fdroid ] && [ -n "${VPNLIB_SENTRY_DSN+x}" ]; then
@@ -239,7 +241,7 @@ jobs:
           fi
 
       - name: Build Google Play Release Bundle
-        if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'release' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'play' && env.BUILD_TYPE == 'release' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralRelease --info
         env:
@@ -248,7 +250,7 @@ jobs:
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Google Play Prerelease Bundle
-        if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'play' && env.BUILD_TYPE == 'prerelease' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralPrerelease --info
         env:
@@ -257,7 +259,7 @@ jobs:
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Google Play Nightly Bundle
-        if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'play' && env.BUILD_TYPE == 'nightly' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralNightly --info
         env:
@@ -267,56 +269,56 @@ jobs:
 
       - name: Build Fdroid Release Apk
         # F-Droid rebuilds without VPNLIB_SENTRY_DSN; baking it changes libnym_vpn_lib.so.
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'release' && inputs.build_format == 'apk' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'release' && env.BUILD_FORMAT == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidRelease --info
         env:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Release Bundle
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'release' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'release' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidRelease --info
         env:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Prerelease Apk
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'prerelease' && inputs.build_format == 'apk' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'prerelease' && env.BUILD_FORMAT == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidPrerelease --info
         env:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Prerelease Bundle
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'prerelease' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidPrerelease --info
         env:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Nightly Apk
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'nightly' && inputs.build_format == 'apk' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'nightly' && env.BUILD_FORMAT == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidNightly --info
         env:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Nightly Bundle
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'nightly' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidNightly --info
         env:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Debug Apk
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'debug' && inputs.build_format == 'apk' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'debug' && env.BUILD_FORMAT == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidDebug --stacktrace
         env:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Debug Bundle
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'debug' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'debug' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidDebug --stacktrace
         env:
@@ -325,9 +327,6 @@ jobs:
       - name: Get output path
         id: output-path
         working-directory: ${{ github.workspace }}
-        env:
-          BUILD_FLAVOR: ${{ inputs.build_flavor }}
-          BUILD_FORMAT: ${{ inputs.build_format }}
         run: |
             OUT_DIR="nym-vpn-android/app/build/outputs"
 
