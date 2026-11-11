@@ -58,6 +58,7 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
