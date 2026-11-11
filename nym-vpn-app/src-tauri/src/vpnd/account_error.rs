@@ -65,6 +65,9 @@ impl From<lib::AccountCommandError> for BackendError {
             lib::AccountCommandError::InvalidPublicKey(e) => {
                 BackendError::internal_with_detail("invalid pairing public key", e)
             }
+            lib::AccountCommandError::UserPresenceRequired => {
+                BackendError::internal("user presence required", None)
+            }
             lib::AccountCommandError::PairingNotStarted => {
                 BackendError::internal("pairing process not started", None)
             }

@@ -29,7 +29,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Set up JDK 21
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -59,11 +59,19 @@ jobs:
       - name: Install protobuf
         run: sudo apt-get install -y protobuf-compiler
 
-      - name: Setup Android NDK
-        uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779 # v1.6.0
-        id: setup-ndk
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
-          ndk-version: r28b
+          packages: platform-tools
+
+      - name: Install NDK
+        run: |
+          ndk_version="$(sed -n 's/.*const val NDK_VERSION = "\(.*\)".*/\1/p' nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt)"
+          [ -n "$ndk_version" ] || { echo "::error::Cannot parse NDK_VERSION from Constants.kt"; exit 1; }
+          sdkmanager --install "ndk;$ndk_version"
+          ndk_home="$ANDROID_HOME/ndk/$ndk_version"
+          echo "ANDROID_NDK_HOME=$ndk_home" >> "$GITHUB_ENV"
+          echo "NDK_TOOLCHAIN_DIR=$ndk_home/toolchains/llvm/prebuilt/linux-x86_64/bin" >> "$GITHUB_ENV"
 
       - name: Cache cargo build artifacts
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -87,12 +95,10 @@ jobs:
           echo "--- Java ---"
           java -version
           echo "--- NDK ---"
-          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}"
+          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
 
       - name: Build mock debug APK
         working-directory: nym-vpn-android
-        env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: ./gradlew assembleMockDebug --refresh-dependencies
 
       - name: Install Maestro
@@ -162,7 +168,7 @@ jobs:
       # not fatal - the composer degrades to a "(no test report)" message.
       - name: Download Maestro report
         continue-on-error: true
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: maestro-android-report
           path: downloaded-report
@@ -204,7 +210,7 @@ jobs:
       # Deliberately not continue-on-error: a missing TEST_UI_ZULIP_TOPIC must
       # go red, because an absent message looks identical to a night with no run.
       - name: Send Zulip notification
-        uses: zulip/github-actions-zulip/send-message@v2
+        uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b # v2.0.2
         with:
           api-key: ${{ secrets.TEST_HARNESS_ZULIP_BOT_API_KEY }}
           email: ${{ secrets.TEST_HARNESS_ZULIP_BOT_EMAIL }}

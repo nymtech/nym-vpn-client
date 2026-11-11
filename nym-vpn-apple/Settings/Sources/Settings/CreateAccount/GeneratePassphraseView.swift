@@ -30,6 +30,8 @@ public struct GeneratePassphraseView: View {
     @State var isPurchasing = false
     @State var isPlanAlertDisplayed = false
     @State var alertOffersRegistrationRetry = false
+    @State var isPresentedManageSubscription = false
+    @Environment(\.scenePhase) private var scenePhase
     @State private var didLeaveForSuccessfulPurchase = false
 #if os(iOS)
     @State private var autologinState = AutologinState()
@@ -68,20 +70,19 @@ public struct GeneratePassphraseView: View {
                     animatingTextView
                     Spacer()
                 } else {
-                    // Purchase plan
-                    checkmarkImage
-                    Spacer()
-                        .frame(height: 12)
-                    titleSubtitleView
-                    Spacer()
 #if os(iOS)
-                    if showsWebSubscribeOnSubscriptionPage {
-                        webSubscribeButton
+                    if case let .attachedToOtherAccount(expirationDate, willAutoRenew) = purchasesManager.appleIdSubscriptionGate {
+                        appleIdSubscriptionGateView(expirationDate: expirationDate, willAutoRenew: willAutoRenew)
                         Spacer()
-                            .frame(height: 12)
+                        if showsWebSubscribeOnSubscriptionPage {
+                            webSubscribeButton
+                        }
+                    } else {
+                        purchasePlanPanel
                     }
+#else
+                    purchasePlanPanel
 #endif
-                    selectPlanButton
                 }
             }
             .frame(maxWidth: MagicNumbers.moreMaxWidth)
@@ -114,7 +115,24 @@ public struct GeneratePassphraseView: View {
         .task(id: didRegisterAccount) {
             // Read once the account exists, so the verdict is about this account.
             guard didRegisterAccount else { return }
+            // Local StoreKit read first, so the gate never waits behind the Nym API round-trip below.
+            await purchasesManager.refreshAppleIdSubscriptionGate(accountToken: credentialsManager.accountToken)
             await purchasesManager.refreshTrialEligibility()
+        }
+        .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
+        .onChange(of: isPresentedManageSubscription) { _, presented in
+            // The user may have cancelled in Apple's sheet; re-read so the copy follows.
+            guard !presented else { return }
+            Task {
+                await purchasesManager.refreshAppleIdSubscriptionGate(accountToken: credentialsManager.accountToken)
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // The user may have changed the subscription in iOS Settings; re-read when the app comes back.
+            guard phase == .active, didRegisterAccount else { return }
+            Task {
+                await purchasesManager.refreshAppleIdSubscriptionGate(accountToken: credentialsManager.accountToken)
+            }
         }
         .autologinOverlay(state: autologinState, onRetry: { beginWebSubscriptionPurchase() })
         .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
@@ -202,6 +220,23 @@ private extension GeneratePassphraseView {
     }
 
     // MARK: - Plan purchase -
+    @ViewBuilder
+    var purchasePlanPanel: some View {
+        checkmarkImage
+        Spacer()
+            .frame(height: 12)
+        titleSubtitleView
+        Spacer()
+#if os(iOS)
+        if showsWebSubscribeOnSubscriptionPage {
+            webSubscribeButton
+            Spacer()
+                .frame(height: 12)
+        }
+#endif
+        selectPlanButton
+    }
+
     var checkmarkImage: some View {
         HStack {
             Spacer()
@@ -322,6 +357,11 @@ extension GeneratePassphraseView {
     func navigateToPaymentSuccessView() {
         didLeaveForSuccessfulPurchase = true
         path.append(SettingLink.processingAccount)
+    }
+
+    /// The account screen holds the log-out flow, which is how the user gets to the other account.
+    func navigateToAccountAndDevices() {
+        path.append(SettingLink.accountAndDevices)
     }
 
 #if os(iOS)

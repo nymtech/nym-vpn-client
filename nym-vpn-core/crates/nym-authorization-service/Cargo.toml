@@ -1,0 +1,33 @@
+[package]
+name = "nym-authorization-service"
+description = "Unlocking with Authorization Services on macOS"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+thiserror.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-core-foundation = { workspace = true, default-features = false, features = [
+    "std",
+    "CFBase",
+    "CFDictionary",
+    "CFNumber",
+    "CFString",
+] }
+objc2-security = { workspace = true, default-features = false, features = [
+    "std",
+    "Authorization",
+    "AuthorizationDB",
+    "AuthorizationTags",
+] }
+libc.workspace = true
+tracing.workspace = true

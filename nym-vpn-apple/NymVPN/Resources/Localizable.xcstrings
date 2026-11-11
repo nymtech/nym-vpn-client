@@ -22049,713 +22049,6 @@
         }
       }
     },
-    "privacyData.anonymousStats" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إحصائيات الشبكة المجهولة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonyme Netzwerkstatistiken"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonymous network stats"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estadísticas de red anónimas"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "آمار ناشناس شبکه"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Statistiques réseaux anonymes"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous network stats"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Statistiche di rete anonime"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匿名のネットワーク統計"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estatísticas de rede anônimas"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estatísticas de rede anônimas"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонимная статистика сети"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonim ağ istatistikleri"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонімна статистика мережі"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thống kê mạng ẩn danh"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匿名数据报告"
-          }
-        }
-      }
-    },
-    "privacyData.anonymousStats.subtitle1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ساعدنا على بناء شبكة أسرع من خلال مشاركة بيانات الأداء المجهولة من منطقتك. نحن نستخدم هذا لتحسين السرعة، وتقليل قطع الاتصالات، وتوجيه تغطية الخوادم حيث هي في أمس الحاجة إليها."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Helfen Sie uns, ein schnelleres Netzwerk zu bauen, indem Sie anonyme Leistungsdaten aus Ihrer Region teilen. Wir verwenden dies, um die Geschwindigkeit zu optimieren, die Trennung zu reduzieren und die Serverabdeckung dort zu steuern, wo sie am meisten benötigt wird."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ayúdanos a construir una red más rápida compartiendo datos de rendimiento anónimos de tu región. Utilizamos esto para optimizar velocidades, reducir desconexiones y dirigir la cobertura del servidor donde más se necesita."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "به ما از طریق اشتراک گذاری داده های عملکرد به صورت ناشناس از منطقه خود، کمک کنید تا شبکه ای سریع تر بسازیم. ما از این داده ها برای بهینه‌سازی سرعت ها، کاهش قطع ارتباط، و هدایت پوشش سرورها به مناطقی که بیشترین نیاز را دارند استفاده می کنیم. هرگز فعالیت مرورگر یا داده های شخصی شما به اشتراک گذاشته نمی شود – فقط داده های عملکرد شبکه."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aidez-nous à construire un réseau plus rapide en partageant des données de performances anonymisées dans votre région. Nous les utilisons afin de réduire le taux de déconnexion et orienter nos déploiements de serveurs où cela se révèle nécessaire."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aiutaci a costruire una rete più veloce condividendo dati anonimi sulle prestazioni della tua regione. Usiamo questo per ottimizzare le velocità, ridurre le disconnessioni e sterzare la copertura del server dove è più necessario."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "お住まいの地域から匿名のパフォーマンスデータを共有することで、より高速なネットワークを構築することができます。 これを使用して、スピードを最適化し、切断を減らし、最も必要とされるサーバーカバレッジを管理します。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajude-nos a construir uma rede mais rápida, compartilhando dados de desempenho anônimos de sua região. Usamos isto para otimizar velocidades, reduzir desconexões e direcionar a cobertura do servidor onde ele mais precisa."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajude-nos a construir uma rede mais rápida, compartilhando dados de desempenho anônimos de sua região. Usamos isto para otimizar velocidades, reduzir desconexões e direcionar a cobertura do servidor onde ele mais precisa."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Помогите нам создать более быструю сеть, делясь анонимными данными о производительности из вашего региона. Мы используем эту информацию для оптимизации скорости, уменьшения разрывов соединения и улучшения покрытия серверов там, где это необходимо больше всего."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bölgenizden anonim performans verilerini paylaşarak daha hızlı bir ağ oluşturmamıza yardımcı olun. Bu verileri, hızı optimize etmek, bağlantı kopmalarını azaltmak ve sunucu kapsamını en çok ihtiyaç duyulan yerlere yönlendirmek için kullanıyoruz."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Допоможіть нам створити швидшу мережу, поділившись анонімними даними про продуктивність у вашому регіоні. Ми використовуємо ці дані для оптимізації швидкості, зменшення кількості розривів з'єднання та спрямування покриття сервером туди, де це найбільш потрібно."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hãy giúp chúng tôi xây dựng một mạng lưới nhanh hơn bằng cách chia sẻ dữ liệu hiệu suất một cách ẩn danh từ khu vực của bạn. Chúng tôi sử dụng dữ liệu này để tối ưu hóa tốc độ, giảm tình trạng ngắt kết nối và mở rộng độ phủ máy chủ tại những khu vực cần thiết nhất."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通过分享您所在地区的匿名性能数据，帮助我们构建更快速的网络。 我们将利用这些数据优化速度、减少断线，并将服务器资源精准部署到最需要的区域。"
-          }
-        }
-      }
-    },
-    "privacyData.anonymousStats.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يتم مشاركة بيانات أداء الشبكة فقط - لا نشاط التصفح الخاص بك أو البيانات الشخصية أبدا."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Es werden nur Daten über die Netzwerkleistung geteilt – niemals Ihre Surfaktivität oder Ihre persönlichen Daten."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Only network performance data is shared – never your browsing activity or personal data."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sólo los datos de rendimiento de la red son compartidos – nunca su actividad de navegación o datos personales."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "هرگز فعالیت وب گردی یا داده‌های شخصی شما به اشتراک گذاشته نمی‌شود – تنها داده‌های عملکرد شبکه."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seules les données de performance du réseau sont partagées — jamais de données personnelles ou liées à vos activités en ligne."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Only network performance data is shared – never your browsing activity or personal data."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Solo i dati sulle prestazioni di rete sono condivisi – mai la tua attività di navigazione o i tuoi dati personali."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ネットワークパフォーマンスデータのみが共有されます – ブラウジング活動や個人データは共有されません。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apenas dados de desempenho de rede são compartilhados – nunca sua atividade de navegação ou dados pessoais."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apenas dados de desempenho de rede são compartilhados – nunca sua atividade de navegação ou dados pessoais."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Передаются лишь данные о работе сети – при этом ваша активность в интернете и личные данные остаются конфиденциальными."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paylaşılan sadece ağ performans verileridir ve asla tarama etkinliğiniz veya kişisel bilgileriniz paylaşılmaz."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Поширюються лише дані про продуктивність мережі – ніколи ваша активність у мережі або особисті дані."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chỉ có dữ liệu hiệu suất mạng được chia sẻ - không bao giờ chia sẻ hoạt động duyệt web hoặc dữ liệu cá nhân của bạn."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我们仅共享网络性能数据，绝不涉及您的浏览活动或个人信息。"
-          }
-        }
-      }
-    },
-    "privacyData.anonymousStats.subtitle3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعلم بالضبط ما هو مشترك"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erfahren Sie genau, was geteilt wird"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Learn exactly what's shared"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aprende exactamente lo que es compartido"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "دقیقاً بدانید چه چیزی به اشتراک گذاشته شده است"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apprenez en détail ce qui est partagé"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Learn exactly what's shared"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impara esattamente cosa è condiviso"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "共有されているものを正確に学ぶ"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saiba exatamente o que é compartilhado"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saiba exatamente o que é compartilhado"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Узнайте точно, какие данные передаются"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paylaşılan verilerin tam olarak neler olduğunu öğrenin"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Дізнайтеся, що саме публікується"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tìm hiểu chính xác những gì được chia sẻ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "了解何种数据会被收集"
-          }
-        }
-      }
-    },
-    "privacyData.errorCrashReports" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تقارير الأخطاء و الأعطال"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fehler & Absturzberichte"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Error & crash reports"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Informes de errores"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "گزارش‌های خطا و خرابی"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rapports d'erreurs et de crashs"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Error & crash reports"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Segnalazioni di errore e crash"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "エラーとクラッシュレポート"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Relatórios de erros e erros"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Relatórios de erros e erros"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отчёты об ошибках и сбоях"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hata & çökme raporları"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Звіти про помилки та збої"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Báo cáo lỗi & sự cố"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "错误和崩溃报告"
-          }
-        }
-      }
-    },
-    "privacyData.errorCrashReports.subtitle1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sende Absturzinformationen, um uns zu helfen, Fehler schneller zu beheben.\nBerichte gehen durch das sichere System von Sentry und enthalten nur technische Debuggingdaten."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Send anonymous crash reports to help us fix bugs faster."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envíanos información de errores para ayudarnos a corregir errores más rápido.\nLos informes pasan por el sistema seguro de Sentry e incluyen solo datos técnicos de depuración."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اطلاعات خرابی را ارسال کنید تا به ما در رفع سریع‌تر باگ‌ها کمک کنید.\nگزارش‌ها از طریق سیستم امن Sentry ارسال می‌شوند و فقط شامل داده‌های فنی جهت اشکال‌زدایی هستند."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envoyez des informations de plantage pour nous aider à corriger les bugs plus rapidement.\nLes rapports passent par le système sécurisé de Sentry et n'incluent que des données techniques de débogage."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invia informazioni sul crash per aiutarci a correggere i bug più velocemente.\nRapporti passano attraverso il sistema sicuro di Sentry e includono solo dati tecnici di debug."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "バグを迅速に修正するためにクラッシュ情報を送信します。\nSentryの安全なシステムを通過し、技術的なデバッグデータのみを含めます。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envie informações sobre falhas para nos ajudar a corrigir bugs mais rapidamente.\nOs relatórios passam pelo sistema seguro do Sentry e incluem apenas dados técnicos de depuração."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отправить информацию о сбоях, чтобы помочь нам быстрее исправлять ошибки.\nОтчеты передаются через безопасную систему Sentry и содержат только технические данные для отладки."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hataları daha hızlı düzeltmemize yardımcı olmak için çökme bilgilerini paylaşın.\nRaporlar Sentry’nin güvenli sistemi aracılığıyla gönderilir ve sadece teknik hata ayıklama verilerini içerir."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Надішліть інформацію про збій, щоб допомогти нам швидше виправити помилки.\nЗвіти проходять через безпечну систему Sentry і містять лише технічні дані для усунення помилок."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gửi thông tin sự cố để giúp chúng tôi sửa lỗi nhanh hơn.\nBáo cáo được gửi qua hệ thống bảo mật của Sentry và chỉ bao gồm dữ liệu gỡ lỗi kỹ thuật."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "发送崩溃信息以帮助我们更快修复错误。\n报告将通过Sentry的安全系统传输，仅包含技术调试数据。"
-          }
-        }
-      }
-    },
-    "privacyData.errorCrashReports.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "عرض سياسة خصوصية الحراسة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sentry-Datenschutzerklärung anzeigen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View Sentry Privacy Policy"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ver política de privacidad de centinela"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مشاهده سیاست حفظ حریم خصوصی Sentry"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voir la politique de traitement des données de Sentry"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "View Sentry Privacy Policy"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visualizza Informativa Sulla Privacy Della Sentry"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sentry プライバシーポリシーを表示"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ver Política de Privacidade de Sentry"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ver Política de Privacidade de Sentry"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Посмотреть политику конфиденциальности Sentry"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sentry Gizlilik Politikasını Görüntüle"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Переглянути політику конфіденційності Sentry"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Xem Chính sách quyền riêng tư của Sentry"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "查看Sentry隐私政策"
-          }
-        }
-      }
-    },
     "processingAccount.awaitingConfirmation.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23170,6 +22463,72 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "All features included"
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.body.autoRenewOff" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Apple ID already has a NymVPN subscription, and it belongs to a different NymVPN account. It is cancelled and ends on %@. Log in to that account to use it until then, or come back after that date to subscribe with this account."
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.body.autoRenewOn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Apple ID already has a NymVPN subscription, and it belongs to a different NymVPN account. Log in to that account to use it. To subscribe with this account instead, cancel it in Settings and come back after %@."
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.manage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage subscription"
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.statusUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We couldn't check this Apple ID's subscription status. Check your connection and try again."
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.switchAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch account"
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscription on another account"
           }
         }
       }
@@ -31753,50 +31112,6 @@
         }
       }
     },
-    "welcomeOptIns.error.link" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Learn exactly what's shared"
-          }
-        }
-      }
-    },
-    "welcomeOptIns.error.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Error & crash reports"
-          }
-        }
-      }
-    },
-    "welcomeOptIns.stats.link" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View Privacy Policy"
-          }
-        }
-      }
-    },
-    "welcomeOptIns.stats.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous network stats"
-          }
-        }
-      }
-    },
     "welcomeOptIns.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32588,6 +31903,171 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "年"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.privacyLink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Read our Privacy Statement"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your connection quality"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Helps improve network connectivity"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.shares" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connect time and error codes\nSession date and length\nMode (dVPN / Mixnet) and exit server\nOS, device type, app version\nAn anonymous ID (not tied to your account)"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.never" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "your IP, browsing, or traffic contents."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.handling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Sent through the VPN tunnel to Nym. No third party."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your app errors & crashes"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Helps improve app performance"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.shares" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Crashes and error messages\nFreezes, hangs, slow performance\nWhere it happened (stack traces)\nOS, device type, app version"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.never" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "personal info, browsing, or traffic content."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.handling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Handled by Sentry, a third-party service. Nym never sees your IP."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "What's shared"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.gotIt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Got it"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.neverLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Never:"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.accessibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "What's shared: %@"
           }
         }
       }

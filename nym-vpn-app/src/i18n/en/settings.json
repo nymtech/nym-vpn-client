@@ -263,18 +263,7 @@
   },
   "privacy": {
     "title": "Data, privacy & logs",
-    "error-monitoring": {
-      "label": "Error & crash reports",
-      "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send anonymous crash reports to help us fix bugs faster.",
-      "link": "View Sentry Privacy Policy"
-    },
-    "network-stats": {
-      "label": "Anonymous network stats",
-      "sublabel": "Changes will apply after daemon restart.",
-      "desc": "Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.",
-      "link": "Learn exactly what's shared"
-    }
+    "monitoring-restart-note": "Changes will apply after app and daemon restart."
   },
   "account": {
     "planValidUntil": "Plan valid until {{date}}",

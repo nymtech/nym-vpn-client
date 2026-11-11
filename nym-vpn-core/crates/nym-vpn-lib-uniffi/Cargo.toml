@@ -37,6 +37,7 @@ nym-favorites.workspace = true
 # Dependencies specific to macOS rpc client usage
 [target.'cfg(target_os = "macos")'.dependencies]
 futures.workspace = true
+nym-authorization-service.workspace = true
 nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
 
 # Dependencies for non-macOS platforms, particularly Android and iOS

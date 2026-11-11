@@ -34,7 +34,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun LoginView(onBackClick: () -> Unit, onPassphraseClick: () -> Unit, onSocialClick: () -> Unit, modifier: Modifier = Modifier) {
+fun LoginView(onBackClick: () -> Unit, onPassphraseClick: () -> Unit, onSocialClick: () -> Unit, modifier: Modifier = Modifier, showSocial: Boolean = true) {
 	SecureOverlayProtection()
 
 	Column(
@@ -81,26 +81,28 @@ fun LoginView(onBackClick: () -> Unit, onPassphraseClick: () -> Unit, onSocialCl
 			shape = RoundedCornerShape(12.dp),
 		)
 
-		OutlineStyledButton(
-			onClick = onSocialClick,
-			content = {
-				Text(
-					stringResource(R.string.auth_log_in_social_button),
-					style = MaterialTheme.typography.titleMedium,
-					color = MaterialTheme.colorScheme.onPrimaryContainer,
-				)
-			},
-			modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
-			shape = RoundedCornerShape(12.dp),
-		)
+		if (showSocial) {
+			OutlineStyledButton(
+				onClick = onSocialClick,
+				content = {
+					Text(
+						stringResource(R.string.auth_log_in_social_button),
+						style = MaterialTheme.typography.titleMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
+					)
+				},
+				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
+			)
 
-		Text(
-			text = stringResource(R.string.auth_log_in_info),
-			textAlign = TextAlign.Center,
-			style = MaterialTheme.typography.bodyMedium,
-			color = MaterialTheme.colorScheme.onSurface,
-			modifier = Modifier.fillMaxWidth(),
-		)
+			Text(
+				text = stringResource(R.string.auth_log_in_info),
+				textAlign = TextAlign.Center,
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onSurface,
+				modifier = Modifier.fillMaxWidth(),
+			)
+		}
 	}
 }
 
