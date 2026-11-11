@@ -15,14 +15,13 @@ use nym_crypto::{
     Aes256GcmSiv, blake3, hkdf,
     symmetric::aead::{self, AeadKey, KeySizeUser, Nonce, nonce_size, random_nonce},
 };
+use nym_qr_pairing_requests::{
+    NymVpnGetPairingSecretResponse, NymVpnPairingCheckResponse, NymVpnPairingResponse,
+    PairingParams,
+};
 use nym_sdk::mixnet::x25519::{KeyPair, PublicKey};
 use nym_vpn_api_client::{
-    VpnApiClient,
-    error::VpnApiClientError,
-    response::{
-        NymVpnGetPairingSecretResponse, NymVpnPairingCheckResponse, NymVpnPairingResponse, StatusOk,
-    },
-    types::{PairingParams, VpnAccount},
+    VpnApiClient, error::VpnApiClientError, response::StatusOk, types::VpnAccount,
 };
 use nym_vpn_lib_types::{AccountCommandError, QrPairingConfirmation, QrUrl};
 use rand::Rng;
@@ -73,6 +72,7 @@ enum QrPairingProcessHandle {
     None,
     PairingCheck {
         shared_key: Arc<Mutex<Option<SharedSymmetricKey>>>,
+        qr_pubkey: String,
         session_id: u32,
         _drop_guard: DropGuard,
     },
@@ -171,6 +171,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
         let shared_key = Arc::new(Mutex::new(None));
         let shared_key_setter = shared_key.clone();
         let session_id = self.session_id;
+        let qr_pubkey = self.qr_keypair.public_key().to_string();
 
         tokio::spawn(async move {
             loop {
@@ -188,7 +189,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                             break;
                         }
                         let Some(response) = self
-                            .unless_cancelled(self.vpn_api_client.check_pairing_account(&account))
+                            .unless_cancelled(self.vpn_api_client.check_pairing_account(&account, &self.qr_keypair.public_key().to_string()))
                             .await
                         else {
                             tracing::debug!("QR pairing loop cancelled");
@@ -237,6 +238,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
             _drop_guard: cancel_token.drop_guard(),
             session_id,
             shared_key,
+            qr_pubkey,
         }
     }
 
@@ -244,12 +246,12 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
         self,
         remote_qr_pub_key: PublicKey,
         shared_key: SharedSymmetricKey,
-        token: String,
+        pairing_token: String,
         ttl: Duration,
     ) -> QrPairingProcessHandle {
         let initial_instant = tokio::time::Instant::now();
         let mut interval = tokio::time::interval(RETRY_INTERVAL);
-        let pairing_params = PairingParams { token };
+        let pairing_params = PairingParams { pairing_token };
         let cancel_token = self.cancel_token.clone();
 
         tokio::spawn(async move {
@@ -332,6 +334,7 @@ pub trait PairingApiClient: Clone {
     async fn check_pairing_account(
         &self,
         account: &VpnAccount,
+        qr_pub_key: &str,
     ) -> Result<NymVpnPairingCheckResponse, VpnApiClientError>;
     async fn try_to_pair_to_account(
         &self,
@@ -348,6 +351,7 @@ pub trait PairingApiClient: Clone {
     async fn share_secret_account(
         &self,
         account: &VpnAccount,
+        remote_qr_pub_key: &str,
         enc_mnemonic: Vec<u8>,
         nonce: Vec<u8>,
     ) -> Result<StatusOk, VpnApiClientError>;
@@ -366,8 +370,9 @@ impl PairingApiClient for VpnApiClient {
     async fn check_pairing_account(
         &self,
         account: &VpnAccount,
+        qr_pub_key: &str,
     ) -> Result<NymVpnPairingCheckResponse, VpnApiClientError> {
-        self.check_pairing_account(account).await
+        self.check_pairing_account(account, qr_pub_key).await
     }
 
     async fn try_to_pair_to_account(
@@ -393,10 +398,11 @@ impl PairingApiClient for VpnApiClient {
     async fn share_secret_account(
         &self,
         account: &VpnAccount,
+        remote_qr_pub_key: &str,
         enc_mnemonic: Vec<u8>,
         nonce: Vec<u8>,
     ) -> Result<StatusOk, VpnApiClientError> {
-        self.share_secret_account(account, enc_mnemonic, nonce)
+        self.share_secret_account(account, remote_qr_pub_key, enc_mnemonic, nonce)
             .await
     }
 }
@@ -518,6 +524,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         let QrPairingProcessHandle::PairingCheck {
             ref shared_key,
             session_id,
+            ref qr_pubkey,
             ..
         } = self.process_handle
         else {
@@ -547,7 +554,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         };
 
         self.vpn_api_client
-            .share_secret_account(account, enc_mnemonic, nonce.to_vec())
+            .share_secret_account(account, qr_pubkey, enc_mnemonic, nonce.to_vec())
             .await?;
 
         Ok(())
@@ -585,9 +592,7 @@ mod tests {
     use std::collections::HashMap;
 
     use nym_http_api_client::HttpClientError;
-    use nym_vpn_api_client::{
-        request::SharePairSecretBody, response::NymVpnPairingFinalisedResponse,
-    };
+    use nym_qr_pairing_requests::{NymVpnPairingFinalisedResponse, SharePairSecretBody};
     use tokio::time::Instant;
 
     use crate::event_sender::AccountControllerEventReceiver;
@@ -595,21 +600,39 @@ mod tests {
     use super::*;
 
     const TTL: Duration = Duration::from_mins(5);
+    // The TTL returned by the API is informational: the API and the client each enforce it on
+    // their own clock, so around the TTL a process ends either with the client's own timeout or
+    // with the API rejecting a poll for an already expired process. Tests only check that the
+    // process is still running well within the TTL, and has ended well after it.
+    const WITHIN_TTL: Duration = Duration::from_mins(4);
+    const PAST_TTL: Duration = Duration::from_mins(6);
+
+    // The mocked API mirrors the pairing service's `PairingManager`
+    // (`websites/packages/qr-pairing/rust/pairing-service/src/service/manager.rs`): one pairing
+    // process per QR public key, owned by the account that registered it, moving through
+    // `Empty -> InProgress -> SharedSecret`, and expiring TTL after it was registered or paired.
 
     struct LoggedOutData {
         pairing_response: NymVpnPairingFinalisedResponse,
         token: String,
-        started: Instant,
     }
 
-    struct LoggedInData {
-        paired_data: Option<LoggedOutData>,
-        started: Instant,
+    enum PairingState {
+        /// Waiting for a logged out device to scan the QR code
+        Empty,
+        /// Scanned; waiting for the logged in device to share the secret
+        InProgress(LoggedOutData),
+        /// Secret shared; handed out to whoever presents the token from the pairing request
+        SharedSecret {
+            token: String,
+            secret_body: SharePairSecretBody,
+        },
     }
 
-    struct SecretData {
-        secret_body: SharePairSecretBody,
-        shared: Instant,
+    struct PairingProcess {
+        account_id: String,
+        state: PairingState,
+        expires_at: Instant,
     }
 
     #[derive(Default)]
@@ -617,9 +640,40 @@ mod tests {
         /// Makes the polling requests hang, like a stalled network
         hang_requests: bool,
         hanging_requests: usize,
-        account_to_pub_key: HashMap<String, String>,
-        pairing_logged_in_data: HashMap<String, LoggedInData>,
-        pairing_secret_data: HashMap<String, SecretData>,
+        /// Pairing processes by QR public key
+        pairing_processes: HashMap<String, PairingProcess>,
+    }
+
+    impl ApiDb {
+        /// Like `PairingManager::active_pairing_process`: the process must exist and not be
+        /// expired, and when an account is given, it must own the process.
+        fn active_process(
+            &mut self,
+            qr_pub_key: &str,
+            account_id: Option<&str>,
+        ) -> Result<&mut PairingProcess, Box<HttpClientError>> {
+            let process = self
+                .pairing_processes
+                .get_mut(qr_pub_key)
+                .filter(|process| process.expires_at > Instant::now())
+                .ok_or_else(|| {
+                    api_error("404: no active pairing process for the provided QR public key")
+                })?;
+            if account_id.is_some_and(|account_id| account_id != process.account_id) {
+                return Err(api_error("401: the public key is part of another account"));
+            }
+            Ok(process)
+        }
+
+        fn has_shared_secret(&self) -> bool {
+            self.pairing_processes
+                .values()
+                .any(|process| matches!(process.state, PairingState::SharedSecret { .. }))
+        }
+    }
+
+    fn api_error(message: &str) -> Box<HttpClientError> {
+        Box::new(HttpClientError::GenericRequestFailure(message.to_string()))
     }
 
     #[derive(Clone)]
@@ -642,13 +696,13 @@ mod tests {
         ) -> Result<NymVpnPairingResponse, VpnApiClientError> {
             let mut db = self.api_db.lock().await;
 
-            db.account_to_pub_key
-                .insert(account.pub_key().to_string(), qr_pub_key.to_string());
-            db.pairing_logged_in_data.insert(
+            // registering a QR key again replaces its process
+            db.pairing_processes.insert(
                 qr_pub_key.to_string(),
-                LoggedInData {
-                    paired_data: None,
-                    started: Instant::now(),
+                PairingProcess {
+                    account_id: account.id(),
+                    state: PairingState::Empty,
+                    expires_at: Instant::now() + TTL,
                 },
             );
 
@@ -660,6 +714,7 @@ mod tests {
         async fn check_pairing_account(
             &self,
             account: &VpnAccount,
+            qr_pub_key: &str,
         ) -> Result<NymVpnPairingCheckResponse, VpnApiClientError> {
             let mut db = self.api_db.lock().await;
             if db.hang_requests {
@@ -668,27 +723,20 @@ mod tests {
                 return std::future::pending().await;
             }
 
-            let Some(data) = db
-                .account_to_pub_key
-                .get(account.pub_key())
-                .and_then(|k| db.pairing_logged_in_data.get(k))
-            else {
-                return Err(VpnApiClientError::CheckPairingAccount(Box::new(
-                    HttpClientError::GenericRequestFailure("pairing not started".to_string()),
-                )));
+            let process = db
+                .active_process(qr_pub_key, Some(&account.id()))
+                .map_err(VpnApiClientError::CheckPairingAccount)?;
+            let inner = match &process.state {
+                PairingState::Empty => None,
+                PairingState::InProgress(data) => Some(data.pairing_response.clone()),
+                PairingState::SharedSecret { .. } => {
+                    return Err(VpnApiClientError::CheckPairingAccount(api_error(
+                        "400: the process already advanced",
+                    )));
+                }
             };
-            if Instant::now() - data.started > TTL {
-                return Err(VpnApiClientError::CheckPairingAccount(Box::new(
-                    HttpClientError::GenericRequestFailure("pairing timeframe expired".to_string()),
-                )));
-            }
 
-            Ok(NymVpnPairingCheckResponse {
-                inner: data
-                    .paired_data
-                    .as_ref()
-                    .map(|d| d.pairing_response.clone()),
-            })
+            Ok(NymVpnPairingCheckResponse { inner })
         }
 
         async fn try_to_pair_to_account(
@@ -700,38 +748,24 @@ mod tests {
         ) -> Result<NymVpnPairingResponse, VpnApiClientError> {
             let mut db = self.api_db.lock().await;
 
-            let Some(data) = db.pairing_logged_in_data.get_mut(remote_qr_pub_key) else {
-                return Err(VpnApiClientError::TryToPairToAccount(Box::new(
-                    HttpClientError::GenericRequestFailure(
-                        "no pairing process for the provided key".to_string(),
-                    ),
-                )));
-            };
-
-            if Instant::now() - data.started > TTL {
-                return Err(VpnApiClientError::TryToPairToAccount(Box::new(
-                    HttpClientError::GenericRequestFailure(
-                        "pairing process TTL expired".to_string(),
-                    ),
+            let process = db
+                .active_process(remote_qr_pub_key, None)
+                .map_err(VpnApiClientError::TryToPairToAccount)?;
+            if !matches!(process.state, PairingState::Empty) {
+                // first come, first served: a second scan might be a MitM attempt
+                return Err(VpnApiClientError::TryToPairToAccount(api_error(
+                    "400: pairing request has already been submitted for this QR public key",
                 )));
             }
 
-            if data.paired_data.is_some() {
-                return Err(VpnApiClientError::TryToPairToAccount(Box::new(
-                    HttpClientError::GenericRequestFailure(
-                        "pairing completes with first come first serverd party; you might be under a MitM attack".to_string(),
-                    ),
-                )));
-            }
-
-            data.paired_data = Some(LoggedOutData {
+            process.state = PairingState::InProgress(LoggedOutData {
                 pairing_response: NymVpnPairingFinalisedResponse {
                     pin_code: pin_code.to_string(),
                     remote_pub_key: local_qr_pub_key.to_string(),
                 },
                 token: token.to_string(),
-                started: Instant::now(),
             });
+            process.expires_at = Instant::now() + TTL;
 
             Ok(NymVpnPairingResponse {
                 ttl_seconds: TTL.as_secs(),
@@ -750,31 +784,25 @@ mod tests {
                 return std::future::pending().await;
             }
 
-            let Some(data) = db
-                .pairing_logged_in_data
-                .get(remote_qr_pub_key)
-                .and_then(|data| data.paired_data.as_ref())
-            else {
-                return Err(VpnApiClientError::GetPairingSecretAccount(Box::new(
-                    HttpClientError::GenericRequestFailure(
-                        "pairing process not at the correct stage".to_string(),
-                    ),
-                )));
+            let process = db
+                .active_process(remote_qr_pub_key, None)
+                .map_err(VpnApiClientError::GetPairingSecretAccount)?;
+            let inner = match &process.state {
+                PairingState::Empty => {
+                    return Err(VpnApiClientError::GetPairingSecretAccount(api_error(
+                        "400: pairing process not started",
+                    )));
+                }
+                PairingState::InProgress(_) => None,
+                PairingState::SharedSecret { token, secret_body } => {
+                    if pairing_params.pairing_token != *token {
+                        return Err(VpnApiClientError::GetPairingSecretAccount(api_error(
+                            "401: provided token is not correct",
+                        )));
+                    }
+                    Some(secret_body.clone())
+                }
             };
-
-            if pairing_params.token != data.token {
-                return Err(VpnApiClientError::GetPairingSecretAccount(Box::new(
-                    HttpClientError::GenericRequestFailure(
-                        "token is not the same as the one from the previous pairing step"
-                            .to_string(),
-                    ),
-                )));
-            }
-
-            let inner = db
-                .pairing_secret_data
-                .get(remote_qr_pub_key)
-                .map(|d| d.secret_body.clone());
 
             Ok(NymVpnGetPairingSecretResponse { inner })
         }
@@ -782,27 +810,37 @@ mod tests {
         async fn share_secret_account(
             &self,
             account: &VpnAccount,
+            qr_pub_key: &str,
             enc_mnemonic: Vec<u8>,
             nonce: Vec<u8>,
         ) -> Result<StatusOk, VpnApiClientError> {
             let mut db = self.api_db.lock().await;
 
-            let Some(qr_pub_key) = db.account_to_pub_key.get(account.pub_key()).cloned() else {
-                return Err(VpnApiClientError::SharePairingSecretAccount(Box::new(
-                    HttpClientError::GenericRequestFailure("pairing not started".to_string()),
-                )));
+            let account_id = account.id();
+            let process = db
+                .active_process(qr_pub_key, Some(&account_id))
+                .map_err(VpnApiClientError::SharePairingSecretAccount)?;
+            let token = match &process.state {
+                PairingState::Empty => {
+                    return Err(VpnApiClientError::SharePairingSecretAccount(api_error(
+                        "400: process was not started",
+                    )));
+                }
+                PairingState::InProgress(data) => data.token.clone(),
+                PairingState::SharedSecret { .. } => {
+                    return Err(VpnApiClientError::SharePairingSecretAccount(api_error(
+                        "400: secret was already shared",
+                    )));
+                }
             };
-
-            db.pairing_secret_data.insert(
-                qr_pub_key,
-                SecretData {
-                    secret_body: SharePairSecretBody {
-                        enc_mnemonic,
-                        nonce,
-                    },
-                    shared: Instant::now(),
+            process.state = PairingState::SharedSecret {
+                token,
+                secret_body: SharePairSecretBody {
+                    enc_mnemonic,
+                    nonce,
+                    account_id,
                 },
-            );
+            };
 
             Ok(StatusOk {
                 status: "Ok".to_string(),
@@ -961,17 +999,19 @@ mod tests {
             .await
             .unwrap();
 
-        // nothing should happen for the whole TTL
-        assert_no_event_for(&mut logged_in_event_rx, TTL).await;
+        // nothing should happen well within the TTL
+        assert_no_event_for(&mut logged_in_event_rx, WITHIN_TTL).await;
 
-        // the timeout is detected on the first retry tick after the TTL
+        // the check ends around the TTL, timed out by the client or expired by the API
         let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(
-            matches!(event, AccountControllerPairingResult::TimedOut),
+            matches!(
+                event,
+                AccountControllerPairingResult::TimedOut | AccountControllerPairingResult::Error(_)
+            ),
             "{event:?}"
         );
-        assert!(started.elapsed() > TTL);
-        assert!(started.elapsed() <= TTL + RETRY_INTERVAL);
+        assert!(started.elapsed() <= PAST_TTL);
 
         // the shared key was never derived, so the PIN can't be verified
         let err = logged_in_handler
@@ -980,7 +1020,7 @@ mod tests {
             .unwrap_err();
         assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
 
-        // the failed verification also discards the timed out process
+        // the failed verification also discards the ended process
         let err = logged_in_handler
             .verified_pairing_pin(&account, url.session_id)
             .await
@@ -1019,15 +1059,18 @@ mod tests {
         );
 
         // the logged in device never confirms the PIN
-        assert_no_event_for(&mut logged_out_event_rx, TTL - started.elapsed()).await;
+        assert_no_event_for(&mut logged_out_event_rx, WITHIN_TTL - started.elapsed()).await;
 
+        // the secret query ends around the TTL, timed out by the client or expired by the API
         let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
         assert!(
-            matches!(event, AccountControllerPairingResult::TimedOut),
+            matches!(
+                event,
+                AccountControllerPairingResult::TimedOut | AccountControllerPairingResult::Error(_)
+            ),
             "{event:?}"
         );
-        assert!(started.elapsed() > TTL);
-        assert!(started.elapsed() <= TTL + RETRY_INTERVAL);
+        assert!(started.elapsed() <= PAST_TTL);
     }
 
     #[tokio::test(start_paused = true)]
@@ -1355,7 +1398,7 @@ mod tests {
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::PairingNotStarted);
-        assert!(api_db.lock().await.pairing_secret_data.is_empty());
+        assert!(!api_db.lock().await.has_shared_secret());
     }
 
     #[tokio::test(start_paused = true)]
@@ -1419,7 +1462,7 @@ mod tests {
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::PairingNotStarted);
-        assert!(api_db.lock().await.pairing_secret_data.is_empty());
+        assert!(!api_db.lock().await.has_shared_secret());
     }
 
     #[tokio::test(start_paused = true)]
@@ -1439,7 +1482,7 @@ mod tests {
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
-        assert!(api_db.lock().await.pairing_secret_data.is_empty());
+        assert!(!api_db.lock().await.has_shared_secret());
 
         // verifying too early aborts the pairing
         let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
@@ -1698,7 +1741,12 @@ mod tests {
         let mut rng = rand::rng();
         let nonce = random_nonce::<Aes256GcmSiv, _>(&mut rng);
         MockedApiClient::new(api_db.clone())
-            .share_secret_account(&account, vec![0u8; 64], nonce.to_vec())
+            .share_secret_account(
+                &account,
+                pub_key_from_url(&url),
+                vec![0u8; 64],
+                nonce.to_vec(),
+            )
             .await
             .unwrap();
 
@@ -1737,7 +1785,12 @@ mod tests {
         );
 
         MockedApiClient::new(api_db.clone())
-            .share_secret_account(&account, vec![0u8; 64], vec![0u8; 3])
+            .share_secret_account(
+                &account,
+                pub_key_from_url(&url),
+                vec![0u8; 64],
+                vec![0u8; 3],
+            )
             .await
             .unwrap();
 

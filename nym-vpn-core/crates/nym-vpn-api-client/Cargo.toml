@@ -31,6 +31,7 @@ nym-crypto = { workspace = true, features = [
     "stream_cipher",
 ] }
 nym-http-api-client.workspace = true
+nym-qr-pairing-requests.workspace = true
 nym-serde-helpers = { workspace = true, features = ["base64"] }
 nym-network-defaults = { workspace = true, optional = true }
 nym-validator-client.workspace = true

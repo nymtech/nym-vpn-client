@@ -7039,6 +7039,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-qr-pairing-requests"
+version = "2026.16.0-beta.1"
+dependencies = [
+ "nym-serde-helpers",
+ "schemars 0.8.22",
+ "serde",
+ "zeroize",
+]
+
+[[package]]
 name = "nym-registration-client"
 version = "1.22.3"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
@@ -7727,6 +7737,7 @@ dependencies = [
  "nym-http-api-client",
  "nym-network-defaults",
  "nym-offline-monitor",
+ "nym-qr-pairing-requests",
  "nym-sdk",
  "nym-validator-client",
  "nym-vpn-api-client",
@@ -7772,6 +7783,7 @@ dependencies = [
  "nym-crypto",
  "nym-http-api-client",
  "nym-network-defaults",
+ "nym-qr-pairing-requests",
  "nym-serde-helpers",
  "nym-validator-client",
  "serde",

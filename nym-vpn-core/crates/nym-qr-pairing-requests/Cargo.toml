@@ -1,0 +1,19 @@
+[package]
+name = "nym-qr-pairing-requests"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+schemars = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"] }
+zeroize = { workspace = true, features = ["derive"] }
+
+nym-serde-helpers = { workspace = true, features = ["base64"] }
+
+[lints]
+workspace = true
