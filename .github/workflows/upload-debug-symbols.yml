@@ -115,11 +115,40 @@ jobs:
         with:
           pattern: "*_debug_symbols_*"
           path: debug_symbols
+          skip-decompress: true
+
+      - name: Prepare debug symbols for S3
+        env:
+          BUILD_TIMESTAMP: ${{ inputs.build_timestamp }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          out_dir="$GITHUB_WORKSPACE/debug_symbols_s3"
+          mkdir -p "$out_dir"
+
+          for dir in debug_symbols/*/; do
+            name="$(basename "$dir")"
+            files=("$dir"*)
+            if [[ ${#files[@]} -ne 1 ]]; then
+              echo "::error::Expected one zip in $dir, found ${#files[@]}"
+              exit 1
+            fi
+            mv "${files[0]}" "$out_dir/$name.zip"
+          done
+
+          for zip_file in "$out_dir"/*.zip; do basename "$zip_file"; done \
+            | jq -R -s --arg ts "$BUILD_TIMESTAMP" \
+              '{timestamp: $ts, files: (split("\n") | map(select(length > 0)))}' \
+            > "$out_dir/manifest.json"
+
+          ls -l "$out_dir"
+          cat "$out_dir/manifest.json"
 
       - name: Publish debug symbols to S3
         uses: ./.github/actions/push-to-s3
         with:
-          source_path: debug_symbols/
+          source_path: debug_symbols_s3/
           destination: nym-vpn-client/nym-vpn-core/${{ inputs.github_branch }}/${{ inputs.build_timestamp }}/debug-symbols/
           aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
