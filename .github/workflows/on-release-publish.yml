@@ -27,6 +27,11 @@ on:
         description: Whether this release built F-Droid (gates the fdroid repo dispatch)
         required: false
         default: true
+      release_branch:
+        type: string
+        description: Release branch the release was built from (gets the changelog version headers)
+        required: false
+        default: ''
   workflow_dispatch:
     inputs:
       tag_name:
@@ -48,6 +53,9 @@ on:
         type: boolean
         description: Whether this release built F-Droid (gates the fdroid repo dispatch)
         default: true
+      release_branch:
+        type: string
+        description: Release branch the release was built from (gets the changelog version headers)
 
 permissions:
   contents: read
@@ -148,6 +156,18 @@ jobs:
     with:
       branch: develop
       version: ${{ needs.setup.outputs.version }}
+
+  changelog-release-header:
+    needs: setup
+    if: ${{ startsWith(inputs.release_branch, 'release/') }}
+    uses: ./.github/workflows/set-changelog-release-date.yml
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      branch: ${{ inputs.release_branch }}
+      version: ${{ needs.setup.outputs.version }}
+      insert_missing: true
 
   post-release:
     needs: setup
