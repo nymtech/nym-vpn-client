@@ -2,7 +2,24 @@ name: upload-debug-symbols
 
 on:
   workflow_call:
+    inputs:
+      publish_s3:
+        description: "Whether to publish debug symbols on S3"
+        type: boolean
+        required: true
+      github_branch:
+        description: "Github branch"
+        type: string
+        required: true
+      build_timestamp:
+        description: "Build timestamp (format: YYYYMMDDHHmm)"
+        type: string
+        required: true
     secrets:
+      GARAGE_AWS_ACCESS_KEY_ID:
+        required: false
+      GARAGE_AWS_SECRET_ACCESS_KEY:
+        required: false
       VPND_SENTRY_CLI_AUTH_TOKEN:
         required: false
       VPND_SENTRY_CLI_ORG:
@@ -88,3 +105,26 @@ jobs:
           fi
 
           sentry-cli debug-files upload apple_debug_symbols
+
+  s3:
+    if: ${{ inputs.publish_s3 && inputs.github_branch != '' && inputs.build_timestamp != '' }}
+    continue-on-error: true
+    runs-on: arc-linux-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Download debug symbols
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: "*_debug_symbols_*"
+          path: debug_symbols
+
+      - name: Publish debug symbols to S3
+        uses: ./.github/actions/push-to-s3
+        with:
+          source_path: debug_symbols/
+          destination: nym-vpn-client/nym-vpn-core/${{ inputs.github_branch }}/${{ inputs.build_timestamp }}/debug-symbols/
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}

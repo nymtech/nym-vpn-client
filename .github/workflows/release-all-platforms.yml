@@ -456,8 +456,12 @@ jobs:
           retention-days: 1
 
   upload-debug-symbols:
-    needs: [build]
+    needs: [resolve, build]
     uses: ./.github/workflows/upload-debug-symbols.yml
+    with:
+      publish_s3: ${{ needs.resolve.outputs.publish_s3 == 'true' }}
+      github_branch: ${{ github.ref_name }}
+      build_timestamp: ${{ needs.resolve.outputs.build_timestamp }}
     secrets: inherit
 
   release:
