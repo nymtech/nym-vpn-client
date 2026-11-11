@@ -63,6 +63,7 @@ gross {
 android {
 	namespace = Constants.APP_ID
 	compileSdk = Constants.COMPILE_SDK
+	ndkVersion = Constants.NDK_VERSION
 
 	androidResources {
 		generateLocaleConfig = true

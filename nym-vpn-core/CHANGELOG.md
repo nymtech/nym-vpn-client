@@ -7,12 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- Strip debug info in release builds (https://github.com/nymtech/nym-vpn-client/pull/7018)
-
 ## [2026.15.0] - 2026-11-05
-
 
 ### Added
 

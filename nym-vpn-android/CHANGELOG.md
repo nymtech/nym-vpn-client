@@ -7,8 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Strip prebuilt native libraries such as `libjnidispatch.so` in CI release builds, so they match F-Droid's (https://github.com/nymtech/nym-vpn-client/pull/7057)
+
+
+## [2026.15.2] - 2026-11-10
+
 ### Changed
+
 - Let the Android Gradle plugin strip all native libraries, including `libjnidispatch.so` from JNA (https://github.com/nymtech/nym-vpn-client/pull/7018)
+
 
 ## [2026.15.0] - 2026-11-05
 
