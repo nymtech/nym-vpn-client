@@ -77,7 +77,7 @@ strip = "debuginfo"
 
 [profile.ci]
 inherits = "dev"
-debug = 1
+debug = false
 
 [profile.fdroid]
 inherits = "release"
