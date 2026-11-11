@@ -333,11 +333,7 @@ fn select_entry(
         entry_ordering_criteria.clone(),
         &entry_filters,
     );
-    // Auto falls back to a direct connection, so only On makes a missing bridge fatal.
-    if entry_gateway.is_err()
-        && use_bridges
-        && tunnel_settings.wireguard_tunnel_options.bridge_mode == nym_vpn_lib_types::BridgeMode::On
-    {
+    if entry_gateway.is_err() && use_bridges {
         entry_filters.remove(&GatewayFilter::QuicEnabled);
         if find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters).is_ok()
         {
@@ -671,16 +667,6 @@ mod tests {
         let result = select_pinned_without_bridge(nym_vpn_lib_types::BridgeMode::On).await;
 
         assert!(matches!(
-            result,
-            Err(GatewayProviderError::EntryGatewayHasNoBridge)
-        ));
-    }
-
-    #[tokio::test]
-    async fn bridge_mode_auto_pinned_entry_without_bridge_keeps_generic_error() {
-        let result = select_pinned_without_bridge(nym_vpn_lib_types::BridgeMode::Auto).await;
-
-        assert!(!matches!(
             result,
             Err(GatewayProviderError::EntryGatewayHasNoBridge)
         ));
