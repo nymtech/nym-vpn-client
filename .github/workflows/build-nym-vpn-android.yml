@@ -399,7 +399,7 @@ jobs:
           set -euo pipefail
           symbols_prefix=BUNDLE-METADATA/com.android.tools.build.debugsymbols
           bundle_dir="$(mktemp -d)"
-          unzip -q "$ARTIFACT_PATH" "$symbols_prefix/*/libnym_vpn_lib_uniffi.so.dbg" -d "$bundle_dir"
+          unzip -q "$ARTIFACT_PATH" "$symbols_prefix/*/*.so.dbg" -d "$bundle_dir"
           rm -rf "$DEBUG_SYMBOLS_DIR_ANDROID"
           mv "$bundle_dir/$symbols_prefix" "$DEBUG_SYMBOLS_DIR_ANDROID"
           find "$DEBUG_SYMBOLS_DIR_ANDROID" -type f
