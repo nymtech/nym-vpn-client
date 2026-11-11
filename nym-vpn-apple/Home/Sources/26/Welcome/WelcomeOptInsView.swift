@@ -15,6 +15,8 @@ public struct WelcomeOptInsView: View {
 
     @EnvironmentObject private var appSettings: AppSettings
 
+    @State private var infoContent: TelemetryInfoContent?
+
     private let onContinue: () -> Void
 
     public init(onContinue: @escaping () -> Void) {
@@ -27,6 +29,7 @@ public struct WelcomeOptInsView: View {
             VStack(spacing: AuthLayout.stackSpacing) {
                 heading
                 subtitle
+                privacyLink
             }
             cards
             continueButton
@@ -37,6 +40,11 @@ public struct WelcomeOptInsView: View {
         // SentryManager observes this publisher; AppStorage alone would not reach it until relaunch.
         .onChange(of: isErrorReportingOn) {
             appSettings.isErrorReportingOnPublisher = isErrorReportingOn
+        }
+        .sheet(item: $infoContent) { content in
+            TelemetryInfoSheet(content: content) {
+                infoContent = nil
+            }
         }
     }
 }
@@ -63,59 +71,52 @@ private extension WelcomeOptInsView {
             .padding(.horizontal, NymSpacing.component)
     }
 
-    var cards: some View {
-        VStack(spacing: NymSpacing.small) {
-            optInCard(
-                title: "welcomeOptIns.stats.title".localizedString,
-                linkTitle: "welcomeOptIns.stats.link".localizedString,
-                linkURL: URL(string: Constants.anonymousStatsURL.rawValue),
-                isOn: $isStatisticsEnabled
-            )
-            optInCard(
-                title: "welcomeOptIns.error.title".localizedString,
-                linkTitle: "welcomeOptIns.error.link".localizedString,
-                linkURL: URL(string: Constants.sentryURL.rawValue),
-                isOn: $isErrorReportingOn
-            )
-        }
-    }
-
-    func optInCard(
-        title: String,
-        linkTitle: String,
-        linkURL: URL?,
-        isOn: Binding<Bool>
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: NymSpacing.small) {
-                Text(title)
-                    .nymTextStyle(.bodyDefaultBold)
-                    .foregroundStyle(Color.Nym.textPrimary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Toggle("", isOn: isOn)
-                    .labelsHidden()
-                    .tint(Color.Nym.primary)
-                    .accessibilityLabel(Text(title))
-            }
-            if let linkURL {
-                Link(destination: linkURL) {
-                    Text(linkTitle)
-                        .nymTextStyle(.bodySmall)
-                        .foregroundStyle(Color.Nym.info)
-                        .underline()
-                }
-            } else {
-                Text(linkTitle)
+    @ViewBuilder
+    var privacyLink: some View {
+        if let url = URL(string: Constants.privacyPolicyURL.rawValue) {
+            Link(destination: url) {
+                Text("welcomeOptIns.privacyLink".localizedString)
                     .nymTextStyle(.bodySmall)
                     .foregroundStyle(Color.Nym.info)
                     .underline()
             }
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.Nym.surfaceAlt)
+    }
+
+    var cards: some View {
+        VStack(spacing: NymSpacing.small) {
+            TelemetryOptInCard(
+                icon: "chart.bar",
+                title: "welcomeOptIns.connection.title".localizedString,
+                subtitle: "welcomeOptIns.connection.subtitle".localizedString,
+                isOn: $isStatisticsEnabled,
+                onInfo: { infoContent = connectionInfo() }
+            )
+            TelemetryOptInCard(
+                icon: "ladybug",
+                title: "welcomeOptIns.monitoring.title".localizedString,
+                subtitle: "welcomeOptIns.monitoring.subtitle".localizedString,
+                isOn: $isErrorReportingOn,
+                onInfo: { infoContent = monitoringInfo() }
+            )
+        }
+    }
+
+    func connectionInfo() -> TelemetryInfoContent {
+        .telemetry(
+            id: "connection",
+            sharesKey: "welcomeOptIns.connection.shares",
+            neverKey: "welcomeOptIns.connection.never",
+            handlingKey: "welcomeOptIns.connection.handling"
+        )
+    }
+
+    func monitoringInfo() -> TelemetryInfoContent {
+        .telemetry(
+            id: "monitoring",
+            sharesKey: "welcomeOptIns.monitoring.shares",
+            neverKey: "welcomeOptIns.monitoring.never",
+            handlingKey: "welcomeOptIns.monitoring.handling"
         )
     }
 
