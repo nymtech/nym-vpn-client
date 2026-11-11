@@ -143,6 +143,8 @@ jobs:
         run: |
           set -euo pipefail
           sed -i -e '/foojay/d' settings.gradle.kts
+          # F-Droid's build server removes signing configs before building.
+          sed -i -e '/^\s*signingConfig\s*=/d' app/build.gradle.kts
           ./gradlew :app:assembleFdroidRelease -PbuildDeps=false
           apks="$(find app/build/outputs/apk/fdroid/release -name '*.apk')"
           [ "$(wc -l <<< "$apks")" -eq 1 ] || { echo "::error::Expected one APK, found: $apks"; exit 1; }
