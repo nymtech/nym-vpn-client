@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 - [Android] Build C/C++ dependencies of `nym-vpn-lib` with `-fstack-protector-strong` (https://github.com/nymtech/nym-vpn-client/pull/6960)
-- [Linux] Disable core dumps of `nym-vpnd`, which would contain the WireGuard private key and account tokens (https://github.com/nymtech/nym-vpn-client/issues/7044)
+- [Linux] Disable core dumps of `nym-vpnd`, which would contain the WireGuard private key and account tokens (https://github.com/nymtech/nym-vpn-client/pull/7067)
 - [macOS] Require user presence with password or Touch ID for account-related operations. Affects the app and the CLI. Use `nym-vpnc authorize` and `nym-vpnc deauthorize` to manage authorization (https://github.com/nymtech/nym-vpn-client/pull/6980)
 
 
