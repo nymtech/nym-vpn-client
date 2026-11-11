@@ -7857,7 +7857,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This server doesn't offer a bridge. Choose another server or set Enhanced connection to Auto or Off."
+            "value" : "No entry server for your selection offers a bridge. Choose a different entry server or location, or set Enhanced connection to Auto or Off."
           }
         }
       }
