@@ -16,6 +16,10 @@ use nym_http_api_client::{
         header::{DATE, HeaderMap},
     },
 };
+use nym_qr_pairing_requests::{
+    NymVpnGetPairingSecretResponse, NymVpnPairingCheckResponse, NymVpnPairingResponse,
+    PairAccountRequestBody, PairingParams, SharePairSecretBody, TryToPairRequestBody,
+};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use time::{
     Date, OffsetDateTime,
@@ -29,25 +33,22 @@ use crate::{
     request::{
         AccountKind, AppleIntroOfferEligibilityRequestBody, ApplyFreepassRequestBody,
         CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody, CreateSubscriptionKind,
-        CreateSubscriptionRequestBody, LinkAccountRequestBody, PairAccountRequestBody,
-        RegisterDeviceRequestBody, RequestZkNymRequestBody, SharePairSecretBody,
-        TryToPairRequestBody, UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
+        CreateSubscriptionRequestBody, LinkAccountRequestBody, RegisterDeviceRequestBody,
+        RequestZkNymRequestBody, UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
     },
     response::{
         AppleIntroOfferEligibilityResponse, NymDirectoryGatewayCountriesResponse,
         NymDirectoryGatewaysResponse, NymUserGeoIpLocationResponse, NymVpnAccountResponse,
         NymVpnAccountSummaryResponse, NymVpnAccountSummaryWithDeviceResponse,
         NymVpnCanonicalAccountIdentityResponse, NymVpnDevice, NymVpnDevicesResponse,
-        NymVpnGetPairingSecretResponse, NymVpnHealthResponse, NymVpnPairingCheckResponse,
-        NymVpnPairingResponse, NymVpnRegisterAccountResponse, NymVpnSubscription,
+        NymVpnHealthResponse, NymVpnRegisterAccountResponse, NymVpnSubscription,
         NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnUsagesResponse, NymVpnZkNym,
         NymVpnZkNymPost, NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
     skew_manager::{RemoteTimeProvider, SkewManager},
     types::{
-        Device, DeviceStatus, GatewayMinPerformance, GatewayType, PairingParams, Platform,
-        VpnAccount, VpnApiTime,
+        Device, DeviceStatus, GatewayMinPerformance, GatewayType, Platform, VpnAccount, VpnApiTime,
     },
 };
 
@@ -637,6 +638,7 @@ impl VpnApiClient {
     ) -> Result<NymVpnPairingResponse> {
         let request = PairAccountRequestBody {
             pubkey: qr_pub_key.to_string(),
+            account_id: account.id(),
         };
 
         self.post_authorized(
@@ -659,6 +661,7 @@ impl VpnApiClient {
     pub async fn check_pairing_account(
         &self,
         account: &VpnAccount,
+        qr_pub_key: &str,
     ) -> Result<NymVpnPairingCheckResponse> {
         self.get_authorized(
             &[
@@ -667,6 +670,7 @@ impl VpnApiClient {
                 routes::ACCOUNT,
                 &account.id(),
                 routes::PAIRING,
+                qr_pub_key,
                 routes::CHECK,
             ],
             Authorization::default().account(account),
@@ -732,12 +736,14 @@ impl VpnApiClient {
     pub async fn share_secret_account(
         &self,
         account: &VpnAccount,
+        remote_qr_pub_key: &str,
         enc_mnemonic: Vec<u8>,
         nonce: Vec<u8>,
     ) -> Result<StatusOk> {
         let request = SharePairSecretBody {
             enc_mnemonic,
             nonce,
+            account_id: account.id(),
         };
 
         self.post_authorized(
@@ -747,6 +753,7 @@ impl VpnApiClient {
                 routes::ACCOUNT,
                 &account.id(),
                 routes::PAIRING,
+                remote_qr_pub_key,
                 routes::SHARE_SECRET,
             ],
             &request,

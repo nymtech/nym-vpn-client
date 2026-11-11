@@ -29,6 +29,7 @@ members = [
     "crates/nym-statistics-api-client",
     "crates/nym-favorites",
     "crates/nym-file-updater",
+    "crates/nym-qr-pairing-requests",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-credential-fetcher",
@@ -216,6 +217,7 @@ tonic-prost-build = "0.14.9"
 typed-builder = "0.23.2"
 ts-rs = "12.0.1"
 tower = "0.5.3"
+schemars = "0.8.22"
 ssh2 = "0.9.6"
 tarpc = "=0.30.0"
 tokio-serial = "5.5.0"
@@ -267,6 +269,7 @@ nym-socks5-proxy-ipc = { path = "crates/nym-socks5-proxy-ipc" }
 nym-macos = { path = "crates/nym-macos" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
+nym-qr-pairing-requests = { path = "crates/nym-qr-pairing-requests" }
 nym-routing = { path = "crates/nym-routing" }
 nym-statistics = { path = "crates/nym-statistics" }
 nym-statistics-api-client = { path = "crates/nym-statistics-api-client" }
