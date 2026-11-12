@@ -381,15 +381,10 @@
 	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
 	<string name="censorship_bridge_on_title">打開</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
-	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API 連接</string>
 	<string name="censorship_stealth_description">通過使用混淆域名技術來繞開 VPN 封鎖。打開此開關會始終使用混淆域名技術，關閉此開關則會在正常連接失敗後自動使用該功能。</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
-	<string name="censorship_amnezia_title">最低限度的抗審查保護（AmneziaWG）</string>
-	<string name="censorship_amnezia_description">使用誘餌數據包偽裝 WireGuard 流量，防止 VPN 被屏蔽。\n\n注意：僅實現了客户端版本。</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">繼續即代表您同意 NymVPN 的  </string>
 	<string name="account_welcome_privacy_middle">和</string>

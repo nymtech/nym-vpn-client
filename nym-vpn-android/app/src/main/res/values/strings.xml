@@ -174,11 +174,11 @@
 	<string name="error_tun_device">Couldn\'t set up the VPN network interface. Reconnect. If it persists, restart the app or your device, or contact support.</string>
 	<string name="error_tunnel_provider">Couldn\'t start the VPN on this device. Reconnect, and allow the VPN connection if prompted. If it persists, contact support.</string>
 	<string name="error_active_plan">You don\'t have an active subscription. Get or renew a plan, then refresh your account and reconnect.</string>
-	<string name="error_bandwidth_entry">The entry server didn\'t complete your connection. Try again, or turn on QUIC in Anti-censorship settings.</string>
+	<string name="error_bandwidth_entry">The entry server didn\'t complete your connection. Try again, or turn on “Disguise your traffic” in Anti-censorship settings.</string>
 	<string name="error_bandwidth_exit">The exit server didn\'t complete your connection. Choose a different exit location and try again.</string>
 	<string name="error_gateway_unavailable_entry">No entry server is available for your selection. Pick another location, or try again in a few minutes.</string>
 	<string name="error_gateway_unavailable_exit">No exit server is available for your selection. Pick a different location, or try again in a few minutes.</string>
-	<string name="error_entry_gateway_has_no_bridge">This server doesn\'t offer a bridge. Choose another server or set Enhanced connection to Auto or Off.</string>
+	<string name="error_entry_gateway_has_no_bridge">This server doesn\'t offer a bridge. Choose another server or set “Disguise your traffic” to Auto or Off.</string>
 	<string name="error_invalid_entry_gateway_identity">The entry server you chose isn\'t available. Choose a different entry server, then connect again.</string>
 	<string name="error_invalid_exit_gateway_identity">The exit server you chose isn\'t available with your current settings. Choose a different exit or entry server, then connect again.</string>
 	<string name="error_needs_device_location">Automatic routing isn\'t available right now. Try again later or choose your own servers.</string>
@@ -372,7 +372,7 @@
 	<string name="details_anti_censorship">Anti-censorship</string>
 	<string name="details_quic_protocol">QUIC protocol</string>
 	<string name="details_standard_protocol">Standard protocol</string>
-	<string name="details_enable_quic_start">Enable QUIC protocol</string>
+	<string name="details_enable_quic_start">Set “Disguise your traffic” to Auto or On</string>
 	<string name="details_enable_quic_end">in Anti-censorship Settings to use this feature</string>
 	<string name="details_overall_performance">Overall performance</string>
 	<string name="details_server_load">Server load</string>
@@ -393,25 +393,22 @@
 	<string name="details_more_details_end">Nym Network Explorer</string>
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
-	<string name="censorship_description">Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking.</string>
+	<string name="censorship_description">Improve your connection on restrictive networks and against VPN blocking.</string>
 	<string name="censorship_learn_more_link_text">Learn more</string>
-	<string name="censorship_quic_title">Enhanced connection</string>
-	<string name="censorship_bridge_changes_apply">Changes will apply after reconnect</string>
+	<string name="censorship_quic_title">Disguise your traffic</string>
+	<string name="censorship_quic_description">Bridges help you slip past networks that detect and block VPN traffic. <b>dVPN</b> mode uses AmneziaWG by default to make <b>WireGuard</b> harder to detect.</string>
+	<string name="censorship_bridge_changes_apply">Changes require reconnection.</string>
 	<string name="censorship_bridge_off_title">Off</string>
-	<string name="censorship_bridge_off_description">Connect directly without a bridge.</string>
+	<string name="censorship_bridge_off_description">Connect directly, without a bridge. Fastest, but easiest to block.</string>
 	<string name="censorship_bridge_auto_title">Auto</string>
-	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
+	<string name="censorship_bridge_auto_description">Tries <b>WireGuard</b> first, then switches to a bridge (QUIC, TLS, or SSH) if it fails.</string>
 	<string name="censorship_bridge_on_title">On</string>
-	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
-	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
-	<string name="censorship_stealth_title">Stealth API connect</string>
-	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
+	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be your entry server.</string>
+	<string name="censorship_quic_link" translatable="false">https://nym.com/features/anti-censorship-bridges</string>
+	<string name="censorship_stealth_title">Disguise your Nym connection</string>
+	<string name="censorship_stealth_description">Stay connected even if Nym\'s servers are blocked where you are.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
-	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">Disguises WireGuard traffic with decoy packets to prevent VPN blocking. \n\nNote: Only implemented client-side.</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers that offer a bridge. To reveal all servers, set “Disguise your traffic” to Off or Auto.</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">By continuing, you agree to NymVPN\'s  </string>
 	<string name="account_welcome_privacy_middle">and</string>

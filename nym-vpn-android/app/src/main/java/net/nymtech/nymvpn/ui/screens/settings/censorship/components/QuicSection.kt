@@ -1,11 +1,16 @@
 package net.nymtech.nymvpn.ui.screens.settings.censorship.components
 
 import android.content.res.Configuration
+import android.graphics.Typeface
+import android.text.Spanned
+import android.text.style.StyleSpan
+import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +43,10 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,7 +58,7 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import nym_vpn_lib_types.BridgeMode
 
 @Composable
-fun QuicSection(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) -> Unit, showBridgeFallback: Boolean = false, shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier) {
+fun QuicSection(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) -> Unit, shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier) {
 	val context = LocalContext.current
 	val interactionSource = remember { MutableInteractionSource() }
 
@@ -63,14 +72,27 @@ fun QuicSection(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) -> Un
 				.fillMaxWidth()
 				.padding(horizontal = 16.dp, vertical = 16.dp),
 		) {
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				horizontalArrangement = Arrangement.SpaceBetween,
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Text(
+					text = stringResource(R.string.censorship_quic_title),
+					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
+				)
+				ModeTag(stringResource(R.string.two_hop_title))
+			}
 			Text(
-				text = stringResource(R.string.censorship_quic_title),
-				style = MaterialTheme.typography.titleMedium,
-				color = MaterialTheme.colorScheme.onPrimaryContainer,
+				text = boldTextResource(R.string.censorship_quic_description),
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onBackground,
+				modifier = Modifier.padding(top = 12.dp),
 			)
 			BridgeModeSelector(bridgeMode, onBridgeModeSelected, Modifier.padding(top = 16.dp))
 			Text(
-				text = stringResource(bridgeMode.descriptionRes()),
+				text = boldTextResource(bridgeMode.descriptionRes()),
 				style = MaterialTheme.typography.bodyMedium,
 				color = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier.padding(top = 12.dp),
@@ -81,16 +103,6 @@ fun QuicSection(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) -> Un
 				color = LocalNymColors.current.warning,
 				modifier = Modifier.padding(top = 8.dp),
 			)
-			if (showBridgeFallback && bridgeMode != BridgeMode.OFF) {
-				Text(
-					text = stringResource(R.string.censorship_quic_bridge_fallback),
-					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onBackground,
-					modifier = Modifier
-						.fillMaxWidth()
-						.padding(top = 16.dp),
-				)
-			}
 			Row(
 				horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.Start),
 				modifier = Modifier
@@ -117,6 +129,34 @@ fun QuicSection(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) -> Un
 						.size(16.dp)
 						.align(Alignment.CenterVertically),
 				)
+			}
+		}
+	}
+}
+
+@Composable
+private fun ModeTag(text: String) {
+	Text(
+		text = text,
+		style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+		color = MaterialTheme.colorScheme.primary,
+		modifier = Modifier
+			.border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
+			.padding(horizontal = 10.dp, vertical = 3.dp),
+	)
+}
+
+// Keeps <b> spans from strings.xml, which stringResource() drops.
+@Composable
+private fun boldTextResource(@StringRes id: Int): AnnotatedString {
+	val text = LocalContext.current.resources.getText(id)
+	return remember(text) {
+		buildAnnotatedString {
+			append(text.toString())
+			if (text is Spanned) {
+				text.getSpans(0, text.length, StyleSpan::class.java)
+					.filter { it.style == Typeface.BOLD }
+					.forEach { addStyle(SpanStyle(fontWeight = FontWeight.Bold), text.getSpanStart(it), text.getSpanEnd(it)) }
 			}
 		}
 	}

@@ -391,15 +391,10 @@
 	<string name="censorship_bridge_auto_description">Спершу спробуйте підключитися напряму, а якщо це не вдасться — скористайтеся мостом.</string>
 	<string name="censorship_bridge_on_title">Увімкнено</string>
 	<string name="censorship_bridge_on_description">Завжди використовуйте міст. Як вхідний сервер можна обрати лише той, що пропонує таку можливість.</string>
-	<string name="censorship_quic_bridge_fallback">Коли використовується міст, він спершу намагається застосувати QUIC. Якщо QUIC заблоковано, він перемикається на TLS або SSH, що може працювати повільніше.</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Приховане підключення API</string>
 	<string name="censorship_stealth_description">Захищає від блокування VPN за допомогою прикривальних доменів. Увімкніть цю функцію, щоб використовувати її завжди, або вимкніть, щоб використовувати її лише у разі, якщо звичайні з’єднання не працюють.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic_gateway_filter_info_msg">Відображаються лише локації dVPN і сервери, що підтримують QUIC. Щоб побачити всі сервери, вимкніть QUIC.</string>
-	<string name="censorship_amnezia_title">Мінімальне заплутування (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">Маскує трафік WireGuard за допомогою пакетів-приманок, щоб запобігти блокуванню VPN. \n\n Примітка: реалізовано лише на стороні клієнта.</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">Продовжуючи, ви погоджуєтеся з умовами NymVPN  </string>
 	<string name="account_welcome_privacy_middle">і</string>

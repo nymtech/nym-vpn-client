@@ -385,17 +385,10 @@
 	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
 	<string name="censorship_bridge_on_title">Ligado</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
-	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Conexão à API Furtiva</string>
 	<string name="censorship_stealth_description">Protege contra bloqueio de VPN usando fachadas de domínio. Ative para usar sempre, ou deixe desativado para ativar somente quando a conexão normal falhar.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
-	<string name="censorship_amnezia_title">Ofuscação mínima (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">Disfarça o tráfego do WireGuard com pacotes de distração para impedir o bloqueio de VPN.
-
-Nota: Implementado apenas no lado do cliente.</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/pt-br/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">Ao continuar, você concorda com a NymVPN  </string>
 	<string name="account_welcome_privacy_middle">e</string>
