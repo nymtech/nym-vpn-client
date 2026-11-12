@@ -54,6 +54,19 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument(skip(self, account, code))]
+    pub async fn redeem_freepass(
+        &self,
+        account: StorableAccount,
+        code: String,
+    ) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::RedeemFreepass(tx, account, code))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
     #[instrument(skip(self))]
     pub async fn link_account(
         &self,

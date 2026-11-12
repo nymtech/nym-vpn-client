@@ -89,6 +89,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Ok(())),
 
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_account(return_sender),
+                    AccountCommand::RedeemFreepass(return_sender, _, _) => return_no_account(return_sender),
                     AccountCommand::RefreshAccountState(return_sender, _) => return_no_account(return_sender),
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
                         shared_state.set_firewall_state(false);

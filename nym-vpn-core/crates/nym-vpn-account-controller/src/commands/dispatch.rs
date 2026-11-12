@@ -28,6 +28,13 @@ pub enum AccountCommand {
         Platform,
     ),
 
+    /// Create the given account on the API with a free pass applied. DOES NOT STORE IT.
+    RedeemFreepass(
+        ReturnSender<(), AccountCommandError>,
+        StorableAccount,
+        String,
+    ),
+
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
 
@@ -83,6 +90,7 @@ impl AccountCommand {
             AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
+            AccountCommand::RedeemFreepass(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::DeleteAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::LinkAccount(return_sender, _) => return_sender.send(Err(error)),

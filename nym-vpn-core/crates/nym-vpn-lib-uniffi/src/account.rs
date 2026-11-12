@@ -347,6 +347,27 @@ impl NymAccountController {
         Ok(subscription)
     }
 
+    /// Creates the stored account on the API with the free pass applied. The account state is
+    /// refreshed afterwards.
+    pub async fn redeem_freepass(&self, code: String) -> Result<(), VpnError> {
+        let account = self
+            .account_command_sender
+            .get_stored_account()
+            .await?
+            .ok_or(VpnError::NoAccountStored)?;
+        self.account_command_sender
+            .redeem_freepass(account, code)
+            .await?;
+        if let Err(err) = self
+            .account_command_sender
+            .refresh_account_state(true)
+            .await
+        {
+            tracing::warn!("Failed to refresh account after redeeming free pass: {err}");
+        }
+        Ok(())
+    }
+
     /// The signed Apple introductory-offer eligibility token for the signed-in account, asked
     /// right before `product.purchase` with the store product id and the customer's
     /// `appTransactionID`. A token is returned only when the account may not be offered a free

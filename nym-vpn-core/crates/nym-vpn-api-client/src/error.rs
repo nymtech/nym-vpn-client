@@ -95,6 +95,9 @@ pub enum VpnApiClientError {
     #[error("failed to apply free pass")]
     ApplyFreepass(#[source] Box<HttpClientError>),
 
+    #[error("failed to redeem free pass")]
+    RedeemFreepass(#[source] Box<HttpClientError>),
+
     #[error("failed to get subscriptions")]
     GetSubscriptions(#[source] Box<HttpClientError>),
 

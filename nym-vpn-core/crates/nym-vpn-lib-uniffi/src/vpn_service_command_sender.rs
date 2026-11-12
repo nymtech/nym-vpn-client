@@ -460,6 +460,15 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
+    /// Creates the stored account on the API with the free pass applied. The account state is
+    /// refreshed afterwards.
+    pub async fn redeem_freepass(&self, code: String) -> Result<()> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::RedeemFreepass, code)
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String> {
         Ok(self
             .send_and_wait(VpnServiceCommand::GetDeeplink, params)
