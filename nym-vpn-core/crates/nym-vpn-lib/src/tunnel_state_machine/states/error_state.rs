@@ -33,6 +33,7 @@ use nym_common::trace_err_chain;
 use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
 
 pub struct ErrorState {
+    reason: ErrorStateReason,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     firewall_policy_params: BlockedPolicyParameters,
 }
@@ -109,6 +110,7 @@ impl ErrorState {
         };
 
         let blocked_state = Self {
+            reason: reason.clone(),
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             firewall_policy_params,
         };
@@ -259,6 +261,19 @@ impl TunnelStateHandler for ErrorState {
                     TunnelCommand::Block(reason) => {
                         NextTunnelState::NewState(ErrorState::enter(reason, shared_state).await)
                     }
+                }
+            }
+            Some(connectivity) = shared_state.connectivity_handle.next() => {
+                // Only the exhausted reconnect loop retries by itself, the other reasons need the user.
+                if self.reason == ErrorStateReason::ConnectionAttemptsExceeded && !connectivity.is_offline() {
+                    tracing::info!("Network is back, retrying after exhausted reconnect attempts");
+
+                    #[cfg(any(target_os = "linux", target_os = "windows"))]
+                    Self::reset_dns(shared_state).await;
+
+                    NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
+                } else {
+                    NextTunnelState::SameState(self)
                 }
             }
             _ = shutdown_token.cancelled() => {
