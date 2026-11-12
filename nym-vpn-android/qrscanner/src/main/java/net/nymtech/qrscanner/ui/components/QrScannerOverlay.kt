@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -102,55 +104,63 @@ internal fun QrScannerOverlay(@StringRes hintRes: Int, @StringRes invalidCodeRes
 					.padding(horizontal = 24.dp, vertical = 24.dp),
 				horizontalAlignment = Alignment.CenterHorizontally,
 			) {
-				Text(
-					text = stringResource(hintRes),
-					style = MaterialTheme.typography.bodyLarge,
-					color = QrScannerColors.onOverlay,
-					textAlign = TextAlign.Center,
-				)
-				AnimatedVisibility(
-					visible = showInvalidCode,
-					enter = fadeIn(),
-					exit = fadeOut(),
+				// Messages scroll on short screens so the secondary action stays visible.
+				Column(
+					modifier = Modifier
+						.weight(1f)
+						.fillMaxWidth()
+						.verticalScroll(rememberScrollState()),
+					horizontalAlignment = Alignment.CenterHorizontally,
 				) {
 					Text(
-						text = stringResource(invalidCodeRes),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onErrorContainer,
+						text = stringResource(hintRes),
+						style = MaterialTheme.typography.bodyLarge,
+						color = QrScannerColors.onOverlay,
 						textAlign = TextAlign.Center,
-						modifier = Modifier
-							.semantics { liveRegion = LiveRegionMode.Polite }
-							.padding(top = 16.dp)
-							.background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(8.dp))
-							.padding(horizontal = 12.dp, vertical = 6.dp),
 					)
-				}
-				AnimatedVisibility(
-					visible = validating,
-					enter = fadeIn(),
-					exit = fadeOut(),
-				) {
-					Row(
-						verticalAlignment = Alignment.CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(8.dp),
-						modifier = Modifier
-							.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite }
-							.padding(top = 16.dp),
+					AnimatedVisibility(
+						visible = showInvalidCode,
+						enter = fadeIn(),
+						exit = fadeOut(),
 					) {
-						CircularProgressIndicator(
-							color = QrScannerColors.onOverlay,
-							strokeWidth = 2.dp,
-							modifier = Modifier.size(16.dp),
-						)
 						Text(
-							text = stringResource(R.string.qr_scanner_checking),
+							text = stringResource(invalidCodeRes),
 							style = MaterialTheme.typography.bodyMedium,
-							color = QrScannerColors.onOverlay,
+							color = MaterialTheme.colorScheme.onErrorContainer,
+							textAlign = TextAlign.Center,
+							modifier = Modifier
+								.semantics { liveRegion = LiveRegionMode.Polite }
+								.padding(top = 16.dp)
+								.background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(8.dp))
+								.padding(horizontal = 12.dp, vertical = 6.dp),
 						)
+					}
+					AnimatedVisibility(
+						visible = validating,
+						enter = fadeIn(),
+						exit = fadeOut(),
+					) {
+						Row(
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(8.dp),
+							modifier = Modifier
+								.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite }
+								.padding(top = 16.dp),
+						) {
+							CircularProgressIndicator(
+								color = QrScannerColors.onOverlay,
+								strokeWidth = 2.dp,
+								modifier = Modifier.size(16.dp),
+							)
+							Text(
+								text = stringResource(R.string.qr_scanner_checking),
+								style = MaterialTheme.typography.bodyMedium,
+								color = QrScannerColors.onOverlay,
+							)
+						}
 					}
 				}
 				if (secondaryAction != null) {
-					Spacer(modifier = Modifier.weight(1f))
 					// A code being checked can't be overtaken by another.
 					TextButton(
 						onClick = secondaryAction.onClick,

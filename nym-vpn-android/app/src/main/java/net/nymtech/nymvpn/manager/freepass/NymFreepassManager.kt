@@ -23,8 +23,21 @@ class NymFreepassManager @Inject constructor(private val connectionManager: VpnS
 	// Not cancellable, so a local account never outlives a failed redeem.
 	override suspend fun redeem(code: String): FreepassResult = withContext(NonCancellable) {
 		mutex.withLock {
-			if (backendManager.isMnemonicStored()) applyToStoredAccount(code) else createAccount(code)
+			when (isAccountStored()) {
+				true -> applyToStoredAccount(code)
+				false -> createAccount(code)
+				null -> FreepassResult.Failed(FreepassError.UNKNOWN)
+			}
 		}
+	}
+
+	private suspend fun isAccountStored(): Boolean? = try {
+		backendManager.isMnemonicStored()
+	} catch (e: CancellationException) {
+		throw e
+	} catch (e: Exception) {
+		Timber.tag(TAG).w("Account lookup failed: %s", e::class.java.simpleName)
+		null
 	}
 
 	// A local account is registered on the API only on first connect, so redeem registers it with the pass.

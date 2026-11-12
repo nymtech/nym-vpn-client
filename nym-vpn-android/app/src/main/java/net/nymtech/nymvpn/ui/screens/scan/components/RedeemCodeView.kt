@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.Icon
@@ -43,6 +45,7 @@ fun RedeemCodeView(uiState: RedeemCodeUiState, onCodeChange: (String) -> Unit, o
 			.background(MaterialTheme.colorScheme.surface)
 			.fillMaxWidth()
 			.imePadding()
+			.verticalScroll(rememberScrollState())
 			.padding(horizontal = 18.dp, vertical = 16.dp),
 		horizontalAlignment = Alignment.CenterHorizontally,
 		verticalArrangement = Arrangement.spacedBy(22.dp),

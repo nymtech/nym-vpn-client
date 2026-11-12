@@ -60,7 +60,7 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 	override suspend fun confirmCode() = mutex.withLock {
 		val confirm = _state.value as? PairingState.ConfirmCode ?: return@withLock
 		_state.value = PairingState.SharingAccount
-		_state.value = when (val result = call { it.verifiedPairingPin(confirm.sessionId) }) {
+		_state.value = when (val result = withContext(NonCancellable) { call { it.verifiedPairingPin(confirm.sessionId) } }) {
 			is PairingCommandResult.Ok -> {
 				Timber.tag(TAG).i("Account shared, session %s", confirm.sessionId)
 				PairingState.AccountShared

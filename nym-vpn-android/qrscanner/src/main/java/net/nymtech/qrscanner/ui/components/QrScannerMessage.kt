@@ -3,14 +3,18 @@ package net.nymtech.qrscanner.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -36,14 +40,30 @@ internal fun QrScannerMessage(
 	onAction: () -> Unit = {},
 	secondaryAction: QrScanAction? = null,
 ) {
-	Column(
+	// Scrolls when large text doesn't fit, centred otherwise.
+	BoxWithConstraints(
 		modifier = modifier
 			.fillMaxSize()
-			.systemBarsPadding()
-			.padding(horizontal = 24.dp, vertical = 72.dp),
-		verticalArrangement = Arrangement.Center,
-		horizontalAlignment = Alignment.CenterHorizontally,
+			.systemBarsPadding(),
 	) {
+		val viewportHeight = maxHeight
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.verticalScroll(rememberScrollState())
+				.heightIn(min = viewportHeight)
+				.padding(horizontal = 24.dp, vertical = 72.dp),
+			verticalArrangement = Arrangement.Center,
+			horizontalAlignment = Alignment.CenterHorizontally,
+		) {
+			MessageContent(icon, title, body, actionLabel, onAction, secondaryAction)
+		}
+	}
+}
+
+@Composable
+private fun MessageContent(icon: ImageVector, title: String, body: String, actionLabel: String?, onAction: () -> Unit, secondaryAction: QrScanAction?) {
+	Column(horizontalAlignment = Alignment.CenterHorizontally) {
 		Box(
 			modifier = Modifier
 				.size(64.dp)

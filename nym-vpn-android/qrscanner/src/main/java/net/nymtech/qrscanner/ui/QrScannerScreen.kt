@@ -57,8 +57,10 @@ internal fun QrScannerScreen(
 ) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val haptics = LocalHapticFeedback.current
+	// A code being checked may change the account, so its result must be seen.
+	val close = { if (!uiState.validating) onClose() }
 
-	BackHandler(onBack = onClose)
+	BackHandler(onBack = close)
 	LightSystemBarIcons()
 
 	LaunchedEffect(uiState.result) {
@@ -71,7 +73,7 @@ internal fun QrScannerScreen(
 		mode = mode,
 		uiState = uiState,
 		onCodeScan = viewModel::onCodeScan,
-		onClose = onClose,
+		onClose = close,
 		secondaryAction = secondaryAction,
 		paused = paused,
 		modifier = modifier,

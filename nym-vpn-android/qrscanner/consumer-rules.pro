@@ -1,1 +1,2 @@
-# The scanner uses no reflection: its ViewModel is built by an explicit initializer.
+-keep class net.nymtech.qrscanner.** { *; }
+-dontwarn java.lang.invoke.StringConcatFactory

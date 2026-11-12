@@ -770,6 +770,6 @@
 	<string name="freepass_error_rate_limited">Too many attempts. Try again in a minute.</string>
 	<string name="freepass_error_offline">You\'re offline. Connect to the internet and try again.</string>
 	<string name="freepass_error_generic">The code couldn\'t be redeemed. Try again.</string>
-	<string name="freepass_error_subscription_active">Turn off auto-renew in Google Play to add a free pass. Your code stays valid.</string>
+	<string name="freepass_error_subscription_active">Turn off auto-renew for your current subscription to add a free pass. Your code stays valid.</string>
 	<string name="freepass_activated">Free pass activated</string>
 </resources>
