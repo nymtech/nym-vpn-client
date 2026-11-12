@@ -55,6 +55,12 @@ final class PacketTunnelProvider: NEPacketTunnelProvider, @unchecked Sendable {
         try await tunnelActor.waitUntilStarted()
     }
 
+    override func wake() {
+        // Lets the core quietly redial the bridge transport instead of waiting to notice on its
+        // own next scheduled probe, which can be minutes away after a long device sleep.
+        notifyDeviceWoke()
+    }
+
     override func stopTunnel(with reason: NEProviderStopReason) async {
         logger.info("Stop tunnel... \(reason.rawValue)")
 
