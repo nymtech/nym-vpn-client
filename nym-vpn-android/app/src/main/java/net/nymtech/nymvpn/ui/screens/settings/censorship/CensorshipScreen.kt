@@ -39,12 +39,7 @@ fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hi
 }
 
 @Composable
-fun CensorshipScreen(
-	bridgeMode: BridgeMode,
-	onBridgeModeSelected: (BridgeMode) -> Unit,
-	stealthModeEnabled: Boolean = false,
-	onStealthModeEnable: (Boolean) -> Unit = {},
-) {
+fun CensorshipScreen(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) -> Unit, stealthModeEnabled: Boolean = false, onStealthModeEnable: (Boolean) -> Unit = {}) {
 	val scrollState = rememberScrollState()
 	Column(
 		horizontalAlignment = Alignment.Start,
