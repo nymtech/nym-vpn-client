@@ -1,13 +1,12 @@
 [Unit]
-Description=nym-vpnd daemon
-Before=network-online.target
+Description=NymVPN daemon
 StartLimitBurst=6
 StartLimitIntervalSec=24
 After=NetworkManager.service systemd-resolved.service
 
 [Service]
 ExecStart=/usr/bin/nym-vpnd -v run-as-service
-Restart=always
+Restart=on-failure
 RestartSec=2
 LimitCORE=0
 

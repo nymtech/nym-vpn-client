@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Strip debug info in release builds (https://github.com/nymtech/nym-vpn-client/pull/7018)
-- [Linux] Restart `nym-vpnd` after 2 seconds instead of 5 in the AUR package, matching the Debian package (https://github.com/nymtech/nym-vpn-client/pull/7072)
+- [Linux] Use the same systemd unit for `nym-vpnd` in the Debian and AUR packages. The daemon restarts only on failure, 2 seconds after it stops, and no longer orders itself relative to `network-pre.target` or `network-online.target` (https://github.com/nymtech/nym-vpn-client/pull/7072)
 
 ### Fixed
 
