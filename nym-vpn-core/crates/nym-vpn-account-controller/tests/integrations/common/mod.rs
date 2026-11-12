@@ -171,7 +171,7 @@ impl MnemonicStorage for MockEphemeralStorage {
 impl nym_vpn_store::device_state::DeviceStateStorage for MockEphemeralStorage {
     type StorageError = std::convert::Infallible;
 
-    async fn load_device_state(&self) -> Result<StoredDeviceState, Self::StorageError> {
+    async fn load_device_state(&self) -> Result<Option<StoredDeviceState>, Self::StorageError> {
         self.device_state_storage.load_device_state().await
     }
 

@@ -45,7 +45,7 @@ where
             .map_err(|err| Error::AccountStore(Box::new(err)))?;
 
         self.storage
-            .store_device_state(StoredDeviceState::LoggedIn {
+            .store_device_state(StoredDeviceState {
                 account_identity,
                 ecash_keypair,
                 summary: None,
@@ -61,7 +61,7 @@ where
             .map_err(|err| Error::AccountStore(Box::new(err)))
     }
 
-    pub async fn load_device_state(&self) -> Result<StoredDeviceState> {
+    pub async fn load_device_state(&self) -> Result<Option<StoredDeviceState>> {
         self.storage
             .load_device_state()
             .await
@@ -148,14 +148,12 @@ where
         let device_state = self.load_device_state().await?;
 
         match device_state {
-            StoredDeviceState::LoggedIn {
-                account_identity: account,
-                summary: _,
-                ecash_keypair: _,
-            } => self.load_mnemonic().await.map(|stored_mnemonic| {
-                stored_mnemonic.map(|v| StorableAccount::new(v.mnemonic, account.mode))
+            Some(StoredDeviceState {
+                account_identity, ..
+            }) => self.load_mnemonic().await.map(|stored_mnemonic| {
+                stored_mnemonic.map(|v| StorableAccount::new(v.mnemonic, account_identity.mode))
             }),
-            StoredDeviceState::LoggedOut => Ok(None),
+            None => Ok(None),
         }
     }
 
