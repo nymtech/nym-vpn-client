@@ -69,12 +69,13 @@ fun WelcomeView(onLoginClick: () -> Unit, onSignUpClick: () -> Unit, modifier: M
 			shape = RoundedCornerShape(12.dp),
 		)
 
-		MainStyledButton(
+		OutlineStyledButton(
 			onClick = onLoginClick,
 			content = {
 				Text(
 					stringResource(R.string.auth_welcome_login_button),
 					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 			},
 			modifier = Modifier
