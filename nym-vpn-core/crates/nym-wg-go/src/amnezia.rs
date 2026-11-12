@@ -172,13 +172,16 @@ mod test {
 
     #[test]
     fn test_encode_amnezia_config() {
-        let mut config_builder = UapiConfigBuilder::new();
+        let mut config_builder = UapiConfigBuilder::default();
         OFF.append_to(&mut config_builder);
-        assert_eq!(config_builder.into_bytes(), b"\n");
+        assert_eq!(config_builder.into_bytes_with_nul().as_slice(), b"\n\0");
 
-        let mut config_builder = UapiConfigBuilder::new();
+        let mut config_builder = UapiConfigBuilder::default();
         BASE.append_to(&mut config_builder);
-        assert_eq!(config_builder.into_bytes(), b"jc=4\njmin=40\njmax=70\n\n");
+        assert_eq!(
+            config_builder.into_bytes_with_nul().as_slice(),
+            b"jc=4\njmin=40\njmax=70\n\n\0"
+        );
 
         let c = AmneziaConfig {
             junk_pkt_count: 1,
@@ -191,11 +194,11 @@ mod test {
             under_load_pkt_magic_header: 13,
             transport_pkt_magic_header: 14,
         };
-        let mut config_builder = UapiConfigBuilder::new();
+        let mut config_builder = UapiConfigBuilder::default();
         c.append_to(&mut config_builder);
         assert_eq!(
-            config_builder.into_bytes(),
-            b"jc=1\njmin=20\njmax=30\ns1=40\ns2=50\nh1=11\nh2=12\nh3=13\nh4=14\n\n"
+            config_builder.into_bytes_with_nul().as_slice(),
+            b"jc=1\njmin=20\njmax=30\ns1=40\ns2=50\nh1=11\nh2=12\nh3=13\nh4=14\n\n\0"
         );
     }
 }
