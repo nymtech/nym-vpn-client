@@ -14,10 +14,12 @@ class FreepassCodeTest {
 			"https://nym.com/account/freepass?code=NYM2026" to "NYM2026",
 			"https://www.nym.com/account/freepass?code=NYM2026" to "NYM2026",
 			"https://nym.com/account/freepass?utm_source=qr&code=NYM2026" to "NYM2026",
-			"nym.com/account/freepass?code=gsjK6Yb1E3e" to "gsjK6Yb1E3e",
-			"https://nym.com/download#code=gsjK6Yb1E3e" to "gsjK6Yb1E3e",
-			"nym.com/download#code=gsjK6Yb1E3e" to "gsjK6Yb1E3e",
-			"www.nym.com/download?utm_source=qr#code=gsjK6Yb1E3e" to "gsjK6Yb1E3e",
+			"nym.com/account/freepass?code=TESTCODE01" to "TESTCODE01",
+			"https://nym.com/download#code=TESTCODE01" to "TESTCODE01",
+			"nym.com/download#code=TESTCODE01" to "TESTCODE01",
+			"https://nym.com/download/#code=TESTCODE02" to "TESTCODE02",
+			"https://nym.com/account/freepass/?code=NYM2026" to "NYM2026",
+			"www.nym.com/download?utm_source=qr#code=TESTCODE01" to "TESTCODE01",
 		).forEach { (contents, expected) -> assertEquals(contents, expected, FreepassCode.parse(contents)) }
 	}
 

@@ -30,7 +30,7 @@ object FreepassCode {
 			uri.host in HOSTS &&
 			uri.port == -1
 		if (!valid) return null
-		val params = when (uri.rawPath) {
+		val params = when (uri.rawPath?.removeSuffix("/")) {
 			FREEPASS_PATH -> uri.rawQuery.takeIf { uri.rawFragment == null }
 			DOWNLOAD_PATH -> uri.rawFragment
 			else -> null
