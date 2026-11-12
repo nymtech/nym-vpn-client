@@ -325,7 +325,7 @@
 	<string name="onboarding_modes_tagline_dvpn">Can’t snitch - won’t snitch network design.</string>
 	<string name="onboarding_modes_tagline_mixnet">Protecting metadata fingerprints.</string>
 	<string name="onboarding_around_title">Nym gets you around</string>
-	<string name="onboarding_around_description">Disguise WireGuard with **AmneziaWG** \nget around firewalls with **QUIC** \navoid VPN blocking with **Stealth Connect** \n**Post-quantum** security</string>
+	<string name="onboarding_around_description">Disguise WireGuard with **AmneziaWG** \nAdaptive **anti-censorship bridges** \nPrevent **VPN blocking** \n**Post-quantum** security</string>
 	<string name="onboarding_plan_title">What plan works for you?</string>
 	<string name="onboarding_plan_community_favorite">NYM COMMUNITY FAVORITE</string>
 	<string name="onboarding_plan_year_plan_prefix">1-year plan &amp; </string>
@@ -396,12 +396,12 @@
 	<string name="censorship_description">Improve your connection on restrictive networks and against VPN blocking.</string>
 	<string name="censorship_learn_more_link_text">Learn more</string>
 	<string name="censorship_quic_title">Disguise your traffic</string>
-	<string name="censorship_quic_description">Bridges help you slip past networks that detect and block VPN traffic. <b>dVPN</b> mode uses AmneziaWG by default to make <b>WireGuard</b> harder to detect.</string>
+	<string name="censorship_quic_description">Bridges help you slip past networks that detect and block VPN traffic. **dVPN** mode uses AmneziaWG by default to make **WireGuard** harder to detect.</string>
 	<string name="censorship_bridge_changes_apply">Changes require reconnection.</string>
 	<string name="censorship_bridge_off_title">Off</string>
 	<string name="censorship_bridge_off_description">Connect directly, without a bridge. Fastest, but easiest to block.</string>
 	<string name="censorship_bridge_auto_title">Auto</string>
-	<string name="censorship_bridge_auto_description">Tries <b>WireGuard</b> first, then switches to a bridge (QUIC, TLS, or SSH) if it fails.</string>
+	<string name="censorship_bridge_auto_description">Tries **WireGuard** first, then switches to a bridge (QUIC, TLS, or SSH) if it fails.</string>
 	<string name="censorship_bridge_on_title">On</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be your entry server.</string>
 	<string name="censorship_quic_link" translatable="false">https://nym.com/features/anti-censorship-bridges</string>

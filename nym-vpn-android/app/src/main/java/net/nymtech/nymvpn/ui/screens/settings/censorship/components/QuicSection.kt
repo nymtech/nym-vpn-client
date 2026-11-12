@@ -1,10 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.censorship.components
 
 import android.content.res.Configuration
-import android.graphics.Typeface
-import android.text.Spanned
-import android.text.style.StyleSpan
-import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -43,14 +39,12 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.common.functions.boldMarkupText
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -85,14 +79,14 @@ fun QuicSection(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) -> Un
 				ModeTag(stringResource(R.string.two_hop_title))
 			}
 			Text(
-				text = boldTextResource(R.string.censorship_quic_description),
+				text = boldMarkupText(stringResource(R.string.censorship_quic_description)),
 				style = MaterialTheme.typography.bodyMedium,
 				color = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier.padding(top = 12.dp),
 			)
 			BridgeModeSelector(bridgeMode, onBridgeModeSelected, Modifier.padding(top = 16.dp))
 			Text(
-				text = boldTextResource(bridgeMode.descriptionRes()),
+				text = boldMarkupText(stringResource(bridgeMode.descriptionRes())),
 				style = MaterialTheme.typography.bodyMedium,
 				color = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier.padding(top = 12.dp),
@@ -144,22 +138,6 @@ private fun ModeTag(text: String) {
 			.border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
 			.padding(horizontal = 10.dp, vertical = 3.dp),
 	)
-}
-
-// Keeps <b> spans from strings.xml, which stringResource() drops.
-@Composable
-private fun boldTextResource(@StringRes id: Int): AnnotatedString {
-	val text = LocalContext.current.resources.getText(id)
-	return remember(text) {
-		buildAnnotatedString {
-			append(text.toString())
-			if (text is Spanned) {
-				text.getSpans(0, text.length, StyleSpan::class.java)
-					.filter { it.style == Typeface.BOLD }
-					.forEach { addStyle(SpanStyle(fontWeight = FontWeight.Bold), text.getSpanStart(it), text.getSpanEnd(it)) }
-			}
-		}
-	}
 }
 
 private fun BridgeMode.titleRes() = when (this) {
