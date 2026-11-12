@@ -71,7 +71,8 @@ internal class QrScannerViewModel(
 		throw e
 	} catch (e: Exception) {
 		Timber.w(e, "QR validator failed for mode %s", mode)
-		QrScanValidation.Invalid()
+		// A validator failure says nothing about the code, so it can be retried.
+		QrScanValidation.Invalid(retryAfter = FAILURE_RETRY_AFTER)
 	}
 
 	private fun showInvalidCode(@StringRes messageRes: Int) {
@@ -81,5 +82,9 @@ internal class QrScannerViewModel(
 			delay(invalidCodeMessageDuration)
 			_uiState.update { it.copy(showInvalidCode = false) }
 		}
+	}
+
+	private companion object {
+		val FAILURE_RETRY_AFTER = 3.seconds
 	}
 }

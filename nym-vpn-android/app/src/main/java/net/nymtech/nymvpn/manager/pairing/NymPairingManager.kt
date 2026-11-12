@@ -2,6 +2,8 @@ package net.nymtech.nymvpn.manager.pairing
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -9,9 +11,11 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.backend.VpnServiceConnectionManager
@@ -67,9 +71,11 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 
 	override suspend fun onScannedKey(publicKey: String): PairingCommandResult<Unit> = mutex.withLock {
 		cancelActiveSession()
-		when (val result = call { it.scannedPairingKey(publicKey) }) {
+		// The core keeps the session even if the scanner closes meanwhile, so it's always recorded.
+		when (val result = withContext(NonCancellable) { call { it.scannedPairingKey(publicKey) } }) {
 			is PairingCommandResult.Ok -> {
 				_state.value = PairingState.WaitingForApproval(result.value.pinCode, result.value.sessionId)
+				if (!currentCoroutineContext().isActive) withContext(NonCancellable) { cancelActiveSession() }
 				PairingCommandResult.Ok(Unit)
 			}
 			is PairingCommandResult.Failed -> {

@@ -4,13 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
@@ -24,8 +23,9 @@ class RedeemCodeViewModel @Inject constructor(private val validator: ScannedCode
 	private val _uiState = MutableStateFlow(RedeemCodeUiState())
 	val uiState: StateFlow<RedeemCodeUiState> = _uiState.asStateFlow()
 
-	private val _accepted = MutableSharedFlow<ScannedQrCode>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-	val accepted: SharedFlow<ScannedQrCode> = _accepted.asSharedFlow()
+	// A channel keeps the result until collected, e.g. across activity recreation.
+	private val _accepted = Channel<ScannedQrCode>(Channel.CONFLATED)
+	val accepted: Flow<ScannedQrCode> = _accepted.receiveAsFlow()
 
 	fun onCodeChange(code: String) {
 		_uiState.update { it.copy(code = code, errorRes = null) }
@@ -49,7 +49,7 @@ class RedeemCodeViewModel @Inject constructor(private val validator: ScannedCode
 			when (val validation = validate(contents)) {
 				QrScanValidation.Valid -> {
 					_uiState.update { it.copy(loading = false) }
-					_accepted.emit(code)
+					_accepted.send(code)
 				}
 				is QrScanValidation.Invalid -> _uiState.update { it.copy(loading = false, errorRes = validation.messageRes ?: R.string.redeem_code_invalid) }
 			}

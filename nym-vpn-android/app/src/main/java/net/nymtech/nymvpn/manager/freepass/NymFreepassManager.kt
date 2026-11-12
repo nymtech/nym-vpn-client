@@ -5,6 +5,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.backend.VpnServiceConnectionManager
 import net.nymtech.vpn.model.freepass.FreepassError
@@ -12,6 +13,7 @@ import net.nymtech.vpn.model.freepass.FreepassResult
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.seconds
 
 @Singleton
 class NymFreepassManager @Inject constructor(private val connectionManager: VpnServiceConnectionManager, private val backendManager: BackendManager) : FreepassManager {
@@ -33,24 +35,30 @@ class NymFreepassManager @Inject constructor(private val connectionManager: VpnS
 	}
 
 	private suspend fun createAccount(code: String): FreepassResult {
-		try {
-			backendManager.createAccount()
+		val created = try {
+			// The core waits for its initialization, so the wait is bounded.
+			withTimeoutOrNull(ACCOUNT_CREATION_TIMEOUT) { backendManager.createAccount() } != null
 		} catch (e: CancellationException) {
 			throw e
 		} catch (e: Exception) {
 			Timber.tag(TAG).w("Account creation failed: %s", e::class.java.simpleName)
-			return FreepassResult.Failed(FreepassError.UNKNOWN)
+			false
 		}
+		if (!created) return FreepassResult.Failed(FreepassError.UNKNOWN)
 		val result = connectionManager.withApiResult(FreepassError, FreepassResult::Failed) { it.redeemFreepass(code) }
-		if (result is FreepassResult.Failed) {
-			// Nothing was created on the API, so drop the local account.
+		// A timeout or unknown failure may still have redeemed, so only a confirmed rejection drops the local account.
+		if (result is FreepassResult.Failed && result.error.isRejection) {
 			runCatching { backendManager.removeMnemonic() }
 				.onFailure { Timber.tag(TAG).w("Removing the local account failed: %s", it::class.java.simpleName) }
 		}
 		return result
 	}
 
+	private val FreepassError.isRejection: Boolean
+		get() = this != FreepassError.SERVER && this != FreepassError.UNKNOWN
+
 	private companion object {
 		const val TAG = "freepass"
+		val ACCOUNT_CREATION_TIMEOUT = 30.seconds
 	}
 }

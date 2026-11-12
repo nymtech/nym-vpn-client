@@ -135,8 +135,12 @@ internal class QrCameraSession(
 		return still
 	}
 
-	// Front camera as a fallback for Chromebooks.
-	private fun ProcessCameraProvider.preferredCamera(): CameraSelector = if (hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)) CameraSelector.DEFAULT_BACK_CAMERA else CameraSelector.DEFAULT_FRONT_CAMERA
+	// Front or external cameras as fallbacks for Chromebooks.
+	private fun ProcessCameraProvider.preferredCamera(): CameraSelector = when {
+		hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) -> CameraSelector.DEFAULT_BACK_CAMERA
+		hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) -> CameraSelector.DEFAULT_FRONT_CAMERA
+		else -> availableCameraInfos.firstOrNull()?.cameraSelector ?: CameraSelector.DEFAULT_BACK_CAMERA
+	}
 
 	private fun fail(error: Exception) {
 		Timber.w(error, "QR scanner camera failed to start")

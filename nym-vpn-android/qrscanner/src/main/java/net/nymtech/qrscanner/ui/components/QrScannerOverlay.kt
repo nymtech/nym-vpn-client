@@ -151,8 +151,10 @@ internal fun QrScannerOverlay(@StringRes hintRes: Int, @StringRes invalidCodeRes
 				}
 				if (secondaryAction != null) {
 					Spacer(modifier = Modifier.weight(1f))
+					// A code being checked can't be overtaken by another.
 					TextButton(
 						onClick = secondaryAction.onClick,
+						enabled = !validating,
 						modifier = Modifier.height(48.dp),
 					) {
 						Text(

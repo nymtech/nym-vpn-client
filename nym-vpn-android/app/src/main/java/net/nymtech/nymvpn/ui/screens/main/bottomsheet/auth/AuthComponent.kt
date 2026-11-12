@@ -119,7 +119,8 @@ fun AuthComponent(
 				uiState = redeemCodeUiState,
 				onCodeChange = redeemCodeViewModel::onCodeChange,
 				onSubmit = redeemCodeViewModel::submit,
-				onBackClick = { localNavController.popBackStack() },
+				// Like the sheet, a redeem in flight keeps the screen open.
+				onBackClick = { if (!redeemCodeUiState.loading) localNavController.popBackStack() },
 			)
 		}
 
