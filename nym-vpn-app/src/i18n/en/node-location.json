@@ -20,7 +20,7 @@
       "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
     },
     "quic": {
-      "title": "QUIC protocol",
+      "title": "Disguise your traffic",
       "description": "Bridges help you slip past networks that detect and block VPN traffic. <1>Learn more</1>"
     },
     "entry-title": "Choosing entry servers",
