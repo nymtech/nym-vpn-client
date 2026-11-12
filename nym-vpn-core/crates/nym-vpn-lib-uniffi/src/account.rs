@@ -25,8 +25,9 @@ use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
     AccountControllerState, AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    QrPairingConfirmation, QrUrl, RegisterAccountRequest, RegisterAccountResponse, StorableAccount,
-    StoreAccountRequest, StoredAccountMode, TunnelEvent, UserAgent, VpnAccountSummary,
+    NymVpnSubscription, QrPairingConfirmation, QrUrl, RegisterAccountRequest,
+    RegisterAccountResponse, StorableAccount, StoreAccountRequest, StoredAccountMode, TunnelEvent,
+    UserAgent, VpnAccountSummary,
 };
 
 struct State {
@@ -330,6 +331,41 @@ impl NymAccountController {
             .is_trial_eligible()
             .await
             .map_err(VpnError::from)
+    }
+
+    /// Redeems a free pass code on the signed-in account and returns the subscription it grants.
+    /// The account state is refreshed afterwards.
+    pub async fn apply_freepass(&self, code: String) -> Result<NymVpnSubscription, VpnError> {
+        let subscription = self.account_command_sender.apply_freepass(code).await?;
+        if let Err(err) = self
+            .account_command_sender
+            .refresh_account_state(true)
+            .await
+        {
+            tracing::warn!("Failed to refresh account after applying free pass: {err}");
+        }
+        Ok(subscription)
+    }
+
+    /// Creates the stored account on the API with the free pass applied. The account state is
+    /// refreshed afterwards.
+    pub async fn redeem_freepass(&self, code: String) -> Result<(), VpnError> {
+        let account = self
+            .account_command_sender
+            .get_stored_account()
+            .await?
+            .ok_or(VpnError::NoAccountStored)?;
+        self.account_command_sender
+            .redeem_freepass(account, code)
+            .await?;
+        if let Err(err) = self
+            .account_command_sender
+            .refresh_account_state(true)
+            .await
+        {
+            tracing::warn!("Failed to refresh account after redeeming free pass: {err}");
+        }
+        Ok(())
     }
 
     /// The signed Apple introductory-offer eligibility token for the signed-in account, asked

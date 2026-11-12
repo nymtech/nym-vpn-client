@@ -321,6 +321,11 @@ class ServiceBackedBackendManager @Inject constructor(
 		refreshIdentityState()
 	}
 
+	override suspend fun refreshStoredAccount() {
+		refreshIdentityState()
+		refreshAccountSummary()
+	}
+
 	override suspend fun getAccountMode(): StoredAccountMode? = serviceConnectionManager.withApi { it.getAccountMode() }
 
 	override suspend fun getAccountSummary(): VpnAccountSummary? = serviceConnectionManager.withApi { it.getAccountSummary() }

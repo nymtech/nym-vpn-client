@@ -36,12 +36,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -60,6 +62,7 @@ import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.common.deviceauth.DeviceAuthAction
 import net.nymtech.nymvpn.ui.common.deviceauth.rememberDeviceAuth
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
@@ -68,12 +71,14 @@ import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
 import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.account.plan.components.SubscriptionBottomSheet
+import net.nymtech.nymvpn.ui.screens.scan.RedeemCodeSheet
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.qrscanner.isQrCameraAvailable
 import nym_vpn_lib_types.DeeplinkKind
 
 @Composable
@@ -82,6 +87,9 @@ fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel 
 	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
 	var showSheet by remember { mutableStateOf(false) }
 	val navController = LocalNavController.current
+	val context = LocalContext.current
+	val cameraAvailable = remember(context) { isQrCameraAvailable(context) }
+	var showRedeemCodeSheet by rememberSaveable { mutableStateOf(false) }
 	val deviceAuth = rememberDeviceAuth { action, cryptoObject ->
 		if (action == DeviceAuthAction.RENEW_SUBSCRIPTION) appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW, cryptoObject)
 	}
@@ -131,7 +139,14 @@ fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel 
 			showSheet = false
 			navController.navigate(Route.Payment(product.id, trialEligible = uiState.trialEligibility.isEligible))
 		},
+		onScanCodeClick = {
+			if (cameraAvailable) navController.navigate(Route.QrScan()) else showRedeemCodeSheet = true
+		},
 	)
+
+	if (showRedeemCodeSheet) {
+		RedeemCodeSheet(onDismiss = { showRedeemCodeSheet = false })
+	}
 }
 
 @Composable
@@ -167,6 +182,7 @@ fun SelectPlanScreen(
 	onSelectPlanButtonClick: () -> Unit,
 	onDismissSheet: () -> Unit,
 	onSelectSubscription: (ProductData) -> Unit,
+	onScanCodeClick: () -> Unit = {},
 ) {
 	val padding = WindowInsets.systemBars.asPaddingValues()
 	Column(
@@ -222,6 +238,20 @@ fun SelectPlanScreen(
 							style = MaterialTheme.typography.titleMedium,
 						)
 					}
+				},
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(56.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
+			)
+			OutlineStyledButton(
+				onClick = onScanCodeClick,
+				content = {
+					Text(
+						stringResource(R.string.auth_welcome_scan_button),
+						style = MaterialTheme.typography.titleMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
+					)
 				},
 				modifier = Modifier
 					.fillMaxWidth()

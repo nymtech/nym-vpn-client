@@ -3,6 +3,7 @@ package net.nymtech.vpn.backend.controller
 import android.content.Intent
 import android.os.UserManager
 import java.io.File
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,6 +22,7 @@ import net.nymtech.vpn.model.connect.ConnectResult
 import net.nymtech.vpn.backend.service.VpnService
 import net.nymtech.vpn.model.VpnServiceEvent.*
 import net.nymtech.vpn.model.config.CoreAppConfigProvider
+import net.nymtech.vpn.util.CommandErrorMapper
 import net.nymtech.vpn.util.extensions.asTunnelState
 import nym_vpn_lib.LogLevel
 import nym_vpn_lib.NoHandle
@@ -228,7 +230,7 @@ class VpnCoreController(
 			}
 			is TunnelEvent.DiagnosticsSuggested -> events.tryEmit(Log("TunnelEvent diagnostics_suggested"))
 			is TunnelEvent.ConflictDetected -> events.tryEmit(Log("TunnelEvent conflict_detected: ${event.v1}"))
-			is TunnelEvent.Pairing -> events.tryEmit(Log("TunnelEvent pairing"))
+			is TunnelEvent.Pairing -> events.tryEmit(Pairing(event.v1.sessionId, event.v1.result))
 		}
 	}
 
@@ -280,6 +282,20 @@ class VpnCoreController(
 		if (!initialized.isCompleted) return null
 		val sender = commandSender ?: return null
 		return runCatching { block(sender) }.getOrNull()
+	}
+
+	// Only the mapped error is logged, as the error text can contain user input.
+	suspend fun <E, R> withCoreSenderResult(errors: CommandErrorMapper<E>, failed: (E) -> R, block: suspend (NymVpnServiceCommandSender) -> R): R = try {
+		requireCoreSender(block)
+	} catch (e: CancellationException) {
+		throw e
+	} catch (e: NymVpnServiceCommandException) {
+		val error = errors.fromErrorChain(runCatching { e.errorChain() }.getOrDefault(""))
+		Timber.tag(TAG).w("Command failed: %s", error)
+		failed(error)
+	} catch (e: Exception) {
+		Timber.tag(TAG).w("Command failed: %s", e::class.java.simpleName)
+		failed(errors.unknown)
 	}
 
 	private suspend fun ensureCoreInitialized(network: Tunnel.Environment, enableDebugLog: Boolean, sentry: Boolean, userAgent: UserAgent, useMainnetFallback: Boolean) {

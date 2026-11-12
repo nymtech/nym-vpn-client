@@ -82,6 +82,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                         let res = handler::handle_register_account(shared_state, account, platform).await;
                         return_sender.send(res);
                     }
+                    AccountCommand::RedeemFreepass(return_sender, account, code) => {
+                        let res = handler::handle_redeem_freepass(shared_state, account, code).await;
+                        return_sender.send(res);
+                    }
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();

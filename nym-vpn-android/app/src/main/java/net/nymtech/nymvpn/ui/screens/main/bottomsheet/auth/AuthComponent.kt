@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -29,8 +30,12 @@ import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.Passphrase
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.SignUpView
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.TechOptView
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.WelcomeView
+import net.nymtech.nymvpn.ui.screens.scan.RedeemCodeViewModel
+import net.nymtech.nymvpn.ui.screens.scan.components.RedeemCodeView
+import net.nymtech.nymvpn.ui.screens.scan.rememberOpenAcceptedCode
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
+import net.nymtech.qrscanner.isQrCameraAvailable
 
 @Composable
 fun AuthComponent(
@@ -78,6 +83,8 @@ fun AuthComponent(
 
 	val signUpLockGate = rememberScreenLockGate(setupBody = R.string.screen_lock_setup_body)
 
+	val cameraAvailable = remember(context) { isQrCameraAvailable(context) }
+
 	AppNavHost(
 		navController = localNavController,
 		startDestination = initialRoute,
@@ -91,6 +98,29 @@ fun AuthComponent(
 			WelcomeView(
 				onLoginClick = { localNavController.navigate(AuthRoute.Login) },
 				onSignUpClick = { localNavController.navigate(AuthRoute.SignUp) },
+				onScanCodeClick = {
+					if (cameraAvailable) {
+						// The sheet hides while the scanner is open and reopens on Welcome when it closes.
+						onAuthSuccess()
+						rootNavController.navigate(Route.QrScan(fromWelcome = true))
+					} else {
+						localNavController.navigate(AuthRoute.RedeemCode)
+					}
+				},
+			)
+		}
+
+		composable<AuthRoute.RedeemCode> {
+			val redeemCodeViewModel: RedeemCodeViewModel = hiltViewModel()
+			val redeemCodeUiState by redeemCodeViewModel.uiState.collectAsStateWithLifecycle()
+			val openAcceptedCode = rememberOpenAcceptedCode()
+			LaunchedEffect(Unit) { redeemCodeViewModel.accepted.collect(openAcceptedCode) }
+			RedeemCodeView(
+				uiState = redeemCodeUiState,
+				onCodeChange = redeemCodeViewModel::onCodeChange,
+				onSubmit = redeemCodeViewModel::submit,
+				// Like the sheet, a redeem in flight keeps the screen open.
+				onBackClick = { if (!redeemCodeUiState.loading) localNavController.popBackStack() },
 			)
 		}
 

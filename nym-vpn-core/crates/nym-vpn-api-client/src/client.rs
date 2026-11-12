@@ -33,8 +33,9 @@ use crate::{
     request::{
         AccountKind, AppleIntroOfferEligibilityRequestBody, ApplyFreepassRequestBody,
         CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody, CreateSubscriptionKind,
-        CreateSubscriptionRequestBody, LinkAccountRequestBody, RegisterDeviceRequestBody,
-        RequestZkNymRequestBody, UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
+        CreateSubscriptionRequestBody, LinkAccountRequestBody, RedeemFreepassRequestBody,
+        RegisterDeviceRequestBody, RequestZkNymRequestBody, UpdateDeviceRequestBody,
+        UpdateDeviceRequestStatus,
     },
     response::{
         AppleIntroOfferEligibilityResponse, NymDirectoryGatewayCountriesResponse,
@@ -1094,6 +1095,29 @@ impl VpnApiClient {
         .await
         .map_err(Box::new)
         .map_err(VpnApiClientError::ApplyFreepass)
+    }
+
+    /// Creates the account on the API and applies the free pass to it in one request.
+    pub async fn redeem_freepass(
+        &self,
+        account: &VpnAccount,
+        code: String,
+    ) -> Result<NymVpnAccountResponse> {
+        let body = RedeemFreepassRequestBody {
+            redemption_code: code,
+            account_addr: account.id().to_string(),
+            pub_key: account.pub_key().to_string(),
+            signature_base64: account.signature_base64().to_string(),
+        };
+
+        self.post_json_with_retry(
+            &[routes::PUBLIC, routes::V1, routes::FREEPASS, routes::REDEEM],
+            NO_PARAMS,
+            &body,
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::RedeemFreepass)
     }
 
     // SUBSCRIPTIONS

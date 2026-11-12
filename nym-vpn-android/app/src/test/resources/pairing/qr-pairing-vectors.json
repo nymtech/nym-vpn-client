@@ -1,0 +1,31 @@
+{
+	"description": "Pairing QR test vectors. Shared with iOS; see nym-vpn-android/docs/qr-pairing-format.md. A null publicKey means the text must be rejected.",
+	"vectors": [
+		{ "name": "valid 44-character key", "contents": "https://nym.com/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": "9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW" },
+		{ "name": "valid 32-character key", "contents": "https://nym.com/qr-pairing?pubkey=11111111111111111111111111111111", "publicKey": "11111111111111111111111111111111" },
+		{ "name": "http scheme", "contents": "http://nym.com/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "uppercase scheme", "contents": "HTTPS://nym.com/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "other host", "contents": "https://nym.co/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "subdomain", "contents": "https://evil.nym.com/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "lookalike host suffix", "contents": "https://nym.com.evil.io/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "userinfo", "contents": "https://nym.com@evil.io/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "port", "contents": "https://nym.com:443/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "other path", "contents": "https://nym.com/qr-pairing/x?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "trailing slash", "contents": "https://nym.com/qr-pairing/?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "fragment", "contents": "https://nym.com/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW#x", "publicKey": null },
+		{ "name": "extra parameter", "contents": "https://nym.com/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW&x=1", "publicKey": null },
+		{ "name": "parameter before key", "contents": "https://nym.com/qr-pairing?x=1&pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "repeated key", "contents": "https://nym.com/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW&pubkey=11111111111111111111111111111111", "publicKey": null },
+		{ "name": "missing key", "contents": "https://nym.com/qr-pairing?pubkey=", "publicKey": null },
+		{ "name": "no query", "contents": "https://nym.com/qr-pairing", "publicKey": null },
+		{ "name": "key too short", "contents": "https://nym.com/qr-pairing?pubkey=1111111111111111111111111111111", "publicKey": null },
+		{ "name": "key too long", "contents": "https://nym.com/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvWx", "publicKey": null },
+		{ "name": "non-base58 character 0", "contents": "https://nym.com/qr-pairing?pubkey=0Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "percent-encoded key", "contents": "https://nym.com/qr-pairing?pubkey=%39Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUv", "publicKey": null },
+		{ "name": "leading whitespace", "contents": " https://nym.com/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "trailing newline", "contents": "https://nym.com/qr-pairing?pubkey=9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW\n", "publicKey": null },
+		{ "name": "bare key", "contents": "9Ez7Qw3hLk2sVtYpRbN4cJmA6uXfD8gH1iKoP5rStUvW", "publicKey": null },
+		{ "name": "Wi-Fi QR", "contents": "WIFI:S:home;T:WPA;P:secret;;", "publicKey": null },
+		{ "name": "empty", "contents": "", "publicKey": null }
+	]
+}

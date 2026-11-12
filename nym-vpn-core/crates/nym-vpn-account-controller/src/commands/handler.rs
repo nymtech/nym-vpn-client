@@ -121,6 +121,23 @@ pub(crate) async fn handle_register_account<C: ConnectivityMonitor>(
     Ok(RegisterAccountResponse { account_token })
 }
 
+pub(crate) async fn handle_redeem_freepass<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    account: StorableAccount,
+    code: String,
+) -> Result<(), AccountCommandError> {
+    let vpn_account = VpnAccount::try_from(account)
+        .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
+    shared_state
+        .vpn_api_client
+        .redeem_freepass(&vpn_account, code)
+        .await?;
+
+    tracing::debug!("Free pass redeemed, account registered with API");
+
+    Ok(())
+}
+
 pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<(), AccountCommandError> {
