@@ -9,6 +9,7 @@ After=NetworkManager.service systemd-resolved.service
 ExecStart=/usr/bin/nym-vpnd -v run-as-service
 Restart=always
 RestartSec=2
+LimitCORE=0
 
 [Install]
 WantedBy=multi-user.target
