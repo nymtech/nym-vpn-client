@@ -87,6 +87,9 @@ pub fn install_service() -> anyhow::Result<()> {
         .set_description(SERVICE_DESCRIPTION)
         .with_context(|| "Failed to set service description")?;
 
+    crate::core_dumps::disable()
+        .with_context(|| "Failed to exclude service from Windows Error Reporting")?;
+
     println!("{SERVICE_NAME} service was installed successfully.");
 
     Ok(())
@@ -113,6 +116,10 @@ pub async fn uninstall_service() -> anyhow::Result<()> {
         };
 
         service.delete()?;
+
+        if let Err(e) = crate::core_dumps::restore() {
+            eprintln!("Failed to remove service from Windows Error Reporting exclusions: {e}");
+        }
 
         if service.query_status()?.current_state != ServiceState::Stopped {
             service.stop()?;
