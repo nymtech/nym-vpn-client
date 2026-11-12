@@ -124,7 +124,7 @@ impl OnDiskDeviceStateStorage {
 impl DeviceStateStorage for OnDiskDeviceStateStorage {
     type StorageError = OnDiskDeviceStateStorageError;
 
-    async fn load_device_state(&self) -> Result<StoredDeviceState> {
+    async fn load_device_state(&self) -> Result<Option<StoredDeviceState>> {
         match tokio::fs::read(&self.path).await {
             Ok(ciphertext) => {
                 let plaintext = self
@@ -134,9 +134,10 @@ impl DeviceStateStorage for OnDiskDeviceStateStorage {
                     .map_err(OnDiskDeviceStateStorageError::Decrypt)?;
 
                 serde_json::from_slice(&plaintext)
+                    .map(Some)
                     .map_err(OnDiskDeviceStateStorageError::Deserialize)
             }
-            Err(err) if err.kind() == IoErrorKind::NotFound => Ok(StoredDeviceState::LoggedOut),
+            Err(err) if err.kind() == IoErrorKind::NotFound => Ok(None),
             Err(err) => Err(self.io_error("read file", err)),
         }
     }
@@ -176,7 +177,7 @@ mod tests {
     use crate::{device_state::StoredAccountIdentity, store_ciphers::noop_cipher::NoopStoreCipher};
 
     fn logged_in(mode: StoredAccountMode) -> StoredDeviceState {
-        StoredDeviceState::LoggedIn {
+        StoredDeviceState {
             account_identity: StoredAccountIdentity {
                 id: "juno1cma4czt2jnydvrvz3lrc9jvcmhpjxtds95s3c6".to_owned(),
                 mode: mode,
@@ -193,14 +194,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn load_returns_logged_out_if_file_does_not_exist() {
+    async fn load_returns_none_if_file_does_not_exist() {
         let tempdir = tempfile::tempdir().unwrap();
         let storage = storage(&tempdir.path().join("device_state.json"));
 
-        assert_eq!(
-            storage.load_device_state().await.unwrap(),
-            StoredDeviceState::LoggedOut
-        );
+        assert_eq!(storage.load_device_state().await.unwrap(), None);
     }
 
     #[tokio::test]
@@ -211,7 +209,7 @@ mod tests {
         let state = logged_in(StoredAccountMode::Api);
         storage.store_device_state(state.clone()).await.unwrap();
 
-        assert_eq!(storage.load_device_state().await.unwrap(), state);
+        assert_eq!(storage.load_device_state().await.unwrap(), Some(state));
     }
 
     #[tokio::test]
@@ -224,15 +222,10 @@ mod tests {
             .store_device_state(logged_in(StoredAccountMode::Api))
             .await
             .unwrap();
-        storage
-            .store_device_state(StoredDeviceState::LoggedOut)
-            .await
-            .unwrap();
+        let state = logged_in(StoredAccountMode::Decentralised);
+        storage.store_device_state(state.clone()).await.unwrap();
 
-        assert_eq!(
-            storage.load_device_state().await.unwrap(),
-            StoredDeviceState::LoggedOut
-        );
+        assert_eq!(storage.load_device_state().await.unwrap(), Some(state));
         assert!(!path.with_added_extension("tmp").exists());
     }
 
@@ -249,10 +242,7 @@ mod tests {
         storage.remove_device_state().await.unwrap();
 
         assert!(!path.exists());
-        assert_eq!(
-            storage.load_device_state().await.unwrap(),
-            StoredDeviceState::LoggedOut
-        );
+        assert_eq!(storage.load_device_state().await.unwrap(), None);
     }
 
     #[tokio::test]

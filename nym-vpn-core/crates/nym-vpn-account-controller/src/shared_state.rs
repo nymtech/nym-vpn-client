@@ -49,7 +49,7 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
 
     /// Current device state
     /// Includes metadata such as account summary when available.
-    pub(crate) device_state: StoredDeviceState,
+    pub(crate) device_state: Option<StoredDeviceState>,
 
     /// Registered device
     pub(crate) device: Option<Device>,
@@ -86,7 +86,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         wireguard_keys_storage: WireguardKeysDb,
         vpn_api_client: VpnApiClient,
         nyxd_client: NyxdClient,
-        device_state: StoredDeviceState,
+        device_state: Option<StoredDeviceState>,
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         event_sender: AccountControllerEventSender,
@@ -148,11 +148,11 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             return Ok(());
         }
 
-        let StoredDeviceState::LoggedIn {
+        let Some(StoredDeviceState {
             account_identity,
             ecash_keypair,
             ..
-        } = &self.device_state
+        }) = &self.device_state
         else {
             return Err(Error::NoAccountStored);
         };
@@ -280,10 +280,10 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
 
     /// Marks the cached summary as stale and persists it. No-op when no summary is cached.
     pub(crate) async fn mark_summary_as_stale(&mut self) -> Result<()> {
-        let StoredDeviceState::LoggedIn {
+        let Some(StoredDeviceState {
             summary: Some(account_summary),
             ..
-        } = &mut self.device_state
+        }) = &mut self.device_state
         else {
             return Ok(());
         };
@@ -296,10 +296,10 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         &mut self,
         new_account_summary: VpnAccountSummary,
     ) -> Result<()> {
-        let StoredDeviceState::LoggedIn {
+        let Some(StoredDeviceState {
             summary: account_summary,
             ..
-        } = &mut self.device_state
+        }) = &mut self.device_state
         else {
             return Err(Error::NoAccountStored);
         };
@@ -308,12 +308,10 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
     }
 
     async fn persist_device_state(&self) -> Result<()> {
+        let device_state = self.device_state.clone().ok_or(Error::NoAccountStored)?;
         let (tx, rx) = ReturnSender::new();
         self.storage_op_sender
-            .send(AccountStorageOp::StoreDeviceState(
-                tx,
-                self.device_state.clone(),
-            ))
+            .send(AccountStorageOp::StoreDeviceState(tx, device_state))
             .map_err(Error::internal)?;
         rx.await.map_err(Error::internal)?
     }

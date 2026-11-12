@@ -92,50 +92,20 @@ impl std::fmt::Debug for EcashSeed {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
-pub enum StoredDeviceState {
-    /// Device is logged out
-    #[default]
-    LoggedOut,
-
-    /// Device is logged in
-    LoggedIn {
-        account_identity: StoredAccountIdentity,
-        ecash_keypair: KeyPairUser,
-        summary: Option<VpnAccountSummary>,
-    },
-}
-
-impl StoredDeviceState {
-    /// Returns account summary if available
-    pub fn account_summary(&self) -> &Option<VpnAccountSummary> {
-        match self {
-            Self::LoggedIn {
-                summary: account_summary,
-                ..
-            } => account_summary,
-            Self::LoggedOut => &None,
-        }
-    }
-
-    /// Returns device account when logged in
-    pub fn account(&self) -> Option<&StoredAccountIdentity> {
-        match self {
-            Self::LoggedIn {
-                account_identity: account,
-                ..
-            } => Some(account),
-            Self::LoggedOut => None,
-        }
-    }
+/// Device state persisted while logged in
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct StoredDeviceState {
+    pub account_identity: StoredAccountIdentity,
+    pub ecash_keypair: KeyPairUser,
+    pub summary: Option<VpnAccountSummary>,
 }
 
 #[async_trait::async_trait]
 pub trait DeviceStateStorage {
     type StorageError: Error + Send + Sync + 'static;
 
-    /// Returns [`DeviceState::LoggedOut`] when no state is stored.
-    async fn load_device_state(&self) -> Result<StoredDeviceState, Self::StorageError>;
+    /// Returns `None` when no state is stored.
+    async fn load_device_state(&self) -> Result<Option<StoredDeviceState>, Self::StorageError>;
 
     async fn store_device_state(&self, state: StoredDeviceState) -> Result<(), Self::StorageError>;
 

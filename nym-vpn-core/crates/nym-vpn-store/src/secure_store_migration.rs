@@ -179,7 +179,7 @@ where
             .create_ecash_keypair()
             .map_err(|err| SecureStoreMigrationError::CreateEcashKeyPair(Box::new(err)))?;
 
-        let device_state = StoredDeviceState::LoggedIn {
+        let device_state = StoredDeviceState {
             account_identity,
             ecash_keypair,
             summary: account_summary,
@@ -335,11 +335,11 @@ mod tests {
             expected_account_keys(&stored_mnemonic.mnemonic, StoredAccountMode::Decentralised);
         assert_eq!(
             device_state_store.load_device_state().await.unwrap(),
-            StoredDeviceState::LoggedIn {
+            Some(StoredDeviceState {
                 account_identity,
                 ecash_keypair,
                 summary: None,
-            }
+            })
         );
     }
 
@@ -400,11 +400,11 @@ mod tests {
             expected_account_keys(&stored_mnemonic.mnemonic, StoredAccountMode::Api);
         assert_matches!(
             device_state_store.load_device_state().await,
-            Ok(StoredDeviceState::LoggedIn {
+            Ok(Some(StoredDeviceState {
                 account_identity,
                 ecash_keypair,
                 summary: Some(summary),
-            }) if account_identity == expected_identity
+            })) if account_identity == expected_identity
                 && ecash_keypair == expected_ecash_keypair
                 && summary.account_addr == "n1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu"
                 && summary.traffic_used_gb == 12
@@ -451,10 +451,7 @@ mod tests {
         assert_matches!(storage.migrate().await, Ok(()));
 
         assert_matches!(mnemonic_store.load_mnemonic().await, Ok(Some(v)) if v == stored_mnemonic);
-        assert_matches!(
-            device_state_store.load_device_state().await,
-            Ok(StoredDeviceState::LoggedOut)
-        );
+        assert_matches!(device_state_store.load_device_state().await, Ok(None));
 
         assert_matches!(storage.should_migrate().await, Ok(false));
         assert_matches!(storage.migrate().await, Ok(()));

@@ -149,7 +149,7 @@ impl MnemonicStorage for VpnClientOnDiskStorage {
 impl DeviceStateStorage for VpnClientOnDiskStorage {
     type StorageError = OnDiskDeviceStateStorageError;
 
-    async fn load_device_state(&self) -> Result<StoredDeviceState, Self::StorageError> {
+    async fn load_device_state(&self) -> Result<Option<StoredDeviceState>, Self::StorageError> {
         self.device_state_storage.load_device_state().await
     }
 
