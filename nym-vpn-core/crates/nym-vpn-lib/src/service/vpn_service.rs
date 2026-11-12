@@ -56,10 +56,10 @@ use nym_vpn_lib_types::{
     DiagnosticRunParams, DnsServer, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags,
     Gateway, GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters,
     MixnetTrafficConfig, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork,
-    NymVpnUsage, ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways,
-    RegistrationReport, StorableAccount, StoreAccountRequest, StoredAccountMode, SystemMessage,
-    TargetState, TentativeGateways, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    NymVpnSubscription, NymVpnUsage, ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl,
+    RecentGateways, RegistrationReport, StorableAccount, StoreAccountRequest, StoredAccountMode,
+    SystemMessage, TargetState, TentativeGateways, TunnelEvent, TunnelState, TunnelType,
+    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -245,6 +245,10 @@ pub enum VpnServiceCommand {
     ),
     HandleSubscriptionPayment(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     IsTrialEligible(oneshot::Sender<Result<bool, AccountCommandError>>, ()),
+    ApplyFreepass(
+        oneshot::Sender<Result<NymVpnSubscription, AccountCommandError>>,
+        String,
+    ),
     GetDeeplink(
         oneshot::Sender<Result<String, AccountCommandError>>,
         GetDeeplinkParams,
@@ -1329,6 +1333,9 @@ impl NymVpnService {
             VpnServiceCommand::IsTrialEligible(tx, ()) => {
                 self.handle_is_trial_eligible(tx);
             }
+            VpnServiceCommand::ApplyFreepass(tx, code) => {
+                self.handle_apply_freepass(tx, code);
+            }
             VpnServiceCommand::GetDeeplink(tx, params) => {
                 let _ = tx.send(self.handle_get_deeplink(params).await);
             }
@@ -2396,6 +2403,25 @@ impl NymVpnService {
             completion_tx
                 .send(account_command_tx.is_trial_eligible().await)
                 .ok();
+        });
+    }
+
+    fn handle_apply_freepass(
+        &self,
+        completion_tx: oneshot::Sender<Result<NymVpnSubscription, AccountCommandError>>,
+        code: String,
+    ) {
+        let account_command_tx = self.account_command_tx.clone();
+
+        tokio::spawn(async move {
+            let result = account_command_tx.apply_freepass(code).await;
+            if result.is_ok() {
+                // Pick up the new subscription without waiting for the next sync.
+                if let Err(err) = account_command_tx.refresh_account_state(true).await {
+                    tracing::warn!("Failed to refresh account after applying free pass: {err}");
+                }
+            }
+            completion_tx.send(result).ok();
         });
     }
 

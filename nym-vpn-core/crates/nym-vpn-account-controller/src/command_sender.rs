@@ -11,8 +11,9 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, DeeplinkKind, QrPairingConfirmation, QrUrl,
-    RegisterAccountResponse, StorableAccount, StoredAccountMode, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, DeeplinkKind, NymVpnSubscription,
+    QrPairingConfirmation, QrUrl, RegisterAccountResponse, StorableAccount, StoredAccountMode,
+    VpnAccountSummary,
 };
 
 use tokio::sync::mpsc::UnboundedSender;
@@ -254,6 +255,21 @@ impl AccountCommandSender {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::IsTrialEligible(tx)))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    /// Redeems a free pass code on the account and returns the subscription it grants.
+    #[instrument(skip(self, code))]
+    pub async fn apply_freepass(
+        &self,
+        code: String,
+    ) -> Result<NymVpnSubscription, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(CommonCommand::ApplyFreepass(
+                tx, code,
+            )))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

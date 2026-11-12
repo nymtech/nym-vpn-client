@@ -8,8 +8,8 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, QrPairingConfirmation, QrUrl, RegisterAccountResponse,
-    StorableAccount, StoredAccountMode, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, NymVpnSubscription, QrPairingConfirmation, QrUrl,
+    RegisterAccountResponse, StorableAccount, StoredAccountMode, VpnAccountSummary,
 };
 use tokio::sync::oneshot;
 
@@ -113,6 +113,7 @@ impl AccountCommand {
                 CommonCommand::CheckAppleIntroOfferEligibility(return_sender, _, _) => {
                     return_sender.send(Err(error))
                 }
+                CommonCommand::ApplyFreepass(return_sender, _) => return_sender.send(Err(error)),
                 CommonCommand::GetDeeplink(return_sender, _) => return_sender.send(Err(error)),
                 CommonCommand::GetAutologinDeeplink(return_sender, _) => {
                     return_sender.send(Err(error))
@@ -166,6 +167,12 @@ pub enum CommonCommand {
     CheckAppleIntroOfferEligibility(
         ReturnSender<Option<String>, AccountCommandError>,
         String,
+        String,
+    ),
+
+    /// Redeems a free pass code on the account and returns the subscription it grants.
+    ApplyFreepass(
+        ReturnSender<NymVpnSubscription, AccountCommandError>,
         String,
     ),
 

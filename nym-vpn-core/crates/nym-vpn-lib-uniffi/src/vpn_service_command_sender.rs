@@ -13,10 +13,11 @@ use tokio::sync::{mpsc, oneshot};
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
     DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
-    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks, Profile,
-    QrPairingConfirmation, QrUrl, RecentGateways, RegisterAccountRequest, RegisterAccountResponse,
-    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
-    TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, NymVpnSubscription,
+    ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways,
+    RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, StoredAccountMode,
+    SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -446,6 +447,15 @@ impl NymVpnServiceCommandSender {
     pub async fn is_trial_eligible(&self) -> Result<bool> {
         Ok(self
             .send_and_wait(VpnServiceCommand::IsTrialEligible, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
+    /// Redeems a free pass code on the signed-in account and returns the subscription it grants.
+    /// The account state is refreshed afterwards.
+    pub async fn apply_freepass(&self, code: String) -> Result<NymVpnSubscription> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::ApplyFreepass, code)
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
