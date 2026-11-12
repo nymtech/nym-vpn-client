@@ -257,7 +257,7 @@ function NodeDetails() {
                       className="text-status-info! underline"
                       to={routes.antiCensorship}
                     >
-                      Set &quot;Enhanced connection&quot; to Auto or On
+                      Set &quot;Disguise your traffic&quot; to Auto or On
                     </Link>
                     in Anti-censorship Settings to use this feature
                   </Trans>

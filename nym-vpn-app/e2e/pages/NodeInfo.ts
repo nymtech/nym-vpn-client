@@ -43,7 +43,7 @@ class NodeInfoPage {
     });
     this.antiCensorshipValue = page.getByText('QUIC protocol', { exact: true });
     this.enableQuicHint = page.getByText(
-      'Set “Enhanced connection” to Auto or On in',
+      'Set “Disguise your traffic” to Auto or On in',
     );
 
     this.overallPerformanceLabel = page.getByText('Overall performance');

@@ -39,10 +39,9 @@ export const SentryHomePage = 'https://sentry.io/';
 export const GatewaysCacheDuration = 120; // 2min
 export const NymVpnPricingUrl = 'https://nym.com/pricing';
 export const NymVpnAccountLoginUrl = 'https://nym.com/account/login';
-export const QuicUrl = 'https://nym.com/features/quic';
+export const AntiCensorshipBridgesUrl =
+  'https://nym.com/features/anti-censorship-bridges';
 export const DomainFrontingUrl = 'https://nym.com/features/stealth-api-connect';
-export const AmneziaWgUrl =
-  'https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard';
 export const IpInfoIoUrl = 'https://ipinfo.io';
 export const SupportServerLocationUrl =
   'https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
