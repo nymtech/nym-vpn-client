@@ -80,7 +80,7 @@ opentelemetry.workspace = true
 opentelemetry_sdk.workspace = true
 rand.workspace = true
 reqwest = { workspace = true, features = ["socks", "rustls", "stream"] }
-rustls = { workspace = true, default-features = false, features = [
+rustls = { workspace = true, features = [
     "std",
     "ring",
     "logging",
@@ -194,7 +194,7 @@ tracing-test.workspace = true
 [build-dependencies]
 sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
-vergen-gitcl = { workspace = true, default-features = false, features = [
+vergen-gitcl = { workspace = true, features = [
     "build",
     "cargo",
     "rustc",

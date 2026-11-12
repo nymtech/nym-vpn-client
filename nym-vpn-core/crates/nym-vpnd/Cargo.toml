@@ -68,7 +68,7 @@ features = [
 pretty_assertions.workspace = true
 
 [build-dependencies]
-vergen-gitcl = { workspace = true, default-features = false, features = [
+vergen-gitcl = { workspace = true, features = [
     "build",
     "cargo",
     "rustc",

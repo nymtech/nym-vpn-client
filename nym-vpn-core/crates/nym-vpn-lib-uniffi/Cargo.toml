@@ -76,14 +76,14 @@ tracing-android.workspace = true
 nym-firewall-config.workspace = true
 nym-network-defaults.workspace = true
 webpki-roots.workspace = true
-rustls = { workspace = true, default-features = false, features = [
+rustls = { workspace = true, features = [
     "ring",
     "std",
 ] }
 inventory.workspace = true
 
 [build-dependencies]
-vergen-gitcl = { workspace = true, default-features = false, features = [
+vergen-gitcl = { workspace = true, features = [
     "build",
     "cargo",
     "rustc",
