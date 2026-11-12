@@ -74,7 +74,7 @@ jobs:
       REPOSITORY: ${{ github.repository }}
       TARBALL: ${{ github.workspace }}/sources.tar.gz
       SERVICE_FILE: ${{ github.workspace }}/nym-vpn-core/crates/nym-vpnd/linux/unit-scripts/nym-vpnd.service
-      CONF_FILE: ${{ github.workspace }}/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpn.conf
+      CONF_FILE: ${{ github.workspace }}/nym-vpn-core/crates/nym-vpnd/.pkg/sysusers.d/nym-vpn.conf
       LINUX_BIN_X86_64: linux-bin-x86_64
       LINUX_BIN_AARCH64: linux-bin-aarch64
     steps:
@@ -161,4 +161,4 @@ jobs:
           commit_message: ${{ inputs.commit_msg || format('v{0}', steps.app-version.outputs.metadata) }}
           assets: |
             nym-vpn-core/crates/nym-vpnd/linux/unit-scripts/nym-vpnd.service
-            nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpn.conf
+            nym-vpn-core/crates/nym-vpnd/.pkg/sysusers.d/nym-vpn.conf
