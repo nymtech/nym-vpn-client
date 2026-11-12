@@ -24,6 +24,9 @@ pub(crate) fn disable() -> io::Result<()> {
 
 /// Excludes the daemon from Windows Error Reporting for all users, so that its crashes
 /// don't produce dumps holding the WireGuard private key and account tokens in plain text.
+///
+/// The exclusion is stored in the registry under the executable's file name, so it persists
+/// across restarts until [`restore`] removes it. Requires administrator rights.
 #[cfg(windows)]
 pub(crate) fn disable() -> io::Result<()> {
     let exe_name = exe_name()?;
@@ -31,6 +34,8 @@ pub(crate) fn disable() -> io::Result<()> {
     Ok(())
 }
 
+/// Removes the persistent Windows Error Reporting exclusion added by [`disable`].
+/// Requires administrator rights.
 #[cfg(windows)]
 pub(crate) fn restore() -> io::Result<()> {
     let exe_name = exe_name()?;
