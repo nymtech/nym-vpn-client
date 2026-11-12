@@ -1,8 +1,8 @@
 import { Trans, useTranslation } from 'react-i18next';
 import { Link, MsIcon } from '../../../ui';
 import {
+  AntiCensorshipBridgesUrl,
   LocationDetailsArticle,
-  QuicSupportArticleUrl,
   ResidentialIpServersUrl,
 } from '../../../constants';
 import { NodeHop } from '../../../types/index';
@@ -53,14 +53,13 @@ function QUICSection() {
   return (
     <DetailsSection icon="package_2" title={t('location-details.quic.title')}>
       <Trans i18nKey="location-details.quic.description" ns="node-location">
-        Improves the Fast mode reliability in restrictive networks by
+        Bridges help you slip past networks that detect and block VPN traffic.
         <Link
-          url={QuicSupportArticleUrl}
+          url={AntiCensorshipBridgesUrl}
           textClassName="text-black dark:text-white"
         >
-          wrapping WireGuard traffic in QUIC
+          Learn more
         </Link>
-        (HTTP/3) to appear as regular web browsing.
       </Trans>
     </DetailsSection>
   );

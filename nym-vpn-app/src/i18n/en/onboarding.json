@@ -22,7 +22,7 @@
   },
   "around": {
     "title": "Nym gets you around",
-    "description": "Disguise WireGuard with <bold>AmneziaWG</bold>\nGet around firewalls with <bold>QUIC</bold>\nAvoid VPN blocking with <bold>Stealth Connect</bold>\n<bold>Post-quantum</bold> security"
+    "description": "Disguise WireGuard with <bold>AmneziaWG</bold>\nAdaptive <bold>anti-censorship bridges</bold>\nPrevent <bold>VPN blocking</bold>\n<bold>Post-quantum</bold> security"
   },
   "controls": {
     "get-started": "Get started",

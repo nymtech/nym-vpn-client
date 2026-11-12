@@ -21,7 +21,7 @@
     },
     "quic": {
       "title": "QUIC protocol",
-      "description": "Improves the dVPN reliability in restrictive networks by <1>wrapping WireGuard traffic in QUIC</1> (HTTP/3) to appear as regular web browsing."
+      "description": "Bridges help you slip past networks that detect and block VPN traffic. <1>Learn more</1>"
     },
     "entry-title": "Choosing entry servers",
     "exit-title": "Choosing exit locations"
