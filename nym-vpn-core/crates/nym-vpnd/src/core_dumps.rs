@@ -16,19 +16,33 @@ pub(crate) fn disable() -> nix::Result<()> {
     nix::sys::resource::setrlimit(nix::sys::resource::Resource::RLIMIT_CORE, 0, 0)
 }
 
-#[cfg(windows)]
-const EXE_NAME: windows::core::PCWSTR = windows::core::w!("nym-vpnd.exe");
-
 /// Excludes the daemon from Windows Error Reporting for all users, so that its crashes
 /// don't produce dumps holding the WireGuard private key and account tokens in plain text.
 #[cfg(windows)]
-pub(crate) fn disable() -> windows::core::Result<()> {
-    unsafe { windows::Win32::System::ErrorReporting::WerAddExcludedApplication(EXE_NAME, true) }
+pub(crate) fn disable() -> anyhow::Result<()> {
+    let exe_name = exe_name()?;
+    unsafe { windows::Win32::System::ErrorReporting::WerAddExcludedApplication(&exe_name, true) }?;
+    Ok(())
 }
 
 #[cfg(windows)]
-pub(crate) fn restore() -> windows::core::Result<()> {
-    unsafe { windows::Win32::System::ErrorReporting::WerRemoveExcludedApplication(EXE_NAME, true) }
+pub(crate) fn restore() -> anyhow::Result<()> {
+    let exe_name = exe_name()?;
+    unsafe {
+        windows::Win32::System::ErrorReporting::WerRemoveExcludedApplication(&exe_name, true)
+    }?;
+    Ok(())
+}
+
+#[cfg(windows)]
+fn exe_name() -> anyhow::Result<windows::core::HSTRING> {
+    use anyhow::Context;
+
+    let exe_path = std::env::current_exe().context("Failed to get current executable path")?;
+    let exe_name = exe_path
+        .file_name()
+        .context("Current executable path has no file name")?;
+    Ok(windows::core::HSTRING::from(exe_name))
 }
 
 #[cfg(test)]
