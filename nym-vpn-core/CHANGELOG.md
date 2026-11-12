@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Restrict allowed IPs for exit gateway (https://github.com/nymtech/nym-vpn-client/pull/6952)
 - Show a specific error when Enhanced connection is On and the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6973)
 - Connect directly in Auto when the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6976)
-- Skip gateways whose latest probe shows they reject LP registration when selecting gateways for a WireGuard tunnel (https://github.com/nymtech/nym-vpn-client/pull/7088)
+- Prefer gateways whose latest probe doesn't show them rejecting LP registration when selecting gateways for a WireGuard tunnel. In any tunnel type, try the next entry gateway when one has no usable exit (https://github.com/nymtech/nym-vpn-client/pull/7088)
 
 ### Security
 

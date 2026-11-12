@@ -730,31 +730,6 @@ mod tests {
         gateway
     }
 
-    async fn select_with_lp_rejecting_exit(
-        exit_point: ExitPoint,
-    ) -> Result<SelectedGateways, GatewayProviderError> {
-        let gateways = Arc::new(RwLock::new(Some(vec![
-            gateway_id_to_gateway(GW_ID_1),
-            gw_rejecting_lp_registration(GW_ID_2),
-        ])));
-        let mut settings = default_tunnel_settings();
-        *settings.entry_point = EntryPoint::Gateway {
-            identity: GW_ID_1.parse().unwrap(),
-        };
-        *settings.exit_point = exit_point;
-
-        select_gateways(
-            MockGatewayCache::new(gateways),
-            &BlacklistedGateways::new(),
-            &settings,
-            false,
-            None,
-            None,
-            &WireguardKeysDb::Ephemeral(Default::default()),
-        )
-        .await
-    }
-
     const GW_ID_3: &str = "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42";
 
     async fn select_wireguard(
@@ -823,6 +798,7 @@ mod tests {
 
     // An entry pick that lands on the pinned exit must move on to the next LP-passing entry,
     // not fall back to an LP-rejecting one.
+    // A broken retry passes an iteration with probability 2/3, so 32 runs miss it about 2e-6.
     #[tokio::test]
     async fn entry_colliding_with_pinned_exit_tries_next_lp_passing_entry() {
         for _ in 0..32 {
@@ -866,15 +842,73 @@ mod tests {
         assert!(selected.is_ok());
     }
 
+    // Pinned LP-rejecting gateways are exempt from the filter, so the other side is still
+    // filtered. If a pinned gateway were filtered, the filtered pass would fail and the
+    // unfiltered retry could pick the LP-rejecting candidate on the other side.
+    async fn select_with_pinned(
+        entry_point: EntryPoint,
+        exit_point: ExitPoint,
+    ) -> SelectedGateways {
+        let mut settings = default_tunnel_settings();
+        *settings.entry_point = entry_point;
+        *settings.exit_point = exit_point;
+        select_gateways(
+            MockGatewayCache::new(Arc::new(RwLock::new(Some(vec![
+                gw_rejecting_lp_registration(GW_ID_1),
+                gw_rejecting_lp_registration(GW_ID_2),
+                gateway_id_to_gateway(GW_ID_3),
+            ])))),
+            &BlacklistedGateways::new(),
+            &settings,
+            false,
+            None,
+            None,
+            &WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await
+        .unwrap()
+    }
+
     #[tokio::test]
     async fn pinned_exit_rejecting_lp_registration_is_kept() {
-        let result = select_with_lp_rejecting_exit(ExitPoint::Gateway {
-            identity: GW_ID_2.parse().unwrap(),
-        })
-        .await
-        .unwrap();
+        for _ in 0..32 {
+            let selected = select_with_pinned(
+                EntryPoint::Random,
+                ExitPoint::Gateway {
+                    identity: GW_ID_1.parse().unwrap(),
+                },
+            )
+            .await;
+            assert_eq!(
+                selected.exit_gateway().identity().to_base58_string(),
+                GW_ID_1
+            );
+            assert_eq!(
+                selected.entry_gateway().identity().to_base58_string(),
+                GW_ID_3
+            );
+        }
+    }
 
-        assert_eq!(result.exit_gateway().identity().to_base58_string(), GW_ID_2);
+    #[tokio::test]
+    async fn pinned_entry_rejecting_lp_registration_is_kept() {
+        for _ in 0..32 {
+            let selected = select_with_pinned(
+                EntryPoint::Gateway {
+                    identity: GW_ID_1.parse().unwrap(),
+                },
+                ExitPoint::Random,
+            )
+            .await;
+            assert_eq!(
+                selected.entry_gateway().identity().to_base58_string(),
+                GW_ID_1
+            );
+            assert_eq!(
+                selected.exit_gateway().identity().to_base58_string(),
+                GW_ID_3
+            );
+        }
     }
 
     #[tokio::test]
