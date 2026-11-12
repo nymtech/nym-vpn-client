@@ -16857,35 +16857,24 @@
         }
       }
     },
-    "locationModal.quic.subtitle1" : {
+    "locationModal.bridges.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Improves the dVPN reliability in restrictive networks by"
+            "value" : "Bridges help you slip past networks that detect and block VPN traffic."
           }
         }
       }
     },
-    "locationModal.quic.subtitle2" : {
+    "locationModal.bridges.link" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "wrapping WireGuard traffic in QUIC"
-          }
-        }
-      }
-    },
-    "locationModal.quic.subtitle3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "(HTTP/3) to appear as regular web browsing."
+            "value" : "Learn more"
           }
         }
       }
@@ -19774,13 +19763,13 @@
         }
       }
     },
-    "onboarding26.censorship.blocking" : {
+    "onboarding26.censorship.prevent" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avoid VPN blocking with "
+            "value" : "Prevent "
           }
         }
       }
@@ -19796,13 +19785,13 @@
         }
       }
     },
-    "onboarding26.censorship.firewalls" : {
+    "onboarding26.censorship.adaptive" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Get around firewalls with "
+            "value" : "Adaptive "
           }
         }
       }
@@ -19829,24 +19818,24 @@
         }
       }
     },
-    "onboarding26.censorship.quicBold" : {
+    "onboarding26.censorship.bridgesBold" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "QUIC"
+            "value" : "anti-censorship bridges"
           }
         }
       }
     },
-    "onboarding26.censorship.stealthBold" : {
+    "onboarding26.censorship.vpnBlockingBold" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stealth Connect"
+            "value" : "VPN blocking"
           }
         }
       }

@@ -116,11 +116,11 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
             regular("onboarding26.censorship.disguise")
                 + bold("onboarding26.censorship.amneziaBold")
                 + newLine
-                + regular("onboarding26.censorship.firewalls")
-                + bold("onboarding26.censorship.quicBold")
+                + regular("onboarding26.censorship.adaptive")
+                + bold("onboarding26.censorship.bridgesBold")
                 + newLine
-                + regular("onboarding26.censorship.blocking")
-                + bold("onboarding26.censorship.stealthBold")
+                + regular("onboarding26.censorship.prevent")
+                + bold("onboarding26.censorship.vpnBlockingBold")
                 + newLine
                 + bold("onboarding26.censorship.postQuantumBold")
                 + regular("onboarding26.censorship.postQuantum")

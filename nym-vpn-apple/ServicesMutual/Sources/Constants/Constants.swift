@@ -20,7 +20,6 @@ public enum Constants: String {
     case createAccounURL = "https://nym.com/account/create"
     case pricingURL = "https://nym.com/pricing"
     case sentryURL = "https://sentry.io"
-    case quicURL = "https://support.nym.com/hc/en-us/articles/39648047741457-QUIC-transport-mode"
     case antiCensorshipBridgesURL = "https://nym.com/features/anti-censorship-bridges"
     case stealhApiConnectURL = "https://nym.com/features/stealth-api-connect"
     case ipInfoURL = "https://ipinfo.io/"
