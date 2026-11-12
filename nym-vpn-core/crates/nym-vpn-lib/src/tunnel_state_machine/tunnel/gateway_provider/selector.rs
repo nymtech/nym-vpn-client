@@ -320,6 +320,9 @@ fn select_entry(
     if use_bridges {
         entry_filters.add(GatewayFilter::QuicEnabled);
     }
+    if !pinned_entry && tunnel_settings.tunnel_type_used() == TunnelType::Wireguard {
+        entry_filters.add(GatewayFilter::LpCanRegister);
+    }
 
     let entry_ordering_criteria = OrderingCriteria::new_entry(
         &mut entry_gateways,
@@ -379,6 +382,9 @@ fn select_exit(
     );
     if !pinned_exit && !blacklisted_gateways.is_empty().unwrap_or(true) {
         exit_filter_items.push(GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()));
+    }
+    if !pinned_exit && tunnel_settings.tunnel_type_used() == TunnelType::Wireguard {
+        exit_filter_items.push(GatewayFilter::LpCanRegister);
     }
     let exit_filters = GatewayFilters::from(&exit_filter_items);
 
@@ -660,6 +666,103 @@ mod tests {
             &WireguardKeysDb::Ephemeral(Default::default()),
         )
         .await
+    }
+
+    fn gw_rejecting_lp_registration(id: &str) -> Gateway {
+        let mut gateway = gateway_id_to_gateway(id);
+        gateway.last_probe = Some(nym_gateway_directory::Probe {
+            last_updated_utc: Default::default(),
+            outcome: nym_gateway_directory::ProbeOutcome {
+                as_entry: nym_gateway_directory::Entry {
+                    can_connect: true,
+                    can_route: true,
+                },
+                as_exit: None,
+                wg: None,
+                socks5: None,
+                lp: Some(nym_gateway_directory::Lp {
+                    can_connect: true,
+                    can_handshake: true,
+                    can_register: false,
+                    error: None,
+                }),
+            },
+        });
+        gateway
+    }
+
+    async fn select_with_lp_rejecting_exit(
+        exit_point: ExitPoint,
+    ) -> Result<SelectedGateways, GatewayProviderError> {
+        let gateways = Arc::new(RwLock::new(Some(vec![
+            gateway_id_to_gateway(GW_ID_1),
+            gw_rejecting_lp_registration(GW_ID_2),
+        ])));
+        let mut settings = default_tunnel_settings();
+        *settings.entry_point = EntryPoint::Gateway {
+            identity: GW_ID_1.parse().unwrap(),
+        };
+        *settings.exit_point = exit_point;
+
+        select_gateways(
+            MockGatewayCache::new(gateways),
+            &BlacklistedGateways::new(),
+            &settings,
+            false,
+            None,
+            None,
+            &WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await
+    }
+
+    #[tokio::test]
+    async fn wireguard_exit_rejecting_lp_registration_is_skipped() {
+        let result = select_with_lp_rejecting_exit(ExitPoint::Random).await;
+
+        assert!(matches!(
+            result,
+            Err(GatewayProviderError::ExitGatewayUnavailable(_))
+        ));
+    }
+
+    #[tokio::test]
+    async fn wireguard_entry_rejecting_lp_registration_is_skipped() {
+        let gateways = Arc::new(RwLock::new(Some(vec![
+            gw_rejecting_lp_registration(GW_ID_1),
+            gw_rejecting_lp_registration(GW_ID_2),
+        ])));
+        let mut settings = default_tunnel_settings();
+        *settings.exit_point = ExitPoint::Gateway {
+            identity: GW_ID_2.parse().unwrap(),
+        };
+
+        let result = select_gateways(
+            MockGatewayCache::new(gateways),
+            &BlacklistedGateways::new(),
+            &settings,
+            false,
+            None,
+            None,
+            &WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await;
+
+        assert!(matches!(
+            result,
+            Err(GatewayProviderError::EntryGatewayUnavailable(_))
+        ));
+    }
+
+    #[tokio::test]
+    async fn pinned_exit_rejecting_lp_registration_is_kept() {
+        let result = select_with_lp_rejecting_exit(ExitPoint::Gateway {
+            identity: GW_ID_2.parse().unwrap(),
+        })
+        .await
+        .unwrap();
+
+        assert_eq!(result.exit_gateway().identity().to_base58_string(), GW_ID_2);
     }
 
     #[tokio::test]

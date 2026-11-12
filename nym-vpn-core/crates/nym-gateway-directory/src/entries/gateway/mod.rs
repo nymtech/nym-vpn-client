@@ -281,6 +281,15 @@ impl Gateway {
             .is_some_and(|score| *score >= min_socks5_score)
     }
 
+    /// False only when the latest probe shows the gateway rejects LP registration.
+    /// Gateways without LP probe data pass, so missing data doesn't shrink the pool.
+    pub fn lp_can_register(&self) -> bool {
+        self.last_probe
+            .as_ref()
+            .and_then(|probe| probe.outcome.lp.as_ref())
+            .is_none_or(|lp| lp.can_register)
+    }
+
     pub fn not_mixnet_blacklisted(&self) -> bool {
         // Currently the mixnet blacklisting threshold is 50%, so let's take a slightly bigger number
         // in case of caching differences between VPN API and mixnet API
@@ -303,6 +312,7 @@ impl Gateway {
             GatewayFilter::NotBlacklisted(blacklisted_gateways) => {
                 self.is_whitelisted(blacklisted_gateways)
             }
+            GatewayFilter::LpCanRegister => self.lp_can_register(),
         }
     }
 
@@ -1307,6 +1317,7 @@ pub enum GatewayFilter {
     Exit,                                // Has an IPR address
     Vpn,                                 // Has an authenticator address
     NotBlacklisted(BlacklistedGateways), // Is not in the blacklist
+    LpCanRegister,                       // Latest probe doesn't show LP registration rejected
 }
 
 #[derive(Debug, Clone, Default)]
