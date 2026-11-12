@@ -18,49 +18,56 @@ import net.nymtech.nymvpn.ui.theme.Theme
 
 @Composable
 fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?, onAccountClick: () -> Unit, onPassphraseClick: () -> Unit, onRedeemCodeClick: () -> Unit) {
-	if (isMnemonicStored) {
-		SettingsGroup(
-			items = listOf(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							Icons.Outlined.AccountCircle,
-							stringResource(R.string.account),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.account))
-					},
-					description = {
-						SubscriptionStatusText(subscription = subscription)
-						if (subscription != null && subscription.isRecurring && subscription.expiryState != ExpiryState.EXPIRED) {
-							Text(
-								text = stringResource(R.string.account_info_auto_renew_text),
-								style = MaterialTheme.typography.bodySmall,
-								color = MaterialTheme.colorScheme.onBackground,
+	// Redeeming without an account creates one, so it shows either way.
+	SettingsGroup(
+		items = buildList {
+			if (isMnemonicStored) {
+				add(
+					SelectionItem(
+						leading = {
+							SettingsIcon(
+								Icons.Outlined.AccountCircle,
+								stringResource(R.string.account),
 							)
-						}
-					},
-					onClick = onAccountClick,
-				),
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							ImageVector.vectorResource(R.drawable.ic_passphrase),
-							stringResource(R.string.settings_passphrase_title),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.settings_passphrase_title))
-					},
-					onClick = onPassphraseClick,
-				),
+						},
+						trailing = {
+							SettingsArrowIcon()
+						},
+						title = {
+							SettingsTitle(stringResource(R.string.account))
+						},
+						description = {
+							SubscriptionStatusText(subscription = subscription)
+							if (subscription != null && subscription.isRecurring && subscription.expiryState != ExpiryState.EXPIRED) {
+								Text(
+									text = stringResource(R.string.account_info_auto_renew_text),
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onBackground,
+								)
+							}
+						},
+						onClick = onAccountClick,
+					),
+				)
+				add(
+					SelectionItem(
+						leading = {
+							SettingsIcon(
+								ImageVector.vectorResource(R.drawable.ic_passphrase),
+								stringResource(R.string.settings_passphrase_title),
+							)
+						},
+						trailing = {
+							SettingsArrowIcon()
+						},
+						title = {
+							SettingsTitle(stringResource(R.string.settings_passphrase_title))
+						},
+						onClick = onPassphraseClick,
+					),
+				)
+			}
+			add(
 				SelectionItem(
 					leading = {
 						SettingsIcon(
@@ -76,9 +83,9 @@ fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?
 					},
 					onClick = onRedeemCodeClick,
 				),
-			),
-		)
-	}
+			)
+		},
+	)
 }
 
 @Composable
