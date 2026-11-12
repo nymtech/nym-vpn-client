@@ -16,14 +16,14 @@ workspace = true
 thiserror.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
-objc2-core-foundation = { workspace = true, default-features = false, features = [
+objc2-core-foundation = { workspace = true, features = [
     "std",
     "CFBase",
     "CFDictionary",
     "CFNumber",
     "CFString",
 ] }
-objc2-security = { workspace = true, default-features = false, features = [
+objc2-security = { workspace = true, features = [
     "std",
     "Authorization",
     "AuthorizationDB",
