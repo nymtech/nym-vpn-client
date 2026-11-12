@@ -46,9 +46,11 @@ internal class QrScannerViewModel(
 			return
 		}
 		validating = true
+		_uiState.update { it.copy(validating = true, showInvalidCode = false) }
 		viewModelScope.launch {
 			val validation = validate(contents)
 			validating = false
+			_uiState.update { it.copy(validating = false) }
 			when (validation) {
 				QrScanValidation.Valid -> {
 					hideInvalidCodeJob?.cancel()

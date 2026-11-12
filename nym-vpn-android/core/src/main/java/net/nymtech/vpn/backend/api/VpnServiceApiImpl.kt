@@ -1,6 +1,5 @@
 package net.nymtech.vpn.backend.api
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.backend.controller.VpnCoreController
@@ -12,9 +11,10 @@ import net.nymtech.vpn.model.config.ConfigResult
 import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
-import net.nymtech.vpn.model.pairing.PairingException
-import net.nymtech.vpn.model.pairing.PairingFailure
-import nym_vpn_lib.NymVpnServiceCommandException
+import net.nymtech.vpn.model.freepass.FreepassError
+import net.nymtech.vpn.model.freepass.FreepassResult
+import net.nymtech.vpn.model.pairing.PairingCommandResult
+import net.nymtech.vpn.model.pairing.PairingError
 import nym_vpn_lib.NymVpnServiceCommandSender
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AppCompatibility
@@ -139,29 +139,23 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 		core.tryWithCoreSender { it.setEnableGatewayIndependence(enabled) }
 	}
 
-	override suspend fun startPairing(): QrUrl = pairingCall { it.startPairing() }
+	override suspend fun startPairing(): PairingCommandResult<QrUrl> = pairingCall { PairingCommandResult.Ok(it.startPairing()) }
 
-	override suspend fun scannedPairingKey(publicKey: String): QrPairingConfirmation = pairingCall { it.scannedKey(publicKey) }
+	override suspend fun scannedPairingKey(publicKey: String): PairingCommandResult<QrPairingConfirmation> = pairingCall { PairingCommandResult.Ok(it.scannedKey(publicKey)) }
 
-	override suspend fun verifiedPairingPin(sessionId: UInt) {
-		pairingCall { it.verifiedPairingPin(sessionId) }
-	}
+	override suspend fun verifiedPairingPin(sessionId: UInt): PairingCommandResult<Unit> = pairingCall { PairingCommandResult.Ok(it.verifiedPairingPin(sessionId)) }
 
-	override suspend fun cancelPairing() {
-		pairingCall { it.cancelPairingProcess() }
-	}
+	override suspend fun cancelPairing(): PairingCommandResult<Unit> = pairingCall { PairingCommandResult.Ok(it.cancelPairingProcess()) }
 
-	private suspend fun <T> pairingCall(block: suspend (NymVpnServiceCommandSender) -> T): T = try {
-		core.requireCoreSender(block)
-	} catch (e: CancellationException) {
-		throw e
-	} catch (e: NymVpnServiceCommandException) {
-		val failure = PairingException.classify(runCatching { e.errorChain() }.getOrDefault(""))
-		// The error text can contain the scanned key, so only the classification is logged.
-		Timber.tag(TAG).w("Pairing call failed: %s", failure)
-		throw PairingException(failure, e)
-	} catch (e: Exception) {
-		Timber.tag(TAG).w("Pairing call failed: %s", e::class.java.simpleName)
-		throw PairingException(PairingFailure.UNKNOWN, e)
+	override suspend fun redeemFreepass(code: String): FreepassResult = freepassCall { it.redeemFreepass(code) }
+
+	override suspend fun applyFreepass(code: String): FreepassResult = freepassCall { it.applyFreepass(code) }
+
+	private suspend fun <T> pairingCall(block: suspend (NymVpnServiceCommandSender) -> PairingCommandResult<T>): PairingCommandResult<T> =
+		core.withCoreSenderResult(PairingError, { PairingCommandResult.Failed(it) }, block)
+
+	private suspend fun freepassCall(block: suspend (NymVpnServiceCommandSender) -> Unit): FreepassResult = core.withCoreSenderResult(FreepassError, FreepassResult::Failed) {
+		block(it)
+		FreepassResult.Redeemed
 	}
 }

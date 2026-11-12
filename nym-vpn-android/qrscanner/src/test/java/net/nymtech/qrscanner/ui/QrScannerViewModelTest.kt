@@ -118,6 +118,20 @@ class QrScannerViewModelTest {
 	}
 
 	@Test
+	fun showsValidatingWhileTheValidatorRuns() = runTest(dispatcher) {
+		val pending = CompletableDeferred<QrScanValidation>()
+		val viewModel = viewModel(QrScanValidator { pending.await() })
+		viewModel.onCodeScan(validUrl)
+		runCurrent()
+		assertTrue(viewModel.uiState.value.validating)
+
+		pending.complete(QrScanValidation.Invalid())
+		runCurrent()
+		assertFalse(viewModel.uiState.value.validating)
+		assertTrue(viewModel.uiState.value.showInvalidCode)
+	}
+
+	@Test
 	fun codesAfterTheResultAreIgnored() = runTest(dispatcher) {
 		val viewModel = viewModel()
 		viewModel.onCodeScan(validUrl)

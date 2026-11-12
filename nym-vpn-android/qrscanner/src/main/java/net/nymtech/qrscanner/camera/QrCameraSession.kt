@@ -1,6 +1,7 @@
 package net.nymtech.qrscanner.camera
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Size
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
@@ -39,7 +40,7 @@ internal class QrCameraSession(
 	private val providerFuture = ProcessCameraProvider.getInstance(context)
 	private val analysisExecutor = Executors.newSingleThreadExecutor()
 	private val analyzer = QrCodeAnalyzer(decoder) { text ->
-		mainExecutor.execute { if (!released) listener.onCodeScan(text) }
+		mainExecutor.execute { if (!released && !paused) listener.onCodeScan(text) }
 	}
 	private val preview = Preview.Builder().build()
 	private val analysis = ImageAnalysis.Builder()
@@ -54,6 +55,7 @@ internal class QrCameraSession(
 	private var provider: ProcessCameraProvider? = null
 	private var camera: Camera? = null
 	private var released = false
+	private var paused = false
 
 	fun start() {
 		providerFuture.addListener({
@@ -62,7 +64,7 @@ internal class QrCameraSession(
 				val cameraProvider = providerFuture.get()
 				provider = cameraProvider
 				// The viewport needs the view's size.
-				previewView.doOnLayout { if (!released) bind(cameraProvider) }
+				previewView.doOnLayout { if (!released && !paused) bind(cameraProvider) }
 			} catch (e: Exception) {
 				fail(e)
 			}
@@ -76,6 +78,26 @@ internal class QrCameraSession(
 	fun stopScanning() {
 		analyzer.stop()
 		analysis.clearAnalyzer()
+	}
+
+	// Returns a still of the last frame, too small for a code in it to be read.
+	fun pause(): Bitmap? {
+		if (released || paused) return null
+		paused = true
+		val still = previewView.bitmap?.toStill()
+		stopScanning()
+		setTorchEnabled(false)
+		provider?.unbind(preview, analysis)
+		camera = null
+		return still
+	}
+
+	fun resume() {
+		if (released || !paused) return
+		paused = false
+		analyzer.start()
+		// Without a provider yet, start() binds.
+		provider?.let(::bind)
 	}
 
 	fun release() {
@@ -107,6 +129,12 @@ internal class QrCameraSession(
 		}
 	}
 
+	private fun Bitmap.toStill(): Bitmap {
+		val still = Bitmap.createScaledBitmap(this, (width / STILL_SCALE_DOWN).coerceAtLeast(1), (height / STILL_SCALE_DOWN).coerceAtLeast(1), true)
+		if (still !== this) recycle()
+		return still
+	}
+
 	// Front camera as a fallback for Chromebooks.
 	private fun ProcessCameraProvider.preferredCamera(): CameraSelector = if (hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)) CameraSelector.DEFAULT_BACK_CAMERA else CameraSelector.DEFAULT_FRONT_CAMERA
 
@@ -117,5 +145,8 @@ internal class QrCameraSession(
 
 	private companion object {
 		val ANALYSIS_RESOLUTION = Size(1280, 720)
+
+		// The scan window ends up narrower than the smallest QR code's 21 modules.
+		const val STILL_SCALE_DOWN = 40
 	}
 }

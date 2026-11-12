@@ -1,9 +1,7 @@
 package net.nymtech.nymvpn.manager.pairing
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +12,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withTimeout
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.backend.VpnServiceConnectionManager
@@ -22,14 +19,13 @@ import net.nymtech.nymvpn.manager.pairing.model.PairingState
 import net.nymtech.nymvpn.manager.pairing.model.activeSessionId
 import net.nymtech.vpn.backend.api.VpnServiceApi
 import net.nymtech.vpn.model.VpnServiceEvent
-import net.nymtech.vpn.model.pairing.PairingException
-import net.nymtech.vpn.model.pairing.PairingFailure
+import net.nymtech.vpn.model.pairing.PairingCommandResult
+import net.nymtech.vpn.model.pairing.PairingError
 import nym_vpn_lib_types.PairingResult
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 @Singleton
@@ -50,11 +46,9 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 		mutex.withLock {
 			cancelActiveSession()
 			_state.value = PairingState.StartingCode
-			_state.value = try {
-				val qr = call { it.startPairing() }
-				PairingState.ShowingCode(qr.url, qr.sessionId, TimeSource.Monotonic.markNow() + CODE_LIFETIME)
-			} catch (e: PairingException) {
-				PairingState.Failed(e.failure)
+			_state.value = when (val result = call { it.startPairing() }) {
+				is PairingCommandResult.Ok -> PairingState.ShowingCode(result.value.url, result.value.sessionId, TimeSource.Monotonic.markNow() + CODE_LIFETIME)
+				is PairingCommandResult.Failed -> PairingState.Failed(result.error)
 			}
 		}
 	}
@@ -62,25 +56,27 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 	override suspend fun confirmCode() = mutex.withLock {
 		val confirm = _state.value as? PairingState.ConfirmCode ?: return@withLock
 		_state.value = PairingState.SharingAccount
-		_state.value = try {
-			call { it.verifiedPairingPin(confirm.sessionId) }
-			Timber.tag(TAG).i("Account shared, session %s", confirm.sessionId)
-			PairingState.AccountShared
-		} catch (e: PairingException) {
-			PairingState.Failed(e.failure)
+		_state.value = when (val result = call { it.verifiedPairingPin(confirm.sessionId) }) {
+			is PairingCommandResult.Ok -> {
+				Timber.tag(TAG).i("Account shared, session %s", confirm.sessionId)
+				PairingState.AccountShared
+			}
+			is PairingCommandResult.Failed -> PairingState.Failed(result.error)
 		}
 	}
 
-	override suspend fun onScannedKey(publicKey: String): PairingFailure? = mutex.withLock {
+	override suspend fun onScannedKey(publicKey: String): PairingCommandResult<Unit> = mutex.withLock {
 		cancelActiveSession()
-		try {
-			val confirmation = call { it.scannedPairingKey(publicKey) }
-			_state.value = PairingState.WaitingForApproval(confirmation.pinCode, confirmation.sessionId)
-			null
-		} catch (e: PairingException) {
-			// The scanner shows the failure inline.
-			_state.value = PairingState.Idle
-			e.failure
+		when (val result = call { it.scannedPairingKey(publicKey) }) {
+			is PairingCommandResult.Ok -> {
+				_state.value = PairingState.WaitingForApproval(result.value.pinCode, result.value.sessionId)
+				PairingCommandResult.Ok(Unit)
+			}
+			is PairingCommandResult.Failed -> {
+				// The scanner shows the error inline.
+				_state.value = PairingState.Idle
+				result
+			}
 		}
 	}
 
@@ -94,11 +90,8 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 	private suspend fun cancelActiveSession() {
 		if (_state.value.activeSessionId == null) return
 		_state.value = PairingState.Idle
-		try {
-			call { it.cancelPairing() }
-		} catch (e: PairingException) {
-			Timber.tag(TAG).w("Cancel failed: %s", e.failure)
-		}
+		val result = call { it.cancelPairing() }
+		if (result is PairingCommandResult.Failed) Timber.tag(TAG).w("Cancel failed: %s", result.error)
 	}
 
 	@OptIn(ExperimentalCoroutinesApi::class)
@@ -126,27 +119,16 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 				_state.value = PairingState.SignedIn
 			}
 			PairingResult.TimedOut -> _state.value = PairingState.Expired
-			PairingResult.Cancelled -> _state.value = PairingState.Failed(PairingFailure.SESSION_ENDED)
-			is PairingResult.Error -> _state.value = PairingState.Failed(PairingFailure.UNKNOWN)
+			PairingResult.Cancelled -> _state.value = PairingState.Failed(PairingError.SESSION_ENDED)
+			is PairingResult.Error -> _state.value = PairingState.Failed(PairingError.UNKNOWN)
 		}
 	}
 
-	private suspend fun <T> call(block: suspend (VpnServiceApi) -> T): T = try {
-		withTimeout(CALL_TIMEOUT) { connectionManager.withApi(block = block) }
-	} catch (e: PairingException) {
-		throw e
-	} catch (e: TimeoutCancellationException) {
-		throw PairingException(PairingFailure.SERVER, e)
-	} catch (e: CancellationException) {
-		throw e
-	} catch (e: Exception) {
-		Timber.tag(TAG).w("Pairing call failed: %s", e::class.java.simpleName)
-		throw PairingException(PairingFailure.UNKNOWN, e)
-	}
+	private suspend fun <T> call(block: suspend (VpnServiceApi) -> PairingCommandResult<T>): PairingCommandResult<T> =
+		connectionManager.withApiResult(PairingError, { PairingCommandResult.Failed(it) }, block)
 
 	private companion object {
 		const val TAG = "pairing"
 		val CODE_LIFETIME = 5.minutes
-		val CALL_TIMEOUT = 30.seconds
 	}
 }

@@ -30,6 +30,9 @@ import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.Passphrase
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.SignUpView
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.TechOptView
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.WelcomeView
+import net.nymtech.nymvpn.ui.screens.scan.RedeemCodeViewModel
+import net.nymtech.nymvpn.ui.screens.scan.components.RedeemCodeView
+import net.nymtech.nymvpn.ui.screens.scan.rememberOpenAcceptedCode
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.qrscanner.isQrCameraAvailable
@@ -95,15 +98,28 @@ fun AuthComponent(
 			WelcomeView(
 				onLoginClick = { localNavController.navigate(AuthRoute.Login) },
 				onSignUpClick = { localNavController.navigate(AuthRoute.SignUp) },
-				onScanCodeClick = if (cameraAvailable) {
-					{
+				onScanCodeClick = {
+					if (cameraAvailable) {
 						// The sheet hides while the scanner is open and reopens on Welcome when it closes.
 						onAuthSuccess()
-						rootNavController.navigate(Route.QrScan)
+						rootNavController.navigate(Route.QrScan(fromWelcome = true))
+					} else {
+						localNavController.navigate(AuthRoute.RedeemCode)
 					}
-				} else {
-					null
 				},
+			)
+		}
+
+		composable<AuthRoute.RedeemCode> {
+			val redeemCodeViewModel: RedeemCodeViewModel = hiltViewModel()
+			val redeemCodeUiState by redeemCodeViewModel.uiState.collectAsStateWithLifecycle()
+			val openAcceptedCode = rememberOpenAcceptedCode()
+			LaunchedEffect(Unit) { redeemCodeViewModel.accepted.collect(openAcceptedCode) }
+			RedeemCodeView(
+				uiState = redeemCodeUiState,
+				onCodeChange = redeemCodeViewModel::onCodeChange,
+				onSubmit = redeemCodeViewModel::submit,
+				onBackClick = { localNavController.popBackStack() },
 			)
 		}
 

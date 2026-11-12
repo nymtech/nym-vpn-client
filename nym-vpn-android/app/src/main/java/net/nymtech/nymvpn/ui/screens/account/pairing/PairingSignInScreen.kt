@@ -81,7 +81,7 @@ fun PairingSignInContent(state: PairingState, onBack: () -> Unit, modifier: Modi
 				onAction = onBack,
 			)
 			is PairingState.Failed -> PairingStatus(
-				title = stringResource(state.failure.messageRes()),
+				title = stringResource(state.error.messageRes()),
 				actionLabel = stringResource(R.string.pairing_back),
 				onAction = onBack,
 			)

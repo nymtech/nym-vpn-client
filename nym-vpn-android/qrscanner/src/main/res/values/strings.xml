@@ -5,6 +5,7 @@
 	<string name="qr_scanner_torch_off">Turn off flashlight</string>
 	<string name="qr_scanner_hint_any">Point your camera at a NymVPN QR code</string>
 	<string name="qr_scanner_invalid_any">This isn\'t a NymVPN QR code</string>
+	<string name="qr_scanner_checking">Checking code…</string>
 	<string name="qr_scanner_permission_title">Allow camera access</string>
 	<string name="qr_scanner_permission_body">The camera is only used to scan a QR code. Images are processed on this device and are never saved or sent anywhere.</string>
 	<string name="qr_scanner_permission_allow">Allow camera</string>

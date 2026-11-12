@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 import android.content.res.Configuration
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Redeem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,7 +17,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 
 @Composable
-fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?, onAccountClick: () -> Unit, onPassphraseClick: () -> Unit) {
+fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?, onAccountClick: () -> Unit, onPassphraseClick: () -> Unit, onRedeemCodeClick: () -> Unit) {
 	if (isMnemonicStored) {
 		SettingsGroup(
 			items = listOf(
@@ -60,6 +61,21 @@ fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?
 					},
 					onClick = onPassphraseClick,
 				),
+				SelectionItem(
+					leading = {
+						SettingsIcon(
+							Icons.Outlined.Redeem,
+							stringResource(R.string.settings_redeem_code_title),
+						)
+					},
+					trailing = {
+						SettingsArrowIcon()
+					},
+					title = {
+						SettingsTitle(stringResource(R.string.settings_redeem_code_title))
+					},
+					onClick = onRedeemCodeClick,
+				),
 			),
 		)
 	}
@@ -69,6 +85,6 @@ fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewAccountSection() {
 	NymVPNTheme(Theme.default()) {
-		AccountSection(isMnemonicStored = true, subscription = null, onAccountClick = {}, onPassphraseClick = {})
+		AccountSection(isMnemonicStored = true, subscription = null, onAccountClick = {}, onPassphraseClick = {}, onRedeemCodeClick = {})
 	}
 }

@@ -32,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import net.nymtech.qrscanner.QrScanValidator
 import net.nymtech.qrscanner.R
+import net.nymtech.qrscanner.model.QrScanAction
 import net.nymtech.qrscanner.model.QrScanMode
 import net.nymtech.qrscanner.model.QrScanResult
 import net.nymtech.qrscanner.ui.components.QrCameraPreview
@@ -49,6 +50,8 @@ internal fun QrScannerScreen(
 	validator: QrScanValidator,
 	onResult: (QrScanResult) -> Unit,
 	onClose: () -> Unit,
+	secondaryAction: QrScanAction?,
+	paused: Boolean,
 	modifier: Modifier = Modifier,
 	viewModel: QrScannerViewModel = viewModel(key = "qr_scanner_${mode.name}") { QrScannerViewModel(mode, validator) },
 ) {
@@ -69,18 +72,32 @@ internal fun QrScannerScreen(
 		uiState = uiState,
 		onCodeScan = viewModel::onCodeScan,
 		onClose = onClose,
+		secondaryAction = secondaryAction,
+		paused = paused,
 		modifier = modifier,
 	)
 }
 
 @Composable
-internal fun QrScannerScreen(mode: QrScanMode, uiState: QrScannerUiState, onCodeScan: (String) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
+internal fun QrScannerScreen(
+	mode: QrScanMode,
+	uiState: QrScannerUiState,
+	onCodeScan: (String) -> Unit,
+	onClose: () -> Unit,
+	secondaryAction: QrScanAction?,
+	paused: Boolean,
+	modifier: Modifier = Modifier,
+) {
 	val context = LocalContext.current
 	val permission = rememberCameraPermissionState()
 	var cameraError by remember { mutableStateOf(false) }
 	var torchAvailable by remember { mutableStateOf(false) }
 	var torchEnabled by remember { mutableStateOf(false) }
 	val cameraActive = permission.status == CameraPermissionStatus.GRANTED && !cameraError
+
+	LaunchedEffect(paused) {
+		if (paused) torchEnabled = false
+	}
 
 	Box(
 		modifier = modifier
@@ -92,30 +109,37 @@ internal fun QrScannerScreen(mode: QrScanMode, uiState: QrScannerUiState, onCode
 				icon = Icons.Outlined.Warning,
 				title = stringResource(R.string.qr_scanner_camera_error_title),
 				body = stringResource(R.string.qr_scanner_camera_error_body),
+				secondaryAction = secondaryAction,
 			)
 			cameraActive -> {
 				QrCameraPreview(
 					scanning = uiState.result == null,
+					paused = paused,
 					torchEnabled = torchEnabled,
 					onCodeScan = onCodeScan,
 					onTorchAvailabilityChange = { torchAvailable = it },
 					onCameraError = { cameraError = true },
 					modifier = Modifier.fillMaxSize(),
 				)
-				QrScannerOverlay(
-					hintRes = mode.hintRes,
-					invalidCodeRes = uiState.invalidCodeRes,
-					showInvalidCode = uiState.showInvalidCode,
-				)
+				if (!paused) {
+					QrScannerOverlay(
+						hintRes = mode.hintRes,
+						invalidCodeRes = uiState.invalidCodeRes,
+						showInvalidCode = uiState.showInvalidCode,
+						validating = uiState.validating,
+						secondaryAction = secondaryAction,
+					)
+				}
 			}
 			else -> QrPermissionContent(
 				status = permission.status,
 				onRequestPermission = permission.request,
 				onOpenSettings = { context.openAppSettings() },
+				secondaryAction = secondaryAction,
 			)
 		}
 		QrScannerTopBar(
-			showTorch = cameraActive && torchAvailable,
+			showTorch = cameraActive && torchAvailable && !paused,
 			torchEnabled = torchEnabled,
 			onClose = onClose,
 			onTorchToggle = { torchEnabled = !torchEnabled },

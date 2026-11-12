@@ -2,7 +2,7 @@ package net.nymtech.nymvpn.manager.pairing
 
 import kotlinx.coroutines.flow.StateFlow
 import net.nymtech.nymvpn.manager.pairing.model.PairingState
-import net.nymtech.vpn.model.pairing.PairingFailure
+import net.nymtech.vpn.model.pairing.PairingCommandResult
 
 interface PairingManager {
 	val state: StateFlow<PairingState>
@@ -12,7 +12,7 @@ interface PairingManager {
 
 	suspend fun confirmCode()
 
-	suspend fun onScannedKey(publicKey: String): PairingFailure?
+	suspend fun onScannedKey(publicKey: String): PairingCommandResult<Unit>
 
 	suspend fun cancel()
 }

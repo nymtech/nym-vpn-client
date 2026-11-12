@@ -18,6 +18,10 @@ internal class QrCodeAnalyzer(private val decoder: QrDecoder, private val onCode
 		if (active.get()) onCodeScan(text)
 	}
 
+	fun start() {
+		active.set(true)
+	}
+
 	fun stop() {
 		active.set(false)
 	}

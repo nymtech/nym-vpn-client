@@ -349,7 +349,7 @@ class MainActivity : AppCompatActivity() {
 
 								composable<Route.DeletedAccount> { DeletedScreen() }
 
-								composable<Route.QrScan> { QrScanScreen() }
+								composable<Route.QrScan> { QrScanScreen(fromWelcome = it.toRoute<Route.QrScan>().fromWelcome) }
 
 								composable<Route.PairingSignIn> { PairingSignInScreen() }
 

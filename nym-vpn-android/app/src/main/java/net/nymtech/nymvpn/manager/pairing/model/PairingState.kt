@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.manager.pairing.model
 
-import net.nymtech.vpn.model.pairing.PairingFailure
+import net.nymtech.vpn.model.pairing.PairingError
 import kotlin.time.TimeMark
 
 // URLs and PINs are kept out of toString so states can be logged.
@@ -30,7 +30,7 @@ sealed interface PairingState {
 
 	data object Expired : PairingState
 
-	data class Failed(val failure: PairingFailure) : PairingState
+	data class Failed(val error: PairingError) : PairingState
 }
 
 internal val PairingState.activeSessionId: UInt?

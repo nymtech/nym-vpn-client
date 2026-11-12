@@ -10,6 +10,8 @@ import net.nymtech.vpn.model.config.ConfigResult
 import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
+import net.nymtech.vpn.model.freepass.FreepassResult
+import net.nymtech.vpn.model.pairing.PairingCommandResult
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AppCompatibility
 import nym_vpn_lib_types.AutologinResponse
@@ -81,9 +83,13 @@ interface VpnServiceApi {
 	suspend fun getTentativeGateways(): TentativeGateways?
 	suspend fun setGatewayIndependenceEnabled(enabled: Boolean)
 
-	// QR pairing: calls throw PairingException, progress arrives as VpnServiceEvent.Pairing.
-	suspend fun startPairing(): QrUrl
-	suspend fun scannedPairingKey(publicKey: String): QrPairingConfirmation
-	suspend fun verifiedPairingPin(sessionId: UInt)
-	suspend fun cancelPairing()
+	// QR pairing: progress arrives as VpnServiceEvent.Pairing.
+	suspend fun startPairing(): PairingCommandResult<QrUrl>
+	suspend fun scannedPairingKey(publicKey: String): PairingCommandResult<QrPairingConfirmation>
+	suspend fun verifiedPairingPin(sessionId: UInt): PairingCommandResult<Unit>
+	suspend fun cancelPairing(): PairingCommandResult<Unit>
+
+	// Free pass: redeem creates the stored account with the pass, apply adds it to the stored account.
+	suspend fun redeemFreepass(code: String): FreepassResult
+	suspend fun applyFreepass(code: String): FreepassResult
 }

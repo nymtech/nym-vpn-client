@@ -17,15 +17,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import net.nymtech.qrscanner.model.QrScanAction
 
 @Composable
-internal fun QrScannerMessage(icon: ImageVector, title: String, body: String, modifier: Modifier = Modifier, actionLabel: String? = null, onAction: () -> Unit = {}) {
+internal fun QrScannerMessage(
+	icon: ImageVector,
+	title: String,
+	body: String,
+	modifier: Modifier = Modifier,
+	actionLabel: String? = null,
+	onAction: () -> Unit = {},
+	secondaryAction: QrScanAction? = null,
+) {
 	Column(
 		modifier = modifier
 			.fillMaxSize()
@@ -66,6 +76,17 @@ internal fun QrScannerMessage(icon: ImageVector, title: String, body: String, mo
 					.height(56.dp),
 			) {
 				Text(text = actionLabel, style = MaterialTheme.typography.labelLarge)
+			}
+		}
+		if (secondaryAction != null) {
+			Spacer(modifier = Modifier.height(8.dp))
+			TextButton(
+				onClick = secondaryAction.onClick,
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(48.dp),
+			) {
+				Text(text = secondaryAction.label, style = MaterialTheme.typography.labelLarge)
 			}
 		}
 	}

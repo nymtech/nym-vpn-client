@@ -112,7 +112,7 @@ fun PairDeviceDialog(state: PairingState, onNewCode: () -> Unit, onCodesMatch: (
 						body = stringResource(R.string.pair_device_done_body),
 					)
 					state == PairingState.Expired -> PairingStatus(title = stringResource(R.string.pairing_expired))
-					state is PairingState.Failed -> PairingStatus(title = stringResource(state.failure.messageRes()))
+					state is PairingState.Failed -> PairingStatus(title = stringResource(state.error.messageRes()))
 					else -> PairingStatus(title = stringResource(R.string.pair_device_starting), loading = true)
 				}
 			}

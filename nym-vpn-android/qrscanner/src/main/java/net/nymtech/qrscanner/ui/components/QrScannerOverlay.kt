@@ -7,16 +7,21 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +45,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import net.nymtech.qrscanner.R
 import net.nymtech.qrscanner.camera.ScanArea
+import net.nymtech.qrscanner.model.QrScanAction
 import net.nymtech.qrscanner.ui.theme.QrScannerColors
 
 private val WindowCornerRadius = 24.dp
@@ -48,7 +55,7 @@ private val BracketLength = 40.dp
 private val BracketStrokeWidth = 4.dp
 
 @Composable
-internal fun QrScannerOverlay(@StringRes hintRes: Int, @StringRes invalidCodeRes: Int, showInvalidCode: Boolean, modifier: Modifier = Modifier) {
+internal fun QrScannerOverlay(@StringRes hintRes: Int, @StringRes invalidCodeRes: Int, showInvalidCode: Boolean, validating: Boolean, secondaryAction: QrScanAction?, modifier: Modifier = Modifier) {
 	val bracketColor = MaterialTheme.colorScheme.primary
 	BoxWithConstraints(modifier = modifier.fillMaxSize()) {
 		val windowSize = min(maxWidth, maxHeight) * ScanArea.WINDOW_FRACTION
@@ -117,6 +124,43 @@ internal fun QrScannerOverlay(@StringRes hintRes: Int, @StringRes invalidCodeRes
 							.background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(8.dp))
 							.padding(horizontal = 12.dp, vertical = 6.dp),
 					)
+				}
+				AnimatedVisibility(
+					visible = validating,
+					enter = fadeIn(),
+					exit = fadeOut(),
+				) {
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(8.dp),
+						modifier = Modifier
+							.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite }
+							.padding(top = 16.dp),
+					) {
+						CircularProgressIndicator(
+							color = QrScannerColors.onOverlay,
+							strokeWidth = 2.dp,
+							modifier = Modifier.size(16.dp),
+						)
+						Text(
+							text = stringResource(R.string.qr_scanner_checking),
+							style = MaterialTheme.typography.bodyMedium,
+							color = QrScannerColors.onOverlay,
+						)
+					}
+				}
+				if (secondaryAction != null) {
+					Spacer(modifier = Modifier.weight(1f))
+					TextButton(
+						onClick = secondaryAction.onClick,
+						modifier = Modifier.height(48.dp),
+					) {
+						Text(
+							text = secondaryAction.label,
+							style = MaterialTheme.typography.labelLarge,
+							color = QrScannerColors.onOverlay,
+						)
+					}
 				}
 			}
 		}

@@ -10,6 +10,7 @@ sealed interface AuthRoute {
 			"SignUp" -> SignUp
 			"Passphrase" -> Passphrase
 			"TechOpt" -> TechOpt
+			"RedeemCode" -> RedeemCode
 			else -> null
 		}
 	}
@@ -23,6 +24,8 @@ sealed interface AuthRoute {
 	@Serializable data object Passphrase : AuthRoute
 
 	@Serializable data object TechOpt : AuthRoute
+
+	@Serializable data object RedeemCode : AuthRoute
 }
 
 val AuthRoute.routeName: String get() = this::class.simpleName!!

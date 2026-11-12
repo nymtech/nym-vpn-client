@@ -1,37 +1,39 @@
 package net.nymtech.nymvpn.ui.screens.scan
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import net.nymtech.nymvpn.ui.AuthRoute
-import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.functions.SecureScreen
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.security.SecureOverlayProtection
-import net.nymtech.nymvpn.ui.routeName
-import net.nymtech.nymvpn.util.extensions.navigateAndForgetToMain
-import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.qrscanner.QrScanner
+import net.nymtech.qrscanner.model.QrScanAction
 import net.nymtech.qrscanner.model.QrScanMode
 
 @Composable
-fun QrScanScreen(viewModel: QrScanViewModel = hiltViewModel()) {
+fun QrScanScreen(fromWelcome: Boolean, viewModel: QrScanViewModel = hiltViewModel()) {
 	SecureScreen()
 	SecureOverlayProtection()
 
 	val navController = LocalNavController.current
+	val openAcceptedCode = rememberOpenAcceptedCode()
+	var showRedeemSheet by rememberSaveable { mutableStateOf(false) }
 
 	QrScanner(
 		mode = QrScanMode.ANY,
 		validator = viewModel,
-		onResult = { result ->
-			when (ScannedQrCode.parse(result.contents)) {
-				// The validator has already started pairing with this code.
-				is ScannedQrCode.Pairing -> navController.replaceCurrentWith(Route.PairingSignIn)
-				// Not reachable: the validator rejects unknown codes.
-				null -> Unit
-			}
-		},
-		// The welcome sheet doesn't survive leaving Main, so reopen it.
-		onClose = { navController.navigateAndForgetToMain(Route.Main(authRoute = AuthRoute.Welcome.routeName)) },
+		onResult = { result -> ScannedQrCode.parse(result.contents)?.let(openAcceptedCode) },
+		onClose = { navController.leaveCodeEntry(fromWelcome) },
+		secondaryAction = QrScanAction(stringResource(R.string.redeem_code_enter_instead)) { showRedeemSheet = true },
+		paused = showRedeemSheet,
 	)
+
+	if (showRedeemSheet) {
+		RedeemCodeSheet(onDismiss = { showRedeemSheet = false })
+	}
 }

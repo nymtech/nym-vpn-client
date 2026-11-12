@@ -7,10 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import net.nymtech.qrscanner.R
+import net.nymtech.qrscanner.model.QrScanAction
 import net.nymtech.qrscanner.ui.permission.CameraPermissionStatus
 
 @Composable
-internal fun QrPermissionContent(status: CameraPermissionStatus, onRequestPermission: () -> Unit, onOpenSettings: () -> Unit, modifier: Modifier = Modifier) {
+internal fun QrPermissionContent(status: CameraPermissionStatus, onRequestPermission: () -> Unit, onOpenSettings: () -> Unit, secondaryAction: QrScanAction?, modifier: Modifier = Modifier) {
 	if (status == CameraPermissionStatus.PERMANENTLY_DENIED) {
 		QrScannerMessage(
 			icon = Icons.Outlined.NoPhotography,
@@ -18,6 +19,7 @@ internal fun QrPermissionContent(status: CameraPermissionStatus, onRequestPermis
 			body = stringResource(R.string.qr_scanner_permission_denied_body),
 			actionLabel = stringResource(R.string.qr_scanner_open_settings),
 			onAction = onOpenSettings,
+			secondaryAction = secondaryAction,
 			modifier = modifier,
 		)
 	} else {
@@ -27,6 +29,7 @@ internal fun QrPermissionContent(status: CameraPermissionStatus, onRequestPermis
 			body = stringResource(R.string.qr_scanner_permission_body),
 			actionLabel = stringResource(R.string.qr_scanner_permission_allow),
 			onAction = onRequestPermission,
+			secondaryAction = secondaryAction,
 			modifier = modifier,
 		)
 	}

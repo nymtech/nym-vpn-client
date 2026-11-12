@@ -756,4 +756,20 @@
 	<string name="pairing_error_offline">No internet connection. Retrying…</string>
 	<string name="pairing_error_scan_server">Couldn\'t reach NymVPN, or the code has expired. Retrying…</string>
 	<string name="pairing_error_scan_generic">Pairing couldn\'t start. Retrying…</string>
+	<string name="settings_redeem_code_title">Redeem a code</string>
+	<string name="redeem_code_title">Redeem a code</string>
+	<string name="redeem_code_description">Enter your free pass code, or paste the link you were sent.</string>
+	<string name="redeem_code_label">Code</string>
+	<string name="redeem_code_placeholder">Code or link</string>
+	<string name="redeem_code_submit">Redeem</string>
+	<string name="redeem_code_checking">Checking code…</string>
+	<string name="redeem_code_invalid">This isn\'t a valid NymVPN code</string>
+	<string name="redeem_code_enter_instead">Enter code instead</string>
+	<string name="freepass_error_invalid">This code isn\'t valid. Check it and try again.</string>
+	<string name="freepass_error_already_redeemed">This code has already been used.</string>
+	<string name="freepass_error_rate_limited">Too many attempts. Try again in a minute.</string>
+	<string name="freepass_error_offline">You\'re offline. Connect to the internet and try again.</string>
+	<string name="freepass_error_generic">The code couldn\'t be redeemed. Try again.</string>
+	<string name="freepass_error_subscription_active">Turn off auto-renew in Google Play to add a free pass. Your code stays valid.</string>
+	<string name="freepass_activated">Free pass activated</string>
 </resources>
