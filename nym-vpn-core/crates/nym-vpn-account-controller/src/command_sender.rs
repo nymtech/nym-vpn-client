@@ -316,7 +316,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    #[instrument(skip(self))]
+    #[instrument(skip(self, deeplink_callback_url))]
     pub async fn derive_deeplink_mnemonic(
         &self,
         deeplink_callback_url: String,
