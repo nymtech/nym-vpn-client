@@ -213,17 +213,19 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             tracing::warn!("cannot install Nyxd credential fetcher: {err}");
         })?;
 
-        let ecash_seed = account
-            .ecash_keypair_seed()
-            .map_err(|err| Error::internal(format!("ecash seed derivation failure: {err}")))?;
+        let ecash_keypair = self
+            .device_state
+            .as_ref()
+            .map(|state| state.ecash_keypair.clone())
+            .ok_or(Error::NoAccountStored)?;
 
         let client = self.nyxd_client.inner_client(&account.get_mnemonic())?;
 
         let fetcher = Arc::new(
-            NyxdCredentialFetcher::new(
+            NyxdCredentialFetcher::new_with_keypair(
                 client,
                 &self.config.storage_paths.credential_requests_database_path,
-                ecash_seed,
+                ecash_keypair,
             )
             .await
             .map_err(|err| {
