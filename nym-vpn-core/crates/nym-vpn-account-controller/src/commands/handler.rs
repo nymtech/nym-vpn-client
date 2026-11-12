@@ -77,11 +77,11 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
         .map_err(Error::internal)?;
     let device = rx.await.map_err(Error::internal)??;
 
-    shared_state.device_state = StoredDeviceState::LoggedIn {
+    shared_state.device_state = Some(StoredDeviceState {
         account_identity,
         ecash_keypair,
         summary: None,
-    };
+    });
     shared_state.device = Some(device);
 
     tracing::debug!("Account stored!");
@@ -111,11 +111,11 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
         .map_err(Error::internal)?;
     let device = rx.await.map_err(Error::internal)??;
 
-    shared_state.device_state = StoredDeviceState::LoggedIn {
+    shared_state.device_state = Some(StoredDeviceState {
         account_identity,
         ecash_keypair,
         summary: None,
-    };
+    });
     shared_state.device = Some(device);
     tracing::debug!("Account created and stored");
 
@@ -197,7 +197,7 @@ pub(crate) async fn handle_delete_account<C: ConnectivityMonitor>(
     // A deleted account can't unregister its device, so only local data is removed
     clear_local_account_data(shared_state).await.or_else(|err| {
         // Once the stored account is cleared, only leftover files remain: the deletion itself succeeded
-        if shared_state.device_state.account().is_none() {
+        if shared_state.device_state.is_none() {
             tracing::warn!("Account deleted, but local cleanup is incomplete: {err}");
             Ok(())
         } else {
@@ -250,7 +250,7 @@ async fn clear_local_account_data<C: ConnectivityMonitor>(
 
     // Once we have removed or reset all storage, we need to reset the account state
     shared_state.device = None;
-    shared_state.device_state = StoredDeviceState::LoggedOut;
+    shared_state.device_state = None;
     shared_state.nyxd_client.disconnect();
 
     if let Err(err) = remove_files_result {
@@ -271,8 +271,8 @@ pub(crate) async fn handle_link_account<C: ConnectivityMonitor>(
 
     // We can only link the Privy account if we're currently logged-in with an API account
     if privy_vpn_account.mode().is_privy()
-        && let Some(ref current_account) = shared_state.device_state.account()
-        && current_account.mode == StoredAccountMode::Api
+        && let Some(ref current_state) = shared_state.device_state
+        && current_state.account_identity.mode == StoredAccountMode::Api
     {
         tracing::info!("Linking Privy account with API account");
 
@@ -320,7 +320,7 @@ pub(crate) async fn handle_qr_scanned_key<C: ConnectivityMonitor>(
     remote_qr_pub_key_str: &str,
 ) -> Result<QrPairingConfirmation> {
     // We can only pair a new device to the account if we're currently logged-out
-    if shared_state.device_state.account().is_none() {
+    if shared_state.device_state.is_none() {
         shared_state
             .qr_pairing_handler
             .scanned_key(
@@ -385,7 +385,8 @@ pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
 
     let account = shared_state
         .device_state
-        .account()
+        .as_ref()
+        .map(|state| &state.account_identity)
         .ok_or(Error::NoAccountStored)?;
 
     shared_state
@@ -416,7 +417,8 @@ pub(crate) async fn handle_register_device<C: ConnectivityMonitor>(
     let device = shared_state.device.as_ref().ok_or(Error::NoDeviceStored)?;
     let account = shared_state
         .device_state
-        .account()
+        .as_ref()
+        .map(|state| &state.account_identity)
         .ok_or(Error::NoAccountStored)?;
 
     if is_device_registered(&shared_state.vpn_api_client, &account.id, device).await? {
@@ -509,6 +511,6 @@ fn is_logged_in_with_api_account<C: ConnectivityMonitor>(
 ) -> bool {
     shared_state
         .device_state
-        .account()
-        .is_some_and(|account| account.mode == StoredAccountMode::Api)
+        .as_ref()
+        .is_some_and(|state| state.account_identity.mode == StoredAccountMode::Api)
 }

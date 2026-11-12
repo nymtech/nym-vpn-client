@@ -70,7 +70,11 @@ impl SyncingNetworkState {
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
-        let Some(account_identity) = shared_state.device_state.account() else {
+        let Some(account_identity) = shared_state
+            .device_state
+            .as_ref()
+            .map(|state| &state.account_identity)
+        else {
             return LoggedOutState::enter(shared_state).await;
         };
 
@@ -92,7 +96,11 @@ impl SyncingNetworkState {
         let vpn_api_client = shared_state.vpn_api_client.clone();
 
         // Use the provided sync mode unless there is no cache
-        let sync_mode = if shared_state.device_state.account_summary().is_none() {
+        let has_summary = shared_state
+            .device_state
+            .as_ref()
+            .is_some_and(|state| state.summary.is_some());
+        let sync_mode = if !has_summary {
             SyncMode::Mandatory
         } else {
             sync_mode

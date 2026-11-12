@@ -9,24 +9,24 @@ use super::{DeviceStateStorage, StoredDeviceState};
 
 #[derive(Default)]
 pub struct InMemoryDeviceStateStorage {
-    state: Mutex<StoredDeviceState>,
+    state: Mutex<Option<StoredDeviceState>>,
 }
 
 #[async_trait::async_trait]
 impl DeviceStateStorage for InMemoryDeviceStateStorage {
     type StorageError = Infallible;
 
-    async fn load_device_state(&self) -> Result<StoredDeviceState, Self::StorageError> {
+    async fn load_device_state(&self) -> Result<Option<StoredDeviceState>, Self::StorageError> {
         Ok(self.state.lock().await.clone())
     }
 
     async fn store_device_state(&self, state: StoredDeviceState) -> Result<(), Self::StorageError> {
-        *self.state.lock().await = state;
+        *self.state.lock().await = Some(state);
         Ok(())
     }
 
     async fn remove_device_state(&self) -> Result<(), Self::StorageError> {
-        *self.state.lock().await = StoredDeviceState::LoggedOut;
+        *self.state.lock().await = None;
         Ok(())
     }
 }
@@ -42,7 +42,7 @@ mod tests {
     use super::*;
 
     fn logged_in() -> StoredDeviceState {
-        StoredDeviceState::LoggedIn {
+        StoredDeviceState {
             account_identity: StoredAccountIdentity {
                 id: "juno1cma4czt2jnydvrvz3lrc9jvcmhpjxtds95s3c6".to_owned(),
                 mode: StoredAccountMode::Api,
@@ -55,13 +55,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn load_defaults_to_logged_out() {
+    async fn load_defaults_to_none() {
         let storage = InMemoryDeviceStateStorage::default();
 
-        assert_eq!(
-            storage.load_device_state().await.unwrap(),
-            StoredDeviceState::LoggedOut
-        );
+        assert_eq!(storage.load_device_state().await.unwrap(), None);
     }
 
     #[tokio::test]
@@ -70,18 +67,15 @@ mod tests {
         let state = logged_in();
         storage.store_device_state(state.clone()).await.unwrap();
 
-        assert_eq!(storage.load_device_state().await.unwrap(), state);
+        assert_eq!(storage.load_device_state().await.unwrap(), Some(state));
     }
 
     #[tokio::test]
-    async fn remove_resets_to_logged_out() {
+    async fn remove_resets_to_none() {
         let storage = InMemoryDeviceStateStorage::default();
         storage.store_device_state(logged_in()).await.unwrap();
         storage.remove_device_state().await.unwrap();
 
-        assert_eq!(
-            storage.load_device_state().await.unwrap(),
-            StoredDeviceState::LoggedOut
-        );
+        assert_eq!(storage.load_device_state().await.unwrap(), None);
     }
 }

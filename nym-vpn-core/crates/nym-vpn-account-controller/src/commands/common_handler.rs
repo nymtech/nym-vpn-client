@@ -85,14 +85,18 @@ pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
 ) -> Result<Option<String>> {
     Ok(shared_state
         .device_state
-        .account()
-        .map(|account| account.id.clone()))
+        .as_ref()
+        .map(|state| state.account_identity.id.clone()))
 }
 
 pub(crate) async fn handle_get_canonical_account_identity<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<String>> {
-    let Some(account) = shared_state.device_state.account() else {
+    let Some(account) = shared_state
+        .device_state
+        .as_ref()
+        .map(|state| &state.account_identity)
+    else {
         return Err(Error::NoAccountStored);
     };
 
@@ -115,8 +119,8 @@ pub(crate) fn handle_get_account_mode<C: ConnectivityMonitor>(
 ) -> Result<Option<StoredAccountMode>> {
     Ok(shared_state
         .device_state
-        .account()
-        .map(|account| account.mode))
+        .as_ref()
+        .map(|state| state.account_identity.mode))
 }
 
 async fn handle_get_usage<C: ConnectivityMonitor>(
@@ -184,7 +188,10 @@ async fn handle_get_active_devices<C: ConnectivityMonitor>(
 pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<VpnAccountSummary>> {
-    Ok(shared_state.device_state.account_summary().clone())
+    Ok(shared_state
+        .device_state
+        .as_ref()
+        .and_then(|state| state.summary.clone()))
 }
 
 async fn handle_is_trial_eligible<C: ConnectivityMonitor>(
@@ -276,8 +283,8 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
     // For `DeeplinkKind::PrivyLink`, the user must be logged-in via an API account
     let is_api_account = shared_state
         .device_state
-        .account()
-        .map(|account| account.mode == StoredAccountMode::Api)
+        .as_ref()
+        .map(|state| state.account_identity.mode == StoredAccountMode::Api)
         .unwrap_or(true);
 
     if is_api_account {
