@@ -96,52 +96,13 @@ pub fn install_service() -> anyhow::Result<()> {
 }
 
 pub async fn uninstall_service() -> anyhow::Result<()> {
-    let manager_access = ServiceManagerAccess::CONNECT;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
+    delete_service().await?;
 
-    {
-        let service_access =
-            ServiceAccess::QUERY_STATUS | ServiceAccess::STOP | ServiceAccess::DELETE;
-
-        // If the service does not exist, then it's not an error.
-        let service = match service_manager.open_service(SERVICE_NAME, service_access) {
-            Ok(service) => service,
-            Err(ServiceError::Winapi(ref e))
-                if e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32) =>
-            {
-                println!("{SERVICE_NAME} service is not installed.");
-                return Ok(());
-            }
-            Err(e) => return Err(anyhow!("Failed to open service {SERVICE_NAME}: {e}")),
-        };
-
-        service.delete()?;
-
-        if let Err(e) = crate::core_dumps::restore() {
-            eprintln!("Failed to remove service from Windows Error Reporting exclusions: {e}");
-        }
-
-        if service.query_status()?.current_state != ServiceState::Stopped {
-            service.stop()?;
-        }
+    if let Err(e) = crate::core_dumps::restore() {
+        eprintln!("Failed to remove service from Windows Error Reporting exclusions: {e}");
     }
 
-    // Poll until service is deleted or timeout.
-    let start = Instant::now();
-    while start.elapsed() < SERVICE_WAIT_TIMEOUT {
-        if let Err(windows_service::Error::Winapi(e)) =
-            service_manager.open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
-            && e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32)
-        {
-            println!("{SERVICE_NAME} service was uninstalled successfully.");
-            return Ok(());
-        }
-        tokio::time::sleep(SERVICE_POLL_INTERVAL).await;
-    }
-
-    Err(anyhow!(
-        "{SERVICE_NAME} service failed to uninstall in time"
-    ))
+    Ok(())
 }
 
 pub async fn start_service() -> anyhow::Result<()> {
@@ -164,6 +125,51 @@ pub async fn start_service() -> anyhow::Result<()> {
     }
     Err(anyhow!(
         "timed out waiting for the service to reach running"
+    ))
+}
+
+async fn delete_service() -> anyhow::Result<()> {
+    let manager_access = ServiceManagerAccess::CONNECT;
+    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
+
+    {
+        let service_access =
+            ServiceAccess::QUERY_STATUS | ServiceAccess::STOP | ServiceAccess::DELETE;
+
+        // If the service does not exist, then it's not an error.
+        let service = match service_manager.open_service(SERVICE_NAME, service_access) {
+            Ok(service) => service,
+            Err(ServiceError::Winapi(ref e))
+                if e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32) =>
+            {
+                println!("{SERVICE_NAME} service is not installed.");
+                return Ok(());
+            }
+            Err(e) => return Err(anyhow!("Failed to open service {SERVICE_NAME}: {e}")),
+        };
+
+        service.delete()?;
+
+        if service.query_status()?.current_state != ServiceState::Stopped {
+            service.stop()?;
+        }
+    }
+
+    // Poll until service is deleted or timeout.
+    let start = Instant::now();
+    while start.elapsed() < SERVICE_WAIT_TIMEOUT {
+        if let Err(windows_service::Error::Winapi(e)) =
+            service_manager.open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
+            && e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32)
+        {
+            println!("{SERVICE_NAME} service was uninstalled successfully.");
+            return Ok(());
+        }
+        tokio::time::sleep(SERVICE_POLL_INTERVAL).await;
+    }
+
+    Err(anyhow!(
+        "{SERVICE_NAME} service failed to uninstall in time"
     ))
 }
 
