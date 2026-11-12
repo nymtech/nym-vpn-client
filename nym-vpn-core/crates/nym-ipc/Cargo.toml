@@ -31,6 +31,9 @@ block2 = { workspace = true }
 objc2 = { workspace = true }
 objc2-core-foundation = { workspace = true, features = ["std", "CFString"] }
 objc2-foundation = { workspace = true, features = [
+    "std",
+    "block2",
+    "NSData",
     "NSString",
     "NSXPCConnection",
 ] }
