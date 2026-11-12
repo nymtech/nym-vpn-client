@@ -24,6 +24,9 @@ const SERVICE_WAIT_TIMEOUT: Duration = Duration::from_secs(30);
 const SERVICE_POLL_INTERVAL: Duration = Duration::from_secs(1);
 
 pub fn install_service() -> anyhow::Result<()> {
+    crate::core_dumps::disable()
+        .with_context(|| "Failed to exclude service from Windows Error Reporting")?;
+
     let manager_access = ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
@@ -86,9 +89,6 @@ pub fn install_service() -> anyhow::Result<()> {
     service
         .set_description(SERVICE_DESCRIPTION)
         .with_context(|| "Failed to set service description")?;
-
-    crate::core_dumps::disable()
-        .with_context(|| "Failed to exclude service from Windows Error Reporting")?;
 
     println!("{SERVICE_NAME} service was installed successfully.");
 
