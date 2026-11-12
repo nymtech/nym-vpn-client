@@ -209,6 +209,8 @@ mod vpn_account_storage;
 mod vpn_service;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 mod vpn_service_command_sender;
+#[cfg(any(target_os = "android", target_os = "ios"))]
+mod wake_signal;
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use mobile::*;
