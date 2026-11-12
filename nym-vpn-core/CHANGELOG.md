@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Strip debug info in release builds (https://github.com/nymtech/nym-vpn-client/pull/7018)
+- [Linux] Restart `nym-vpnd` after 2 seconds instead of 5 in the AUR package, matching the Debian package (https://github.com/nymtech/nym-vpn-client/pull/7072)
 
 ### Fixed
 
