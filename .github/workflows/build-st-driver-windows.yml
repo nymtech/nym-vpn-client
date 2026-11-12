@@ -27,13 +27,13 @@ jobs:
           ls -la ./
 
       - name: Checkout repo
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
       - name: Setup MSBuild.exe
-        uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57
+        uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3.0.0
 
       - name: Install GNU make
         run: |
@@ -41,7 +41,7 @@ jobs:
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
       - name: Setup VS dev shell
-        uses: humbletim/vsdevenv-shell@503210b7b39a7405e534ea93c36a733b93f01087
+        uses: humbletim/vsdevenv-shell@503210b7b39a7405e534ea93c36a733b93f01087 # v2
 
       - name: Build st-driver
         shell: vsdevenv x64 pwsh {0}
@@ -63,7 +63,7 @@ jobs:
           done
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: st-driver
           path: ${{ github.workspace }}/build/st-driver/

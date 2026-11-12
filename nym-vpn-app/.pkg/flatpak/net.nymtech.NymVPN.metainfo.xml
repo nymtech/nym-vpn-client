@@ -42,6 +42,9 @@
         <p>For more details, see https://nym.com/en/download/linux</p>
     </description>
     <releases>
+        <release version="2026.15.0" date="2026-11-05">
+            <url type="details">https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-v2026.15.0</url>
+        </release>
         <release version="2026.14.0" date="2026-10-21">
             <url type="details">https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-v2026.14.0</url>
         </release>

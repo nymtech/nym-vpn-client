@@ -812,7 +812,15 @@ impl TunnelStateHandler for ConnectingState {
                         // Signal that the message was received first.
                         _ = reply_tx.send(());
 
-                        if let Some(error_state_reason) = error_state_reason {
+                        // Auto connects directly when the entry has no bridge; On reports it.
+                        let no_bridge_in_auto = error_state_reason
+                            == Some(ErrorStateReason::EntryGatewayHasNoBridge)
+                            && shared_state.tunnel_settings.wireguard_tunnel_options.bridge_mode
+                                == BridgeMode::Auto;
+
+                        if let Some(error_state_reason) = error_state_reason
+                            && !no_bridge_in_auto
+                        {
                             NextTunnelState::NewState(DisconnectingState::enter(
                                 PrivateActionAfterDisconnect::Error(error_state_reason),
                                 self.tunnel_monitor_handle.take(),
@@ -831,7 +839,11 @@ impl TunnelStateHandler for ConnectingState {
 
                             tracing::info!("Tunnel closed");
 
-                            self.reconnect(shared_state).await
+                            if no_bridge_in_auto {
+                                NextTunnelState::NewState(ConnectingState::enter_with_bridges(self.retry_attempt, false, None, shared_state).await)
+                            } else {
+                                self.reconnect(shared_state).await
+                            }
                         }
                     }
                     TunnelMonitorEvent::ConnectionFailed { entry_gateway_id, exit_gateway_id } => {

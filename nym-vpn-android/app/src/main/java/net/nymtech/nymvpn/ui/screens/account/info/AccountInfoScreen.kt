@@ -224,6 +224,7 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		onContactSupportClick = {
 			context.openWebUrl(supportURL)
 		},
+		showLinkSocial = !isPlayDistribution,
 	)
 }
 
@@ -245,6 +246,7 @@ fun AccountInfoScreenContent(
 	onContactSupportClick: () -> Unit,
 	subscriptionState: SubscriptionUiState?,
 	bandwidthState: BandwidthUiState?,
+	showLinkSocial: Boolean = true,
 ) {
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -275,26 +277,28 @@ fun AccountInfoScreenContent(
 
 		Spacer(Modifier.height(16.dp))
 
-		Row(
-			verticalAlignment = Alignment.CenterVertically,
-		) {
-			Spacer(
-				modifier = Modifier
-					.size(12.dp)
-					.background(LocalNymColors.current.warning, CircleShape),
-			)
-			Spacer(Modifier.width(4.dp))
-			if (!isLinked) {
-				AddSocialText(onLinkAccountClick)
-			} else {
-				Text(
-					text = stringResource(R.string.account_info_backup),
-					color = MaterialTheme.colorScheme.onBackground,
-					style = MaterialTheme.typography.bodyMedium,
+		if (isLinked || showLinkSocial) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Spacer(
+					modifier = Modifier
+						.size(12.dp)
+						.background(LocalNymColors.current.warning, CircleShape),
 				)
+				Spacer(Modifier.width(4.dp))
+				if (!isLinked) {
+					AddSocialText(onLinkAccountClick)
+				} else {
+					Text(
+						text = stringResource(R.string.account_info_backup),
+						color = MaterialTheme.colorScheme.onBackground,
+						style = MaterialTheme.typography.bodyMedium,
+					)
+				}
 			}
+			Spacer(Modifier.height(16.dp))
 		}
-		Spacer(Modifier.height(16.dp))
 
 		AccountInfoCard(
 			title = stringResource(R.string.account_info_id_title),

@@ -6361,8 +6361,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bridges-types"
-version = "0.2.3-rc.1"
-source = "git+https://github.com/nymtech/nym-bridges?rev=5739d44957af2020de1983745b9712e9bdfcf72a#5739d44957af2020de1983745b9712e9bdfcf72a"
+version = "0.3.0"
+source = "git+https://github.com/nymtech/nym-bridges?rev=f808132033cd5c6e93b45441bec35d98474d6720#f808132033cd5c6e93b45441bec35d98474d6720"
 dependencies = [
  "serde",
  "uniffi",
@@ -6851,7 +6851,6 @@ dependencies = [
  "async-compression",
  "ipnetwork",
  "itertools 0.15.0",
- "nym-client-core",
  "nym-http-api-client",
  "nym-network-defaults",
  "nym-offline-monitor",
@@ -7320,6 +7319,15 @@ dependencies = [
  "sha2 0.11.1",
  "sysinfo 0.39.6",
  "windows 0.62.2",
+]
+
+[[package]]
+name = "nym-qr-pairing-requests"
+version = "2026.16.0-beta.1"
+dependencies = [
+ "nym-serde-helpers",
+ "serde",
+ "zeroize",
 ]
 
 [[package]]
@@ -7863,6 +7871,7 @@ dependencies = [
  "nym-crypto",
  "nym-http-api-client",
  "nym-network-defaults",
+ "nym-qr-pairing-requests",
  "nym-serde-helpers",
  "nym-validator-client",
  "serde",
@@ -7890,6 +7899,7 @@ dependencies = [
  "freedesktop-desktop-entry",
  "freedesktop-icons",
  "futures",
+ "gtk",
  "image",
  "itertools 0.15.0",
  "ksni",
@@ -13069,11 +13079,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "76407f5f396a2c949a069eff4a9fca9ce462410eb872bffef4c2b7b89804a77a"
 dependencies = [
  "anyhow",
- "camino",
  "cargo_metadata 0.23.1",
- "clap",
  "uniffi_bindgen",
- "uniffi_build",
  "uniffi_core",
  "uniffi_macros",
  "uniffi_pipeline",
@@ -13103,17 +13110,6 @@ dependencies = [
  "uniffi_meta",
  "uniffi_pipeline",
  "uniffi_udl",
-]
-
-[[package]]
-name = "uniffi_build"
-version = "0.32.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "925be5c36297fff0d416fa2f03585ace718b6e6c635466754128d00f0862d5f1"
-dependencies = [
- "anyhow",
- "camino",
- "uniffi_bindgen",
 ]
 
 [[package]]

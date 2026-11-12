@@ -1,6 +1,8 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::convert::Infallible;
+
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
@@ -11,6 +13,6 @@ use crate::Connectivity;
 pub async fn spawn_monitor(
     sender: watch::Sender<Connectivity>,
     shutdown_token: CancellationToken,
-) -> Result<ConnectivityHandle, nym_common::BoxedError> {
+) -> Result<ConnectivityHandle, Infallible> {
     Ok(path_monitor::spawn_monitor(sender, shutdown_token).await)
 }

@@ -561,6 +561,7 @@ export type TunnelError =
   | 'performant-exit-gw-unavailable'
   | 'invalid-entry-gw-id'
   | 'invalid-exit-gw-id'
+  | 'entry-gw-has-no-bridge'
   | 'invalid-entry-gw-country'
   | 'invalid-exit-gw-country'
   | 'max-devices-reached'

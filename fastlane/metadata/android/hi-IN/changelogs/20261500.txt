@@ -1,0 +1,9 @@
+जहाँ VPN ब्लॉक हैं वहाँ भी connected रहें: नए Off / Auto / On bridge modes तब आपको online रखते हैं जब कोई network connection को ब्लॉक करने की कोशिश करता है, और पार पाने के लिए अपने आप connection method बदल देते हैं।
+
+इस रिलीज़ में यह भी:
+• connected रहते हुए कम battery खर्च करता है
+• अपना account सीधे app में delete करें
+• संवेदनशील screens अब screen capture और overlays से सुरक्षित हैं
+• तेज़ server list
+• अधिक सटीक connection status
+• स्पष्ट renewal reminders और अधिक सुसंगत शब्दावली

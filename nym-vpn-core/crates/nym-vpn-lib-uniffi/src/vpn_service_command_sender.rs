@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use nym_common::ErrorExt;
 use nym_vpn_lib::service::{
-    AccountLinksError, GeoExclusionConfigError, ListGatewaysError, SetCustomDnsError,
-    VpnServiceCommand,
+    AccountLinksError, ClientRequest, GeoExclusionConfigError, ListGatewaysError,
+    SetCustomDnsError, VpnServiceCommand,
 };
 use tokio::sync::{mpsc, oneshot};
 
@@ -318,15 +318,21 @@ impl NymVpnServiceCommandSender {
 
     pub async fn create_account(&self) -> Result<()> {
         Ok(self
-            .send_and_wait(VpnServiceCommand::CreateAccount, ())
+            .send_and_wait(
+                VpnServiceCommand::CreateAccount,
+                ClientRequest::new(None, ()),
+            )
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
     pub async fn store_account(&self, request: StoreAccountRequest) -> Result<()> {
-        self.send_and_wait(VpnServiceCommand::StoreAccount, request)
-            .await?
-            .map_err(NymVpnServiceCommandInnerError::Account)?;
+        self.send_and_wait(
+            VpnServiceCommand::StoreAccount,
+            ClientRequest::new(None, request),
+        )
+        .await?
+        .map_err(NymVpnServiceCommandInnerError::Account)?;
         Ok(())
     }
 
@@ -337,22 +343,31 @@ impl NymVpnServiceCommandSender {
 
     pub async fn get_stored_mnemonic(&self) -> Result<String> {
         Ok(self
-            .send_and_wait(VpnServiceCommand::GetStoredMnemonic, ())
+            .send_and_wait(
+                VpnServiceCommand::GetStoredMnemonic,
+                ClientRequest::new(None, ()),
+            )
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
     pub async fn forget_account(&self) -> Result<()> {
-        self.send_and_wait(VpnServiceCommand::ForgetAccount, ())
-            .await?
-            .map_err(NymVpnServiceCommandInnerError::Account)?;
+        self.send_and_wait(
+            VpnServiceCommand::ForgetAccount,
+            ClientRequest::new(None, ()),
+        )
+        .await?
+        .map_err(NymVpnServiceCommandInnerError::Account)?;
         Ok(())
     }
 
     pub async fn delete_account(&self) -> Result<()> {
-        self.send_and_wait(VpnServiceCommand::DeleteAccount, ())
-            .await?
-            .map_err(NymVpnServiceCommandInnerError::Account)?;
+        self.send_and_wait(
+            VpnServiceCommand::DeleteAccount,
+            ClientRequest::new(None, ()),
+        )
+        .await?
+        .map_err(NymVpnServiceCommandInnerError::Account)?;
         Ok(())
     }
 
@@ -446,7 +461,7 @@ impl NymVpnServiceCommandSender {
         Ok(self
             .send_and_wait(
                 VpnServiceCommand::DeeplinkStoreAccount,
-                deeplink_callback_url,
+                ClientRequest::new(None, deeplink_callback_url),
             )
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
@@ -454,7 +469,10 @@ impl NymVpnServiceCommandSender {
 
     pub async fn start_pairing(&self) -> Result<QrUrl> {
         Ok(self
-            .send_and_wait(VpnServiceCommand::StartPairing, ())
+            .send_and_wait(
+                VpnServiceCommand::StartPairing,
+                ClientRequest::new(None, ()),
+            )
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
@@ -468,7 +486,10 @@ impl NymVpnServiceCommandSender {
 
     pub async fn verified_pairing_pin(&self, session_id: u32) -> Result<()> {
         Ok(self
-            .send_and_wait(VpnServiceCommand::VerifiedPairingPin, session_id)
+            .send_and_wait(
+                VpnServiceCommand::VerifiedPairingPin,
+                ClientRequest::new(None, session_id),
+            )
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
@@ -485,7 +506,10 @@ impl NymVpnServiceCommandSender {
         params: GetDeeplinkParams,
     ) -> Result<AutologinResponse> {
         Ok(self
-            .send_and_wait(VpnServiceCommand::GetAutologinDeeplink, params)
+            .send_and_wait(
+                VpnServiceCommand::GetAutologinDeeplink,
+                ClientRequest::new(None, params),
+            )
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
