@@ -152,14 +152,13 @@ impl VpnAccount {
 
     pub fn ecash_keypair_seed(&self) -> Result<Zeroizing<Vec<u8>>, Error> {
         let hd_path = cosmos_derivation_path();
-        // TODO: private key is NOT zeroized here
+        // `XPrv` zeroizes its key on drop; the copy taken here is zeroized too.
         let extended_private_key = self
             .wallet
             .derive_extended_private_key_with_password(&hd_path, "")?; // No password is used
+        let private_key = Zeroizing::new(extended_private_key.to_bytes());
 
-        Ok(Zeroizing::new(
-            extended_private_key.private_key().to_bytes().to_vec(),
-        ))
+        Ok(Zeroizing::new(private_key.to_vec()))
     }
 
     pub fn get_mnemonic(&self) -> Zeroizing<String> {
@@ -300,6 +299,19 @@ mod tests {
         )
         .unwrap();
         assert_eq!(account.id(), TEST_DEFAULT_MNEMONIC_ID);
+    }
+
+    #[test]
+    fn ecash_keypair_seed_is_stable() {
+        let account = VpnAccount::new(
+            bip39::Mnemonic::parse(TEST_DEFAULT_MNEMONIC).unwrap(),
+            VpnAccountMode::Api,
+        )
+        .unwrap();
+        assert_eq!(
+            hex::encode(&*account.ecash_keypair_seed().unwrap()),
+            "9bbeaa761f384aff8532cf8f8f78e9cbbebea1f37bc9461d163163cb87fd2f9e"
+        );
     }
 
     #[test]
