@@ -484,25 +484,17 @@ fn select_pair(
             Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)
         }
     } else {
-        let entry_gateway = select_entry(
+        // Drop an entry that has no usable exit (e.g. it is the pinned exit) and try the next.
+        loop_select(
             entry_gateways,
+            exit_gateways,
             blacklisted_gateways,
             tunnel_settings,
             use_bridges,
             filter_lp,
-            gateway_provider_event_sender.clone(),
-            device_location,
-        )?;
-        let exit_gateway = select_exit(
-            &entry_gateway,
-            exit_gateways,
-            blacklisted_gateways,
-            tunnel_settings,
-            filter_lp,
             gateway_provider_event_sender,
             device_location,
-        )?;
-        Ok((entry_gateway, exit_gateway))
+        )
     }
 }
 
@@ -824,6 +816,37 @@ mod tests {
             .unwrap();
             assert_eq!(
                 selected.exit_gateway().identity().to_base58_string(),
+                GW_ID_2
+            );
+        }
+    }
+
+    // An entry pick that lands on the pinned exit must move on to the next LP-passing entry,
+    // not fall back to an LP-rejecting one.
+    #[tokio::test]
+    async fn entry_colliding_with_pinned_exit_tries_next_lp_passing_entry() {
+        for _ in 0..32 {
+            let mut settings = default_tunnel_settings();
+            *settings.exit_point = ExitPoint::Gateway {
+                identity: GW_ID_1.parse().unwrap(),
+            };
+            let selected = select_gateways(
+                MockGatewayCache::new(Arc::new(RwLock::new(Some(vec![
+                    gateway_id_to_gateway(GW_ID_1),
+                    gateway_id_to_gateway(GW_ID_2),
+                    gw_rejecting_lp_registration(GW_ID_3),
+                ])))),
+                &BlacklistedGateways::new(),
+                &settings,
+                false,
+                None,
+                None,
+                &WireguardKeysDb::Ephemeral(Default::default()),
+            )
+            .await
+            .unwrap();
+            assert_eq!(
+                selected.entry_gateway().identity().to_base58_string(),
                 GW_ID_2
             );
         }
