@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Linux] Disable core dumps of `nym-vpnd`, which would contain the WireGuard private key and account tokens (https://github.com/nymtech/nym-vpn-client/pull/7067)
 - [macOS] Require user presence with password or Touch ID for account-related operations. Affects the app and the CLI. Use `nym-vpnc authorize` and `nym-vpnc deauthorize` to manage authorization (https://github.com/nymtech/nym-vpn-client/pull/6980)
 - Zeroize the copy of the account's ecash private key taken when deriving the ecash keypair (https://github.com/nymtech/nym-vpn-client/pull/7084)
+- Zero WireGuard configuration buffers holding private and preshared keys after passing them to wireguard-go (https://github.com/nymtech/nym-vpn-client/pull/7069)
 
 
 ## [2026.15.0] - 2026-11-05
