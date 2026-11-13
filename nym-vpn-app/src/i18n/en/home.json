@@ -21,9 +21,7 @@
   "connected-via-bridge": "Connected via {{transport}} bridge",
   "connection-time": "Connection time",
   "exit-address": {
-    "label": "Sites see",
-    "note": "shared Nym exit",
-    "aria": "Sites see the shared exit address {{ip}}. This is not your own address."
+    "label": "Your Nym IP is"
   },
   "random-server": "Random server",
   "safest-server-selection": "Auto server selection",
