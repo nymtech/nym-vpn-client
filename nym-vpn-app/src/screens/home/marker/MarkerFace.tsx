@@ -77,7 +77,9 @@ export function MarkerFace({
       height={size}
       viewBox="0 0 80 80"
       aria-hidden="true"
-      className="text-text-primary"
+      // unlit: the ring tracks' grey, so the face sits back with the rings
+      className={lit ? 'text-text-primary' : undefined}
+      style={lit ? undefined : { color: 'var(--nv-connection-arc-track)' }}
       fill="currentColor"
       stroke="currentColor"
       strokeWidth={2}
