@@ -6,6 +6,7 @@ use crate::storage::{
     models::{PendingCredentialRequest, PendingCredentialRequestStored},
 };
 
+use nym_sqlcipher::DatabaseKey;
 use sqlite::SqliteZkNymRequestsStorageManager;
 use sqlx::ConnectOptions;
 use std::{
@@ -31,6 +32,7 @@ pub(crate) struct PendingCredentialRequestsStorage {
 impl PendingCredentialRequestsStorage {
     pub(crate) async fn init<P: AsRef<Path>>(
         data_dir: P,
+        database_key: &DatabaseKey,
     ) -> Result<Self, PendingCredentialRequestsStorageError> {
         let database_path = data_dir.as_ref().join("pending_credential_requests.db");
 
@@ -43,6 +45,9 @@ impl PendingCredentialRequestsStorage {
             .filename(&database_path)
             .create_if_missing(true)
             .log_statements(LevelFilter::Trace);
+        let opts = nym_sqlcipher::apply_key(opts, Some(database_key))
+            .await
+            .map_err(PendingCredentialRequestsStorageError::Encryption)?;
 
         tracing::debug!("Connecting to the database");
         let connection_pool = sqlx::sqlite::SqlitePoolOptions::new()

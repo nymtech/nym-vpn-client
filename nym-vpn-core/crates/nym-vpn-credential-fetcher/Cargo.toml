@@ -18,6 +18,7 @@ nym-credential-proxy-requests.workspace = true
 nym-credentials-interface.workspace = true
 nym-credentials.workspace = true
 nym-ecash-time.workspace = true
+nym-sqlcipher.workspace = true
 nym-upgrade-mode-check.workspace = true
 nym-vpn-api-client.workspace = true
 nym-validator-client.workspace = true

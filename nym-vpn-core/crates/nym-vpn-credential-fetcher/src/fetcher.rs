@@ -11,6 +11,7 @@ use nym_credentials::{
     AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
 };
 use nym_credentials_interface::{KeyPairUser, TicketType};
+use nym_sqlcipher::DatabaseKey;
 use nym_validator_client::nym_api::EpochId;
 use nym_vpn_api_client::{VpnApiClient, types::Device};
 use time::Date;
@@ -56,6 +57,7 @@ impl VpnApiCredentialFetcher {
     /// - `ecash_keypair`: the ecash user keypair of that account, built from the persisted seed
     /// - `data_dir`: directory in which to create this fetcher's own storage for resuming in-flight
     ///   requests.
+    /// - `database_key`: key encrypting that storage
     /// - `cancellation_token`: cancelling it interrupts any in-flight or stalled fetch
     pub async fn new(
         vpn_api_client: VpnApiClient,
@@ -63,9 +65,11 @@ impl VpnApiCredentialFetcher {
         ecash_keypair: KeyPairUser,
         device: Device,
         data_dir: impl AsRef<Path>,
+        database_key: &DatabaseKey,
         cancellation_token: CancellationToken,
     ) -> Result<Self, VpnApiFetcherError> {
-        let pending_storage = PendingCredentialRequestsStorage::init(data_dir).await?;
+        let pending_storage =
+            PendingCredentialRequestsStorage::init(data_dir, database_key).await?;
         let cached_data = CachedData::new(vpn_api_client.clone());
         let (status_tx, _) = watch::channel(Status::Running);
         Ok(VpnApiCredentialFetcher {
