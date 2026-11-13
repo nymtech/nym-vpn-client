@@ -83,7 +83,7 @@ use crate::{
     bandwidth_monitor::BandwidthMonitor,
     mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::{
-        TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
+        TunnelConstants, WireguardMultihopMode, account, bridge_redial, ipv6_availability,
         tunnel::{
             gateway_provider::GatewayProvider,
             mixnet,
@@ -94,8 +94,6 @@ use crate::{
         },
     },
 };
-
-mod bridge_redial;
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
