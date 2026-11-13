@@ -1,17 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::path::{Path, PathBuf};
 
 use nym_crypto::asymmetric::ed25519;
 use nym_pemstore::{KeyPairPath, Passphrase, traits::PemStorableKeyPair};
 use rand::SeedableRng;
 
 use crate::{
-    database_key::{DatabaseKeyStorageError, OnDiskDatabaseKeyStorage},
+    database_key::DatabaseKey,
     keys::device::{DeviceKeyStore, DeviceKeys},
 };
 
@@ -45,15 +42,12 @@ pub enum OnDiskKeysError {
         paths: KeyPairPath,
         error: std::io::Error,
     },
-
-    #[error("failed to load encryption key")]
-    LoadEncryptionKey(#[source] DatabaseKeyStorageError),
 }
 
 /// Stores device keys in PEM files, with the private key encrypted with the database key.
 pub struct OnDiskKeys {
     paths: DeviceKeysPaths,
-    database_key_storage: Arc<OnDiskDatabaseKeyStorage>,
+    passphrase: Passphrase,
 }
 
 pub struct DeviceKeysPaths {
@@ -91,31 +85,18 @@ impl DeviceKeysPaths {
 }
 
 impl OnDiskKeys {
-    pub fn new(
-        paths: DeviceKeysPaths,
-        database_key_storage: Arc<OnDiskDatabaseKeyStorage>,
-    ) -> Self {
+    pub fn new(paths: DeviceKeysPaths, database_key: &DatabaseKey) -> Self {
         OnDiskKeys {
             paths,
-            database_key_storage,
+            passphrase: Passphrase::new(hex::encode(database_key.as_bytes())),
         }
     }
 
-    async fn passphrase(&self) -> Result<Passphrase, OnDiskKeysError> {
-        let database_key = self
-            .database_key_storage
-            .load_or_create()
-            .await
-            .map_err(OnDiskKeysError::LoadEncryptionKey)?;
-        Ok(Passphrase::new(hex::encode(database_key.as_bytes())))
-    }
-
-    async fn load_device_keypair(&self) -> Result<Option<ed25519::KeyPair>, OnDiskKeysError> {
+    fn load_device_keypair(&self) -> Result<Option<ed25519::KeyPair>, OnDiskKeysError> {
         let device_paths = self.paths.device_key_pair_path();
-        let passphrase = self.passphrase().await?;
-        match self.load_keypair(device_paths.clone(), "device", &passphrase) {
+        match self.load_keypair(device_paths.clone(), "device") {
             Ok(keypair) => {
-                self.encrypt_plaintext_keypair(&keypair, device_paths, "device", &passphrase)?;
+                self.encrypt_plaintext_keypair(&keypair, device_paths, "device")?;
                 Ok(Some(keypair))
             }
             Err(OnDiskKeysError::UnableToLoadKeys { error, .. })
@@ -133,7 +114,6 @@ impl OnDiskKeys {
         keypair: &T,
         paths: KeyPairPath,
         name: &str,
-        passphrase: &Passphrase,
     ) -> Result<(), OnDiskKeysError> {
         let is_encrypted =
             nym_pemstore::is_encrypted(&paths.private_key_path).map_err(|error| {
@@ -146,7 +126,7 @@ impl OnDiskKeys {
             Ok(())
         } else {
             tracing::info!("Encrypting {name} keys");
-            self.store_keypair(keypair, paths, name, passphrase)
+            self.store_keypair(keypair, paths, name)
         }
     }
 
@@ -154,9 +134,8 @@ impl OnDiskKeys {
         &self,
         paths: KeyPairPath,
         name: impl Into<String>,
-        passphrase: &Passphrase,
     ) -> Result<T, OnDiskKeysError> {
-        nym_pemstore::load_keypair_with(&paths, Some(passphrase)).map_err(|error| {
+        nym_pemstore::load_keypair_with(&paths, Some(&self.passphrase)).map_err(|error| {
             OnDiskKeysError::UnableToLoadKeys {
                 paths,
                 name: name.into(),
@@ -170,9 +149,8 @@ impl OnDiskKeys {
         keypair: &T,
         paths: KeyPairPath,
         name: impl Into<String>,
-        passphrase: &Passphrase,
     ) -> Result<(), OnDiskKeysError> {
-        nym_pemstore::store_keypair_with(keypair, &paths, Some(passphrase)).map_err(|error| {
+        nym_pemstore::store_keypair_with(keypair, &paths, Some(&self.passphrase)).map_err(|error| {
             OnDiskKeysError::UnableToStoreKeys {
                 paths,
                 name: name.into(),
@@ -194,39 +172,33 @@ impl OnDiskKeys {
             .map_err(|error| OnDiskKeysError::UnableToRemoveKeys { paths, error })
     }
 
-    async fn load_keys(&self) -> Result<Option<DeviceKeys>, OnDiskKeysError> {
-        let device_keypair = self.load_device_keypair().await?;
+    fn load_keys(&self) -> Result<Option<DeviceKeys>, OnDiskKeysError> {
+        let device_keypair = self.load_device_keypair()?;
         Ok(device_keypair.map(DeviceKeys::from_keys))
     }
 
-    async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), OnDiskKeysError> {
+    fn store_keys(&self, keys: &DeviceKeys) -> Result<(), OnDiskKeysError> {
         let device_paths = self.paths.device_key_pair_path();
-        let passphrase = self.passphrase().await?;
-        self.store_keypair(
-            keys.device_keypair().as_ref(),
-            device_paths,
-            "device",
-            &passphrase,
-        )
+        self.store_keypair(keys.device_keypair().as_ref(), device_paths, "device")
     }
 
     // If there are no keys, generate them, otherwise do nothing
-    async fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), OnDiskKeysError> {
+    fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), OnDiskKeysError> {
         if self.paths.exists() {
             return Ok(());
         }
-        self.reset_keys(seed).await
+        self.reset_keys(seed)
     }
 
     // Generate new keys and overwrite the existing ones if they exist
-    async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), OnDiskKeysError> {
+    fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), OnDiskKeysError> {
         let device_keys = if let Some(seed) = seed {
             let mut rng = rand::rngs::ChaCha20Rng::from_seed(seed);
             DeviceKeys::generate_new(&mut rng)
         } else {
             DeviceKeys::generate_new(&mut rand::rng())
         };
-        self.store_keys(&device_keys).await
+        self.store_keys(&device_keys)
     }
 
     async fn remove_keys(&self) -> Result<(), OnDiskKeysError> {
@@ -240,24 +212,23 @@ impl DeviceKeyStore for OnDiskKeys {
     type StorageError = OnDiskKeysError;
 
     async fn load_keys(&self) -> Result<Option<DeviceKeys>, OnDiskKeysError> {
-        self.load_keys().await
+        self.load_keys()
     }
 
     async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), OnDiskKeysError> {
-        self.store_keys(keys).await
+        self.store_keys(keys)
     }
 
     async fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), OnDiskKeysError> {
-        self.init_keys(seed).await
+        self.init_keys(seed)
     }
 
     async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), OnDiskKeysError> {
-        self.reset_keys(seed).await
+        self.reset_keys(seed)
     }
 
     async fn remove_keys(&self) -> Result<(), OnDiskKeysError> {
         self.reset_keys(None)
-            .await
             .inspect_err(|_| {
                 tracing::warn!("Failed to reset keys before removal.");
             })
@@ -269,14 +240,11 @@ impl DeviceKeyStore for OnDiskKeys {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::store_ciphers::noop_cipher::NoopStoreCipher;
+
+    const DATABASE_KEY: [u8; nym_sqlcipher::KEY_LEN] = [0x42; nym_sqlcipher::KEY_LEN];
 
     fn on_disk_keys(dir: &Path) -> OnDiskKeys {
-        let database_key_storage = Arc::new(OnDiskDatabaseKeyStorage::new(
-            dir.join("encryption.key"),
-            NoopStoreCipher,
-        ));
-        OnDiskKeys::new(DeviceKeysPaths::new(dir), database_key_storage)
+        OnDiskKeys::new(DeviceKeysPaths::new(dir), &DatabaseKey::new(DATABASE_KEY))
     }
 
     fn public_key(keys: &DeviceKeys) -> String {
@@ -289,17 +257,13 @@ mod tests {
         let store = on_disk_keys(tempdir.path());
         let keys = DeviceKeys::generate_new(&mut rand::rng());
 
-        store.store_keys(&keys).await.unwrap();
+        store.store_keys(&keys).unwrap();
 
         let paths = DeviceKeysPaths::new(tempdir.path());
         assert!(nym_pemstore::is_encrypted(paths.private_device_key()).unwrap());
         assert!(!nym_pemstore::is_encrypted(paths.public_device_key()).unwrap());
 
-        let loaded = on_disk_keys(tempdir.path())
-            .load_keys()
-            .await
-            .unwrap()
-            .unwrap();
+        let loaded = on_disk_keys(tempdir.path()).load_keys().unwrap().unwrap();
         assert_eq!(public_key(&loaded), public_key(&keys));
     }
 
@@ -314,11 +278,7 @@ mod tests {
         )
         .unwrap();
 
-        let loaded = on_disk_keys(tempdir.path())
-            .load_keys()
-            .await
-            .unwrap()
-            .unwrap();
+        let loaded = on_disk_keys(tempdir.path()).load_keys().unwrap().unwrap();
 
         assert_eq!(public_key(&loaded), public_key(&keys));
         assert!(nym_pemstore::is_encrypted(paths.private_device_key()).unwrap());
@@ -328,7 +288,7 @@ mod tests {
     async fn missing_keys_load_as_none() {
         let tempdir = tempfile::tempdir().unwrap();
 
-        let loaded = on_disk_keys(tempdir.path()).load_keys().await.unwrap();
+        let loaded = on_disk_keys(tempdir.path()).load_keys().unwrap();
 
         assert!(loaded.is_none());
     }
