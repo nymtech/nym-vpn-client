@@ -45,7 +45,7 @@ jobs:
             deb_arch: "amd64"
             app_image_arch: "amd64"
             bin_arch: "x64"
-          - os: "ubuntu-22.04-arm"
+          - os: "ubuntu-22.04-8c-arm"
             arch: "aarch64"
             deb_arch: "arm64"
             app_image_arch: "aarch64"
