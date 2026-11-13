@@ -18,6 +18,14 @@ updates:
     assignees:
       - "pronebird"
     milestone: 6
+  - package-ecosystem: bundler
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    assignees:
+      - "pronebird"
+    milestone: 6
   - package-ecosystem: gradle
     directory: /nym-vpn-android
     assignees:
