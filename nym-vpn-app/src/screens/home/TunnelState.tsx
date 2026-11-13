@@ -30,17 +30,6 @@ const SPHERE_INSET = CX - (R_INNER - STROKE - 6);
 const SPHERE_SIZE = SIZE - SPHERE_INSET * 2;
 const GLOW_SPREAD = SPHERE_SIZE * 0.55;
 
-// ─── Progress → ring/half mapping ────────────────────────────────────────────
-const PROGRESS_STEPS = {
-  'resolving-api-addresses': { ring: 0, half: true },
-  'awaiting-account-readiness': { ring: 0, half: false },
-  'awaiting-credentials-availability': { ring: 0, half: false },
-  'refreshing-gateways': { ring: 1, half: true },
-  'selecting-gateways': { ring: 1, half: false },
-  'registering-with-gateways': { ring: 2, half: true },
-  'connecting-tunnel': { ring: 2, half: false },
-} as const;
-
 // ─── Colors ───────────────────────────────────────────────────────────────────
 const TRACK = 'var(--nv-connection-arc-track)';
 const FILL = 'var(--nv-brand-primary)';
@@ -121,10 +110,10 @@ export function TunnelState() {
   const suppressRelaxedIndependenceError =
     isRelaxedIndependenceError && !showRelaxedIndependenceError;
 
-  // Offline with the kill switch on holds traffic: blocked, not an error.
-  const isBlocked =
-    markerFromTunnel(state, vpnMode, connectingState?.progress).state ===
-    'blocked';
+  // the marker model: blocked = offline mid-session (traffic held), and the
+  // connecting step (1 to 6) that the rings draw
+  const marker = markerFromTunnel(state, vpnMode, connectingState?.progress);
+  const isBlocked = marker.state === 'blocked';
   const isError =
     !suppressRelaxedIndependenceError &&
     (state === 'error' || state === 'unknown');
@@ -165,14 +154,16 @@ export function TunnelState() {
     // only the outer ring, which blinks
     if (phase === 'blocked') return [0, CIRCS[1], CIRCS[2]];
     if (phase !== 'connecting' || !progress) return [...CIRCS];
-    const step = PROGRESS_STEPS[progress];
-    if (!step) return [...CIRCS];
+    // six steps over three rings: odd steps half-fill a ring, even seal it
+    const step = marker.step ?? 1;
+    const ring = Math.floor((step - 1) / 2);
+    const half = step % 2 === 1;
     return CIRCS.map((C, i) => {
-      if (i < step.ring) return 0;
-      if (i === step.ring) return step.half ? C / 2 : 0;
+      if (i < ring) return 0;
+      if (i === ring) return half ? C / 2 : 0;
       return C;
     });
-  }, [phase, progress]);
+  }, [phase, progress, marker.step]);
 
   // ─── Freeze offsets when entering canceling ──────────────────────────────
   // Updated whenever we're NOT in canceling, so when that phase begins
@@ -196,10 +187,13 @@ export function TunnelState() {
   const strokeOpacity =
     phase === 'canceling' ? 0.15 : phase === 'error' ? 0.85 : 1;
 
+  // error snaps into place so every ring's gap appears at 3 o'clock at once
   const ringTransition =
     phase === 'canceling'
       ? 'stroke-opacity 600ms ease-in, stroke-dashoffset 0ms'
-      : 'stroke-dashoffset 800ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease';
+      : phase === 'error'
+        ? 'stroke-dashoffset 0ms, stroke 200ms ease, stroke-opacity 200ms ease'
+        : 'stroke-dashoffset 800ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease';
 
   // ─── Label text ───────────────────────────────────────────────────────────
   const label = useMemo((): string | null => {
@@ -216,9 +210,6 @@ export function TunnelState() {
 
   // ─── Error content ────────────────────────────────────────────────────────
   const getError = () => {
-    if (state === 'offline') return <p>{t('offline-message')}</p>;
-    if (state === 'offline-auto-reconnect')
-      return <p>{t('offline-reconnect-message')}</p>;
     if (tunnelError)
       return <p data-testid="tunnel-specific-error">{tTE(tunnelError)}</p>;
     if (isAccountError) {

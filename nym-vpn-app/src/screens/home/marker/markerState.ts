@@ -60,7 +60,6 @@ export function markerFromTunnel(
   const mode = markerMode(vpnMode);
   switch (state) {
     case 'disconnected':
-    case 'unknown':
     case 'offline':
       return marker('not-protected', mode);
     case 'connecting':
@@ -74,7 +73,9 @@ export function markerFromTunnel(
       return marker('connected', mode);
     case 'disconnecting':
       return marker('stopping', mode);
+    // unknown: the daemon is not reachable, which the home screen shows as an error
     case 'error':
+    case 'unknown':
       return marker('error', mode);
     case 'offline-auto-reconnect':
       return marker('blocked', mode);
