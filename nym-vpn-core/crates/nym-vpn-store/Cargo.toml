@@ -38,7 +38,7 @@ tokio-util = { workspace = true, features = ["io-util"] }
 tracing.workspace = true
 zeroize.workspace = true
 
-nym-vpn-lib-types = { workspace = true, features = ["serde"] }
+nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions", "serde"] }
 nym-validator-client.workspace = true
 nym-credentials-interface.workspace = true
 nym-vpn-api-client.workspace = true

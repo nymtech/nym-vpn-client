@@ -59,11 +59,10 @@ impl NymAccountController {
         // Storage setup
         let storage_path = data_dir.join(network_env.network_name());
         let secure_enclave = Arc::new(nym_secure_enclave::SecureEnclave::new());
-        let storage = VpnClientOnDiskStorage::new(&storage_path, secure_enclave);
-        let database_key = storage
-            .load_or_create_database_key()
+        let storage = VpnClientOnDiskStorage::new(&storage_path, secure_enclave)
             .await
             .map_err(VpnError::internal)?;
+        let database_key = storage.database_key().clone();
         let sdk_storage_paths = nym_sdk::mixnet::StoragePaths::new_from_dir(&storage_path)
             .map_err(|err| VpnError::InternalError {
                 details: err.to_string(),
