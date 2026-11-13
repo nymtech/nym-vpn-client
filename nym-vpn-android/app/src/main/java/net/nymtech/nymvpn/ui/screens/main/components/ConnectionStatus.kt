@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -55,6 +56,9 @@ private const val MIDDLE_RADIUS = 68.4f
 private const val INNER_RADIUS = 54.4f
 private const val ARC_STROKE = 5.5f
 private const val LABEL_OFFSET = 14f
+
+// the face sits inside the inner ring with a small gap
+private const val FACE_SIZE = (INNER_RADIUS - ARC_STROKE - 6f) * 2f
 
 // Error rings each lose a segment centred on 3 o'clock (0 degrees here), so the state reads without colour.
 private const val ERROR_GAP = 0.1f
@@ -189,85 +193,97 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 		horizontalAlignment = Alignment.CenterHorizontally,
 		modifier = modifier,
 	) {
-		Canvas(modifier = Modifier.size((OUTER_RADIUS * 2 + ARC_STROKE).dp)) {
-			val cx = size.width / 2f
-			val cy = size.height / 2f
+		Box(contentAlignment = Alignment.Center) {
+			Canvas(modifier = Modifier.size((OUTER_RADIUS * 2 + ARC_STROKE).dp)) {
+				val cx = size.width / 2f
+				val cy = size.height / 2f
 
-			if (isCanceling) {
+				if (isCanceling) {
+					for (radius in floatArrayOf(OUTER_RADIUS, MIDDLE_RADIUS, INNER_RADIUS)) {
+						val rPx = radius.dp.toPx()
+						drawArcGlow(
+							color = fillColor,
+							sweepAngle = 360f,
+							topLeft = Offset(cx - rPx, cy - rPx),
+							size = Size(rPx * 2f, rPx * 2f),
+							strokePx = ARC_STROKE.dp.toPx(),
+							glowIntensity = cancelingGlow,
+						)
+					}
+				}
+
 				for (radius in floatArrayOf(OUTER_RADIUS, MIDDLE_RADIUS, INNER_RADIUS)) {
 					val rPx = radius.dp.toPx()
-					drawArcGlow(
-						color = fillColor,
-						sweepAngle = 360f,
+					drawArc(
+						color = bg,
+						startAngle = if (isError) ERROR_START else -90f,
+						sweepAngle = if (isError) ERROR_SWEEP else 360f,
+						useCenter = false,
 						topLeft = Offset(cx - rPx, cy - rPx),
 						size = Size(rPx * 2f, rPx * 2f),
-						strokePx = ARC_STROKE.dp.toPx(),
-						glowIntensity = cancelingGlow,
+						style = Stroke(width = ARC_STROKE.dp.toPx(), cap = if (isError) StrokeCap.Round else StrokeCap.Butt),
 					)
 				}
-			}
 
-			for (radius in floatArrayOf(OUTER_RADIUS, MIDDLE_RADIUS, INNER_RADIUS)) {
-				val rPx = radius.dp.toPx()
-				drawArc(
-					color = bg,
-					startAngle = if (isError) ERROR_START else -90f,
-					sweepAngle = if (isError) ERROR_SWEEP else 360f,
-					useCenter = false,
-					topLeft = Offset(cx - rPx, cy - rPx),
-					size = Size(rPx * 2f, rPx * 2f),
-					style = Stroke(width = ARC_STROKE.dp.toPx(), cap = if (isError) StrokeCap.Round else StrokeCap.Butt),
-				)
-			}
+				if (isConnected) {
+					for ((radius, sweep) in listOf(
+						OUTER_RADIUS to outerSweep,
+						MIDDLE_RADIUS to middleSweep,
+						INNER_RADIUS to innerSweep,
+					)) {
+						if (sweep > 0.5f) {
+							val rPx = radius.dp.toPx()
+							drawArcGlow(
+								color = fillColor,
+								sweepAngle = sweep,
+								topLeft = Offset(cx - rPx, cy - rPx),
+								size = Size(rPx * 2f, rPx * 2f),
+								strokePx = ARC_STROKE.dp.toPx(),
+								glowIntensity = connectedGlow,
+							)
+						}
+					}
+				}
 
-			if (isConnected) {
 				for ((radius, sweep) in listOf(
 					OUTER_RADIUS to outerSweep,
 					MIDDLE_RADIUS to middleSweep,
 					INNER_RADIUS to innerSweep,
 				)) {
-					if (sweep > 0.5f) {
-						val rPx = radius.dp.toPx()
-						drawArcGlow(
+					val rPx = radius.dp.toPx()
+					if (isError) {
+						drawArc(
 							color = fillColor,
-							sweepAngle = sweep,
+							startAngle = ERROR_START,
+							sweepAngle = ERROR_SWEEP,
+							useCenter = false,
 							topLeft = Offset(cx - rPx, cy - rPx),
 							size = Size(rPx * 2f, rPx * 2f),
-							strokePx = ARC_STROKE.dp.toPx(),
-							glowIntensity = connectedGlow,
+							style = Stroke(width = ARC_STROKE.dp.toPx(), cap = StrokeCap.Round),
+						)
+					} else if (sweep > 0.5f) {
+						drawArc(
+							color = fillColor,
+							startAngle = -90f,
+							sweepAngle = sweep,
+							useCenter = false,
+							topLeft = Offset(cx - rPx, cy - rPx),
+							size = Size(rPx * 2f, rPx * 2f),
+							style = Stroke(width = ARC_STROKE.dp.toPx(), cap = StrokeCap.Round),
 						)
 					}
 				}
 			}
 
-			for ((radius, sweep) in listOf(
-				OUTER_RADIUS to outerSweep,
-				MIDDLE_RADIUS to middleSweep,
-				INNER_RADIUS to innerSweep,
-			)) {
-				val rPx = radius.dp.toPx()
-				if (isError) {
-					drawArc(
-						color = fillColor,
-						startAngle = ERROR_START,
-						sweepAngle = ERROR_SWEEP,
-						useCenter = false,
-						topLeft = Offset(cx - rPx, cy - rPx),
-						size = Size(rPx * 2f, rPx * 2f),
-						style = Stroke(width = ARC_STROKE.dp.toPx(), cap = StrokeCap.Round),
-					)
-				} else if (sweep > 0.5f) {
-					drawArc(
-						color = fillColor,
-						startAngle = -90f,
-						sweepAngle = sweep,
-						useCenter = false,
-						topLeft = Offset(cx - rPx, cy - rPx),
-						size = Size(rPx * 2f, rPx * 2f),
-						style = Stroke(width = ARC_STROKE.dp.toPx(), cap = StrokeCap.Round),
-					)
-				}
-			}
+			// Face: says the mode (two blocks for dVPN, the mix field for Mixnet), centred in the inner disk
+			MarkerFace(
+				mode = marker.mode,
+				lit = phase != MarkerState.NOT_PROTECTED,
+				playing = isConnected && !animationsOff,
+				litColor = MaterialTheme.colorScheme.onPrimaryContainer,
+				unlitColor = bg,
+				modifier = Modifier.size(FACE_SIZE.dp),
+			)
 		}
 
 		// State label — always takes space to keep the circle position fixed
