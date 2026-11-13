@@ -10,6 +10,7 @@ use crate::{
 };
 
 use nym_http_api_client::Client;
+use nym_sqlcipher::DatabaseKey;
 use nym_vpn_api_client::{api_urls_to_urls, fronted_http_client};
 use nym_vpn_lib_types::{
     DiagnosticRegisterParams, DiagnosticReport, DiagnosticRunParams, RegistrationReport,
@@ -61,11 +62,14 @@ impl DiagnosticHandler {
         }
     }
 
+    /// Runs the registration diagnostic, spending tickets from the credential database in
+    /// `parameters.storage_path`, which is opened with `database_key` when it is encrypted.
     pub async fn register(
         network: Network,
         parameters: DiagnosticRegisterParams,
+        database_key: Option<DatabaseKey>,
     ) -> RegistrationReport {
-        RegistrationDiagnostic::run_diagnostic(&network, &parameters).await
+        RegistrationDiagnostic::run_diagnostic(&network, &parameters, database_key.as_ref()).await
     }
 }
 
