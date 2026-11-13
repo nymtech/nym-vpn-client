@@ -1,38 +1,34 @@
 import TunnelStatus
 
-/// Connection marker, state model (#7063, PR 1 of 5).
-/// Maps the tunnel status onto the marker's six visual states. No view reads this yet.
-public enum MarkerState: Equatable {
+/// Connection marker state model (#6909): maps the tunnel status onto the marker's states.
+/// Covers five of the six design states; connected with data comes with the data line.
+/// Intended to replace `ArcProgressState` once the marker is drawn from it.
+public enum MarkerState: Equatable, Sendable {
     case notProtected
     /// step runs 1 to `Marker.connectingStepCount`
     case connecting(step: Int)
     case connected
     case error
-    case blocked(BlockedCause)
-    /// Not one of the six Figma variants: a short fade out of the current state.
+    case blocked
+    /// Not one of the design states: a short fade out of the current state.
     case stopping
 }
 
-/// The face: two blocks for dVPN (2 hops), the 3x3 mix field for Mixnet.
-public enum MarkerMode: Equatable {
+/// The face: two blocks for dVPN (2 hops), the mix field for Mixnet.
+public enum MarkerMode: Equatable, Sendable {
     case dvpn
     case mixnet
 }
 
-/// Why traffic is blocked, so the copy never promises a fix that can't work.
-public enum BlockedCause: Equatable {
-    case needsReconnect
-    case noInternet
-}
-
-public struct Marker: Equatable {
+public struct Marker: Equatable, Sendable {
     public static let connectingStepCount = 6
 
     public let state: MarkerState
     public let mode: MarkerMode
 
-    /// Kill switch on = Blocked, off = Not protected (Hux, 2026-11-13).
-    /// The Apple apps keep the kill switch always on, so the default stays true.
+    /// Blocked only while traffic is really held: offline mid-session (`.offlineReconnect`)
+    /// with the kill switch on. Offline with nothing to resume leaves networking open, so it is
+    /// not protected. The Apple apps keep the kill switch always on, so the default stays true.
     public init(
         tunnelStatus: TunnelStatus,
         connectingState: TunnelConnectingState?,
@@ -41,7 +37,7 @@ public struct Marker: Equatable {
     ) {
         mode = isMixnet ? .mixnet : .dvpn
         switch tunnelStatus {
-        case .disconnected, .unknown:
+        case .disconnected, .unknown, .offline:
             state = .notProtected
         case .connecting, .reasserting, .restarting:
             state = .connecting(step: Marker.step(for: connectingState))
@@ -52,14 +48,12 @@ public struct Marker: Equatable {
         case .error:
             state = .error
         case .offlineReconnect:
-            state = killSwitch ? .blocked(.needsReconnect) : .notProtected
-        case .offline:
-            state = killSwitch ? .blocked(.noInternet) : .notProtected
+            state = killSwitch ? .blocked : .notProtected
         }
     }
 
     /// Core reports seven connecting phases; the marker draws six steps (three rings,
-    /// each half then sealed). The two account checks are one step: "Checking your account".
+    /// each half then sealed). The two account checks share step 2.
     public static func step(for connectingState: TunnelConnectingState?) -> Int {
         switch connectingState {
         case .none, .resolvingApiAddresses, .unrecognized:

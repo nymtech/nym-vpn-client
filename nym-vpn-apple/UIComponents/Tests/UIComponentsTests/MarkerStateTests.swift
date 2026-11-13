@@ -3,26 +3,44 @@ import XCTest
 @testable import UIComponents
 
 final class MarkerStateTests: XCTestCase {
-    private func marker(_ status: TunnelStatus, killSwitch: Bool = true) -> Marker {
-        Marker(tunnelStatus: status, connectingState: nil, isMixnet: false, killSwitch: killSwitch)
+    private func marker(
+        _ status: TunnelStatus,
+        connectingState: TunnelConnectingState? = nil,
+        killSwitch: Bool = true
+    ) -> Marker {
+        Marker(tunnelStatus: status, connectingState: connectingState, isMixnet: false, killSwitch: killSwitch)
     }
 
     func testStaticStates() {
         XCTAssertEqual(marker(.disconnected).state, .notProtected)
+        XCTAssertEqual(marker(.unknown).state, .notProtected)
         XCTAssertEqual(marker(.connected).state, .connected)
         XCTAssertEqual(marker(.disconnecting).state, .stopping)
         XCTAssertEqual(marker(.error).state, .error)
     }
 
-    func testOfflineFollowsKillSwitch() {
-        XCTAssertEqual(marker(.offline).state, .blocked(.noInternet))
-        XCTAssertEqual(marker(.offlineReconnect).state, .blocked(.needsReconnect))
-        XCTAssertEqual(marker(.offline, killSwitch: false).state, .notProtected)
+    func testOfflineMidSessionWithKillSwitchIsBlocked() {
+        XCTAssertEqual(marker(.offlineReconnect).state, .blocked)
+    }
+
+    func testOfflineWithNothingToResumeIsNotProtected() {
+        XCTAssertEqual(marker(.offline).state, .notProtected)
+    }
+
+    func testOfflineWithKillSwitchOffIsNotProtected() {
         XCTAssertEqual(marker(.offlineReconnect, killSwitch: false).state, .notProtected)
     }
 
+    func testConnectingStatusesCarryTheStep() {
+        for status: TunnelStatus in [.connecting, .reasserting, .restarting] {
+            XCTAssertEqual(marker(status, connectingState: .selectingGateways).state, .connecting(step: 4), "\(status)")
+        }
+    }
+
     func testSevenPhasesDrawSixSteps() {
-        let expected: [(TunnelConnectingState, Int)] = [
+        let expected: [(TunnelConnectingState?, Int)] = [
+            (nil, 1),
+            (.unrecognized, 1),
             (.resolvingApiAddresses, 1),
             (.awaitingAccountReadiness, 2),
             (.awaitingCredentialsAvailability, 2),
@@ -32,7 +50,7 @@ final class MarkerStateTests: XCTestCase {
             (.connectingTunnel, 6)
         ]
         for (phase, step) in expected {
-            XCTAssertEqual(Marker.step(for: phase), step, "\(phase)")
+            XCTAssertEqual(Marker.step(for: phase), step, "\(String(describing: phase))")
         }
     }
 
