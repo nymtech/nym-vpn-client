@@ -6224,6 +6224,7 @@ dependencies = [
  "nym-registration-client",
  "nym-registration-common",
  "nym-sdk",
+ "nym-sqlcipher",
  "nym-topology",
  "nym-validator-client",
  "nym-vpn-api-client",

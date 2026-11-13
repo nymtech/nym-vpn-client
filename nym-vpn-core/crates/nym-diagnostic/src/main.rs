@@ -44,7 +44,12 @@ async fn main() -> anyhow::Result<()> {
             Ok(())
         }
         Command::Register(parameters) => {
-            let report = Box::pin(DiagnosticHandler::register(network, parameters.into())).await;
+            let report = Box::pin(DiagnosticHandler::register(
+                network,
+                parameters.into(),
+                None,
+            ))
+            .await;
             println!("{}", serde_json::to_string_pretty(&report)?);
             Ok(())
         }

@@ -28,6 +28,7 @@ nym-lp-data.workspace = true
 nym-registration-common.workspace = true
 nym-registration-client.workspace = true
 nym-sdk.workspace = true
+nym-sqlcipher.workspace = true
 nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = [
