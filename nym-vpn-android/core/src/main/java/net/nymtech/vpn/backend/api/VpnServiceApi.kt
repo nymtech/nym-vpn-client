@@ -55,6 +55,17 @@ interface VpnServiceApi {
 
 	suspend fun getStoredMnemonic(): String
 
+	/**
+	 * Asks the user to authenticate, so that operations using the stored mnemonic can proceed
+	 * until [lockKeychain] is called. [reason] is shown in the prompt.
+	 *
+	 * @throws nym_secure_enclave.SecureEnclaveException when the user could not be authenticated.
+	 */
+	suspend fun unlockKeychain(reason: String)
+
+	/** Revokes the authentication obtained with [unlockKeychain]. */
+	suspend fun lockKeychain()
+
 	suspend fun createAccount()
 
 	suspend fun registerAccount(token: String?): String

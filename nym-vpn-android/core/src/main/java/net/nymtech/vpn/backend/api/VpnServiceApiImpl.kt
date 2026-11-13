@@ -77,6 +77,14 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun getStoredMnemonic(): String = core.requireCoreSender { it.getStoredMnemonic() }
 
+	override suspend fun unlockKeychain(reason: String) {
+		core.requireCoreSender { it.unlockKeychain(reason) }
+	}
+
+	override suspend fun lockKeychain() {
+		core.requireCoreSender { it.lockKeychain() }
+	}
+
 	override suspend fun createAccount() {
 		Timber.tag(TAG).d("createAccount requested")
 		core.requireCoreSender { it.createAccount() }
