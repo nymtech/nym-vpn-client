@@ -162,7 +162,7 @@ export function TunnelState() {
       if (i === ring) return half ? C / 2 : 0;
       return C;
     });
-  }, [phase, progress, marker.step]);
+  }, [phase, marker.step]);
 
   // ─── Freeze offsets when entering canceling ──────────────────────────────
   // Updated whenever we're NOT in canceling, so when that phase begins
