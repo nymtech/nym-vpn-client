@@ -42,9 +42,9 @@ class NymFreepassManager @Inject constructor(private val connectionManager: VpnS
 
 	// A local account is registered on the API only on first connect, so redeem registers it with the pass.
 	private suspend fun applyToStoredAccount(code: String): FreepassResult {
-		val result = connectionManager.withApiResult(FreepassError, FreepassResult::Failed) { it.applyFreepass(code) }
+		val result = connectionManager.withUnlockedApiResult(FreepassError, FreepassResult::Failed) { it.applyFreepass(code) }
 		if (result != FreepassResult.Failed(FreepassError.ACCOUNT_NOT_REGISTERED)) return result
-		return connectionManager.withApiResult(FreepassError, FreepassResult::Failed) { it.redeemFreepass(code) }
+		return connectionManager.withUnlockedApiResult(FreepassError, FreepassResult::Failed) { it.redeemFreepass(code) }
 	}
 
 	private suspend fun createAccount(code: String): FreepassResult {
@@ -58,7 +58,7 @@ class NymFreepassManager @Inject constructor(private val connectionManager: VpnS
 			false
 		}
 		if (!created) return FreepassResult.Failed(FreepassError.UNKNOWN)
-		val result = connectionManager.withApiResult(FreepassError, FreepassResult::Failed) { it.redeemFreepass(code) }
+		val result = connectionManager.withUnlockedApiResult(FreepassError, FreepassResult::Failed) { it.redeemFreepass(code) }
 		// A timeout or unknown failure may still have redeemed, so only a confirmed rejection drops the local account.
 		if (result is FreepassResult.Failed && result.error.isRejection) {
 			runCatching { backendManager.removeMnemonic() }
