@@ -28,8 +28,14 @@ Env:
                        any non-empty milestone qualifies (the team tags release milestones reliably)
 
 Flags:
-    --dry-run   print what would change; write no files and don't edit the PR
+    --suggest   don't commit to the branch: post the entry as a committable GitHub *suggestion* on
+                the dev's `- _pending changelog_` stub line (one click to apply), or a paste comment
+                if no stub is present. CI uses this; the workflow needs no `contents: write`.
+    --dry-run   print what would change; write no files, post nothing, don't edit the PR
     --no-llm    skip the API; stub the entry from the PR title (plumbing smoke test only)
+
+Without --suggest it writes the entry into the component CHANGELOG files (for a dev running it
+locally), exactly as before.
 """
 import json
 import os
@@ -108,7 +114,7 @@ def gh_json(args):
 
 def get_pr(number):
     pr = gh_json(["pr", "view", str(number), "-R", REPO,
-                  "--json", "number,title,url,body,files,milestone,baseRefName"])
+                  "--json", "number,title,url,body,files,milestone,baseRefName,headRefOid"])
     return {
         "number": pr["number"],
         "title": pr["title"],
@@ -117,6 +123,7 @@ def get_pr(number):
         "files": [f["path"] for f in pr.get("files", [])],
         "milestone": (pr.get("milestone") or {}).get("title", ""),
         "base": pr.get("baseRefName", ""),
+        "head_sha": pr.get("headRefOid", ""),
     }
 
 
@@ -320,9 +327,161 @@ def stub(title):
     return {"added": [], "changed": [title], "fixed": []}
 
 
+# ----------------------------------------------------------------------------- suggest mode
+# Instead of committing the entry onto the PR branch, post it as a committable GitHub *suggestion*
+# on the dev's `- _pending changelog_` stub line (one click to apply), or — if no stub is present —
+# as a single PR comment to paste. CI never writes to the branch, so the workflow drops
+# `contents: write`. The dev places the stub under the heading they judge right (Added/Changed/
+# Fixed/Security); the suggestion replaces just that line with the authored bullet, so entries never
+# produce a duplicate heading as they accumulate.
+
+STUB_TOKEN = "_pending changelog_"          # the dev drops `- _pending changelog_` under a heading
+BOT_MARKER = "changelog-bot"                # hidden per-component marker, for idempotent re-runs
+
+
+def gh_write(path, payload, method="POST"):
+    subprocess.run(["gh", "api", "-X", method, path, "--input", "-"],
+                   input=json.dumps(payload).encode("utf-8"), check=True,
+                   stdout=subprocess.DEVNULL)
+
+
+def gh_list(path):
+    """GET a paginated list endpoint as a Python list (one compact JSON value per element)."""
+    out = subprocess.check_output(["gh", "api", "--paginate", path, "--jq", ".[] | @json"]).decode()
+    return [json.loads(line) for line in out.splitlines() if line.strip()]
+
+
+def pr_file_patches(number):
+    """{repo-relative filename: unified-diff patch} for each file GitHub returns a patch for."""
+    files = gh_list(f"repos/{REPO}/pulls/{number}/files")
+    return {f["filename"]: f.get("patch", "") for f in files}
+
+
+def stub_line(patch):
+    """New-file line number of the dev's `_pending changelog_` stub within this file's diff,
+    preferring an added (+) line; None if the stub isn't in the diff (nothing to anchor to)."""
+    new_ln, added_hit, ctx_hit = 0, None, None
+    for ln in (patch or "").splitlines():
+        h = re.match(r"^@@ -\d+(?:,\d+)? \+(\d+)", ln)
+        if h:
+            new_ln = int(h.group(1))
+            continue
+        if ln.startswith("+"):
+            if STUB_TOKEN in ln and added_hit is None:
+                added_hit = new_ln
+            new_ln += 1
+        elif ln.startswith("-"):
+            continue                       # removed line: no new-file number
+        else:                              # context line
+            if STUB_TOKEN in ln and ctx_hit is None:
+                ctx_hit = new_ln
+            new_ln += 1
+    return added_hit if added_hit is not None else ctx_hit
+
+
+def entry_lines(buckets, pr_url):
+    """(flat, grouped): flat tidy bullets for a one-click suggestion (the stub already sits under a
+    heading), and {heading: [bullets]} for the paste-fallback comment. Empty if not user-facing."""
+    num = pr_url.rstrip("/").split("/")[-1]
+    flat, grouped = [], {}
+    for heading in HEADINGS:
+        for it in [i for i in (buckets.get(heading.lower()) or []) if i.strip()]:
+            b = f"- {it.rstrip('.')} ([#{num}]({pr_url}))"
+            flat.append(b)
+            grouped.setdefault(heading, []).append(b)
+    return flat, grouped
+
+
+def _bot_review_comments(number, marker):
+    return [c for c in gh_list(f"repos/{REPO}/pulls/{number}/comments")
+            if f"<!-- {marker} -->" in (c.get("body") or "")]
+
+
+def _bot_issue_comment(number, marker):
+    for c in gh_list(f"repos/{REPO}/issues/{number}/comments"):
+        if f"<!-- {marker} -->" in (c.get("body") or ""):
+            return c
+    return None
+
+
+def _drop_review_comments(number, marker, dry):
+    for c in _bot_review_comments(number, marker):
+        if not dry:
+            gh_write(f"repos/{REPO}/pulls/comments/{c['id']}", {}, method="DELETE")
+
+
+def post_suggestion(number, head_sha, component, path, line, flat, dry):
+    """Replace the stub line with the authored bullet(s) as a one-click suggestion, idempotently
+    (a prior suggestion for this component on this PR is removed first)."""
+    marker = f"{BOT_MARKER}:{component}"
+    name = COMPONENTS[component]["changelog"].split("/")[0]
+    body = (f"<!-- {marker} -->\n"
+            f"📝 Proposed **{name}** changelog entry, written from the PR description — click "
+            f"**Commit suggestion** to add it under this heading.\n\n"
+            "```suggestion\n" + "\n".join(flat) + "\n```")
+    if dry:
+        print(f"[dry-run] {component}: would suggest on {path}:{line}\n    " + "\n    ".join(flat))
+        return
+    _drop_review_comments(number, marker, dry)
+    gh_write(f"repos/{REPO}/pulls/{number}/comments",
+             {"body": body, "commit_id": head_sha, "path": path, "line": line, "side": "RIGHT"})
+    print(f"  {component}: suggested entry on {path}:{line}")
+
+
+def upsert_fallback(number, blocks, dry):
+    """One PR comment listing entries for components with no stub to anchor to (paste targets).
+    Rebuilt each run; removed once every component has a stub."""
+    marker = f"{BOT_MARKER}:fallback"
+    existing = _bot_issue_comment(number, marker)
+    if not blocks:
+        if existing and not dry:
+            gh_write(f"repos/{REPO}/issues/comments/{existing['id']}", {}, method="DELETE")
+        return
+    parts = [f"<!-- {marker} -->",
+             "📝 **Proposed changelog entries** from the PR description. I couldn't find a "
+             f"`- {STUB_TOKEN}` stub to attach a one-click suggestion to, so add each block under the "
+             "matching heading in its `## [Unreleased]` (or add the stub and I'll suggest it):"]
+    for path, grouped in blocks:
+        inner = "\n\n".join(f"### {h}\n" + "\n".join(grouped[h]) for h in HEADINGS if grouped.get(h))
+        parts.append(f"\n**`{path}`**\n```markdown\n{inner}\n```")
+    body = "\n".join(parts)
+    if dry:
+        print(f"[dry-run] would post/update the paste-fallback comment for {len(blocks)} file(s)")
+        return
+    if existing:
+        gh_write(f"repos/{REPO}/issues/comments/{existing['id']}", {"body": body}, method="PATCH")
+    else:
+        gh_write(f"repos/{REPO}/issues/{number}/comments", {"body": body})
+    print(f"  fallback comment covers {len(blocks)} file(s)")
+
+
+def retract_suggestions(number, dry):
+    """Delete every suggestion / fallback comment we posted for this PR (used on demilestone)."""
+    n = 0
+    for comp in COMPONENTS:
+        comments = _bot_review_comments(number, f"{BOT_MARKER}:{comp}")
+        for c in comments:
+            if not dry:
+                gh_write(f"repos/{REPO}/pulls/comments/{c['id']}", {}, method="DELETE")
+        n += len(comments)
+    fb = _bot_issue_comment(number, f"{BOT_MARKER}:fallback")
+    if fb:
+        if not dry:
+            gh_write(f"repos/{REPO}/issues/comments/{fb['id']}", {}, method="DELETE")
+        n += 1
+    return n
+
+
+def already_applied(path_rel, pr_url):
+    """True if this PR's entry is already committed on the branch (dev applied the suggestion)."""
+    full = os.path.join(ROOT, path_rel)
+    return os.path.isfile(full) and f"({pr_url})" in open(full, encoding="utf-8").read()
+
+
 # ----------------------------------------------------------------------------- main
 
 def main():
+    suggest = "--suggest" in sys.argv
     dry = "--dry-run" in sys.argv
     no_llm = "--no-llm" in sys.argv
     number = os.environ.get("PR_NUMBER", "").strip()
@@ -349,9 +508,13 @@ def main():
 
     if reason:
         # The PR doesn't belong to this release (unmilestoned, milestoned elsewhere, or just
-        # demilestoned). Don't author — but REMOVE any entry we previously wrote for it, so a
-        # demilestone / re-milestone cleans up instead of leaving a stale bullet behind.
-        print(f"::notice::PR #{number} {reason} — not authoring; removing any prior entry")
+        # demilestoned). Don't author — retract whatever we posted/wrote for it, so a demilestone /
+        # re-milestone cleans up instead of leaving a stale suggestion or bullet behind.
+        print(f"::notice::PR #{number} {reason} — not authoring; retracting any prior entry")
+        if suggest:
+            n = retract_suggestions(number, dry)
+            print(f"done: retracted {n} suggestion/comment(s)")
+            return
         removed = []
         for component in sorted(route(pr["files"])):
             path = os.path.join(ROOT, COMPONENTS[component]["changelog"])
@@ -405,10 +568,41 @@ def main():
             desc = pr["title"]
         else:
             desc = author_description(diff)
-            new_body = replace_section(pr["body"], "Description", desc)
-            set_pr_body(number, new_body, dry)
+            # suggest mode never mutates the PR: use the diff-authored description only to write the
+            # entry; don't edit the PR body back.
+            if not suggest:
+                new_body = replace_section(pr["body"], "Description", desc)
+                set_pr_body(number, new_body, dry)
 
-    # --- 2. author the changelog entry per routed component ---
+    # --- 2. author per component, then APPLY: suggest on the stub (CI), or write the file (local) ---
+    if suggest:
+        patches = pr_file_patches(number)
+        blocks = []
+        for component in sorted(comps):
+            buckets = stub(pr["title"]) if no_llm else \
+                author_entry(component, pr["title"], desc, diff)
+            flat, grouped = entry_lines(buckets, pr["url"])
+            path_rel = COMPONENTS[component]["changelog"]
+            line = stub_line(patches.get(path_rel, "")) if flat else None
+            if flat and line:
+                post_suggestion(number, pr["head_sha"], component, path_rel, line, flat, dry)
+            else:
+                # nothing to suggest here: clear any stale suggestion we left on an earlier run
+                _drop_review_comments(number, f"{BOT_MARKER}:{component}", dry)
+                if not flat:
+                    print(f"  {component}: no user-facing entry")
+                elif already_applied(path_rel, pr["url"]):
+                    print(f"  {component}: entry already applied on the branch")
+                else:
+                    blocks.append((path_rel, grouped))
+                    print(f"  {component}: no stub — added to the paste-fallback comment")
+        upsert_fallback(number, blocks, dry)
+        if from_diff:
+            print(f"::warning::PR #{number} entry authored from a thin description — proofread closely")
+        print(f"done: suggested/commented for {len(comps)} component(s)")
+        return
+
+    # legacy file-write mode (a dev running this locally): write the entry into the changelog files.
     changed = []
     for component in sorted(comps):
         buckets = stub(pr["title"]) if no_llm else \
@@ -426,7 +620,6 @@ def main():
 
     if from_diff:
         print(f"::warning::PR #{number} entry authored from diff — proofread closely")
-    # emit changed files for the workflow to commit
     gh_out = os.environ.get("GITHUB_OUTPUT")
     if gh_out and not dry:
         with open(gh_out, "a", encoding="utf-8") as f:

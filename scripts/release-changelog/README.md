@@ -1,11 +1,13 @@
 # Release changelog automation
 
-The **PR description is the base.** Instead of a dev hand-writing a `CHANGELOG.md` entry, the
-author writes a good `## Description` and the LLM authors the changelog entry from it. Everything
-downstream is the plumbing that already exists — this only replaces the hand-written-entry step.
+The **PR description is the base.** Instead of a dev hand-writing a `CHANGELOG.md` entry, the author
+writes a good `## Description`, the LLM drafts the changelog entry from it, and the bot posts it as a
+one-click GitHub **suggestion** on the PR — the dev applies it with a click. CI never commits to the
+branch. Everything downstream is the plumbing that already exists; this only replaces the
+hand-written-entry step.
 
 ```
-PR ## Description ─(author_changelog.py, per PR)→ component CHANGELOG [Unreleased]
+PR ## Description ─(author_changelog.py --suggest)→ one-click suggestion → dev applies → [Unreleased]
                                                         │
                         existing CI, unchanged:         ├─ add-changelog-release  (stamp [Unreleased]→[version] at release)
                                                         └─ prepare-release-notes  (extract-release-notes → GitHub notes + TestFlight)
@@ -15,27 +17,35 @@ final release only ──(release-store-notes.yml)→ author_store.py → out/*.
 
 ## The two lanes
 
-### 1. Per-PR changelog — `author-pr-changelog.yml` → `author_changelog.py`
+### 1. Per-PR changelog — `author-pr-changelog.yml` → `author_changelog.py --suggest`
 Runs on each PR (`opened`, `edited`, `milestoned`, `demilestoned`, `ready_for_review` — **not**
-`synchronize`, so code pushes don't re-author and a reviewer's edits to the entry survive;
-`demilestoned` removes the entry a PR no longer qualifies for). For **one** PR it:
+`synchronize`, so code pushes don't re-draft; `demilestoned` retracts the suggestion a PR no longer
+qualifies for). For **one** PR it:
 
 1. **Milestone gate.** Skips the PR entirely unless it carries a release milestone (the team's
    reliable release-scope signal). `ACTIVE_MILESTONE` can pin an exact title; unset = any milestone.
-2. **Repairs the base.** If `## Description` is empty or an untouched template, it authors a
-   description **from the diff** and writes it back to the PR body (flagged), so the base is complete
-   before anything consumes it.
-3. **Authors the entry.** Description-first, backed by the diff (fills gaps when the description is
+2. **Reads the base.** If `## Description` is empty or an untouched template, it authors a
+   description **from the diff** internally to write a good entry — but **does not** edit the PR body
+   (CI never mutates the PR).
+3. **Drafts the entry.** Description-first, backed by the diff (fills gaps when the description is
    thin/vague/jargon, stays conservative), strips internal language, applies the terminology in
-   `style.md`, classifies Added/Changed/Fixed, and **upserts** it into each component
-   `CHANGELOG.md` `[Unreleased]` the PR's **changed paths** route to.
+   `style.md`, classifies Added/Changed/Fixed, for each component `CHANGELOG.md` the PR's **changed
+   paths** route to.
+4. **Posts it as a suggestion.** On the dev's `- _pending changelog_` stub line (placed under the
+   heading they judge right), the bot posts a committable GitHub **suggestion** — one click applies it
+   as the dev's own commit. No stub? It posts one PR comment with the entry to paste. **CI never
+   writes to the branch**, so the workflow needs no `contents: write`.
 
-The entry is committed onto the PR branch — **the PR's own review is the proofread gate; no separate
-PR.** Upsert is **idempotent, keyed by the PR URL**: re-runs update this PR's bullet in place and
-never touch other PRs' bullets. `[Unreleased]` is therefore always current, so **betas just ship
-what's accumulated and cherry-picks carry each entry along — no diff/batch logic anywhere.**
+**The human applying the suggestion is the proofread gate; no separate PR.** Posting is **idempotent,
+keyed by a per-component marker**: re-runs replace this PR's prior suggestion, a demilestone retracts
+it, and placing the stub under a heading keeps entries from ever producing a duplicate heading as they
+accumulate. `[Unreleased]` stays current, so **betas just ship what's accumulated and cherry-picks
+carry each entry along — no diff/batch logic anywhere.**
 
-**Release-close gate.** The authoring step refuses to write into a release that is already stamped
+> **Local option.** Run `author_changelog.py` **without** `--suggest` and it writes the entry straight
+> into the changelog files instead — for a dev who'd rather generate it locally and commit it.
+
+**Release-close gate.** The authoring step refuses to author into a release that is already stamped
 (the final `add-changelog-release` has rolled `[Unreleased]` over into `## [version] - date`).
 A PR still milestoned to that closed release fails with a clear message to re-milestone (or
 cherry-pick before the stamp), rather than silently orphaning its entry into the next release.
