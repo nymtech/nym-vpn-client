@@ -180,6 +180,7 @@ pub(super) async fn start_bridges(
                 Err(_) => {
                     tracing::warn!("bridge forwarder did not exit gracefully, aborting");
                     join_handle.abort();
+                    let _ = join_handle.await;
                 }
             }
             bridge_shutdown_token = shutdown_token.child_token();
