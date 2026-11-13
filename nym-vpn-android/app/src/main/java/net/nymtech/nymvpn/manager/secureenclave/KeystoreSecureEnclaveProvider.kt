@@ -70,7 +70,7 @@ class KeystoreSecureEnclaveProvider @Inject constructor(
 	}
 
 	override fun unlock(reason: String) = secureEnclaveCall {
-		session.unlock { userPresencePrompt.authenticate(reason) }
+		session.unlock(isAuthenticated = ::isAuthenticated) { userPresencePrompt.authenticate(reason) }
 		Timber.tag(TAG).i("SessionUnlocked")
 	}
 
@@ -99,6 +99,27 @@ class KeystoreSecureEnclaveProvider @Inject constructor(
 	} catch (_: UserNotAuthenticatedException) {
 		// Time-window key outside of its authentication window.
 		false
+	}
+
+	/**
+	 * Tells whether keys requiring user presence can be used without prompting, by initializing a
+	 * cipher with a probe key created with the same authentication parameters. The authentication
+	 * window is shared by all such keys, and initializing a cipher never prompts.
+	 */
+	private fun isAuthenticated(): Boolean = try {
+		Cipher.getInstance(KeystoreSecureEnclaveKey.TRANSFORMATION).init(Cipher.ENCRYPT_MODE, probeKey())
+		true
+	} catch (_: UserNotAuthenticatedException) {
+		false
+	} catch (_: KeyPermanentlyInvalidatedException) {
+		Timber.tag(TAG).w("ProbeKeyInvalidated")
+		keyStore.deleteEntry(PROBE_KEY_ALIAS)
+		false
+	}
+
+	private fun probeKey(): SecretKey {
+		if (!keyStore.containsAlias(PROBE_KEY_ALIAS)) generateKey(PROBE_KEY_ALIAS, userPresence = true, strongBox = false)
+		return secretKey(PROBE_KEY_ALIAS)
 	}
 
 	private fun hasStrongBox(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
@@ -135,6 +156,7 @@ class KeystoreSecureEnclaveProvider @Inject constructor(
 		const val TAG = "secure-enclave"
 		const val ANDROID_KEYSTORE = "AndroidKeyStore"
 		const val KEY_SIZE_BITS = 256
+		const val PROBE_KEY_ALIAS = "secure-enclave-probe-key"
 
 		/** How long a key can be used after the user authenticated. */
 		const val UNLOCK_WINDOW_SECONDS = 300
