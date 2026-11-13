@@ -39,10 +39,9 @@ export const SentryHomePage = 'https://sentry.io/';
 export const GatewaysCacheDuration = 120; // 2min
 export const NymVpnPricingUrl = 'https://nym.com/pricing';
 export const NymVpnAccountLoginUrl = 'https://nym.com/account/login';
-export const QuicUrl = 'https://nym.com/features/quic';
+export const AntiCensorshipBridgesUrl =
+  'https://nym.com/features/anti-censorship-bridges';
 export const DomainFrontingUrl = 'https://nym.com/features/stealth-api-connect';
-export const AmneziaWgUrl =
-  'https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard';
 export const IpInfoIoUrl = 'https://ipinfo.io';
 export const SupportServerLocationUrl =
   'https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
@@ -50,8 +49,6 @@ export const NetworkExplorerNodeUrl = 'https://nym.com/explorer/nym-node';
 export const countriesWithRegions = ['US', 'CA', 'AU', 'MX', 'BR', 'IN', 'CN'];
 export const ResidentialIpServersUrl =
   'https://support.nym.com/hc/en-us/articles/35279486714641-Why-can-t-I-access-streaming-services-while-using-NymVPN';
-export const QuicSupportArticleUrl =
-  'https://support.nym.com/hc/en-us/articles/39648047741457-QUIC-transport-mode';
 export const LocationAccuracyLink =
   'https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
 export const CustomDnsHelpUrl = 'https://nym.com/features/custom-dns';
