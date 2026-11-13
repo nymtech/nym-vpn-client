@@ -21,7 +21,7 @@
   "connection-time": "Connection time",
   "exit-address": {
     "label": "Sites see",
-    "note": "Shared Nym exit, not yours",
+    "note": "shared Nym exit",
     "aria": "Sites see the shared exit address {{ip}}. This is not your own address."
   },
   "random-server": "Random server",

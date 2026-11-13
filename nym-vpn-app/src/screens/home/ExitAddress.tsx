@@ -32,15 +32,13 @@ function ExitAddress() {
 
   return (
     <div
-      className="flex cursor-default flex-col items-center gap-0.5 select-text"
+      className="cursor-default text-center select-text"
       data-testid="exit-address"
     >
       <span className="sr-only">{t('exit-address.aria', { ip })}</span>
       <p className="text-text-primary text-base" aria-hidden="true">
         {t('exit-address.label')} · <span className="tabular-nums">{ip}</span>
-      </p>
-      <p className="text-text-tertiary text-sm" aria-hidden="true">
-        {t('exit-address.note')}
+        <span className="text-text-tertiary"> · {t('exit-address.note')}</span>
       </p>
     </div>
   );
