@@ -1,5 +1,5 @@
 name: 'Set Changelog Release Date'
-description: 'Replaces the TBD release date of a version header in the changelog file'
+description: 'Replaces the TBD release date of a version header in the changelog file, optionally inserting the header when missing'
 inputs:
   changelog:
     description: 'The changelog file to update'
@@ -11,6 +11,10 @@ inputs:
   release_date:
     description: 'The release date (YYYY-MM-DD)'
     required: true
+  insert_missing:
+    description: 'Insert the version header below [Unreleased] when the changelog has none'
+    required: false
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -21,14 +25,22 @@ runs:
         CHANGELOG: ${{ inputs.changelog }}
         VERSION: ${{ inputs.version }}
         RELEASE_DATE: ${{ inputs.release_date }}
+        INSERT_MISSING: ${{ inputs.insert_missing }}
       run: |
         set -euo pipefail
         VERSION_RE="${VERSION//./\\.}"
 
-        if ! grep -qE "^## \[${VERSION_RE}\] - TBD\s*$" "$CHANGELOG"; then
+        if grep -qE "^## \[${VERSION_RE}\] - TBD\s*$" "$CHANGELOG"; then
+          sed -i -E "s|^## \[${VERSION_RE}\] - TBD\s*$|## [${VERSION}] - ${RELEASE_DATE}|" "$CHANGELOG"
+          echo "::notice:: ${CHANGELOG}: set ${VERSION} release date to ${RELEASE_DATE}"
+        elif grep -qE "^## \[${VERSION_RE}\]" "$CHANGELOG"; then
+          echo "::notice:: ${CHANGELOG}: ${VERSION} header already dated"
+        elif [ "$INSERT_MISSING" != "true" ]; then
           echo "::warning:: ${CHANGELOG}: no '## [${VERSION}] - TBD' header found"
-          exit 0
+        elif ! grep -qE '^## \[Unreleased\]\s*$' "$CHANGELOG"; then
+          echo "::error:: ${CHANGELOG}: missing '## [Unreleased]' section"
+          exit 1
+        else
+          sed -i -E "0,/^## \[Unreleased\]\s*$/s||## [Unreleased]\n\n## [${VERSION}] - ${RELEASE_DATE}|" "$CHANGELOG"
+          echo "::notice:: ${CHANGELOG}: inserted ${VERSION} header dated ${RELEASE_DATE}"
         fi
-
-        sed -i -E "s|^## \[${VERSION_RE}\] - TBD\s*$|## [${VERSION}] - ${RELEASE_DATE}|" "$CHANGELOG"
-        echo "::notice:: ${CHANGELOG}: set ${VERSION} release date to ${RELEASE_DATE}"
