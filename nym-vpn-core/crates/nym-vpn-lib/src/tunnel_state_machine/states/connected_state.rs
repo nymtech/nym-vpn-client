@@ -11,6 +11,8 @@ use nym_vpn_lib_types::ErrorStateReason;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::tunnel_state_machine::tunnel::transports::ClientConfig;
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
     TunnelCommand, TunnelInterface, TunnelStateHandler,
@@ -51,6 +53,7 @@ impl ConnectedState {
         tunnel_interface: TunnelInterface,
         connection_data: ConnectionData,
         selected_gateways: SelectedGateways,
+        #[cfg(not(any(target_os = "android", target_os = "ios")))] bridge_fallback: bool,
         tunnel_monitor_handle: TunnelMonitorHandle,
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         shared_state: &mut SharedState,
@@ -59,22 +62,41 @@ impl ConnectedState {
         #[cfg(target_os = "android")]
         shared_state.clear_android_blocking_tun();
 
+        // A quiet redial (tunnel_monitor::bridge_redial) can fall back to a different bridge
+        // transport without re-entering this state, so every candidate the entry gateway offers
+        // needs to be allowed up front - not just the one that happened to win here.
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let wg_entry_endpoint =
+        let (wg_entry_endpoint, bridge_candidate_endpoints) =
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
-                // The bridge address is only set when the tunnel connected over a bridge.
-                Some(wg.entry_bridge_addr.as_ref().map_or(
-                    Endpoint::from_socket_address(wg.entry.endpoint, TransportProtocol::Udp),
-                    |addr| {
+                match wg.entry_bridge_addr.as_ref() {
+                    None => (
+                        Some(Endpoint::from_socket_address(
+                            wg.entry.endpoint,
+                            TransportProtocol::Udp,
+                        )),
+                        Vec::new(),
+                    ),
+                    Some(addr) => {
                         let protocol = match addr.transport {
                             BridgeTransport::Tls | BridgeTransport::Ssh => TransportProtocol::Tcp,
                             BridgeTransport::Quic => TransportProtocol::Udp,
                         };
-                        Endpoint::from_socket_address(addr.remote_addr, protocol)
-                    },
-                ))
+                        let selected = Endpoint::from_socket_address(addr.remote_addr, protocol);
+
+                        let (quic, fallback) = selected_gateways
+                            .entry_gateway()
+                            .bridge_candidates(bridge_fallback);
+                        let candidates = quic
+                            .iter()
+                            .chain(fallback.iter())
+                            .flat_map(bridge_candidate_endpoints)
+                            .collect();
+
+                        (Some(selected), candidates)
+                    }
+                }
             } else {
-                None
+                (None, Vec::new())
             };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -93,6 +115,7 @@ impl ConnectedState {
                 enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
                 allow_lan: shared_state.tunnel_settings.allow_lan,
                 wg_entry_endpoint,
+                bridge_candidate_endpoints,
                 ws_entry_endpoints: ws_endpoints,
                 dns_config: AllowedDns::new_with_tunnel_dns(
                     shared_state.tunnel_settings.allowed_dns_endpoints(),
@@ -317,6 +340,19 @@ impl ConnectedState {
     }
 }
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn bridge_candidate_endpoints(params: &ClientConfig) -> Vec<Endpoint> {
+    let (addresses, protocol) = match params {
+        ClientConfig::QuicPlain(cfg) => (&cfg.addresses, TransportProtocol::Udp),
+        ClientConfig::TlsPlain(cfg) => (&cfg.addresses, TransportProtocol::Tcp),
+        ClientConfig::SshPlain(cfg) => (&cfg.addresses, TransportProtocol::Tcp),
+    };
+    addresses
+        .iter()
+        .map(|addr| Endpoint::from_socket_address(*addr, protocol))
+        .collect()
+}
+
 #[async_trait::async_trait]
 impl TunnelStateHandler for ConnectedState {
     async fn handle_event(
@@ -463,6 +499,9 @@ struct ConnectedPolicyParameters {
     /// WireGuard entry endpoint
     wg_entry_endpoint: Option<Endpoint>,
 
+    /// Other bridge transports a quiet redial could fall back to
+    bridge_candidate_endpoints: Vec<Endpoint>,
+
     /// Entry gateway websocket endpoints
     ws_entry_endpoints: Vec<SocketAddr>,
 
@@ -499,11 +538,15 @@ impl ConnectedPolicyParameters {
             })
             .collect::<Vec<_>>();
 
-        // Allow WireGuard / Quic entry endpoint
-        if let Some(endpoint) = self.wg_entry_endpoint {
+        // Allow WireGuard / Quic entry endpoint, plus any bridge fallback a quiet redial could use
+        for endpoint in self
+            .wg_entry_endpoint
+            .iter()
+            .chain(&self.bridge_candidate_endpoints)
+        {
             if endpoint.address.is_ipv4() || (self.enable_ipv6 && endpoint.address.is_ipv6()) {
-                let allow_wg_endpoint = AllowedEndpoint::new(
-                    endpoint,
+                peer_endpoints.push(AllowedEndpoint::new(
+                    *endpoint,
                     #[cfg(target_os = "linux")]
                     // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
                     AllowedClients::All,
@@ -511,11 +554,9 @@ impl ConnectedPolicyParameters {
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
-                );
-
-                peer_endpoints.push(allow_wg_endpoint);
+                ));
             } else {
-                tracing::warn!("WireGuard endpoint contains IPv6 address, but IPv6 is disabled!");
+                tracing::warn!("Bridge endpoint contains IPv6 address, but IPv6 is disabled!");
             }
         }
 
@@ -611,6 +652,7 @@ mod tests {
             enable_ipv6: false,
             allow_lan: false,
             wg_entry_endpoint: None,
+            bridge_candidate_endpoints: Vec::new(),
             ws_entry_endpoints: ws_endpoints,
             dns_config,
             tunnel_interface,
@@ -650,6 +692,47 @@ mod tests {
         assert!(
             peer_endpoints.len() >= entry_endpoints.len() + exit_endpoints.len(),
             "peer_endpoints should contain endpoints from both entry and exit gateways"
+        );
+    }
+
+    #[test]
+    fn test_firewall_policy_includes_bridge_candidate_endpoints() {
+        let tunnel_metadata = crate::tunnel_state_machine::TunnelMetadata {
+            interface: "test0".to_string(),
+            ips: vec![
+                ipnetwork::IpNetwork::new(Ipv4Addr::new(10, 0, 0, 1).into(), 24)
+                    .unwrap()
+                    .network(),
+            ],
+            ipv4_gateway: Some(Ipv4Addr::new(10, 0, 0, 1)),
+            ipv6_gateway: None,
+        };
+
+        let fallback_candidate = Endpoint::new(
+            IpAddr::V4(Ipv4Addr::new(192, 168, 1, 50)),
+            4443,
+            TransportProtocol::Tcp,
+        );
+
+        let params = ConnectedPolicyParameters {
+            enable_ipv6: false,
+            allow_lan: false,
+            wg_entry_endpoint: None,
+            bridge_candidate_endpoints: vec![fallback_candidate],
+            ws_entry_endpoints: Vec::new(),
+            dns_config: AllowedDns::new(vec![], vec![]),
+            tunnel_interface: TunnelInterface::One(tunnel_metadata),
+            #[cfg(target_os = "macos")]
+            redirect_interface: None,
+        };
+
+        let policy = params.as_policy();
+        let peer_endpoints = policy.peer_endpoints();
+        assert!(
+            peer_endpoints
+                .iter()
+                .any(|allowed_ep| allowed_ep.endpoint == fallback_candidate),
+            "a quiet redial's fallback bridge candidate must be allowed up front"
         );
     }
 }
