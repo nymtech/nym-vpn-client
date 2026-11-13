@@ -8,6 +8,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use nym_pemstore::Passphrase;
 pub use nym_sqlcipher::DatabaseKey;
 use tokio::{fs::OpenOptions, io::AsyncWriteExt};
 use zeroize::Zeroizing;
@@ -41,6 +42,11 @@ pub fn generate_database_key() -> DatabaseKey {
     let mut key = Zeroizing::new([0u8; nym_sqlcipher::KEY_LEN]);
     rand::fill(&mut key[..]);
     DatabaseKey::new(*key)
+}
+
+/// Derives the passphrase encrypting private key PEM files from the database key.
+pub fn key_passphrase(database_key: &DatabaseKey) -> Passphrase {
+    Passphrase::new(hex::encode(database_key.as_bytes()))
 }
 
 fn database_key_from_bytes(bytes: &[u8]) -> Result<DatabaseKey> {
