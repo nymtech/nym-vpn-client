@@ -31,7 +31,6 @@ import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.backend.api.VpnServiceApi
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.RecentGateways
 import net.nymtech.vpn.model.connect.ConnectInitRequest
@@ -230,7 +229,7 @@ class ServiceBackedBackendManager @Inject constructor(
 	}
 
 	override suspend fun storeMnemonic(mnemonic: String) {
-		withUnlockedKeychain { it.storeMnemonic(mnemonic) }
+		serviceConnectionManager.withUnlockedApi { it.storeMnemonic(mnemonic) }
 		refreshIdentityState()
 	}
 
@@ -243,7 +242,7 @@ class ServiceBackedBackendManager @Inject constructor(
 	}
 
 	override suspend fun deleteAccount() {
-		withUnlockedKeychain {
+		serviceConnectionManager.withUnlockedApi {
 			it.deleteAccount()
 			it.lockKeychain()
 		}
@@ -271,24 +270,15 @@ class ServiceBackedBackendManager @Inject constructor(
 		null
 	}
 
-	override suspend fun getMnemonic(): List<String> = withUnlockedKeychain { it.getStoredMnemonic().split(" ") }
+	override suspend fun getMnemonic(): List<String> = serviceConnectionManager.withUnlockedApi { it.getStoredMnemonic().split(" ") }
 	override suspend fun createAccount() {
-		withUnlockedKeychain { it.createAccount() }
+		serviceConnectionManager.withUnlockedApi { it.createAccount() }
 		refreshIdentityState()
 	}
-	override suspend fun registerAccount(purchaseToken: String?): String = withUnlockedKeychain { it.registerAccount(purchaseToken) }
+	override suspend fun registerAccount(purchaseToken: String?): String = serviceConnectionManager.withUnlockedApi { it.registerAccount(purchaseToken) }
 	override suspend fun refreshAccount() {
 		serviceConnectionManager.withApi { it.refreshAccount() }
 		refreshAccountSummary()
-	}
-
-	/**
-	 * Runs [block] after the user authenticated, since it reads or writes the stored mnemonic,
-	 * whose key requires user presence.
-	 */
-	private suspend fun <T> withUnlockedKeychain(block: suspend (VpnServiceApi) -> T): T = serviceConnectionManager.withApi {
-		it.unlockKeychain(context.getString(R.string.secure_enclave_auth_subtitle))
-		block(it)
 	}
 
 	private suspend fun refreshAccountSummary() {
@@ -325,12 +315,12 @@ class ServiceBackedBackendManager @Inject constructor(
 			kind = kind,
 			name = "default",
 		)
-		return withUnlockedKeychain { it.getAutologinDeeplink(params = params) }
+		return serviceConnectionManager.withUnlockedApi { it.getAutologinDeeplink(params = params) }
 	}
 
 	override suspend fun storeDeeplinkAccount(url: String) {
 		runCatching {
-			withUnlockedKeychain { it.storeDeeplinkAccount(url = url) }
+			serviceConnectionManager.withUnlockedApi { it.storeDeeplinkAccount(url = url) }
 		}.onFailure {
 			Timber.tag(TAG).e(it, "Failed to store deeplink account")
 		}

@@ -50,7 +50,7 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 		mutex.withLock {
 			cancelActiveSession()
 			_state.value = PairingState.StartingCode
-			_state.value = when (val result = call { it.startPairing() }) {
+			_state.value = when (val result = unlockedCall { it.startPairing() }) {
 				is PairingCommandResult.Ok -> PairingState.ShowingCode(result.value.url, result.value.sessionId, TimeSource.Monotonic.markNow() + CODE_LIFETIME)
 				is PairingCommandResult.Failed -> PairingState.Failed(result.error)
 			}
@@ -60,7 +60,7 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 	override suspend fun confirmCode() = mutex.withLock {
 		val confirm = _state.value as? PairingState.ConfirmCode ?: return@withLock
 		_state.value = PairingState.SharingAccount
-		_state.value = when (val result = withContext(NonCancellable) { call { it.verifiedPairingPin(confirm.sessionId) } }) {
+		_state.value = when (val result = withContext(NonCancellable) { unlockedCall { it.verifiedPairingPin(confirm.sessionId) } }) {
 			is PairingCommandResult.Ok -> {
 				Timber.tag(TAG).i("Account shared, session %s", confirm.sessionId)
 				PairingState.AccountShared
@@ -72,7 +72,7 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 	override suspend fun onScannedKey(publicKey: String): PairingCommandResult<Unit> = mutex.withLock {
 		cancelActiveSession()
 		// The core keeps the session even if the scanner closes meanwhile, so it's always recorded.
-		when (val result = withContext(NonCancellable) { call { it.scannedPairingKey(publicKey) } }) {
+		when (val result = withContext(NonCancellable) { unlockedCall { it.scannedPairingKey(publicKey) } }) {
 			is PairingCommandResult.Ok -> {
 				_state.value = PairingState.WaitingForApproval(result.value.pinCode, result.value.sessionId)
 				if (!currentCoroutineContext().isActive) withContext(NonCancellable) { cancelActiveSession() }
@@ -132,6 +132,9 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 
 	private suspend fun <T> call(block: suspend (VpnServiceApi) -> PairingCommandResult<T>): PairingCommandResult<T> =
 		connectionManager.withApiResult(PairingError, { PairingCommandResult.Failed(it) }, block)
+
+	private suspend fun <T> unlockedCall(block: suspend (VpnServiceApi) -> PairingCommandResult<T>): PairingCommandResult<T> =
+		connectionManager.withUnlockedApiResult(PairingError, { PairingCommandResult.Failed(it) }, block)
 
 	private companion object {
 		const val TAG = "pairing"

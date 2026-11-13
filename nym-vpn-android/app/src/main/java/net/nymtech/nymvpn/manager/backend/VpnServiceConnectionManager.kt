@@ -20,6 +20,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.vpn.backend.api.VpnServiceApi
 import net.nymtech.vpn.backend.service.VpnService
@@ -118,6 +119,32 @@ class VpnServiceConnectionManager @Inject constructor(@ApplicationContext privat
 	} catch (e: Exception) {
 		Timber.tag(TAG).w("Command failed: %s", e::class.java.simpleName)
 		failed(errors.unknown)
+	}
+
+	/**
+	 * Like [withApi], but asks the user to authenticate first, for commands that read or write the
+	 * stored mnemonic, whose key requires user presence.
+	 */
+	suspend fun <T> withUnlockedApi(block: suspend (VpnServiceApi) -> T): T = withApi {
+		it.unlockKeychain(context.getString(R.string.secure_enclave_auth_subtitle))
+		block(it)
+	}
+
+	/**
+	 * Like [withApiResult], but asks the user to authenticate first. The prompt does not count
+	 * towards the command timeout.
+	 */
+	suspend fun <E, R> withUnlockedApiResult(errors: CommandErrorMapper<E>, failed: (E) -> R, block: suspend (VpnServiceApi) -> R): R =
+		if (unlockKeychain()) withApiResult(errors, failed, block) else failed(errors.unknown)
+
+	private suspend fun unlockKeychain(): Boolean = try {
+		withApi { it.unlockKeychain(context.getString(R.string.secure_enclave_auth_subtitle)) }
+		true
+	} catch (e: CancellationException) {
+		throw e
+	} catch (e: Exception) {
+		Timber.tag(TAG).w("Unlock failed: %s", e::class.java.simpleName)
+		false
 	}
 
 	private fun bindServiceInternal() {
