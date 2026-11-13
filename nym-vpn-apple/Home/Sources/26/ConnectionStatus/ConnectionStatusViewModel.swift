@@ -71,9 +71,9 @@ import UIKit
         if marker.state == .blocked {
             return .blocked
         }
-        // Offline with no session to resume: not protected, no internet.
-        // An error still reads as an error.
-        if status == .offline || (!isOnline && status != .error) {
+        // Offline with no session to resume: not protected, no internet. The network
+        // reading only applies with no session; a live tunnel keeps its own state.
+        if status == .offline || (!isOnline && (status == .disconnected || status == .unknown)) {
             return .offline
         }
         switch status {

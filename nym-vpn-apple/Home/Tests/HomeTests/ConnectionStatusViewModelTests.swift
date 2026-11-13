@@ -98,6 +98,14 @@ final class ConnectionStatusViewModelTests: XCTestCase {
         viewModel.isOnline = false
         ConnectionManager.shared.lastError = nil
 
-        XCTAssertNotEqual(viewModel.arcProgressState, .offline)
+        XCTAssertEqual(viewModel.arcProgressState, .failed)
+    }
+
+    func testConnectedWhileNetworkDropsKeepsTunnelState() {
+        let viewModel = makeViewModel()
+        viewModel.status = .connected
+        viewModel.isOnline = false
+
+        XCTAssertEqual(viewModel.arcProgressState, .connected)
     }
 }
