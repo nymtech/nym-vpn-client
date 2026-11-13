@@ -9,7 +9,7 @@ use std::{
 };
 
 pub use nym_sqlcipher::DatabaseKey;
-use tokio::{fs::OpenOptions, io::AsyncWriteExt, sync::OnceCell};
+use tokio::{fs::OpenOptions, io::AsyncWriteExt};
 use zeroize::Zeroizing;
 
 use crate::store_ciphers::{StoreCipher, StoreCipherError};
@@ -54,7 +54,6 @@ fn database_key_from_bytes(bytes: &[u8]) -> Result<DatabaseKey> {
 pub struct OnDiskDatabaseKeyStorage {
     path: PathBuf,
     cipher: Box<dyn StoreCipher>,
-    cached_key: OnceCell<DatabaseKey>,
 }
 
 impl OnDiskDatabaseKeyStorage {
@@ -62,21 +61,15 @@ impl OnDiskDatabaseKeyStorage {
         Self {
             path: path.as_ref().to_path_buf(),
             cipher: Box::new(cipher),
-            cached_key: OnceCell::new(),
         }
     }
 
     /// Loads the database key or creates and stores a new one if it does not exist yet.
     pub async fn load_or_create(&self) -> Result<DatabaseKey> {
-        self.cached_key
-            .get_or_try_init(|| async {
-                match self.load().await? {
-                    Some(key) => Ok(key),
-                    None => self.create().await,
-                }
-            })
-            .await
-            .cloned()
+        match self.load().await? {
+            Some(key) => Ok(key),
+            None => self.create().await,
+        }
     }
 
     async fn load(&self) -> Result<Option<DatabaseKey>> {

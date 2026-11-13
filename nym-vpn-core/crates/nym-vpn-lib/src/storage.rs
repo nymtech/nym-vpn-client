@@ -1,7 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::Path, sync::Arc};
+use std::path::Path;
+#[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+use std::sync::Arc;
 
 #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
 use nym_secure_enclave::SecureEnclave;
@@ -40,15 +42,16 @@ pub struct VpnClientOnDiskStorage {
     key_store: nym_vpn_store::keys::device::OnDiskKeys,
     mnemonic_storage: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorage,
     device_state_storage: nym_vpn_store::device_state::on_disk::OnDiskDeviceStateStorage,
-    database_key_storage: Arc<OnDiskDatabaseKeyStorage>,
+    database_key: DatabaseKey,
 }
 
 impl VpnClientOnDiskStorage {
-    pub fn new(
+    /// Creates the storage, loading the database key or creating it on first use.
+    pub async fn new(
         base_data_directory: impl AsRef<Path>,
         #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
         secure_enclave: Arc<SecureEnclave>,
-    ) -> Self {
+    ) -> Result<Self, DatabaseKeyStorageError> {
         let device_key_paths = DeviceKeysPaths::new(&base_data_directory);
 
         let mnemonic_storage_path = base_data_directory.as_ref().join(MNEMONIC_FILE_NAME);
@@ -101,25 +104,22 @@ impl VpnClientOnDiskStorage {
         );
 
         let database_key_path = base_data_directory.as_ref().join(DATABASE_KEY_FILE_NAME);
-        let database_key_storage = Arc::new(OnDiskDatabaseKeyStorage::new(
-            database_key_path,
-            database_key_cipher,
-        ));
-        let key_store = OnDiskKeys::new(device_key_paths, database_key_storage.clone());
+        let database_key = OnDiskDatabaseKeyStorage::new(database_key_path, database_key_cipher)
+            .load_or_create()
+            .await?;
+        let key_store = OnDiskKeys::new(device_key_paths, &database_key);
 
-        VpnClientOnDiskStorage {
+        Ok(VpnClientOnDiskStorage {
             key_store,
             mnemonic_storage,
             device_state_storage,
-            database_key_storage,
-        }
+            database_key,
+        })
     }
 
-    /// Loads the key used to encrypt the on-disk databases, creating it on first use.
-    pub async fn load_or_create_database_key(
-        &self,
-    ) -> Result<DatabaseKey, DatabaseKeyStorageError> {
-        self.database_key_storage.load_or_create().await
+    /// Key used to encrypt the on-disk databases.
+    pub fn database_key(&self) -> &DatabaseKey {
+        &self.database_key
     }
 }
 
