@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.16.0] - TBD
+
 ### Added
 
 - macOS: Split tunneling settings explain that excluded apps' DNS lookups still go through NymVPN (https://github.com/nymtech/nym-vpn-client/pull/7104)
