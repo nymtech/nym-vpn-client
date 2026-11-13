@@ -7,6 +7,7 @@ use super::{LazySocks5, LazySocks5Error, SharedState};
 use nym_gateway_directory::ScoreValue;
 use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, StoragePaths};
 use nym_vpn_lib_types::{TunnelState, TunnelType};
+use nym_vpn_store::database_key::key_passphrase;
 use rand::seq::IndexedRandom;
 use std::{net::SocketAddr, sync::atomic::Ordering, time::Duration};
 use tokio::time::sleep;
@@ -261,10 +262,13 @@ impl LazySocks5 {
         }
 
         // Create storage paths for SOCKS5 identity
-        let socks5_storage_paths = StoragePaths::new_from_dir(&socks5_data_path).map_err(|e| {
-            error!("Failed to create socks5 storage paths: {}", e);
-            LazySocks5Error::Internal(format!("Failed to create socks5 storage paths: {}", e))
-        })?;
+        let socks5_storage_paths = StoragePaths::new_from_dir(&socks5_data_path)
+            .map_err(|e| {
+                error!("Failed to create socks5 storage paths: {}", e);
+                LazySocks5Error::Internal(format!("Failed to create socks5 storage paths: {}", e))
+            })?
+            .with_database_key(Some(shared.config.database_key.clone()))
+            .with_key_passphrase(Some(key_passphrase(&shared.config.database_key)));
 
         // BC note : We are NOT overriding the credential store, because it's not supposed to be shared anymore
         // Credential requests go through the channel for it now

@@ -11,6 +11,7 @@ use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_gateway_directory::GatewayCacheHandle;
 use nym_network_defaults::v2::NymNetworkDetails;
 use nym_sdk::mixnet::Socks5MixnetClient;
+use nym_sqlcipher::DatabaseKey;
 use nym_vpn_lib_types::{TunnelConnectionData, TunnelState, TunnelType};
 use std::{
     net::SocketAddr,
@@ -58,6 +59,8 @@ pub struct LazySocks5Config {
     pub vpn_exit_gateway_identity: Option<String>,
     /// Bandwidth controller handle, used as the mixnet client's ticket provider.
     pub bandwidth_command_tx: BandwidthControllerRequestSender,
+    /// Key encrypting the mixnet client databases and private keys
+    pub database_key: DatabaseKey,
 }
 
 /// Errors from the LazySocks5
@@ -419,6 +422,7 @@ mod tests {
             bandwidth_command_tx: BandwidthControllerRequestSender::new(
                 tokio::sync::mpsc::unbounded_channel().0,
             ),
+            database_key: DatabaseKey::new([0x42; nym_sqlcipher::KEY_LEN]),
         }
     }
 

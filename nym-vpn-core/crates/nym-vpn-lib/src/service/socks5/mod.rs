@@ -20,6 +20,7 @@ use lazy_socks5::{LazySocks5, LazySocks5Config, LazySocks5Error, LazySocks5Handl
 use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_gateway_directory::GatewayCacheHandle;
 use nym_network_defaults::v2::NymNetworkDetails;
+use nym_sqlcipher::DatabaseKey;
 use nym_vpn_lib_types::TunnelState;
 use std::{net::SocketAddr, path::PathBuf, time::Duration};
 use tokio::{
@@ -47,6 +48,8 @@ pub struct Socks5EnableConfig {
     pub vpn_exit_gateway_identity: Option<String>,
     /// Bandwidth controller handle, used as the mixnet client's ticket provider.
     pub bandwidth_command_tx: BandwidthControllerRequestSender,
+    /// Key encrypting the mixnet client databases and private keys
+    pub database_key: DatabaseKey,
 }
 
 /// SOCKS5 service errors
@@ -148,6 +151,7 @@ impl Socks5ServiceState {
             network_details,
             vpn_exit_gateway_identity,
             bandwidth_command_tx,
+            database_key,
         } = config;
 
         // Prevent concurrent enable calls
@@ -218,6 +222,7 @@ impl Socks5ServiceState {
             network_details,
             vpn_exit_gateway_identity,
             bandwidth_command_tx,
+            database_key,
         };
         let (lazy_socks5, lazy_socks5_task) = LazySocks5::spawn(
             config,
