@@ -19,9 +19,9 @@ use nym_vpn_lib_types::{
     VpnAccountSummary,
 };
 use nym_vpn_store::{
-    account::AccountInformationStorage,
-    account_summary::AccountSummaryStorage,
+    device_state::{DeviceStateStorage, StoredAccountIdentity, StoredDeviceState},
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
+    mnemonic::{MnemonicStorage, StoredMnemonic},
 };
 
 use crate::{NymEnvironment, VpnError, deeplink::NymDeeplinkMnemonic};
@@ -44,15 +44,23 @@ pub struct NymVpnAccountStorage {
 #[uniffi::export(async_runtime = "tokio")]
 impl NymVpnAccountStorage {
     #[uniffi::constructor]
-    pub fn new(data_dir: PathBuf, environment: Arc<NymEnvironment>) -> Self {
+    pub async fn new(
+        data_dir: PathBuf,
+        environment: Arc<NymEnvironment>,
+    ) -> Result<Self, VpnError> {
         // todo: ensure account controller is not running?
         let storage_path = data_dir.join(environment.network_name());
         let secure_enclave = Arc::new(nym_secure_enclave::SecureEnclave::new());
-        Self {
-            storage: VpnClientOnDiskStorage::new(&storage_path, secure_enclave),
+        let storage = VpnClientOnDiskStorage::new(&storage_path, secure_enclave)
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?;
+        Ok(Self {
+            storage,
             storage_path,
             environment,
-        }
+        })
     }
 
     /// Store the account mnemonic
@@ -67,9 +75,7 @@ impl NymVpnAccountStorage {
             .await
             .map_err(|_err| VpnError::AccountNotRegistered)?;
 
-        self.storage.store_account(storable_account).await?;
-        self.storage.init_keys(None).await?;
-        Ok(())
+        self.init_account(storable_account).await
     }
 
     /// Either store account mnemonic or link the existing API account with Privy depending on the type of deeplink mnemonic.
@@ -89,9 +95,7 @@ impl NymVpnAccountStorage {
             DeeplinkKind::Privy | DeeplinkKind::CreateAccount => {
                 tracing::info!("Storing Privy account");
 
-                self.storage.store_account(account).await?;
-                self.storage.init_keys(None).await?;
-                Ok(())
+                self.init_account(account).await
             }
             DeeplinkKind::PrivyLink => {
                 let privy_vpn_account =
@@ -102,7 +106,6 @@ impl NymVpnAccountStorage {
                 let vpn_api_client = self.create_vpn_api_client().await?;
 
                 let current_account = self
-                    .storage
                     .load_account()
                     .await?
                     .map(VpnAccount::try_from)
@@ -192,15 +195,13 @@ impl NymVpnAccountStorage {
     pub async fn create_account(&self) -> Result<(), VpnError> {
         let (_, mnemonic) = VpnAccount::generate_new().map_err(VpnError::internal)?;
         let account = StorableAccount::new(mnemonic, StoredAccountMode::Api);
-        self.storage.store_account(account).await?;
-        self.storage.init_keys(None).await?;
-        Ok(())
+        self.init_account(account).await
     }
 
     /// Check if the account mnemonic is stored
     /// This is a version that can be called when the account controller is not running.
     pub async fn is_account_mnemonic_stored(&self) -> Result<bool, VpnError> {
-        Ok(self.storage.is_account_stored().await?)
+        Ok(self.storage.is_mnemonic_stored().await?)
     }
 
     /// Returns account links for the logged in account or error if not logged in
@@ -213,7 +214,7 @@ impl NymVpnAccountStorage {
     pub async fn get_stored_mnemonic(&self) -> Result<String, VpnError> {
         Ok(self
             .storage
-            .load_account()
+            .load_mnemonic()
             .await?
             .ok_or(VpnError::NoAccountStored)?
             .mnemonic
@@ -236,6 +237,7 @@ impl NymVpnAccountStorage {
 
         // First remove the files we own directly
         self.remove_account_mnemonic().await?;
+        self.remove_device_state().await?;
         self.remove_device_identity().await?;
         self.remove_credential_storage().await?;
 
@@ -293,34 +295,16 @@ impl NymVpnAccountStorage {
     /// Get the account identity
     /// This is a version that can be called when the account controller is not running.
     pub async fn get_account_identity(&self) -> Result<String, VpnError> {
-        let account = self
-            .storage
-            .load_account()
-            .await
-            .map_err(|err| VpnError::Storage {
-                details: err.to_string(),
-            })?
-            .ok_or(VpnError::NoAccountStored)?;
-        VpnAccount::try_from(account)
-            .map_err(VpnError::internal)
-            .map(|account| account.id().to_string())
+        Ok(self.load_account_identity().await?.id)
     }
 
     pub async fn get_canonical_account_identity(&self) -> Result<String, VpnError> {
-        let account = self
-            .storage
-            .load_account()
-            .await
-            .map_err(|err| VpnError::Storage {
-                details: err.to_string(),
-            })?
-            .ok_or(VpnError::NoAccountStored)?;
+        let account_identity = self.load_account_identity().await?;
 
-        let vpn_account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
-
-        match vpn_account.mode() {
-            VpnAccountMode::Api | VpnAccountMode::Decentralised => Ok(vpn_account.id().to_string()),
-            VpnAccountMode::Privy => {
+        match account_identity.mode {
+            StoredAccountMode::Api | StoredAccountMode::Decentralised => Ok(account_identity.id),
+            StoredAccountMode::Privy => {
+                let vpn_account = self.load_vpn_account().await?;
                 let vpn_api_client = self.create_vpn_api_client().await?;
                 let response = vpn_api_client
                     .get_canonical_account_identity(&vpn_account)
@@ -334,76 +318,40 @@ impl NymVpnAccountStorage {
     /// Get a summary of account usage, syncing from the VPN API first. falling back to cache otherwise
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
         // Check if we have an account
-        let Some(account) = self
-            .storage
-            .load_account()
-            .await
-            .map_err(|err| VpnError::Storage {
-                details: err.to_string(),
-            })?
-        else {
+        let Some(mut device_state) = self.storage.load_device_state().await? else {
             return Ok(None);
         };
 
-        let vpn_account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
         let device = self.load_device().await?;
 
         match self
-            .get_account_summary_from_network(&vpn_account, &device)
+            .get_account_summary_from_network(&device_state.account_identity, &device)
             .await
         {
             Ok(account_summary) => {
                 // Best effort, let's not fail to return it even though we have it
-                let _ = self.storage.store_summary(account_summary.clone()).await;
+                device_state.summary = Some(account_summary.clone());
+                let _ = self.storage.store_device_state(device_state).await;
                 Ok(Some(account_summary))
             }
             Err(e) => {
                 tracing::warn!("Account summary network sync failed, trying cache: {e:?}");
-                // Trying cache
-                match self
-                    .storage
-                    .load_summary()
-                    .await
-                    .map_err(|err| VpnError::Storage {
-                        details: err.to_string(),
-                    })? {
-                    Some(summary) => Ok(Some(summary)),
-                    None => {
-                        // If we are here, it means we have an account, but we couldn't get a summary, so an absence is indeed an error
-                        Err(e)
-                    }
-                }
+                // If we have an account but no cached summary, its absence is indeed an error
+                device_state.summary.map(Some).ok_or(e)
             }
         }
     }
 
     /// Get the type of account the user is logged in with
-    pub async fn get_account_mode(&self) -> Result<nym_vpn_lib_types::StoredAccountMode, VpnError> {
-        let account = self
-            .storage
-            .load_account()
-            .await
-            .map_err(|err| VpnError::Storage {
-                details: err.to_string(),
-            })?
-            .ok_or(VpnError::NoAccountStored)?;
-
-        Ok(account.mode)
+    pub async fn get_account_mode(&self) -> Result<StoredAccountMode, VpnError> {
+        Ok(self.load_account_identity().await?.mode)
     }
 
     /// Load the account mnemonic stored locally and register it.
     /// This is a version that can be called when the account controller is not running.
     pub async fn register_account(&self) -> Result<RegisterAccountResponse, VpnError> {
         let platform = Platform::Apple;
-        let account = self
-            .storage
-            .load_account()
-            .await
-            .map_err(|err| VpnError::Storage {
-                details: err.to_string(),
-            })?
-            .ok_or(VpnError::NoAccountStored)?;
-        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let account = self.load_vpn_account().await?;
         let account_token = self
             .register_account_by_account(&account, platform)
             .await?
@@ -425,31 +373,88 @@ impl NymVpnAccountStorage {
 }
 
 impl NymVpnAccountStorage {
+    /// Stores the mnemonic and the device state derived from it, creating device keys if missing.
+    async fn init_account(&self, account: StorableAccount) -> Result<(), VpnError> {
+        let vpn_account =
+            VpnAccount::try_from(account.clone()).map_err(|err| VpnError::InvalidMnemonic {
+                details: err.to_string(),
+            })?;
+        let ecash_keypair = vpn_account
+            .create_ecash_keypair()
+            .map_err(VpnError::internal)?;
+        let account_identity = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
+            .map_err(VpnError::internal)?;
+
+        self.storage.init_keys(None).await?;
+        self.storage
+            .store_mnemonic(StoredMnemonic {
+                mnemonic: account.mnemonic,
+            })
+            .await?;
+        self.storage
+            .store_device_state(StoredDeviceState {
+                account_identity,
+                ecash_keypair,
+                summary: None,
+            })
+            .await?;
+        Ok(())
+    }
+
+    /// Loads the account identity, which does not require step-up authentication.
+    async fn load_account_identity(&self) -> Result<StoredAccountIdentity, VpnError> {
+        self.storage
+            .load_device_state()
+            .await?
+            .map(|device_state| device_state.account_identity)
+            .ok_or(VpnError::NoAccountStored)
+    }
+
+    /// Loads the stored account, which requires step-up authentication.
+    async fn load_account(&self) -> Result<Option<StorableAccount>, VpnError> {
+        let Some(device_state) = self.storage.load_device_state().await? else {
+            return Ok(None);
+        };
+        Ok(self.storage.load_mnemonic().await?.map(|stored| {
+            StorableAccount::new(stored.mnemonic, device_state.account_identity.mode)
+        }))
+    }
+
+    /// Materializes the stored account as [`VpnAccount`], which requires step-up authentication.
+    async fn load_vpn_account(&self) -> Result<VpnAccount, VpnError> {
+        let account = self
+            .load_account()
+            .await?
+            .ok_or(VpnError::NoAccountStored)?;
+        VpnAccount::try_from(account).map_err(VpnError::internal)
+    }
+
     async fn get_account_summary_from_network(
         &self,
-        account: &VpnAccount,
+        account_identity: &StoredAccountIdentity,
         device: &Device,
     ) -> Result<VpnAccountSummary, VpnError> {
         tracing::info!(
             "Fetching account summary from VPN API for account {}",
-            account.id()
+            account_identity.id
         );
 
         let vpn_api_client = self.create_vpn_api_client().await?;
 
         let api_summary = vpn_api_client
-            .get_account_summary_with_device(account, device)
+            .get_account_summary_with_device(&account_identity.id, device)
             .await
             .map_err(|err| VpnError::InternalError {
                 details: format!("Failed to get account summary: {err}"),
             })?;
 
-        let summary =
-            VpnAccountSummary::from_parts(&api_summary, account.mode()).map_err(|err| {
-                VpnError::InternalError {
-                    details: format!("Failed to parse account summary: {err}"),
-                }
-            })?;
+        let summary = VpnAccountSummary::from_parts(
+            &api_summary,
+            VpnAccountMode::from(account_identity.mode),
+        )
+        .map_err(|err| VpnError::InternalError {
+            details: format!("Failed to parse account summary: {err}"),
+        })?;
 
         Ok(summary)
     }
@@ -493,18 +498,10 @@ impl NymVpnAccountStorage {
 
     async fn unregister_device(&self) -> Result<(), VpnError> {
         let device = self.load_device().await?;
-        let account = self
-            .storage
-            .load_account()
-            .await
-            .map_err(|err| VpnError::Storage {
-                details: err.to_string(),
-            })?
-            .ok_or(VpnError::NoAccountStored)?;
-        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let account_identity = self.load_account_identity().await?;
         let vpn_api_client = self.create_vpn_api_client().await?;
         vpn_api_client
-            .update_device(&account, &device, DeviceStatus::DeleteMe)
+            .update_device(&account_identity.id, &device, DeviceStatus::DeleteMe)
             .await
             .map(|_| ())
             .map_err(|err| VpnError::UnregisterDevice {
@@ -512,12 +509,12 @@ impl NymVpnAccountStorage {
             })
     }
 
-    async fn remove_account_mnemonic(&self) -> Result<bool, VpnError> {
-        self.storage
-            .remove_account()
-            .await
-            .map(|_| true)
-            .map_err(Into::into)
+    async fn remove_account_mnemonic(&self) -> Result<(), VpnError> {
+        Ok(self.storage.remove_mnemonic().await?)
+    }
+
+    async fn remove_device_state(&self) -> Result<(), VpnError> {
+        Ok(self.storage.remove_device_state().await?)
     }
 
     async fn remove_credential_storage(&self) -> Result<(), VpnError> {
