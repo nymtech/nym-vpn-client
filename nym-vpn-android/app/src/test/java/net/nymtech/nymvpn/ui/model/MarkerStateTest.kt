@@ -1,38 +1,44 @@
 package net.nymtech.nymvpn.ui.model
 
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.EstablishConnectionState
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class MarkerStateTest {
 
-	private fun from(state: Tunnel.State, killSwitch: Boolean = true, establish: EstablishConnectionState? = null) =
-		Marker.from(state, establish, Tunnel.Mode.TWO_HOP_MIXNET, killSwitch)
+	private fun from(state: Tunnel.State, killSwitch: Boolean = true, establish: EstablishConnectionState? = null) = Marker.from(state, establish, Tunnel.Mode.TWO_HOP_MIXNET, killSwitch)
 
 	@Test
-	fun staticStates() {
-		assertEquals(MarkerState.NOT_PROTECTED, from(Tunnel.State.Down).state)
-		assertEquals(MarkerState.CONNECTED, from(Tunnel.State.Up).state)
-		assertEquals(MarkerState.STOPPING, from(Tunnel.State.Disconnecting).state)
+	fun from_staticStates_mapOneToOne() {
+		assertEquals(Marker(MarkerState.NOT_PROTECTED, MarkerMode.DVPN), from(Tunnel.State.Down))
+		assertEquals(Marker(MarkerState.CONNECTED, MarkerMode.DVPN), from(Tunnel.State.Up))
+		assertEquals(Marker(MarkerState.STOPPING, MarkerMode.DVPN), from(Tunnel.State.Disconnecting))
 	}
 
 	@Test
-	fun offlineFollowsKillSwitch() {
-		assertEquals(
-			Marker(MarkerState.BLOCKED, MarkerMode.DVPN, blockedCause = BlockedCause.NO_INTERNET),
-			from(Tunnel.State.Offline(reconnect = false)),
-		)
-		assertEquals(
-			Marker(MarkerState.BLOCKED, MarkerMode.DVPN, blockedCause = BlockedCause.NEEDS_RECONNECT),
-			from(Tunnel.State.Offline(reconnect = true)),
-		)
-		assertEquals(MarkerState.NOT_PROTECTED, from(Tunnel.State.Offline(reconnect = false), killSwitch = false).state)
-		assertEquals(MarkerState.NOT_PROTECTED, from(Tunnel.State.Offline(reconnect = true), killSwitch = false).state)
+	fun from_error_isError() {
+		assertEquals(MarkerState.ERROR, from(Tunnel.State.Error(ErrorStateReason.TunnelProvider)).state)
 	}
 
 	@Test
-	fun sevenPhasesDrawSixSteps() {
+	fun from_offlineMidSessionWithKillSwitch_isBlocked() {
+		assertEquals(Marker(MarkerState.BLOCKED, MarkerMode.DVPN), from(Tunnel.State.Offline(reconnect = true)))
+	}
+
+	@Test
+	fun from_offlineWithNothingToResume_isNotProtected() {
+		assertEquals(Marker(MarkerState.NOT_PROTECTED, MarkerMode.DVPN), from(Tunnel.State.Offline(reconnect = false)))
+	}
+
+	@Test
+	fun from_offlineWithKillSwitchOff_isNotProtected() {
+		assertEquals(Marker(MarkerState.NOT_PROTECTED, MarkerMode.DVPN), from(Tunnel.State.Offline(reconnect = true), killSwitch = false))
+	}
+
+	@Test
+	fun from_connectingPhases_drawSixSteps() {
 		val expected = mapOf(
 			EstablishConnectionState.RESOLVING_API_ADDRESSES to 1,
 			EstablishConnectionState.AWAITING_ACCOUNT_READINESS to 2,
@@ -42,13 +48,15 @@ class MarkerStateTest {
 			EstablishConnectionState.REGISTERING_WITH_GATEWAYS to 5,
 			EstablishConnectionState.CONNECTING_TUNNEL to 6,
 		)
-		expected.forEach { (phase, step) -> assertEquals(phase.name, step, Marker.step(phase)) }
-		assertEquals(1, Marker.step(null))
+		expected.forEach { (phase, step) ->
+			assertEquals(phase.name, Marker(MarkerState.CONNECTING, MarkerMode.DVPN, step), from(Tunnel.State.EstablishingConnection, establish = phase))
+		}
+		assertEquals(1, from(Tunnel.State.EstablishingConnection).step)
 		assertEquals(1, from(Tunnel.State.InitializingClient).step)
 	}
 
 	@Test
-	fun modeIsTheFace() {
+	fun mode_tunnelMode_isTheFace() {
 		assertEquals(MarkerMode.DVPN, Marker.mode(Tunnel.Mode.TWO_HOP_MIXNET))
 		assertEquals(MarkerMode.MIXNET, Marker.mode(Tunnel.Mode.FIVE_HOP_MIXNET))
 	}
