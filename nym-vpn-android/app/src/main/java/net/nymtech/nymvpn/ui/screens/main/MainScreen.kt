@@ -54,6 +54,7 @@ import net.nymtech.nymvpn.ui.common.snackbar.AlertHost
 import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.model.ConnectionState
+import net.nymtech.nymvpn.ui.model.Marker
 import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.MainBottomSheetContent
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
@@ -70,6 +71,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
+import net.nymtech.nymvpn.util.extensions.isVpnAlwaysOn
 import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scoreFor
@@ -477,6 +479,16 @@ private fun MainScreenContent(
 		hasSubscriptionHistory = appUiState.hasSubscriptionHistory,
 	)
 
+	val managerState = appUiState.managerState
+	val killSwitch = remember(managerState.tunnelState) { isVpnAlwaysOn(context) }
+	// the screen also reads offline from the network status; feed the same reading to the marker
+	val markerTunnelState = when (connectionState) {
+		ConnectionState.WaitingForConnection -> Tunnel.State.Offline(reconnect = true)
+		ConnectionState.Offline -> Tunnel.State.Offline(reconnect = false)
+		else -> managerState.tunnelState
+	}
+	val marker = Marker.from(markerTunnelState, managerState.establishConnectionState, appUiState.vpnConfig.mode, killSwitch)
+
 	Box(
 		modifier = modifier
 			.fillMaxSize()
@@ -491,8 +503,8 @@ private fun MainScreenContent(
 		) {
 			ConnectionStatus(
 				connectionState = connectionState,
+				marker = marker,
 				vpnMode = appUiState.vpnConfig.mode,
-				establishConnectionState = appUiState.managerState.establishConnectionState,
 				connectionTime = connectionTime,
 			)
 		}
