@@ -4,6 +4,8 @@
 use std::sync::Arc;
 
 use nym_common::ErrorExt;
+#[cfg(target_os = "android")]
+use nym_secure_enclave::SecureEnclaveError;
 use nym_vpn_lib::service::{
     AccountLinksError, ClientRequest, GeoExclusionConfigError, ListGatewaysError,
     SetCustomDnsError, VpnServiceCommand,
@@ -560,5 +562,24 @@ impl NymVpnServiceCommandSender {
         self.send_and_wait(VpnServiceCommand::SetProfile, profile)
             .await?;
         Ok(())
+    }
+}
+
+#[cfg(target_os = "android")]
+#[uniffi::export(async_runtime = "tokio")]
+impl NymVpnServiceCommandSender {
+    /// Authenticates the user, so that keys requiring user presence can be used without
+    /// prompting until `lock_keychain()` is called. `reason` is shown to the user.
+    pub async fn unlock_keychain(&self, reason: String) -> Result<(), SecureEnclaveError> {
+        self.send_and_wait(VpnServiceCommand::UnlockKeychain, reason)
+            .await
+            .map_err(|err| SecureEnclaveError::Other(err.to_string()))?
+    }
+
+    /// Revokes the authentication obtained with `unlock_keychain()`.
+    pub async fn lock_keychain(&self) -> Result<(), SecureEnclaveError> {
+        self.send_and_wait(VpnServiceCommand::LockKeychain, ())
+            .await
+            .map_err(|err| SecureEnclaveError::Other(err.to_string()))?
     }
 }
