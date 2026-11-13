@@ -274,6 +274,10 @@ class VpnCoreController(
 		service.updateForegroundNotification(newState)
 	}
 
+	suspend fun awaitInitialized() {
+		initialized.await()
+	}
+
 	suspend fun <T> requireCoreSender(block: suspend (NymVpnServiceCommandSender) -> T): T {
 		initialized.await()
 		val sender = commandSender ?: throw NymVpnServiceCommandException(noHandle = NoHandle)
