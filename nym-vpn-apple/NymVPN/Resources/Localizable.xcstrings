@@ -2334,6 +2334,28 @@
         }
       }
     },
+    "arcProgress.blocked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kill switch is blocking traffic"
+          }
+        }
+      }
+    },
+    "arcProgress.blockedAction" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect to disable it"
+          }
+        }
+      }
+    },
     "arcProgress.connectionFailed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2453,6 +2475,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "dVPN protection"
+          }
+        }
+      }
+    },
+    "arcProgress.noInternet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection found"
           }
         }
       }
@@ -14732,7 +14765,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Will connect once device goes online"
+            "value" : "Will connect once your device goes online"
           }
         },
         "es" : {

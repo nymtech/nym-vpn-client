@@ -7,8 +7,14 @@ public enum ArcProgressState: Equatable, Sendable {
     /// Idle / not connected — all rings at track opacity, label "Not protected".
     case disconnected
 
-    /// Device has no internet — idle rings, label "Your device has no internet connection".
+    /// Device has no internet and no session to resume: idle rings, label
+    /// "Not protected" with the no-internet caption.
     case offline
+
+    /// Offline mid-session with the kill switch on, so traffic is held: grey
+    /// tracks, only the outer ring lit and blinking, label "Kill switch is
+    /// blocking traffic" with the will-reconnect caption.
+    case blocked
 
     /// One of the six connecting steps — fills 50% (first half) or 100% (full)
     /// of the corresponding ring. Outer ring covers steps 1–2, middle 3–4,
@@ -36,6 +42,25 @@ public enum ArcProgressState: Equatable, Sendable {
         case choosingBestServers
         case registeringWithServers
         case establishingConnection
+
+        /// The marker step (1 to `Marker.connectingStepCount`) this step draws.
+        /// Matches `Marker.step(for:)`: the two account checks share step 2.
+        public var markerStep: Int {
+            switch self {
+            case .initializingNym:
+                return 1
+            case .authenticatingAccount, .downloadingZkNyms:
+                return 2
+            case .updatingServerList:
+                return 3
+            case .choosingBestServers:
+                return 4
+            case .registeringWithServers:
+                return 5
+            case .establishingConnection:
+                return 6
+            }
+        }
     }
 }
 

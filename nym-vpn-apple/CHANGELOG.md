@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Home screen: the connection rings show the new connection marker. Connecting fills the rings in yellow step by step, an error breaks every ring at the same point, and losing the network mid-session shows "Kill switch is blocking traffic". The centre shows the mode: two linked blocks for dVPN, the mix layers for Mixnet, with the route playing while connected (https://github.com/nymtech/nym-vpn-client/pull/7097)
+
 ### Fixed
 
 - iOS: when the Apple ID's subscription belongs to another NymVPN account, the plan screen now explains it and opens Apple's subscription settings instead of letting a second account pay into that subscription (https://github.com/nymtech/nym-vpn-client/pull/6915)
