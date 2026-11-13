@@ -40,6 +40,15 @@ fun isVpnAlwaysOn(context: Context): Boolean = try {
 	false
 }
 
+private const val ALWAYS_ON_VPN_LOCKDOWN = "always_on_vpn_lockdown"
+
+/** "Block connections without VPN": with always-on, the system holds traffic when the tunnel is down. */
+fun isVpnLockdown(context: Context): Boolean = try {
+	Settings.Secure.getInt(context.contentResolver, ALWAYS_ON_VPN_LOCKDOWN, 0) == 1
+} catch (ex: SecurityException) {
+	false
+}
+
 fun Tunnel.Mode.toConnectMode(): ConnectMode = when (this) {
 	Tunnel.Mode.TWO_HOP_MIXNET -> ConnectMode.FAST
 	Tunnel.Mode.FIVE_HOP_MIXNET -> ConnectMode.MIXNET

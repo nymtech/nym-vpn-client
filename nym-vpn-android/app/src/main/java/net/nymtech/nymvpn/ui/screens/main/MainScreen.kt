@@ -54,9 +54,11 @@ import net.nymtech.nymvpn.ui.common.snackbar.AlertHost
 import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.model.ConnectionState
+import net.nymtech.nymvpn.ui.model.Marker
 import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.MainBottomSheetContent
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
+import net.nymtech.nymvpn.ui.screens.main.components.rememberResumeCount
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectAction
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectPanel
@@ -70,6 +72,8 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
+import net.nymtech.nymvpn.util.extensions.isVpnAlwaysOn
+import net.nymtech.nymvpn.util.extensions.isVpnLockdown
 import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scoreFor
@@ -93,6 +97,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val connectionSeconds by viewModel.connectionSeconds.collectAsStateWithLifecycle()
 	val connectionTime = remember(connectionSeconds) { connectionSeconds?.convertSecondsToTimeString() }
 	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
+	val serviceBound by viewModel.serviceBound.collectAsStateWithLifecycle()
 	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsStateWithLifecycle()
 
 	val deviceAuthViewModel: DeviceAuthViewModel = hiltViewModel()
@@ -297,6 +302,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		connectionTime = connectionTime,
 		initialPanelState = if (appUiState.settings.panelCollapsed) PanelState.COLLAPSED else PanelState.FULL,
 		contentPadding = padding,
+		lockdownProbe = viewModel::systemBlocksWithoutVpn,
+		serviceBound = serviceBound,
 		onAction = { action ->
 			when (action) {
 				ConnectAction.CONNECT -> onConnectPressed()
@@ -430,6 +437,8 @@ private fun MainScreenContent(
 	modifier: Modifier = Modifier,
 	contentPadding: PaddingValues = PaddingValues(),
 	previewAlertMessage: AlertMessage? = null,
+	lockdownProbe: () -> Boolean? = { null },
+	serviceBound: Boolean = false,
 ) {
 	val context = LocalContext.current
 	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
@@ -477,6 +486,29 @@ private fun MainScreenContent(
 		hasSubscriptionHistory = appUiState.hasSubscriptionHistory,
 	)
 
+	val managerState = appUiState.managerState
+	// traffic is only held offline when always-on runs with "Block connections without VPN". Read from the running
+	// service first (public API); the settings read is the fallback. Read again on resume: the user can change
+	// lockdown in system settings while this screen stays open.
+	val resumes = rememberResumeCount()
+	val killSwitch = remember(managerState.tunnelState, resumes, serviceBound) {
+		lockdownProbe() ?: (isVpnAlwaysOn(context) && isVpnLockdown(context))
+	}
+	// the screen also reads offline from the network status: follow it only for a live or
+	// already-offline session, so a connect attempt or a disconnect is never shown as blocked
+	val tunnelState = managerState.tunnelState
+	val liveOrOffline = tunnelState == Tunnel.State.Up || tunnelState is Tunnel.State.Offline
+	val markerTunnelState = when {
+		connectionState == ConnectionState.WaitingForConnection && liveOrOffline -> Tunnel.State.Offline(reconnect = true)
+		// a restart with the network down can leave the tunnel Up: still a session, so offline mid-session
+		connectionState == ConnectionState.Offline && tunnelState == Tunnel.State.Up -> Tunnel.State.Offline(reconnect = true)
+		connectionState == ConnectionState.Offline && (tunnelState == Tunnel.State.Down || tunnelState is Tunnel.State.Offline) ->
+			Tunnel.State.Offline(reconnect = false)
+		connectionState == ConnectionState.Disconnecting -> Tunnel.State.Disconnecting
+		else -> tunnelState
+	}
+	val marker = Marker.from(markerTunnelState, managerState.establishConnectionState, appUiState.vpnConfig.mode, killSwitch)
+
 	Box(
 		modifier = modifier
 			.fillMaxSize()
@@ -491,8 +523,8 @@ private fun MainScreenContent(
 		) {
 			ConnectionStatus(
 				connectionState = connectionState,
+				marker = marker,
 				vpnMode = appUiState.vpnConfig.mode,
-				establishConnectionState = appUiState.managerState.establishConnectionState,
 				connectionTime = connectionTime,
 			)
 		}

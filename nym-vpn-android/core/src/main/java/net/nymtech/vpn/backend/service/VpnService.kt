@@ -99,6 +99,9 @@ class VpnService :
 	private lateinit var connectivity: VpnConnectivityBridge
 	private lateinit var api: VpnServiceApi
 
+	// the public API for always-on lockdown (API 29+); the hidden settings keys may not be readable at this target SDK
+	private fun systemBlocksWithoutVpn(): Boolean? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) isAlwaysOn && isLockdownEnabled else null
+
 	override fun onCreate() {
 		super.onCreate()
 
@@ -123,7 +126,7 @@ class VpnService :
 			service = this,
 			scope = ioScope,
 		)
-		api = VpnServiceApiImpl(core = core, events = events)
+		api = VpnServiceApiImpl(core = core, events = events, lockdownProbe = ::systemBlocksWithoutVpn)
 
 		Timber.tag(TAG).i("ServiceCreated")
 		_events.tryEmit(VpnServiceEvent.Log("VpnService created"))

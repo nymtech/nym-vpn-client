@@ -67,6 +67,7 @@ data class NymColors(
 	val warningBackground: Color = Color.Unspecified,
 	val favorite: Color = Color.Unspecified,
 	val currentValueIndicator: Color = Color.Unspecified,
+	val markerConnecting: Color = Color.Unspecified,
 )
 
 val DarkNymColors = NymColors(
@@ -87,6 +88,7 @@ val DarkNymColors = NymColors(
 	warningBackground = Color(0x1AFFCC33),
 	favorite = Color(0xFFFFB400),
 	currentValueIndicator = Color(0xFF9189FF),
+	markerConnecting = Color(0xFFF4B940),
 )
 
 val LightNymColors = NymColors(
@@ -107,6 +109,7 @@ val LightNymColors = NymColors(
 	warningBackground = Color(0xB3634A00),
 	favorite = Color(0xFFFFB400),
 	currentValueIndicator = Color(0xFF9189FF),
+	markerConnecting = Color(0xFF9A5B00),
 )
 
 val LocalNymColors = staticCompositionLocalOf { DarkNymColors }

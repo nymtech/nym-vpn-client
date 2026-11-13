@@ -207,6 +207,10 @@
 	<string name="one_click_nym_entry_node">Entry server</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Not protected</string>
+	<string name="connection_status_blocked">Kill switch is blocking traffic</string>
+	<string name="connection_status_blocked_action">Turn off \"Block connections without VPN\" in system settings to disable it</string>
+	<string name="connection_status_offline_reconnect">Will connect once your device goes online</string>
+	<string name="connection_status_no_internet">No internet connection found</string>
 	<string name="connection_status_fast_mode">dVPN protection</string>
 	<string name="connection_status_anonymous">Mixnet protection</string>
 	<string name="connection_status_bridge">Connected via %1$s bridge</string>
