@@ -37,6 +37,10 @@ on:
         type: boolean
         default: true
 
+env:
+  GIT_USER: NYM CI
+  GIT_EMAIL: ci@nymtech.net
+
 jobs:
   post-release:
     runs-on: arc-linux-latest
@@ -83,6 +87,7 @@ jobs:
           ./update_metainfo.sh
 
       - name: Create PR
+        if: ${{ inputs.linux }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -92,8 +97,8 @@ jobs:
             - bump Linux installer script
             - update flatpak package metainfo.xml
         run: |
-          git config --global user.name "NYM_bot"
-          git config --global user.email "_@_"
+          git config --global user.name "${{ env.GIT_USER }}"
+          git config --global user.email "${{ env.GIT_EMAIL }}"
           git switch -C ${{ env.GIT_BRANCH }}
           git add .pkg/linux
           git add nym-vpn-app/.pkg/flatpak
