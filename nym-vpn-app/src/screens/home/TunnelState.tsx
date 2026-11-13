@@ -317,6 +317,7 @@ export function TunnelState() {
             mode={markerMode(vpnMode)}
             size={SPHERE_SIZE}
             lit={phase !== 'disconnected'}
+            playing={phase === 'connected'}
           />
         </div>
 
