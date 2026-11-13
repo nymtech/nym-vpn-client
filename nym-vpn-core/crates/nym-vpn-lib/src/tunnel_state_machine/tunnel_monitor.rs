@@ -195,6 +195,14 @@ fn spend_date_expected_by_gateway(reason: &str) -> Option<Date> {
     Date::from_calendar_date(year, month, day).ok()
 }
 
+/// The network's UTC date at `device_time`, given the device clock's skew (how far ahead of the
+/// network it is). Without a skew estimate this is the device's own date.
+fn network_date_at(device_time: OffsetDateTime, skew: Option<time::Duration>) -> Date {
+    skew.map_or(device_time, |skew| device_time - skew)
+        .to_offset(time::UtcOffset::UTC)
+        .date()
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum BlamedGateway {
     Entry,
@@ -624,13 +632,11 @@ impl TunnelMonitor {
 
         let registration_client = Box::pin(rc_builder.build()).await?;
         let registration_result = Box::pin(registration_client.register()).await;
-        // Taken before any resync round trip, so it is as close as possible to the moment the
-        // gateway checked the ticket's date (matters around midnight).
-        let network_date = self
-            .skew_manager
-            .cached_skew_corrected_time()
-            .to_offset(time::UtcOffset::UTC)
-            .date();
+        // Device time when the gateway answered, taken before any resync round trip (matters
+        // around midnight); the skew is applied after the resync below.
+        let registered_at = OffsetDateTime::now_utc();
+        // `force_resync` clears the cached skew first, so keep it in case the refresh fails.
+        let prior_skew = self.skew_manager.cached_skew();
 
         if let Err(err) = &registration_result
             && (registration_rejected_due_to_timestamp(err)
@@ -664,6 +670,9 @@ impl TunnelMonitor {
         }
 
         let registration_result = registration_result.inspect_err(|err| {
+            // After a successful resync this uses the refreshed skew; otherwise the prior one.
+            let skew = self.skew_manager.cached_skew().or(prior_skew);
+            let network_date = network_date_at(registered_at, skew);
             let gateway = match blamed_gateway(err, network_date) {
                 Some(BlamedGateway::Exit) => selected_gateways.exit_gateway(),
                 Some(BlamedGateway::Entry) => selected_gateways.entry_gateway(),
@@ -2318,6 +2327,24 @@ mod tests {
         assert_eq!(
             blamed_gateway(&rejected_by_entry(reason), date(2026, Month::October, 30)),
             Some(BlamedGateway::Entry)
+        );
+    }
+
+    #[test]
+    fn network_date_applies_the_skew() {
+        // Device clock 10 h ahead: 02:00 on Oct 31 locally is 16:00 on Oct 30 on the network.
+        let device_time = date(2026, Month::October, 31)
+            .with_hms(2, 0, 0)
+            .unwrap()
+            .assume_utc();
+        let ten_hours = time::Duration::hours(10);
+        assert_eq!(
+            network_date_at(device_time, Some(ten_hours)),
+            date(2026, Month::October, 30)
+        );
+        assert_eq!(
+            network_date_at(device_time, None),
+            date(2026, Month::October, 31)
         );
     }
 
