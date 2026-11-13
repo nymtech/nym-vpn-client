@@ -3,14 +3,12 @@ import AppSettings
 import ConnectionManager
 import ConnectionTypes
 import Constants
-import FeatureFlagsManager
 import UIComponents
 import Theme
 
 public struct CensorshipView: View {
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @Binding private var path: NavigationPath
 
     public var body: some View {
@@ -73,49 +71,53 @@ private extension CensorshipView {
             viewModel: SettingsListItemViewModel(
                 accessory: .empty,
                 title: "censorship.quic.title".localizedString,
+                badge: "2hopMixnetTitle".localizedString,
                 position: .init(isFirst: true, isLast: true),
                 action: {}
             ),
             customContent: {
                 VStack(alignment: .leading, spacing: 12) {
+                    Text(markdown("censorship.quic.subtitle".localizedString))
+                        .nymTextStyle(.bodySmall)
+                        .foregroundStyle(Color.Nym.textSecondary)
                     BridgeModeSelector(selection: modeBinding)
-                    if let text = quicMultilineText() {
-                        Text(text)
-                            .nymTextStyle(.bodySmall)
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text(markdown("censorship.bridge.\(appSettings.bridgeMode.rawValue)".localizedString))
                             .foregroundStyle(Color.Nym.textSecondary)
-                            .tint(Color.Nym.textSecondary)
+                        Text("censorship.bridge.reconnect".localizedString)
+                            .foregroundStyle(Color.Nym.warning)
+                        learnMoreLink(
+                            text: "censorship.quic.link".localizedString,
+                            url: Constants.antiCensorshipBridgesURL.rawValue
+                        )
                     }
+                    .nymTextStyle(.bodySmall)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, NymSpacing.large)
                 .padding(.bottom, 18)
             },
-            combineAccessibilityChildren: false
+            combineAccessibilityChildren: false,
+            compactTitle: true
         )
     }
 
-    func quicMultilineText() -> AttributedString? {
-        let first = "censorship.bridge.\(appSettings.bridgeMode.rawValue)".localizedString
-        var second = "censorship.bridge.reconnect".localizedString
-        if featureFlagsManager.isBridgeTransportsEnabled && appSettings.bridgeMode != .off {
-            second += "\n\n" + "censorship.quic.fallback".localizedString
-        }
-        let link = Constants.quicURL.rawValue
-        let linkText = "censorship.quic.link".localizedString
-        let markdown = """
-\(first)
-
-\(second)
-
-[\(linkText)](\(link))
-"""
-
+    func markdown(_ string: String) -> AttributedString {
         let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        guard var text = try? AttributedString(markdown: markdown, options: options) else { return nil }
-        if let range = text.range(of: linkText) {
-            text[range].underlineStyle = .single
-            text[range].foregroundColor = Color.Nym.textPrimary
+        guard var text = try? AttributedString(markdown: string, options: options) else {
+            return AttributedString(string)
+        }
+        for run in text.runs where run.inlinePresentationIntent?.contains(.stronglyEmphasized) == true {
+            text[run.range].font = Font.Nym.bodySmallBold
         }
         return text
+    }
+
+    func learnMoreLink(text: String, url: String) -> some View {
+        Text(markdown("[\(text)](\(url))"))
+            .underline()
+            .tint(Color.Nym.textPrimary)
+            .foregroundStyle(Color.Nym.textPrimary)
     }
 
     // MARK: - Stealth API -
@@ -140,7 +142,6 @@ private extension CensorshipView {
 
     func stealthApiMultilineText() -> AttributedString? {
         let first = "censorship.stealhapi.subtitle1".localizedString
-        // TODO: update link
         let link = Constants.stealhApiConnectURL.rawValue
         let linkText = "censorship.stealhapi.link".localizedString
         let markdown = """

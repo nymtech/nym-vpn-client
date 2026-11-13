@@ -3500,57 +3500,13 @@
         }
       }
     },
-    "censorship.amneziawg.link" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "How AmneziaWG prevents DPI"
-          }
-        }
-      }
-    },
-    "censorship.amneziawg.subtitle1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Disguises WireGuard traffic with decoy packets to prevent VPN blocking."
-          }
-        }
-      }
-    },
-    "censorship.amneziawg.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Note: Only implemented client-side."
-          }
-        }
-      }
-    },
-    "censorship.amneziawg.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Minimal obfuscation (AmneziaWG)"
-          }
-        }
-      }
-    },
     "censorship.bridge.off" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connect directly without a bridge."
+            "value" : "Connect directly, without a bridge. Fastest, but easiest to block."
           }
         }
       }
@@ -3561,7 +3517,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connect directly first, and use a bridge if that fails."
+            "value" : "Tries **WireGuard** first, then switches to a bridge (QUIC, TLS, or SSH) if it fails."
           }
         }
       }
@@ -3572,7 +3528,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Always use a bridge. Only servers that offer one can be chosen as the entry server."
+            "value" : "Always use a bridge. Only servers that offer one can be your entry server."
           }
         }
       }
@@ -3594,18 +3550,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Changes will apply after reconnect"
-          }
-        }
-      }
-    },
-    "censorship.quic.fallback" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower."
+            "value" : "Changes require reconnection."
           }
         }
       }
@@ -3729,7 +3674,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enhanced connection"
+            "value" : "Disguise your traffic"
           }
         },
         "es" : {
@@ -3808,6 +3753,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "增强连接 (QUIC)"
+          }
+        }
+      }
+    },
+    "censorship.quic.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bridges help you slip past networks that detect and block VPN traffic. **dVPN** mode uses AmneziaWG by default to make **WireGuard** harder to detect."
           }
         }
       }
@@ -3931,7 +3887,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail."
+            "value" : "Stay connected even if Nym's servers are blocked where you are."
           }
         },
         "es" : {
@@ -4032,7 +3988,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stealth API connect"
+            "value" : "Disguise your Nym connection"
           }
         },
         "es" : {
@@ -4121,7 +4077,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking."
+            "value" : "Improve your connection on restrictive networks and against VPN blocking."
           }
         }
       }
@@ -7050,7 +7006,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The entry server didn't complete your connection. Try again, or turn on Enhanced connection in Anti-censorship settings."
+            "value" : "The entry server didn't complete your connection. Try again, or turn on “Disguise your traffic” in Anti-censorship settings."
           }
         },
         "es" : {
@@ -7857,7 +7813,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No entry server for your selection offers a bridge. Choose a different entry server or location, or set Enhanced connection to Auto or Off."
+            "value" : "No entry server for your selection offers a bridge. Choose a different entry server or location, or set “Disguise your traffic” to Auto or Off."
           }
         }
       }
@@ -10491,7 +10447,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enable “Enhanced connection”"
+            "value" : "Set “Disguise your traffic” to Auto or On"
           }
         },
         "es" : {
@@ -12507,7 +12463,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only showing dVPN locations and servers that offer a bridge. To reveal all servers, change Enhanced connection"
+            "value" : "Only showing dVPN locations and servers that offer a bridge. To reveal all servers, change “Disguise your traffic”"
           }
         },
         "es" : {
@@ -16896,40 +16852,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "QUIC protocol"
+            "value" : "Disguise your traffic"
           }
         }
       }
     },
-    "locationModal.quic.subtitle1" : {
+    "locationModal.bridges.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Improves the dVPN reliability in restrictive networks by"
+            "value" : "Bridges help you slip past networks that detect and block VPN traffic."
           }
         }
       }
     },
-    "locationModal.quic.subtitle2" : {
+    "locationModal.bridges.link" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "wrapping WireGuard traffic in QUIC"
-          }
-        }
-      }
-    },
-    "locationModal.quic.subtitle3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "(HTTP/3) to appear as regular web browsing."
+            "value" : "Learn more"
           }
         }
       }
@@ -19818,13 +19763,13 @@
         }
       }
     },
-    "onboarding26.censorship.blocking" : {
+    "onboarding26.censorship.prevent" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avoid VPN blocking with "
+            "value" : "Prevent "
           }
         }
       }
@@ -19840,13 +19785,13 @@
         }
       }
     },
-    "onboarding26.censorship.firewalls" : {
+    "onboarding26.censorship.adaptive" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Get around firewalls with "
+            "value" : "Adaptive "
           }
         }
       }
@@ -19873,24 +19818,24 @@
         }
       }
     },
-    "onboarding26.censorship.quicBold" : {
+    "onboarding26.censorship.bridgesBold" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "QUIC"
+            "value" : "anti-censorship bridges"
           }
         }
       }
     },
-    "onboarding26.censorship.stealthBold" : {
+    "onboarding26.censorship.vpnBlockingBold" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stealth Connect"
+            "value" : "VPN blocking"
           }
         }
       }
