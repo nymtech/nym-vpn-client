@@ -69,7 +69,11 @@ def _bullets(body):
     for line in body.splitlines():
         line = line.strip()
         if line.startswith("- "):
-            out.append(re.sub(r"\s*\(https?://\S+\)\s*$", "", line[2:]).strip())
+            s = line[2:]
+            # strip the trailing PR link: the tidy "([#123](url))" form, or the legacy bare "(url)"
+            s = re.sub(r"\s*\(\[#\d+\]\(https?://\S+?\)\)\s*$", "", s)
+            s = re.sub(r"\s*\(https?://\S+\)\s*$", "", s)
+            out.append(s.strip())
     return out
 
 

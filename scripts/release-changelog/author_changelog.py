@@ -279,7 +279,9 @@ def upsert(path, buckets, pr_url, dry):
             continue                # the writer appends, so /pull/686 won't match inside /pull/6860
         (sections[cur] if cur else preamble).append(ln)
 
-    # add the new bullets
+    # add the new bullets as "- text ([#123](url))": GitHub renders a tidy #123 link, and the dedup
+    # above still matches because the "(url)" substring is present inside the markdown link.
+    pr_num = pr_url.rstrip("/").split("/")[-1]
     added_n = 0
     for heading in HEADINGS:
         items = [i for i in (buckets.get(heading.lower()) or []) if i.strip()]
@@ -287,7 +289,7 @@ def upsert(path, buckets, pr_url, dry):
             continue
         sections.setdefault(heading, [])
         for it in items:
-            sections[heading].append(f"- {it.rstrip('.')} ({pr_url})")
+            sections[heading].append(f"- {it.rstrip('.')} ([#{pr_num}]({pr_url}))")
             added_n += 1
 
     # re-render: canonical heading order first, then any others, preserving bullet order
