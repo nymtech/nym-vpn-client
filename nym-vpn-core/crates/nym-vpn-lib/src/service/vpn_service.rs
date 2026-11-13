@@ -621,7 +621,8 @@ impl NymVpnService {
         .await;
 
         let storage_paths = StoragePaths::new_from_dir(paths.network_data_dir.clone())
-            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?;
+            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?
+            .with_database_key(Some(database_key.clone()));
 
         // Bandwidth control
         let credential_storage = storage_paths
