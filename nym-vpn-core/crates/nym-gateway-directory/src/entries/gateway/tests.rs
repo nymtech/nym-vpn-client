@@ -805,3 +805,51 @@ fn bridge_candidates_fall_back_to_tls_only_when_allowed() {
     );
     assert_eq!(gateway.bridge_candidates(true), (vec![quic], vec![tls]));
 }
+
+fn gateway_with_lp_probe(lp: Option<Lp>) -> Gateway {
+    Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .last_probe(Some(Probe {
+            last_updated_utc: "".to_owned(),
+            outcome: ProbeOutcome {
+                as_entry: Entry {
+                    can_connect: true,
+                    can_route: true,
+                },
+                as_exit: None,
+                wg: None,
+                socks5: None,
+                lp,
+            },
+        }))
+        .build()
+}
+
+#[test]
+fn test_matching_lp_can_register() {
+    let lp = |can_register| Lp {
+        can_connect: true,
+        can_handshake: true,
+        can_register,
+        error: None,
+    };
+
+    assert!(
+        gateway_with_lp_probe(Some(lp(true))).matches_filter(None, &GatewayFilter::LpCanRegister)
+    );
+    assert!(
+        !gateway_with_lp_probe(Some(lp(false))).matches_filter(None, &GatewayFilter::LpCanRegister)
+    );
+    // No LP probe data: keep the gateway rather than shrink the pool on missing data.
+    assert!(gateway_with_lp_probe(None).matches_filter(None, &GatewayFilter::LpCanRegister));
+    let no_probe = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .build();
+    assert!(no_probe.matches_filter(None, &GatewayFilter::LpCanRegister));
+}

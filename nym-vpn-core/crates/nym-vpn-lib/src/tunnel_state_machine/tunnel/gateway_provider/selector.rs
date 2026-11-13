@@ -303,6 +303,7 @@ fn select_entry(
     blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     use_bridges: bool,
+    filter_lp: bool,
     gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<&Location>,
 ) -> Result<Gateway, GatewayProviderError> {
@@ -319,6 +320,9 @@ fn select_entry(
 
     if use_bridges {
         entry_filters.add(GatewayFilter::QuicEnabled);
+    }
+    if filter_lp && !pinned_entry {
+        entry_filters.add(GatewayFilter::LpCanRegister);
     }
 
     let entry_ordering_criteria = OrderingCriteria::new_entry(
@@ -348,6 +352,7 @@ fn select_exit(
     mut exit_gateways: GatewayList,
     blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
+    filter_lp: bool,
     gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<&Location>,
 ) -> Result<Gateway, GatewayProviderError> {
@@ -380,18 +385,23 @@ fn select_exit(
     if !pinned_exit && !blacklisted_gateways.is_empty().unwrap_or(true) {
         exit_filter_items.push(GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()));
     }
+    if filter_lp && !pinned_exit {
+        exit_filter_items.push(GatewayFilter::LpCanRegister);
+    }
     let exit_filters = GatewayFilters::from(&exit_filter_items);
 
     find_best_exit_gateway(&exit_gateways, exit_ordering_criteria, &exit_filters)
         .map_err(GatewayProviderError::ExitGatewayUnavailable)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn loop_select(
     mut entry_gateways: GatewayList,
     exit_gateways: GatewayList,
     blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     use_bridges: bool,
+    filter_lp: bool,
     gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<&Location>,
 ) -> Result<(Gateway, Gateway), GatewayProviderError> {
@@ -402,6 +412,7 @@ fn loop_select(
             blacklisted_gateways,
             tunnel_settings,
             use_bridges,
+            filter_lp,
             gateway_provider_event_sender.clone(),
             device_location,
         )
@@ -413,6 +424,7 @@ fn loop_select(
             exit_gateways.clone(),
             blacklisted_gateways,
             tunnel_settings,
+            filter_lp,
             gateway_provider_event_sender.clone(),
             device_location,
         ) {
@@ -423,6 +435,66 @@ fn loop_select(
                     .retain_gateways_by(|gateway| gateway.identity() != entry_gateway.identity());
             }
         }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn select_pair(
+    entry_gateways: GatewayList,
+    exit_gateways: GatewayList,
+    blacklisted_gateways: &BlacklistedGateways,
+    tunnel_settings: &TunnelSettings,
+    use_bridges: bool,
+    filter_lp: bool,
+    gateway_provider_event_sender: Option<GatewayProviderEventSender>,
+    device_location: Option<&Location>,
+) -> Result<(Gateway, Gateway), GatewayProviderError> {
+    if tunnel_settings.gateway_independence.active() {
+        // Try with gateway independent gateways first
+        if let Ok(pair) = loop_select(
+            entry_gateways.clone(),
+            exit_gateways.clone(),
+            blacklisted_gateways,
+            tunnel_settings,
+            use_bridges,
+            filter_lp,
+            gateway_provider_event_sender.clone(),
+            device_location,
+        ) {
+            Ok(pair)
+        } else {
+            // Check if removing the independence criteria allows us to select a gateway pair
+            // so we know what to tell the user.
+            let mut no_gateway_independence_settings = tunnel_settings.clone();
+            no_gateway_independence_settings
+                .gateway_independence
+                .set_enabled(false);
+            // if we still can't select, we just return the error
+            loop_select(
+                entry_gateways,
+                exit_gateways,
+                blacklisted_gateways,
+                &no_gateway_independence_settings,
+                use_bridges,
+                filter_lp,
+                gateway_provider_event_sender,
+                device_location,
+            )?;
+            // otherwise we return an error that prompts the user to explicitly agree to possible non-independent gateways
+            Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)
+        }
+    } else {
+        // Drop an entry that has no usable exit (e.g. it is the pinned exit) and try the next.
+        loop_select(
+            entry_gateways,
+            exit_gateways,
+            blacklisted_gateways,
+            tunnel_settings,
+            use_bridges,
+            filter_lp,
+            gateway_provider_event_sender,
+            device_location,
+        )
     }
 }
 
@@ -483,56 +555,29 @@ pub async fn select_gateways(
         }
     };
 
-    let (entry_gateway, exit_gateway) = if tunnel_settings.gateway_independence.active() {
-        // Try with gateway independent gateways first
-        if let Ok(pair) = loop_select(
+    // Prefer gateways that pass the LP registration probe, but don't let probe results that
+    // reject every candidate pair block the connection.
+    let filter_lp = tunnel_type == TunnelType::Wireguard;
+    let select = |filter_lp| {
+        select_pair(
             entry_gateways.clone(),
             exit_gateways.clone(),
             blacklisted_gateways,
             tunnel_settings,
             use_bridges,
+            filter_lp,
             gateway_provider_event_sender.clone(),
             device_location.as_ref(),
-        ) {
-            pair
-        } else {
-            // Check if removing the independence criteria allows us to select a gateway pair
-            // so we know what to tell the user.
-            let mut no_gateway_independence_settings = tunnel_settings.clone();
-            no_gateway_independence_settings
-                .gateway_independence
-                .set_enabled(false);
-            // if we still can't select, we just return the error
-            loop_select(
-                entry_gateways,
-                exit_gateways,
-                blacklisted_gateways,
-                &no_gateway_independence_settings,
-                use_bridges,
-                gateway_provider_event_sender,
-                device_location.as_ref(),
-            )?;
-            // otherwise we return an error that prompts the user to explicitly agree to possible non-independent gateways
-            return Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria);
+        )
+    };
+    let (entry_gateway, exit_gateway) = match select(filter_lp) {
+        Err(err) if filter_lp => {
+            tracing::warn!(
+                "Gateway selection failed with the LP registration probe filter ({err}), retrying without it"
+            );
+            select(false)?
         }
-    } else {
-        let entry_gateway = select_entry(
-            entry_gateways,
-            blacklisted_gateways,
-            tunnel_settings,
-            use_bridges,
-            gateway_provider_event_sender.clone(),
-            device_location.as_ref(),
-        )?;
-        let exit_gateway = select_exit(
-            &entry_gateway,
-            exit_gateways,
-            blacklisted_gateways,
-            tunnel_settings,
-            gateway_provider_event_sender,
-            device_location.as_ref(),
-        )?;
-        (entry_gateway, exit_gateway)
+        result => result?,
     };
 
     let entry_keys = wg_keys_db
@@ -660,6 +705,210 @@ mod tests {
             &WireguardKeysDb::Ephemeral(Default::default()),
         )
         .await
+    }
+
+    fn gw_rejecting_lp_registration(id: &str) -> Gateway {
+        let mut gateway = gateway_id_to_gateway(id);
+        gateway.last_probe = Some(nym_gateway_directory::Probe {
+            last_updated_utc: Default::default(),
+            outcome: nym_gateway_directory::ProbeOutcome {
+                as_entry: nym_gateway_directory::Entry {
+                    can_connect: true,
+                    can_route: true,
+                },
+                as_exit: None,
+                wg: None,
+                socks5: None,
+                lp: Some(nym_gateway_directory::Lp {
+                    can_connect: true,
+                    can_handshake: true,
+                    can_register: false,
+                    error: None,
+                }),
+            },
+        });
+        gateway
+    }
+
+    const GW_ID_3: &str = "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42";
+
+    async fn select_wireguard(
+        gateways: Vec<Gateway>,
+        entry_point: EntryPoint,
+    ) -> Result<SelectedGateways, GatewayProviderError> {
+        let mut settings = default_tunnel_settings();
+        *settings.entry_point = entry_point;
+        select_gateways(
+            MockGatewayCache::new(Arc::new(RwLock::new(Some(gateways)))),
+            &BlacklistedGateways::new(),
+            &settings,
+            false,
+            None,
+            None,
+            &WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await
+    }
+
+    // Selection is random; 32 picks make a pass by chance 1 in 2^32.
+    #[test]
+    fn wireguard_entry_rejecting_lp_registration_is_skipped() {
+        for _ in 0..32 {
+            let entry = select_entry(
+                GatewayList::new(
+                    Some(GatewayType::Wg),
+                    vec![
+                        gw_rejecting_lp_registration(GW_ID_1),
+                        gateway_id_to_gateway(GW_ID_2),
+                    ],
+                ),
+                &BlacklistedGateways::new(),
+                &default_tunnel_settings(),
+                false,
+                true,
+                None,
+                None,
+            )
+            .unwrap();
+            assert_eq!(entry.identity().to_base58_string(), GW_ID_2);
+        }
+    }
+
+    #[tokio::test]
+    async fn wireguard_exit_rejecting_lp_registration_is_skipped() {
+        for _ in 0..32 {
+            let selected = select_wireguard(
+                vec![
+                    gw_rejecting_lp_registration(GW_ID_1),
+                    gateway_id_to_gateway(GW_ID_2),
+                    gateway_id_to_gateway(GW_ID_3),
+                ],
+                EntryPoint::Gateway {
+                    identity: GW_ID_3.parse().unwrap(),
+                },
+            )
+            .await
+            .unwrap();
+            assert_eq!(
+                selected.exit_gateway().identity().to_base58_string(),
+                GW_ID_2
+            );
+        }
+    }
+
+    // An entry pick that lands on the pinned exit must move on to the next LP-passing entry,
+    // not fall back to an LP-rejecting one.
+    // A broken retry passes an iteration with probability 2/3, so 32 runs miss it about 2e-6.
+    #[tokio::test]
+    async fn entry_colliding_with_pinned_exit_tries_next_lp_passing_entry() {
+        for _ in 0..32 {
+            let mut settings = default_tunnel_settings();
+            *settings.exit_point = ExitPoint::Gateway {
+                identity: GW_ID_1.parse().unwrap(),
+            };
+            let selected = select_gateways(
+                MockGatewayCache::new(Arc::new(RwLock::new(Some(vec![
+                    gateway_id_to_gateway(GW_ID_1),
+                    gateway_id_to_gateway(GW_ID_2),
+                    gw_rejecting_lp_registration(GW_ID_3),
+                ])))),
+                &BlacklistedGateways::new(),
+                &settings,
+                false,
+                None,
+                None,
+                &WireguardKeysDb::Ephemeral(Default::default()),
+            )
+            .await
+            .unwrap();
+            assert_eq!(
+                selected.entry_gateway().identity().to_base58_string(),
+                GW_ID_2
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn lp_rejecting_gateways_are_used_when_no_other_candidate() {
+        let selected = select_wireguard(
+            vec![
+                gw_rejecting_lp_registration(GW_ID_1),
+                gw_rejecting_lp_registration(GW_ID_2),
+            ],
+            EntryPoint::Random,
+        )
+        .await;
+
+        assert!(selected.is_ok());
+    }
+
+    // Pinned LP-rejecting gateways are exempt from the filter, so the other side is still
+    // filtered. If a pinned gateway were filtered, the filtered pass would fail and the
+    // unfiltered retry could pick the LP-rejecting candidate on the other side.
+    async fn select_with_pinned(
+        entry_point: EntryPoint,
+        exit_point: ExitPoint,
+    ) -> SelectedGateways {
+        let mut settings = default_tunnel_settings();
+        *settings.entry_point = entry_point;
+        *settings.exit_point = exit_point;
+        select_gateways(
+            MockGatewayCache::new(Arc::new(RwLock::new(Some(vec![
+                gw_rejecting_lp_registration(GW_ID_1),
+                gw_rejecting_lp_registration(GW_ID_2),
+                gateway_id_to_gateway(GW_ID_3),
+            ])))),
+            &BlacklistedGateways::new(),
+            &settings,
+            false,
+            None,
+            None,
+            &WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await
+        .unwrap()
+    }
+
+    #[tokio::test]
+    async fn pinned_exit_rejecting_lp_registration_is_kept() {
+        for _ in 0..32 {
+            let selected = select_with_pinned(
+                EntryPoint::Random,
+                ExitPoint::Gateway {
+                    identity: GW_ID_1.parse().unwrap(),
+                },
+            )
+            .await;
+            assert_eq!(
+                selected.exit_gateway().identity().to_base58_string(),
+                GW_ID_1
+            );
+            assert_eq!(
+                selected.entry_gateway().identity().to_base58_string(),
+                GW_ID_3
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn pinned_entry_rejecting_lp_registration_is_kept() {
+        for _ in 0..32 {
+            let selected = select_with_pinned(
+                EntryPoint::Gateway {
+                    identity: GW_ID_1.parse().unwrap(),
+                },
+                ExitPoint::Random,
+            )
+            .await;
+            assert_eq!(
+                selected.entry_gateway().identity().to_base58_string(),
+                GW_ID_1
+            );
+            assert_eq!(
+                selected.exit_gateway().identity().to_base58_string(),
+                GW_ID_3
+            );
+        }
     }
 
     #[tokio::test]
