@@ -58,6 +58,7 @@ import net.nymtech.nymvpn.ui.model.Marker
 import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.MainBottomSheetContent
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
+import net.nymtech.nymvpn.ui.screens.main.components.rememberResumeCount
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectAction
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectPanel
@@ -481,8 +482,13 @@ private fun MainScreenContent(
 	)
 
 	val managerState = appUiState.managerState
-	// traffic is only held offline when always-on runs with "Block connections without VPN"
-	val killSwitch = remember(managerState.tunnelState) { isVpnAlwaysOn(context) && isVpnLockdown(context) }
+	// traffic is only held offline when always-on runs with "Block connections without VPN". Read from the running
+	// service first (public API); the settings read is the fallback. Read again on resume: the user can change
+	// lockdown in system settings while this screen stays open.
+	val resumes = rememberResumeCount()
+	val killSwitch = remember(managerState.tunnelState, resumes) {
+		viewModel.systemBlocksWithoutVpn() ?: (isVpnAlwaysOn(context) && isVpnLockdown(context))
+	}
 	// the screen also reads offline from the network status: follow it only for a live or
 	// already-offline session, so a connect attempt or a disconnect is never shown as blocked
 	val tunnelState = managerState.tunnelState

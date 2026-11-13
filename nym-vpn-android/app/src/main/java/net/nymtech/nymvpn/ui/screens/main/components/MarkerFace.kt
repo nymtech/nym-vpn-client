@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.scale
 import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.ui.model.MarkerMode
 
@@ -46,6 +47,13 @@ private val MIX_ROUTES: List<List<Offset>> = listOf(
 	listOf(MIX_ENTRY, Offset(24f, 58f), Offset(40f, 22f), Offset(56f, 58f), MIX_EXIT),
 	listOf(MIX_ENTRY, Offset(24f, 40f), Offset(40f, 58f), Offset(56f, 40f), MIX_EXIT),
 )
+
+// the route lines, built once in box units and scaled at draw time (no path built per frame)
+private val MIX_ROUTE_PATHS: List<Path> = MIX_ROUTES.map { route ->
+	Path().apply {
+		route.forEachIndexed { i, point -> if (i == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y) }
+	}
+}
 
 // rhythm: the data line ticks (dVPN 80 ms, Mixnet 120 ms)
 private const val DVPN_TICK_MS = 80L
@@ -103,16 +111,16 @@ private fun DrawScope.drawDvpnFace(color: Color, lit: Boolean, playing: Boolean,
 
 private fun DrawScope.drawMixnetFace(color: Color, lit: Boolean, playing: Boolean, tick: Int, scale: Float) {
 	val step = tick / MIX_TICKS_PER_HOP
-	val route = if (playing) MIX_ROUTES[(step / (MIX_PASS * MIX_PASSES_PER_ROUTE)) % MIX_ROUTES.size] else MIX_ROUTES[0]
+	val routeIndex = if (playing) (step / (MIX_PASS * MIX_PASSES_PER_ROUTE)) % MIX_ROUTES.size else 0
+	val route = MIX_ROUTES[routeIndex]
 	// index of the lit hop; -1 when still
 	val hop = if (playing) step % MIX_PASS else -1
 
 	if (lit) {
-		val path = Path()
-		route.forEachIndexed { i, point ->
-			if (i == 0) path.moveTo(point.x * scale, point.y * scale) else path.lineTo(point.x * scale, point.y * scale)
+		// the stroke is in box units too, so it scales with the path exactly as before
+		this.scale(scale = scale, pivot = Offset.Zero) {
+			drawPath(path = MIX_ROUTE_PATHS[routeIndex], color = color, alpha = if (playing) ROUTE_ALPHA else 1f, style = Stroke(width = LINE_WIDTH))
 		}
-		drawPath(path = path, color = color, alpha = if (playing) ROUTE_ALPHA else 1f, style = Stroke(width = LINE_WIDTH * scale))
 	} else {
 		drawNode(color, MIX_ENTRY, scale)
 		drawNode(color, MIX_EXIT, scale)

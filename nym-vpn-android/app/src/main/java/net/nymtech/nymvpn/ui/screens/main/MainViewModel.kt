@@ -22,6 +22,7 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.backend.VpnServiceConnectionManager
 import nym_vpn_lib_types.TentativeGateways
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
@@ -42,11 +43,15 @@ constructor(
 	private val vpnConfigRepository: VpnConfigRepository,
 	private val backendManager: BackendManager,
 	private val networkService: NetworkService,
+	private val serviceConnection: VpnServiceConnectionManager,
 ) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-main-vm"
 	}
+
+	/** The running service's read of always-on lockdown; null when the service is not bound or below API 29. */
+	fun systemBlocksWithoutVpn(): Boolean? = serviceConnection.apiFlow.value?.systemBlocksWithoutVpn()
 
 	private val _connectionSeconds = MutableStateFlow<Long?>(null)
 	val connectionSeconds: StateFlow<Long?> = _connectionSeconds.asStateFlow()

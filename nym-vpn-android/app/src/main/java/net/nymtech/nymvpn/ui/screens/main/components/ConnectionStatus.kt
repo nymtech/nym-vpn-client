@@ -24,7 +24,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -38,6 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.animations.Pulse
 import net.nymtech.nymvpn.ui.model.ConnectionState
@@ -75,7 +78,9 @@ private const val BLOCKED_HALF_CYCLE_MS = 1200
 fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: Tunnel.Mode, connectionTime: String? = null, modifier: Modifier = Modifier) {
 	val context = LocalContext.current
 	val bg = MaterialTheme.colorScheme.surface
-	val animationsOff = remember(context) { areAnimationsOff(context) }
+	// read again on resume: the user can turn animations off in system settings with this screen open
+	val resumes = rememberResumeCount()
+	val animationsOff = remember(context, resumes) { areAnimationsOff(context) }
 
 	// a failure reported by the backend reads as an error even once the tunnel is down
 	val phase = if (connectionState is ConnectionState.Error || connectionState is ConnectionState.StartFailure) MarkerState.ERROR else marker.state
@@ -323,6 +328,17 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 			)
 		}
 	}
+}
+
+/** Counts lifecycle resumes, so a value read from system settings can be keyed to be read again on return. */
+@Composable
+internal fun rememberResumeCount(): Int {
+	var resumes by remember { mutableIntStateOf(0) }
+	LifecycleResumeEffect(Unit) {
+		resumes++
+		onPauseOrDispose { }
+	}
+	return resumes
 }
 
 /** Animator duration scale 0 (developer options or battery saver): hold animations still. */
