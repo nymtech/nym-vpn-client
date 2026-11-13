@@ -97,6 +97,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val connectionSeconds by viewModel.connectionSeconds.collectAsStateWithLifecycle()
 	val connectionTime = remember(connectionSeconds) { connectionSeconds?.convertSecondsToTimeString() }
 	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
+	val serviceBound by viewModel.serviceBound.collectAsStateWithLifecycle()
 	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsStateWithLifecycle()
 
 	val deviceAuthViewModel: DeviceAuthViewModel = hiltViewModel()
@@ -301,6 +302,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		connectionTime = connectionTime,
 		initialPanelState = if (appUiState.settings.panelCollapsed) PanelState.COLLAPSED else PanelState.FULL,
 		contentPadding = padding,
+		lockdownProbe = viewModel::systemBlocksWithoutVpn,
+		serviceBound = serviceBound,
 		onAction = { action ->
 			when (action) {
 				ConnectAction.CONNECT -> onConnectPressed()
@@ -434,6 +437,8 @@ private fun MainScreenContent(
 	modifier: Modifier = Modifier,
 	contentPadding: PaddingValues = PaddingValues(),
 	previewAlertMessage: AlertMessage? = null,
+	lockdownProbe: () -> Boolean? = { null },
+	serviceBound: Boolean = false,
 ) {
 	val context = LocalContext.current
 	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
@@ -486,8 +491,8 @@ private fun MainScreenContent(
 	// service first (public API); the settings read is the fallback. Read again on resume: the user can change
 	// lockdown in system settings while this screen stays open.
 	val resumes = rememberResumeCount()
-	val killSwitch = remember(managerState.tunnelState, resumes) {
-		viewModel.systemBlocksWithoutVpn() ?: (isVpnAlwaysOn(context) && isVpnLockdown(context))
+	val killSwitch = remember(managerState.tunnelState, resumes, serviceBound) {
+		lockdownProbe() ?: (isVpnAlwaysOn(context) && isVpnLockdown(context))
 	}
 	// the screen also reads offline from the network status: follow it only for a live or
 	// already-offline session, so a connect attempt or a disconnect is never shown as blocked
