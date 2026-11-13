@@ -77,6 +77,10 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun getStoredMnemonic(): String = core.requireCoreSender { it.getStoredMnemonic() }
 
+	override suspend fun awaitCoreInitialized() {
+		core.awaitInitialized()
+	}
+
 	override suspend fun unlockKeychain(reason: String) {
 		core.requireCoreSender { it.unlockKeychain(reason) }
 	}
