@@ -72,6 +72,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isVpnAlwaysOn
+import net.nymtech.nymvpn.util.extensions.isVpnLockdown
 import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scoreFor
@@ -480,12 +481,18 @@ private fun MainScreenContent(
 	)
 
 	val managerState = appUiState.managerState
-	val killSwitch = remember(managerState.tunnelState) { isVpnAlwaysOn(context) }
-	// the screen also reads offline from the network status; feed the same reading to the marker
-	val markerTunnelState = when (connectionState) {
-		ConnectionState.WaitingForConnection -> Tunnel.State.Offline(reconnect = true)
-		ConnectionState.Offline -> Tunnel.State.Offline(reconnect = false)
-		else -> managerState.tunnelState
+	// traffic is only held offline when always-on runs with "Block connections without VPN"
+	val killSwitch = remember(managerState.tunnelState) { isVpnAlwaysOn(context) && isVpnLockdown(context) }
+	// the screen also reads offline from the network status: follow it only for a live or
+	// already-offline session, so a connect attempt or a disconnect is never shown as blocked
+	val tunnelState = managerState.tunnelState
+	val liveOrOffline = tunnelState == Tunnel.State.Up || tunnelState is Tunnel.State.Offline
+	val markerTunnelState = when {
+		connectionState == ConnectionState.WaitingForConnection && liveOrOffline -> Tunnel.State.Offline(reconnect = true)
+		connectionState == ConnectionState.Offline && (tunnelState == Tunnel.State.Down || tunnelState is Tunnel.State.Offline) ->
+			Tunnel.State.Offline(reconnect = false)
+		connectionState == ConnectionState.Disconnecting -> Tunnel.State.Disconnecting
+		else -> tunnelState
 	}
 	val marker = Marker.from(markerTunnelState, managerState.establishConnectionState, appUiState.vpnConfig.mode, killSwitch)
 

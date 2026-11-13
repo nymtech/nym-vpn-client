@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -75,7 +76,8 @@ fun MarkerFace(mode: MarkerMode, lit: Boolean, playing: Boolean, litColor: Color
 	}
 }
 
-// counts ticks while running; resets to 0 when stopped
+// counts ticks while running; resets to 0 when stopped. Each tick waits for a drawn frame,
+// so the loop pauses while the app is in the background.
 @Composable
 private fun rememberTick(running: Boolean, tickMs: Long): Int {
 	var tick by remember { mutableIntStateOf(0) }
@@ -83,6 +85,7 @@ private fun rememberTick(running: Boolean, tickMs: Long): Int {
 		tick = 0
 		while (running) {
 			delay(tickMs)
+			withFrameNanos { }
 			tick++
 		}
 	}
