@@ -24,7 +24,6 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
-use nym_bridges::types::TransportAssociation;
 use nym_gateway_directory::{
     GatewayCacheHandle, GatewayClient, GatewayMinPerformance, NodeIdentity,
 };
@@ -53,9 +52,9 @@ use nym_registration_client::{
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::SkewManager;
 use nym_vpn_lib_types::{
-    AccountControllerError, BridgeAddress, BridgeTransport, ConnectionData, ErrorStateReason,
-    EstablishConnectionData, GatewayLightInfo, MixnetConnectionData, NymAddress,
-    TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
+    AccountControllerError, ConnectionData, ErrorStateReason, EstablishConnectionData,
+    GatewayLightInfo, MixnetConnectionData, NymAddress, TunnelConnectionData, TunnelType,
+    WireguardConnectionData, WireguardNode,
 };
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -87,7 +86,7 @@ use crate::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
             gateway_provider::GatewayProvider,
-            mixnet, transports,
+            mixnet,
             wireguard::{
                 ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
                 connected_tunnel::ConnectedTunnel,
@@ -95,6 +94,8 @@ use crate::{
         },
     },
 };
+
+mod bridge_redial;
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
@@ -1254,192 +1255,6 @@ impl TunnelMonitor {
         };
 
         Ok((connection_data, rt))
-    }
-
-    /// Connects a bridge transport and launches its UDP forwarder. `bind_addr` is `None` on the
-    /// first attempt and `Some(listen_addr)` on every redial, so wireguard-go's peer endpoint
-    /// never changes. Takes owned values instead of `&self` so a spawned redial task can call it.
-    #[allow(clippy::too_many_arguments)]
-    async fn connect_and_launch_bridge(
-        quic: &[transports::ClientConfig],
-        fallback: &[transports::ClientConfig],
-        bind_addr: Option<std::net::SocketAddr>,
-        close_tx: mpsc::UnboundedSender<()>,
-        shutdown_token: &CancellationToken,
-        #[cfg(target_os = "linux")] fwmark: u32,
-        #[cfg(target_os = "android")] tun_provider: Arc<
-            dyn crate::tunnel_provider::AndroidTunProvider,
-        >,
-    ) -> Result<(BridgeAddress, JoinHandle<()>)> {
-        #[cfg(any(target_os = "linux", target_os = "android"))]
-        let on_bridge_socket_open = move |fd| {
-            #[cfg(target_os = "android")]
-            {
-                tracing::debug!("Bypass bridge socket");
-                tun_provider.bypass(fd);
-            }
-
-            #[cfg(target_os = "linux")]
-            {
-                tracing::debug!("Bypass bridge socket");
-                let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(fd) };
-                if let Err(err) = Mark.set(borrowed_fd, &fwmark) {
-                    tracing::error!("Could not set fwmark for bridge socket fd: {err}");
-                }
-            }
-        };
-        // QUIC first: TLS and SSH run over TCP and are slower, so they are raced only once QUIC fails.
-        let quic_timeout = if fallback.is_empty() {
-            transports::BRIDGE_CONNECT_TIMEOUT
-        } else {
-            transports::QUIC_FALLBACK_TIMEOUT
-        };
-        let bridge_conn = match transports::BridgeConn::try_connect_parallel(
-            quic.to_vec(),
-            shutdown_token.child_token(),
-            #[cfg(any(target_os = "linux", target_os = "android"))]
-            &on_bridge_socket_open,
-            Some(quic_timeout),
-        )
-        .await
-        {
-            Ok(conn) => conn,
-            Err(err) if fallback.is_empty() => return Err(err.into()),
-            Err(err) => {
-                tracing::warn!("QUIC bridge failed, trying TLS and SSH: {err}");
-                transports::BridgeConn::try_connect_parallel(
-                    fallback.to_vec(),
-                    shutdown_token.child_token(),
-                    #[cfg(any(target_os = "linux", target_os = "android"))]
-                    &on_bridge_socket_open,
-                    Some(transports::BRIDGE_CONNECT_TIMEOUT),
-                )
-                .await?
-            }
-        };
-
-        tracing::info!(
-            "{} transport connected",
-            bridge_conn.params().transport_name()
-        );
-
-        let remote_addr = bridge_conn.endpoint();
-        let transport = match bridge_conn.params() {
-            transports::ClientConfig::QuicPlain(_) => BridgeTransport::Quic,
-            transports::ClientConfig::TlsPlain(_) => BridgeTransport::Tls,
-            transports::ClientConfig::SshPlain(_) => BridgeTransport::Ssh,
-        };
-        let (listen_addr, join_handle) = transports::UdpForwarder::launch_initiator(
-            bridge_conn,
-            bind_addr,
-            Some(close_tx),
-            shutdown_token.child_token(),
-            Some(transports::INITIAL_FWD_CONNECTION_TIMEOUT),
-        )
-        .await?;
-
-        tracing::info!("bridge udp forwarder open on {listen_addr}",);
-
-        Ok((
-            BridgeAddress {
-                listen_addr,
-                remote_addr,
-                transport,
-            },
-            join_handle,
-        ))
-    }
-
-    /// Connects the bridge, then hands off to a task that quietly redials it in place - on
-    /// device wake or on the transport dying - without touching the tunnel state machine. Only
-    /// a failed redial falls back to today's behaviour: signal `bridge_close_tx`.
-    async fn start_bridges(
-        &self,
-        selected_gateways: &SelectedGateways,
-        bridge_close_tx: mpsc::UnboundedSender<()>,
-    ) -> Result<(BridgeAddress, JoinHandle<()>)> {
-        let (quic, fallback) = selected_gateways
-            .entry_gateway()
-            .bridge_candidates(self.tunnel_parameters.bridge_fallback);
-        let ipv4_only = |params: Vec<_>| -> Vec<_> {
-            params
-                .into_iter()
-                .map(transports::filter_bridge_params_ipv4_only)
-                .collect()
-        };
-        let (quic, fallback) = (ipv4_only(quic), ipv4_only(fallback));
-
-        tracing::info!("Establishing DVPN bridge tunnel");
-
-        #[cfg(target_os = "linux")]
-        let fwmark = self.tunnel_parameters.tunnel_constants.fwmark;
-        #[cfg(target_os = "android")]
-        let tun_provider = self.tun_provider.clone();
-        let shutdown_token = self.shutdown_token.child_token();
-
-        let (inner_close_tx, mut inner_close_rx) = mpsc::unbounded_channel();
-        let (bridge_addr, mut join_handle) = Self::connect_and_launch_bridge(
-            &quic,
-            &fallback,
-            None,
-            inner_close_tx,
-            &shutdown_token,
-            #[cfg(target_os = "linux")]
-            fwmark,
-            #[cfg(target_os = "android")]
-            tun_provider.clone(),
-        )
-        .await?;
-
-        let listen_addr = bridge_addr.listen_addr;
-        let supervisor = tokio::spawn(async move {
-            let wake = crate::wake_signal::subscribe();
-            loop {
-                tokio::select! {
-                    _ = wake.notified() => {
-                        tracing::info!("Device woke up, redialing bridge transport");
-                    }
-                    _ = inner_close_rx.recv() => {
-                        tracing::info!("Bridge transport closed, redialing");
-                    }
-                    _ = shutdown_token.cancelled() => {
-                        return;
-                    }
-                }
-                // Wait for the abort to actually take, not just be requested: the redial below
-                // rebinds the same local UDP port, and nothing but this task holds the old
-                // socket, so starting the rebind before the old one is dropped risks EADDRINUSE.
-                join_handle.abort();
-                let _ = join_handle.await;
-
-                let (new_close_tx, new_close_rx) = mpsc::unbounded_channel();
-                match Self::connect_and_launch_bridge(
-                    &quic,
-                    &fallback,
-                    Some(listen_addr),
-                    new_close_tx,
-                    &shutdown_token,
-                    #[cfg(target_os = "linux")]
-                    fwmark,
-                    #[cfg(target_os = "android")]
-                    tun_provider.clone(),
-                )
-                .await
-                {
-                    Ok((_bridge_addr, new_handle)) => {
-                        join_handle = new_handle;
-                        inner_close_rx = new_close_rx;
-                    }
-                    Err(err) => {
-                        tracing::warn!("Bridge redial failed, giving up: {err}");
-                        let _ = bridge_close_tx.send(());
-                        return;
-                    }
-                }
-            }
-        });
-
-        Ok((bridge_addr, supervisor))
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
