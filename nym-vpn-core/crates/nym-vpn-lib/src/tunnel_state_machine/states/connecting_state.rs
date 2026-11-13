@@ -803,6 +803,8 @@ impl TunnelStateHandler for ConnectingState {
                             tunnel_interface,
                             *connection_data,
                             self.selected_gateways.expect("selected gateways must be set"),
+                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                            self.bridge_fallback,
                             self.tunnel_monitor_handle.expect("monitor handle must be set!"),
                             self.tunnel_monitor_event_receiver,
                             shared_state,

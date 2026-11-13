@@ -24,7 +24,6 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
-use nym_bridges::types::TransportAssociation;
 use nym_gateway_directory::{
     GatewayCacheHandle, GatewayClient, GatewayMinPerformance, NodeIdentity,
 };
@@ -53,9 +52,9 @@ use nym_registration_client::{
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::SkewManager;
 use nym_vpn_lib_types::{
-    AccountControllerError, BridgeAddress, BridgeTransport, ConnectionData, ErrorStateReason,
-    EstablishConnectionData, GatewayLightInfo, MixnetConnectionData, NymAddress,
-    TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
+    AccountControllerError, ConnectionData, ErrorStateReason, EstablishConnectionData,
+    GatewayLightInfo, MixnetConnectionData, NymAddress, TunnelConnectionData, TunnelType,
+    WireguardConnectionData, WireguardNode,
 };
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -84,10 +83,10 @@ use crate::{
     bandwidth_monitor::BandwidthMonitor,
     mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::{
-        TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
+        TunnelConstants, WireguardMultihopMode, account, bridge_redial, ipv6_availability,
         tunnel::{
             gateway_provider::GatewayProvider,
-            mixnet, transports,
+            mixnet,
             wireguard::{
                 ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
                 connected_tunnel::ConnectedTunnel,
@@ -685,9 +684,17 @@ impl TunnelMonitor {
                     .await?;
 
                 let bridge_close_tx = if self.tunnel_parameters.use_bridges {
-                    let (entry_bridge_addr, transport_fwd_handle) = self
-                        .start_bridges(&selected_gateways, bridge_close_tx)
-                        .await?;
+                    let (entry_bridge_addr, transport_fwd_handle) = bridge_redial::start_bridges(
+                        &selected_gateways,
+                        self.tunnel_parameters.bridge_fallback,
+                        self.shutdown_token.child_token(),
+                        bridge_close_tx,
+                        #[cfg(target_os = "linux")]
+                        self.tunnel_parameters.tunnel_constants.fwmark,
+                        #[cfg(target_os = "android")]
+                        self.tun_provider.clone(),
+                    )
+                    .await?;
 
                     wg_tunnel_runtime.transport_fwd_handle = Some(transport_fwd_handle);
                     connection_data.entry_bridge_addr = Some(entry_bridge_addr);
@@ -1254,109 +1261,6 @@ impl TunnelMonitor {
         };
 
         Ok((connection_data, rt))
-    }
-
-    async fn start_bridges(
-        &self,
-        selected_gateways: &SelectedGateways,
-        bridge_close_tx: mpsc::UnboundedSender<()>,
-    ) -> Result<(BridgeAddress, JoinHandle<()>)> {
-        let (quic, fallback) = selected_gateways
-            .entry_gateway()
-            .bridge_candidates(self.tunnel_parameters.bridge_fallback);
-        let ipv4_only = |params: Vec<_>| -> Vec<_> {
-            params
-                .into_iter()
-                .map(transports::filter_bridge_params_ipv4_only)
-                .collect()
-        };
-        let (quic, fallback) = (ipv4_only(quic), ipv4_only(fallback));
-
-        // Attempt transport Connection. If successful a listening UDP connection is created
-        // and the bind address of that UDP listener is provided to the entry wireguard tunnel
-        // as the endpoint address.
-        tracing::info!("Establishing DVPN bridge tunnel");
-
-        #[cfg(target_os = "linux")]
-        let fwmark = self.tunnel_parameters.tunnel_constants.fwmark;
-        #[cfg(target_os = "android")]
-        let tun_provider = self.tun_provider.clone();
-        #[cfg(any(target_os = "linux", target_os = "android"))]
-        let on_bridge_socket_open = move |fd| {
-            #[cfg(target_os = "android")]
-            {
-                tracing::debug!("Bypass bridge socket");
-                tun_provider.bypass(fd);
-            }
-
-            #[cfg(target_os = "linux")]
-            {
-                tracing::debug!("Bypass bridge socket");
-                let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(fd) };
-                if let Err(err) = Mark.set(borrowed_fd, &fwmark) {
-                    tracing::error!("Could not set fwmark for bridge socket fd: {err}");
-                }
-            }
-        };
-        // QUIC first: TLS and SSH run over TCP and are slower, so they are raced only once QUIC fails.
-        let quic_timeout = if fallback.is_empty() {
-            transports::BRIDGE_CONNECT_TIMEOUT
-        } else {
-            transports::QUIC_FALLBACK_TIMEOUT
-        };
-        let bridge_conn = match transports::BridgeConn::try_connect_parallel(
-            quic,
-            self.shutdown_token.child_token(),
-            #[cfg(any(target_os = "linux", target_os = "android"))]
-            &on_bridge_socket_open,
-            Some(quic_timeout),
-        )
-        .await
-        {
-            Ok(conn) => conn,
-            Err(err) if fallback.is_empty() => return Err(err.into()),
-            Err(err) => {
-                tracing::warn!("QUIC bridge failed, trying TLS and SSH: {err}");
-                transports::BridgeConn::try_connect_parallel(
-                    fallback,
-                    self.shutdown_token.child_token(),
-                    #[cfg(any(target_os = "linux", target_os = "android"))]
-                    &on_bridge_socket_open,
-                    Some(transports::BRIDGE_CONNECT_TIMEOUT),
-                )
-                .await?
-            }
-        };
-
-        tracing::info!(
-            "{} transport connected",
-            bridge_conn.params().transport_name()
-        );
-
-        let remote_addr = bridge_conn.endpoint();
-        let transport = match bridge_conn.params() {
-            transports::ClientConfig::QuicPlain(_) => BridgeTransport::Quic,
-            transports::ClientConfig::TlsPlain(_) => BridgeTransport::Tls,
-            transports::ClientConfig::SshPlain(_) => BridgeTransport::Ssh,
-        };
-        let (listen_addr, join_handle) = transports::UdpForwarder::launch_initiator(
-            bridge_conn,
-            None,
-            Some(bridge_close_tx),
-            self.shutdown_token.child_token(),
-            Some(transports::INITIAL_FWD_CONNECTION_TIMEOUT),
-        )
-        .await?;
-
-        tracing::info!("bridge udp forwarder open on {listen_addr}",);
-
-        let bridge_addr = BridgeAddress {
-            listen_addr,
-            remote_addr,
-            transport,
-        };
-
-        Ok((bridge_addr, join_handle))
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]

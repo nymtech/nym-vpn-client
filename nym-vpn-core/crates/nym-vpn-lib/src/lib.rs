@@ -21,6 +21,7 @@ pub(crate) mod socks5_proxy;
 #[cfg(any(target_os = "ios", target_os = "android", test))]
 pub mod tunnel_provider;
 pub mod tunnel_state_machine;
+pub mod wake_signal;
 mod wg_config;
 
 use std::sync::LazyLock;
