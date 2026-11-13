@@ -11,7 +11,8 @@ import {
 } from '../../hooks';
 import { setToString } from '../../util';
 import ConnectionTimer from './ConnectionTimer';
-import { markerFromTunnel } from './marker/markerState';
+import { MarkerFace } from './marker/MarkerFace';
+import { markerFromTunnel, markerMode } from './marker/markerState';
 
 // ─── Geometry ────────────────────────────────────────────────────────────────
 const SIZE = 180;
@@ -301,6 +302,19 @@ export function TunnelState() {
             />
           ))}
         </svg>
+
+        {/* Face: says the mode (two blocks for dVPN, the mix field for Mixnet) */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'grid',
+            placeItems: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <MarkerFace mode={markerMode(vpnMode)} size={SPHERE_SIZE} />
+        </div>
 
         {/* Connected glow halo (behind sphere, fades in) */}
         {isConnected && (
