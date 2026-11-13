@@ -1406,7 +1406,11 @@ impl TunnelMonitor {
                         return;
                     }
                 }
+                // Wait for the abort to actually take, not just be requested: the redial below
+                // rebinds the same local UDP port, and nothing but this task holds the old
+                // socket, so starting the rebind before the old one is dropped risks EADDRINUSE.
                 join_handle.abort();
+                let _ = join_handle.await;
 
                 let (new_close_tx, new_close_rx) = mpsc::unbounded_channel();
                 match Self::connect_and_launch_bridge(
