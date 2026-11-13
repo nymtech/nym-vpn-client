@@ -19,6 +19,7 @@ use nym_bandwidth_controller::{
 };
 use nym_diagnostic::DiagnosticHandler;
 use nym_sdk::mixnet::StoragePaths;
+use nym_sqlcipher::DatabaseKey;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
@@ -370,6 +371,9 @@ pub struct NymVpnServiceParameters {
 pub struct NymVpnService {
     // Paths
     paths: NymConfigPaths,
+
+    // Key encrypting the on-disk databases
+    database_key: DatabaseKey,
 
     // The network environment
     network_tx: watch::Sender<Box<Network>>,
@@ -864,7 +868,7 @@ impl NymVpnService {
             command_receiver,
             event_sender,
             nym_config,
-            database_key,
+            database_key: database_key.clone(),
             tunnel_settings,
             tunnel_constants,
             account_command_tx: account_command_tx.clone(),
@@ -894,6 +898,7 @@ impl NymVpnService {
 
         Ok(Self {
             paths,
+            database_key,
             network_tx,
             user_agent: parameters.user_agent,
             vpn_command_rx,
@@ -2758,7 +2763,12 @@ impl NymVpnService {
         if params.storage_path.is_none() {
             params.storage_path = Some(self.paths.network_data_dir.clone());
         }
-        let report = Box::pin(DiagnosticHandler::register(network, params)).await;
+        let report = Box::pin(DiagnosticHandler::register(
+            network,
+            params,
+            Some(self.database_key.clone()),
+        ))
+        .await;
         match serde_json::to_string_pretty(&report) {
             Ok(report_log) => tracing::info!("{report_log}"),
             Err(e) => tracing::error!("Error serializing report :{e}"),

@@ -11,6 +11,7 @@ use nym_lp_data::packet::version;
 use nym_registration_client::{LpDvpnRegistrationClient, LpGatewayControlClient};
 use nym_registration_common::WireguardConfiguration;
 use nym_sdk::mixnet::{ed25519, x25519};
+use nym_sqlcipher::DatabaseKey;
 use nym_validator_client::client::NymApiClientExt;
 use nym_vpn_lib_types::{DiagnosticRegisterParams, DiagnosticResult, RegistrationReport};
 use nym_vpn_network_config::Network;
@@ -34,6 +35,7 @@ impl LpClientRegistration {
         registration_report: &mut RegistrationReport,
         network: &Network,
         parameters: &DiagnosticRegisterParams,
+        database_key: Option<&DatabaseKey>,
     ) -> Option<(WireguardConfiguration, Arc<x25519::KeyPair>)> {
         tracing::info!("Starting LP regsitration");
 
@@ -41,6 +43,7 @@ impl LpClientRegistration {
             network,
             &parameters.gateway,
             parameters.storage_path.as_ref(),
+            database_key,
         )
         .await
         {
@@ -110,6 +113,7 @@ async fn setup_registration(
     network: &Network,
     gateway_id: &str,
     storage_path: Option<&PathBuf>,
+    database_key: Option<&DatabaseKey>,
 ) -> anyhow::Result<(WgRegistrationConfig, LpGatewayControlClient)> {
     let storage_path = storage_path.ok_or(anyhow::anyhow!("No storage path provided"))?;
 
@@ -168,7 +172,7 @@ async fn setup_registration(
             .map_err(|e| anyhow::anyhow!("Incorrect kem key digests : {e}"))?,
     );
 
-    let bandwidth_provider = setup_bandwidth_provider(storage_path)
+    let bandwidth_provider = setup_bandwidth_provider(storage_path, database_key)
         .await
         .map_err(|e| anyhow::anyhow!("Failed to setup bandwidth provider : {e}"))?;
 

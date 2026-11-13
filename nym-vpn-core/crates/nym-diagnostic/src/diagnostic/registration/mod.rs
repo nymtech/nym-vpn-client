@@ -5,6 +5,7 @@ use crate::diagnostic::registration::{
 };
 use nym_bandwidth_controller::{BandwidthController, BandwidthTicketProvider};
 use nym_sdk::mixnet::StoragePaths;
+use nym_sqlcipher::DatabaseKey;
 use nym_vpn_lib_types::{
     DiagnosticRegisterParams, DiagnosticResult, RegistrationMode, RegistrationReport,
 };
@@ -22,6 +23,7 @@ impl RegistrationDiagnostic {
     pub async fn run_diagnostic(
         network: &Network,
         parameters: &DiagnosticRegisterParams,
+        database_key: Option<&DatabaseKey>,
     ) -> RegistrationReport {
         tracing::info!("RegistrationDiagnostic on gateway {}", parameters.gateway);
 
@@ -41,6 +43,7 @@ impl RegistrationDiagnostic {
                     &mut registration_report,
                     network,
                     parameters,
+                    database_key,
                 )
                 .await
             }
@@ -49,6 +52,7 @@ impl RegistrationDiagnostic {
                     &mut registration_report,
                     network,
                     parameters,
+                    database_key,
                 )
                 .await
             }
@@ -72,9 +76,11 @@ impl RegistrationDiagnostic {
 
 async fn setup_bandwidth_provider(
     storage_path: &PathBuf,
+    database_key: Option<&DatabaseKey>,
 ) -> anyhow::Result<Box<dyn BandwidthTicketProvider>> {
     let storage_paths = StoragePaths::new_from_dir(storage_path)
-        .map_err(|e| anyhow::anyhow!("Storage setup error : {e}"))?;
+        .map_err(|e| anyhow::anyhow!("Storage setup error : {e}"))?
+        .with_database_key(database_key.cloned());
     if !storage_paths.credential_database_path.exists() {
         return Err(anyhow::anyhow!(
             "Credential database doesn't exist. Have you tried running with sudo?",
@@ -83,7 +89,16 @@ async fn setup_bandwidth_provider(
     let credential_storage = storage_paths
         .persistent_credential_storage()
         .await
-        .map_err(|e| anyhow::anyhow!("Credential database : {e}"))?;
+        .map_err(|e| {
+            if database_key.is_some() {
+                anyhow::anyhow!("Credential database : {e}")
+            } else {
+                anyhow::anyhow!(
+                    "Credential database : {e}. An encrypted database can only be opened through \
+                     the daemon, with `nym-vpnc diagnostic register`"
+                )
+            }
+        })?;
 
     // No need for a public data fetcher. Vpn credentials are imported with the global data
     Ok(Box::new(BandwidthController::new(credential_storage)))

@@ -15,6 +15,7 @@ use nym_sdk::{
         DisconnectedMixnetClient, Ephemeral, MixnetClient, MixnetClientBuilder, Recipient, x25519,
     },
 };
+use nym_sqlcipher::DatabaseKey;
 use nym_topology::HardcodedTopologyProvider;
 use nym_validator_client::{client::NymApiClientExt, models::described::v2::NymNodeDescriptionV2};
 use nym_vpn_lib_types::{DiagnosticRegisterParams, DiagnosticResult, RegistrationReport};
@@ -38,6 +39,7 @@ impl MixnetClientRegistration {
         registration_report: &mut RegistrationReport,
         network: &Network,
         parameters: &DiagnosticRegisterParams,
+        database_key: Option<&DatabaseKey>,
     ) -> Option<(WireguardConfiguration, Arc<x25519::KeyPair>)> {
         let topology_provider = match setup_topology(network).await {
             Ok(provider) => provider,
@@ -126,7 +128,9 @@ impl MixnetClientRegistration {
         };
 
         let registration_config =
-            match setup_wg_registration(&gateway, parameters.storage_path.as_ref()).await {
+            match setup_wg_registration(&gateway, parameters.storage_path.as_ref(), database_key)
+                .await
+            {
                 Ok(config) => config,
                 Err(e) => {
                     registration_report.mixnet_based_dvpn_registration = Some(
@@ -286,6 +290,7 @@ fn lookup_ipr_address(gateway: &NymNodeDescriptionV2) -> anyhow::Result<Recipien
 async fn setup_wg_registration(
     gateway: &NymNodeDescriptionV2,
     storage_path: Option<&PathBuf>,
+    database_key: Option<&DatabaseKey>,
 ) -> anyhow::Result<WgRegistrationConfig> {
     let storage_path = storage_path.ok_or(anyhow::anyhow!("No storage path provided"))?;
 
@@ -309,7 +314,7 @@ async fn setup_wg_registration(
             "Chosen gateway does not have announced IP addresses",
         ))?;
 
-    let bandwidth_provider = setup_bandwidth_provider(storage_path)
+    let bandwidth_provider = setup_bandwidth_provider(storage_path, database_key)
         .await
         .map_err(|e| anyhow::anyhow!("Failed to setup bandwidth provider : {e}"))?;
 
