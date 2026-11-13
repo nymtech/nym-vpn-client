@@ -333,34 +333,39 @@ export function TunnelState() {
 
       <div className="flex w-full flex-col items-center">
         <ConnectionTimer />
-        <div className="min-h-8 w-full">
-          <AnimatePresence mode="wait">
-            {label !== null && (
-              <motion.div
-                key={label}
-                data-testid="connection-status-text"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-                className="text-text-secondary flex items-center justify-center text-lg"
-              >
-                {label}
-              </motion.div>
+        {/* one polite live region, mounted before any change, so a new state is announced (the timer stays outside it) */}
+        <div role="status" className="flex w-full flex-col items-center">
+          <div className="min-h-8 w-full">
+            <AnimatePresence mode="wait">
+              {label !== null && (
+                <motion.div
+                  key={label}
+                  data-testid="connection-status-text"
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 12 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="text-text-secondary flex items-center justify-center text-lg"
+                >
+                  {label}
+                </motion.div>
+              )}
+            </AnimatePresence>
+            {/* blocked: will reconnect once online; offline with no session: not protected, no internet */}
+            {(phase === 'blocked' ||
+              (phase === 'disconnected' && state === 'offline')) && (
+              <p className="text-text-secondary text-center text-base">
+                {state === 'offline'
+                  ? t('offline-message')
+                  : t('blocked-action')}
+              </p>
             )}
-          </AnimatePresence>
-          {/* blocked: will reconnect once online; offline with no session: not protected, no internet */}
-          {(phase === 'blocked' ||
-            (phase === 'disconnected' && state === 'offline')) && (
-            <p className="text-text-secondary text-center text-base">
-              {state === 'offline' ? t('offline-message') : t('blocked-action')}
-            </p>
-          )}
-          {phase === 'error' && (
-            <div className="text-status-error text-center text-lg">
-              {getError()}
-            </div>
-          )}
+            {phase === 'error' && (
+              <div className="text-status-error text-center text-lg">
+                {getError()}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
