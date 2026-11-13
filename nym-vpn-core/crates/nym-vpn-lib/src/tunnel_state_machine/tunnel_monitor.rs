@@ -2355,6 +2355,13 @@ mod tests {
             Some(date(2026, Month::October, 30))
         );
         assert_eq!(spend_date_expected_by_gateway("garbled"), None);
+        // Detection is case-insensitive, so parsing must be too.
+        assert_eq!(
+            spend_date_expected_by_gateway(
+                "Invalid spending date. Got 2026-10-31 but EXPECTED 2026-10-30"
+            ),
+            Some(date(2026, Month::October, 30))
+        );
     }
 
     #[test]
