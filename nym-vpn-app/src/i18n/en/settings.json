@@ -297,6 +297,7 @@
     "description-windows": "Choose apps to exclude from NymVPN tunnel.",
     "description-linux": "⚡ Launch any app from here to be excluded from the NymVPN funnel and connect directly to the internet!",
     "exclude-warning": "⚠️  Excluding an app will leave it unprotected.",
+    "custom-dns-warning": "⚠️  Custom DNS is on. Excluded apps will use your device's DNS instead.",
     "apps": "Apps",
     "add-custom-app": "Exclude custom app",
     "custom-app-added": "Added {{name}}",

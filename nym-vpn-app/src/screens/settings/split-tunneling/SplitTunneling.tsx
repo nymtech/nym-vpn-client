@@ -10,6 +10,7 @@ import Switch from '../../../ui/Switch';
 import { useDialog } from '../../../contexts';
 import { Spinner } from '../../../ui';
 import { useToast } from '../../../hooks/index';
+import { useMainState } from '../../../store';
 import InfoDialog from './InfoDialog';
 import LaunchConfirmDialog from './LaunchConfirmDialog';
 import RemoveConfirmDialog from './RemoveConfirmDialog';
@@ -25,6 +26,7 @@ function SplitTunneling() {
   const { t } = useTranslation('settings');
   const { isOpen, close } = useDialog();
   const { add: addToast } = useToast();
+  const { customDnsEnabled } = useMainState();
 
   const {
     apps,
@@ -270,6 +272,13 @@ function SplitTunneling() {
       <p className="text-status-warning bg-surface-elev/40 rounded-lg p-3 text-sm">
         {t('split-tunneling.exclude-warning')}
       </p>
+
+      {/* Custom DNS warning */}
+      {customDnsEnabled && (enabled || os === 'linux') && (
+        <p className="text-status-warning bg-surface-elev/40 rounded-lg p-3 text-sm">
+          {t('split-tunneling.custom-dns-warning')}
+        </p>
+      )}
 
       {/* Exclude a custom app via native file dialog */}
       {(enabled || os === 'linux') && (
