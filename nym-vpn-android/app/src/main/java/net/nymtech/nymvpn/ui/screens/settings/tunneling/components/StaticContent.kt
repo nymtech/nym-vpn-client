@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
+import net.nymtech.nymvpn.ui.screens.settings.geoexclusion.components.WarningCard
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.AppFilter
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingUiState
 import net.nymtech.nymvpn.ui.theme.iconSize
@@ -40,6 +41,9 @@ fun StaticContent(uiState: SplitTunnelingUiState, onQueryChange: (String) -> Uni
 		color = MaterialTheme.colorScheme.onPrimaryContainer,
 		modifier = Modifier.padding(top = 8.dp.scaledHeight()),
 	)
+
+	Spacer(modifier = Modifier.height(16.dp.scaledHeight()))
+	WarningCard(stringResource(R.string.split_tunneling_dns_warning))
 
 	CustomTextField(
 		value = uiState.query,
