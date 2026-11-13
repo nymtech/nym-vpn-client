@@ -55,6 +55,9 @@ interface VpnServiceApi {
 
 	suspend fun getStoredMnemonic(): String
 
+	/** Suspends until the core is initialized and accepts commands. */
+	suspend fun awaitCoreInitialized()
+
 	/**
 	 * Asks the user to authenticate, so that operations using the stored mnemonic can proceed
 	 * until [lockKeychain] is called. [reason] is shown in the prompt.

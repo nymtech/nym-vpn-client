@@ -137,9 +137,21 @@ class VpnServiceConnectionManager @Inject constructor(@ApplicationContext privat
 	suspend fun <E, R> withUnlockedApiResult(errors: CommandErrorMapper<E>, failed: (E) -> R, block: suspend (VpnServiceApi) -> R): R =
 		if (unlockKeychain()) withApiResult(errors, failed, block) else failed(errors.unknown)
 
-	private suspend fun unlockKeychain(): Boolean = try {
-		withApi { it.unlockKeychain(context.getString(R.string.secure_enclave_auth_subtitle)) }
+	/**
+	 * Asks the user to authenticate, unless the keychain is already unlocked. Waiting for the core
+	 * is bounded by the command timeout, the prompt is not.
+	 *
+	 * @return whether the keychain is unlocked.
+	 */
+	suspend fun unlockKeychain(): Boolean = try {
+		withApi { api ->
+			withTimeout(COMMAND_TIMEOUT_MS) { api.awaitCoreInitialized() }
+			api.unlockKeychain(context.getString(R.string.secure_enclave_auth_subtitle))
+		}
 		true
+	} catch (e: TimeoutCancellationException) {
+		Timber.tag(TAG).w("Unlock failed: core not initialized")
+		false
 	} catch (e: CancellationException) {
 		throw e
 	} catch (e: Exception) {

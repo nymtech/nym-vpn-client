@@ -48,6 +48,7 @@ class NymFreepassManager @Inject constructor(private val connectionManager: VpnS
 	}
 
 	private suspend fun createAccount(code: String): FreepassResult {
+		if (!connectionManager.unlockKeychain()) return FreepassResult.Failed(FreepassError.UNKNOWN)
 		val created = try {
 			// The core waits for its initialization, so the wait is bounded.
 			withTimeoutOrNull(ACCOUNT_CREATION_TIMEOUT) { backendManager.createAccount() } != null
