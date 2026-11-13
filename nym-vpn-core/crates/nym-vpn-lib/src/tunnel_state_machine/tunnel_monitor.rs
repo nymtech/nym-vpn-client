@@ -686,9 +686,17 @@ impl TunnelMonitor {
                     .await?;
 
                 let bridge_close_tx = if self.tunnel_parameters.use_bridges {
-                    let (entry_bridge_addr, transport_fwd_handle) = self
-                        .start_bridges(&selected_gateways, bridge_close_tx)
-                        .await?;
+                    let (entry_bridge_addr, transport_fwd_handle) = bridge_redial::start_bridges(
+                        &selected_gateways,
+                        self.tunnel_parameters.bridge_fallback,
+                        self.shutdown_token.child_token(),
+                        bridge_close_tx,
+                        #[cfg(target_os = "linux")]
+                        self.tunnel_parameters.tunnel_constants.fwmark,
+                        #[cfg(target_os = "android")]
+                        self.tun_provider.clone(),
+                    )
+                    .await?;
 
                     wg_tunnel_runtime.transport_fwd_handle = Some(transport_fwd_handle);
                     connection_data.entry_bridge_addr = Some(entry_bridge_addr);
