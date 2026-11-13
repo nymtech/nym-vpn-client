@@ -71,6 +71,7 @@ use nym_credentials_interface::TicketType;
 use nym_favorites::RecentsManager;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
+use nym_sqlcipher::DatabaseKey;
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::SkewManager;
@@ -821,6 +822,7 @@ pub struct SharedState {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
     nym_config: NymConfig,
+    database_key: DatabaseKey,
     tunnel_settings: TunnelSettings,
     tunnel_constants: TunnelConstants,
     status_listener_handle: Option<JoinHandle<()>>,
@@ -1327,6 +1329,7 @@ pub struct TunnelStateMachineArguments {
     pub command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
     pub event_sender: mpsc::UnboundedSender<TunnelEvent>,
     pub nym_config: NymConfig,
+    pub database_key: DatabaseKey,
     pub tunnel_settings: TunnelSettings,
     pub tunnel_constants: TunnelConstants,
     pub account_command_tx: AccountCommandSender,
@@ -1441,6 +1444,7 @@ impl TunnelStateMachine {
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             split_tunnel: args.split_tunnel,
             nym_config: args.nym_config,
+            database_key: args.database_key,
             tunnel_settings: args.tunnel_settings,
             tunnel_constants: args.tunnel_constants,
             status_listener_handle: None,

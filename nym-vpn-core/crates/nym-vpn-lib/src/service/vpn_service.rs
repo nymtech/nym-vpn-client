@@ -864,6 +864,7 @@ impl NymVpnService {
             command_receiver,
             event_sender,
             nym_config,
+            database_key,
             tunnel_settings,
             tunnel_constants,
             account_command_tx: account_command_tx.clone(),
