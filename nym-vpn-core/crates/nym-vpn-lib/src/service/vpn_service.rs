@@ -2133,6 +2133,7 @@ impl NymVpnService {
                 network_details,
                 vpn_exit_gateway_identity, // Exclude VPN exit gateway during random selection
                 bandwidth_command_tx: self.bandwidth_command_tx.clone(),
+                database_key: self.database_key.clone(),
             })
             .await?;
 
