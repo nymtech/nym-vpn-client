@@ -99,7 +99,6 @@ allow = [
     "ISC",
     "MIT",
     "MPL-2.0",
-    "OpenSSL",
     "Unicode-3.0",
     "WTFPL",
     "Zlib",
@@ -115,24 +114,7 @@ exceptions = [
     # Each entry is the crate and version constraint, and its specific allow
     # list
     #{ allow = ["Zlib"], crate = "adler32" },
-]
-
-# Some crates don't have (easily) machine readable licensing information,
-# adding a clarification entry for it allows you to manually specify the
-# licensing information
-[[licenses.clarify]]
-# The package spec the clarification applies to
-crate = "ring"
-# The SPDX expression for the license requirements of the crate
-expression = "MIT AND ISC AND OpenSSL"
-# One or more files in the crate's source used as the "source of truth" for
-# the license expression. If the contents match, the clarification will be used
-# when running the license check, otherwise the clarification will be ignored
-# and the crate will be checked normally, which may produce warnings or errors
-# depending on the rest of your configuration
-license-files = [
-    # Each entry is a crate relative path, and the (opaque) hash of its contents
-    { path = "LICENSE", hash = 0xbd0eed23 },
+    { allow = ["Apache-2.0 WITH LLVM-exception"], crate = "ar_archive_writer" },
 ]
 
 [licenses.private]
@@ -241,15 +223,11 @@ unknown-git = "deny"
 # if not specified. If it is specified but empty, no registries are allowed.
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # List of URLs for allowed Git repositories
-allow-git = [
-    "git+https://github.com/jstuczyn/bls12_381?branch=temp/experimental-serdect-updated",
-]
+allow-git = []
 
 [sources.allow-org]
 # github.com organizations to allow git sources for
-# libcrux-aesgcm 0.0.6 git+https://github.com/cryspen/libcrux
-# classic-mceliece-rust 3.2.0 git+https://github.com/georgio/classic-mceliece-rust
-github = ["nymtech", "cryspen", "georgio"]
+github = ["nymtech"]
 # gitlab.com organizations to allow git sources for
 gitlab = []
 # bitbucket.org organizations to allow git sources for

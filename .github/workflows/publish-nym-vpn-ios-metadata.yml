@@ -1,0 +1,109 @@
+name: publish-nym-vpn-ios-metadata
+
+# Metadata-only: App Store listing text (name, subtitle, keywords, promotional text,
+# description) from fastlane/metadata/ios/. No binary, no screenshots, no auto-submit.
+# The iOS parallel of publish-nym-vpn-android-metadata.yml. Runs after a release, or manually.
+on:
+  workflow_dispatch:
+    inputs:
+      submit_for_review:
+        description: "Submit the version for App Store review after upload (default: a human submits)"
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      submit_for_review:
+        description: "Submit the version for App Store review after upload"
+        type: boolean
+        default: false
+    secrets:
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
+
+# Serialize publishes so two dispatches can't interleave listing writes on App Store Connect.
+concurrency:
+  group: publish-nym-vpn-ios-metadata
+  cancel-in-progress: false
+  queue: max
+
+permissions:
+  contents: read
+
+jobs:
+  publish-metadata:
+    runs-on: arc-linux-latest
+    timeout-minutes: 15
+    env:
+      RUBYOPT: "-rresolv-replace"
+      BUNDLE_TIMEOUT: "120"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup ruby
+        uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Set locale (for Fastlane)
+        run: |
+          echo "LC_ALL=C.utf8" >> $GITHUB_ENV
+          echo "LANG=C.utf8" >> $GITHUB_ENV
+
+      # Screenshots live in the nym-vpn-client-screenshots bucket, never in git. Validate
+      # the ZIP's entry list BEFORE extracting — reject symlinks, absolute paths, ".."
+      # traversal, and anything outside fastlane/screenshots/ios/ — so a tampered archive
+      # can't overwrite Fastfile/Deliverfile/workflows (which deliver would then run with
+      # App Store Connect credentials). Validation uses bash reads, not `find | grep -q`
+      # (which can pass silently when grep's early exit SIGPIPEs find under pipefail).
+      - name: Fetch App Store screenshots from CDN
+        run: |
+          set -euo pipefail
+          url="https://nym-vpn-client-screenshots.cdn.nymte.ch/ios-screenshots.zip"
+          tmp="$(mktemp -d)"
+          curl -fSL --proto '=https' --retry 3 --retry-delay 5 -o "$tmp/shots.zip" "$url"
+          if grep -qE '^l' <<<"$(unzip -Z "$tmp/shots.zip")"; then
+            echo "::error::archive contains a symlink entry"; exit 1
+          fi
+          # Case-sensitive: deliver's Dir.glob uses lowercase extensions (Ruby 3.3 does
+          # not casefold it), so an uppercase-extension file would be counted here but
+          # upload nothing. Abs-path/traversal are checked before skipping directory
+          # entries (so a traversal dir entry is rejected too). README.md is the one
+          # tracked non-image allowed in this dir.
+          count=0
+          while IFS= read -r entry; do
+            [ -z "$entry" ] && continue
+            if [[ "$entry" == /* ]]; then echo "::error::absolute path: $entry"; exit 1; fi
+            if [[ "/$entry/" == */../* ]]; then echo "::error::path traversal: $entry"; exit 1; fi
+            [ "${entry%/}" != "$entry" ] && continue              # directory entry (already checked)
+            if [[ "$entry" == fastlane/screenshots/ios/README.md ]]; then continue; fi
+            if [[ "$entry" =~ ^fastlane/screenshots/ios/[^/]+/[^/]+\.(jpg|jpeg|png)$ ]]; then
+              count=$((count+1))
+            else
+              echo "::error::unexpected entry: $entry"; exit 1
+            fi
+          done < <(unzip -Z1 "$tmp/shots.zip")
+          echo "Validated $count iOS screenshots"
+          test "$count" -gt 0
+          unzip -q "$tmp/shots.zip" -d "$tmp/x"
+          mkdir -p fastlane/screenshots
+          rm -rf fastlane/screenshots/ios
+          cp -R "$tmp/x/fastlane/screenshots/ios" fastlane/screenshots/ios
+
+      - name: Update App Store metadata 🚀
+        env:
+          FASTLANE_OPT_OUT_USAGE: "YES"
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+          SUBMIT_FOR_REVIEW: ${{ inputs.submit_for_review }}
+          # Enables screenshot upload in the Deliverfile — set only here, after the
+          # fetch step populated fastlane/screenshots/ios from the bucket.
+          UPLOAD_SCREENSHOTS: "true"
+        run: |
+          echo "🚀 Uploading App Store metadata (submit_for_review=$SUBMIT_FOR_REVIEW)..."
+          bundle exec fastlane ios upload_metadata submit:"$SUBMIT_FOR_REVIEW"

@@ -78,6 +78,7 @@ private val ERROR_STATE_REASON_STRING_RES: Map<ErrorStateReason, Int> = mapOf(
 	ErrorStateReason.SameEntryAndExitGateway to R.string.error_reason_same_entry_and_exit_gateway,
 	ErrorStateReason.PerformantEntryGatewayUnavailable to R.string.error_reason_performant_entry_gateway_unavailable,
 	ErrorStateReason.PerformantExitGatewayUnavailable to R.string.error_reason_performant_exit_gateway_unavailable,
+	ErrorStateReason.EntryGatewayHasNoBridge to R.string.error_reason_entry_gateway_has_no_bridge,
 	ErrorStateReason.InvalidEntryGatewayIdentity to R.string.error_reason_invalid_entry_gateway_identity,
 	ErrorStateReason.InvalidExitGatewayIdentity to R.string.error_reason_invalid_exit_gateway_identity,
 	ErrorStateReason.InvalidEntryGatewayCountry to R.string.error_reason_invalid_entry_gateway_country,

@@ -17,7 +17,7 @@ test.describe('Welcome screen', () => {
   test('offers sign up and login actions', async ({ page }) => {
     await expect(page.getByRole('button', { name: 'Sign up' })).toBeVisible();
     await expect(
-      page.getByRole('button', { name: 'Login to my account' }),
+      page.getByRole('button', { name: 'Log in to my account' }),
     ).toBeVisible();
   });
 

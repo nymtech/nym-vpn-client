@@ -116,10 +116,13 @@
 //! )
 //! let offlineMonitor = await NymOfflineMonitor()
 //! let accountController = try! await NymAccountController(
-//!     data_dir: "/path/to/data/dir",
+//!     dataDir: "/path/to/data/dir",
 //!     userAgent: userAgent,
-//!     environment: environment,
-//!     offlineMonitor: offlineMonitor
+//!     networkEnv: environment,
+//!     offlineMonitor: offlineMonitor,
+//!     // Receives the account controller events, such as QR pairing results.
+//!     // See `TunnelEventHandler` below for a listener implementation.
+//!     eventListener: TunnelEventHandler()
 //! );
 //!
 //! // Log in
@@ -183,6 +186,8 @@ mod favorites;
 mod gateway_cache;
 mod offline_monitor;
 
+#[cfg(target_os = "macos")]
+mod authorization_token;
 #[cfg(target_os = "macos")]
 mod rpc;
 

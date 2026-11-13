@@ -20,6 +20,8 @@ import GRPCManager
 
     private var cancellables = Set<AnyCancellable>()
 
+    @Published public private(set) var isBridgeTransportsEnabled = false
+
 #if os(iOS)
     public static let shared = FeatureFlagsManager(configurationManager: .shared, appSettings: .shared)
 #elseif os(macOS)
@@ -102,6 +104,7 @@ private extension FeatureFlagsManager {
 #elseif os(macOS)
             guard let flags = try? await self?.grpcManager.fetchFeatureFlags() else { return }
 #endif
+            self?.isBridgeTransportsEnabled = flags.isBridgeTransportsEnabled() ?? false
         }
     }
 }

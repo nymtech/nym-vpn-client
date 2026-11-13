@@ -1,0 +1,184 @@
+name: check-android-reproducible
+
+# Builds the F-Droid release APK twice, on separate runners and with different
+# checkout, SDK and NDK paths, and fails unless both APKs are identical.
+# F-Droid rebuilds the app and only publishes it if its build matches ours.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "nym-vpn-core/crates/**"
+      - "nym-vpn-core/Cargo.toml"
+      - "nym-vpn-core/Cargo.lock"
+      - "nym-vpn-core/*.mk"
+      - "wireguard/**"
+      - "nym-vpn-android/**"
+      - ".env"
+      - ".github/workflows/check-android-reproducible.yml"
+  workflow_dispatch:
+    inputs:
+      abis:
+        type: string
+        description: "Space-separated ABIs to build the native libraries for"
+        required: true
+        default: arm64-v8a
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+  # Same version as the F-Droid build recipe.
+  CARGO_NDK_VERSION: "4.1.2"
+  CARGO_LICENSE_VERSION: "0.7.0"
+  ANDROID_ABIS: ${{ inputs.abis || 'arm64-v8a' }}
+
+jobs:
+  build:
+    name: build (${{ matrix.variant }})
+    runs-on: arc-linux-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        # baseline:     checkout, SDK and NDK where CI puts them
+        # fdroid-paths: checkout, SDK and NDK where F-Droid's build server puts them
+        variant: [baseline, fdroid-paths]
+    steps:
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
+
+      - name: Checkout repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - name: Install cargo-ndk
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
+        with:
+          crate: cargo-ndk
+          version: ${{ env.CARGO_NDK_VERSION }}
+
+      - name: Install cargo-license
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
+        with:
+          crate: cargo-license
+          version: ${{ env.CARGO_LICENSE_VERSION }}
+
+      - name: Install Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+          cache: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: true
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: platform-tools
+
+      # The same NDK install as build-nym-vpn-android.yml. The Android Gradle
+      # plugin only finds the NDK, and strips native libraries, when it is in
+      # the SDK directory.
+      - name: Prepare variant
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          set -euo pipefail
+          src_dir="$GITHUB_WORKSPACE"
+          sdk_dir="$ANDROID_HOME"
+          if [ "$VARIANT" = fdroid-paths ]; then
+            src_dir=/home/vagrant/build/net.nymtech.nymvpn
+            sdk_dir=/opt/android-sdk
+            sudo mkdir -p "$src_dir" "$sdk_dir"
+            sudo chown -R "$(id -u):$(id -g)" /home/vagrant "$sdk_dir"
+            rsync -a "$GITHUB_WORKSPACE/" "$src_dir/"
+            rsync -a "$ANDROID_HOME/" "$sdk_dir/"
+          fi
+          ndk_version="$(sed -n 's/.*const val NDK_VERSION = "\(.*\)".*/\1/p' "$src_dir/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt")"
+          [ -n "$ndk_version" ] || { echo "::error::Cannot parse NDK_VERSION from Constants.kt"; exit 1; }
+          sdkmanager --sdk_root="$sdk_dir" --install "ndk;$ndk_version"
+          ndk_dir="$sdk_dir/ndk/$ndk_version"
+          {
+            echo "SRC_DIR=$src_dir"
+            echo "ANDROID_HOME=$sdk_dir"
+            echo "ANDROID_SDK_ROOT=$sdk_dir"
+            echo "ANDROID_NDK_HOME=$ndk_dir"
+            echo "NDK_TOOLCHAIN_DIR=$ndk_dir/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          } >> "$GITHUB_ENV"
+
+      # The same steps as F-Droid's build recipe. ANDROID_ABIS defaults to
+      # arm64-v8a only, to keep the check fast; the APK still packages the
+      # prebuilt native libraries of dependencies for every ABI.
+      - name: Build native libraries
+        run: make -C "$SRC_DIR/nym-vpn-core" -f Android.mk RELEASE=true ANDROID_ABIS="$ANDROID_ABIS"
+
+      - name: Build APK
+        working-directory: ${{ env.SRC_DIR }}/nym-vpn-android
+        run: |
+          set -euo pipefail
+          sed -i -e '/foojay/d' settings.gradle.kts
+          # F-Droid's build server removes signing configs before building.
+          sed -i -e '/^\s*signingConfig\s*=/d' app/build.gradle.kts
+          ./gradlew :app:assembleFdroidRelease -PbuildDeps=false
+          apks="$(find app/build/outputs/apk/fdroid/release -name '*.apk')"
+          [ "$(wc -l <<< "$apks")" -eq 1 ] || { echo "::error::Expected one APK, found: $apks"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/apk"
+          cp "$apks" "$RUNNER_TEMP/apk/app.apk"
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-reproducible-${{ matrix.variant }}
+          path: ${{ runner.temp }}/apk/app.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  compare:
+    needs: build
+    runs-on: arc-linux-latest
+    steps:
+      - name: Download APKs
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: android-reproducible-*
+          path: builds
+
+      - name: Compare
+        run: |
+          set -euo pipefail
+          baseline=builds/android-reproducible-baseline/app.apk
+          fdroid_paths=builds/android-reproducible-fdroid-paths/app.apk
+          sha256sum "$baseline" "$fdroid_paths"
+          if ! cmp "$baseline" "$fdroid_paths"; then
+            echo "::error::The APK differs between the two builds"
+            exit 1
+          fi

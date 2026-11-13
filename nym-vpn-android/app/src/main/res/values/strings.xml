@@ -83,7 +83,7 @@
 	<string name="mnemonic_example">e.g. smoke artifact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">Dynamic</string>
 	<string name="system_wallpaper">System wallpaper theme</string>
-	<string name="initializing">Initializing</string>
+	<string name="initializing">Starting NymVPN</string>
 	<string name="stop">Stop</string>
 	<string name="app_restart_required">App restart required</string>
 	<string name="max_devices_reached_title">You\'ve reached the maximum number of devices for your account</string>
@@ -178,6 +178,7 @@
 	<string name="error_bandwidth_exit">The exit server didn\'t complete your connection. Choose a different exit location and try again.</string>
 	<string name="error_gateway_unavailable_entry">No entry server is available for your selection. Pick another location, or try again in a few minutes.</string>
 	<string name="error_gateway_unavailable_exit">No exit server is available for your selection. Pick a different location, or try again in a few minutes.</string>
+	<string name="error_entry_gateway_has_no_bridge">This server doesn\'t offer a bridge. Choose another server or set Enhanced connection to Auto or Off.</string>
 	<string name="error_invalid_entry_gateway_identity">The entry server you chose isn\'t available. Choose a different entry server, then connect again.</string>
 	<string name="error_invalid_exit_gateway_identity">The exit server you chose isn\'t available with your current settings. Choose a different exit or entry server, then connect again.</string>
 	<string name="error_needs_device_location">Automatic routing isn\'t available right now. Try again later or choose your own servers.</string>
@@ -185,6 +186,7 @@
 	<string name="error_expired_subscription_title">Your subscription has expired</string>
 	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
 	<string name="error_expired_subscription_button">Renew now</string>
+	<string name="renewal_reminder_description">Renew now to stay protected without interruption.</string>
 	<string name="error_no_subscription_title">No active subscription</string>
 	<string name="error_no_subscription_description">Choose a plan to start using NymVPN</string>
 	<string name="error_no_subscription_button">Select Plan</string>
@@ -207,6 +209,8 @@
 	<string name="connection_status_not_protected">Not protected</string>
 	<string name="connection_status_fast_mode">dVPN protection</string>
 	<string name="connection_status_anonymous">Mixnet protection</string>
+	<string name="connection_status_bridge">Connected via %1$s bridge</string>
+	<string name="connection_status_direct">Connected directly</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Auto</string>
 	<string name="gateway_random">Random server</string>
@@ -231,7 +235,8 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Welcome!</string>
 	<string name="auth_welcome_description">To the world\'s most private VPN</string>
-	<string name="auth_welcome_login_button">Login to my account</string>
+	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_scan_button">Scan QR code</string>
 	<string name="auth_sign_up_title">Sign up</string>
 	<string name="auth_sign_up_account_button">Anonymous account</string>
 	<string name="auth_sign_up_social_button">Sign up with socials *</string>
@@ -359,8 +364,8 @@
 	<string name="details_advanced_privacy">Advanced privacy</string>
 	<string name="details_with_mixnet">Mixnet</string>
 	<string name="details_streaming_content">Streaming &amp; IP</string>
-	<string name="details_residental_ip">Residential IP</string>
-	<string name="details_datacenter_ip">Datacenter IP</string>
+	<string name="details_residental_ip">Residential</string>
+	<string name="details_datacenter_ip">Datacenter</string>
 	<string name="details_post_quantum_secure_keys">Post-quantum secure keys</string>
 	<string name="details_lewes_protocol">Lewes protocol</string>
 	<string name="details_standard_key_exchange">Standard key exchange</string>
@@ -391,8 +396,15 @@
 	<!-- Censorship screen -->
 	<string name="censorship_description">Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking.</string>
 	<string name="censorship_learn_more_link_text">Learn more</string>
-	<string name="censorship_quic_title">Enhanced connection (QUIC)</string>
-	<string name="censorship_quic_description">Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3).\n\nNote: Limits entry server options to QUIC-compatible servers only.</string>
+	<string name="censorship_quic_title">Enhanced connection</string>
+	<string name="censorship_bridge_changes_apply">Changes will apply after reconnect</string>
+	<string name="censorship_bridge_off_title">Off</string>
+	<string name="censorship_bridge_off_description">Connect directly without a bridge.</string>
+	<string name="censorship_bridge_auto_title">Auto</string>
+	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
+	<string name="censorship_bridge_on_title">On</string>
+	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
+	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
 	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
@@ -447,8 +459,8 @@
 	<string name="device_auth_use_screen_lock">Use screen lock</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Your account passphrase</string>
-	<string name="passphrase_description">🔒Your master account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
+	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
+	<string name="passphrase_description_first">🔒Your account passphrase:</string>
 	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
 	<string name="passphrase_show">Show my passphrase</string>
 	<string name="passphrase_hide">Hide my passphrase</string>
@@ -484,9 +496,7 @@
 	<string name="account_info_data_unavailable">Usage data temporarily unavailable</string>
 	<string name="account_info_valid_text">Plan valid until %s</string>
 	<string name="account_info_expires_text">Plan expires on %s</string>
-	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
 	<string name="account_info_renew_text">Renew now to stay protected</string>
-	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">Auto-renews</string>
 	<string name="account_info_no_plan">No active subscription</string>
 	<string name="account_info_contact_support_icon" translatable="false">⚡ </string>
@@ -507,7 +517,7 @@
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Enable logging</string>
 	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>
-	<string name="logs_debug_enable_title">Enable verbose logging</string>
+	<string name="logs_debug_enable_title">Enable debug logging</string>
 	<string name="logs_debug_enable_description">Turn on for detailed DEBUG logs for self-debugging or support. Increases battery consumption. Log size may grow up to 10x.</string>
 	<string name="logs_tab_app">App</string>
 	<string name="logs_tab_tunnel">Tunnel</string>
@@ -644,7 +654,7 @@
 	<string name="setup_instructions_step_socks_host">SOCKS Host</string>
 	<string name="setup_instructions_step_socks_port">, Port</string>
 	<string name="setup_instructions_step_socks_suffix">, select SOCKS v5.</string>
-	<string name="setup_instructions_step_dns">Check Proxy DNS when using SOCKS v5 (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
 	<string name="setup_instructions_description">On Firefox or browsers that permit SOCKS5 configurations.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">App icon</string>
@@ -713,4 +723,53 @@
 	<string name="delete_account_error_descr">Nothing was deleted. Check your connection and try again.</string>
 	<string name="delete_account_time_title">You lose the time you have left</string>
 	<string name="delete_account_time_descr">Your NymVPN access runs until %1$s and doesn\'t renew. Deleting your account ends it today.</string>
+	<string name="pair_device_title">Pair a device</string>
+	<string name="pair_device_button">Pair new device</string>
+	<string name="pair_device_auth_subtitle">Confirm it\'s you to sign in another device with your account</string>
+	<string name="pair_device_starting">Creating a pairing code…</string>
+	<string name="pair_device_instructions">On your other device, open NymVPN, tap Scan QR code and point the camera at this code.</string>
+	<string name="pair_device_qr_description">Pairing QR code</string>
+	<string name="pair_device_expires_in">Code expires in %1$s</string>
+	<string name="pair_device_new_code">Get a new code</string>
+	<string name="pair_device_confirm_title">Do the codes match?</string>
+	<string name="pair_device_confirm_body">Only continue if your other device shows exactly this code. It will be signed in to your account.</string>
+	<string name="pair_device_codes_match">Codes match</string>
+	<string name="pair_device_codes_dont_match">Codes don\'t match</string>
+	<string name="pair_device_sharing">Signing in your other device…</string>
+	<string name="pair_device_done_title">Device paired</string>
+	<string name="pair_device_done_body">Your other device is now signed in to your account.</string>
+	<string name="pair_device_done">Done</string>
+	<string name="pairing_pin_description">Pairing code %1$s</string>
+	<string name="pairing_sign_in_nav_title">Sign in with another device</string>
+	<string name="pairing_sign_in_title">Confirm on your other device</string>
+	<string name="pairing_sign_in_body">Check that your other device shows this code, then confirm it there.</string>
+	<string name="pairing_signing_in">Signing in…</string>
+	<string name="pairing_cancel">Cancel</string>
+	<string name="pairing_back">Back</string>
+	<string name="pairing_try_again">Try again</string>
+	<string name="pairing_expired">The code expired before pairing finished.</string>
+	<string name="pairing_ended">Pairing was cancelled.</string>
+	<string name="pairing_failed">Pairing failed. Please try again.</string>
+	<string name="pairing_failed_offline">No internet connection. Check your connection and try again.</string>
+	<string name="pairing_failed_not_signed_in">This device isn\'t signed in, so there\'s no account to share.</string>
+	<string name="pairing_error_already_signed_in">This device is already signed in. Log out first to pair it with another account.</string>
+	<string name="pairing_error_offline">No internet connection. Retrying…</string>
+	<string name="pairing_error_scan_server">Couldn\'t reach NymVPN, or the code has expired. Retrying…</string>
+	<string name="pairing_error_scan_generic">Pairing couldn\'t start. Retrying…</string>
+	<string name="settings_redeem_code_title">Redeem a code</string>
+	<string name="redeem_code_title">Redeem a code</string>
+	<string name="redeem_code_description">Enter your free pass code, or paste the link you were sent.</string>
+	<string name="redeem_code_label">Code</string>
+	<string name="redeem_code_placeholder">Code or link</string>
+	<string name="redeem_code_submit">Redeem</string>
+	<string name="redeem_code_checking">Checking code…</string>
+	<string name="redeem_code_invalid">This isn\'t a valid NymVPN code</string>
+	<string name="redeem_code_enter_instead">Enter code instead</string>
+	<string name="freepass_error_invalid">This code isn\'t valid. Check it and try again.</string>
+	<string name="freepass_error_already_redeemed">This code has already been used.</string>
+	<string name="freepass_error_rate_limited">Too many attempts. Try again in a minute.</string>
+	<string name="freepass_error_offline">You\'re offline. Connect to the internet and try again.</string>
+	<string name="freepass_error_generic">The code couldn\'t be redeemed. Try again.</string>
+	<string name="freepass_error_subscription_active">Turn off auto-renew for your current subscription to add a free pass. Your code stays valid.</string>
+	<string name="freepass_activated">Free pass activated</string>
 </resources>

@@ -11,8 +11,9 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, DeeplinkKind, RegisterAccountResponse, StorableAccount,
-    StoredAccountMode, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, DeeplinkKind, NymVpnSubscription,
+    QrPairingConfirmation, QrUrl, RegisterAccountResponse, StorableAccount, StoredAccountMode,
+    VpnAccountSummary,
 };
 
 use tokio::sync::mpsc::UnboundedSender;
@@ -53,6 +54,19 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument(skip(self, account, code))]
+    pub async fn redeem_freepass(
+        &self,
+        account: StorableAccount,
+        code: String,
+    ) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::RedeemFreepass(tx, account, code))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
     #[instrument(skip(self))]
     pub async fn link_account(
         &self,
@@ -61,6 +75,45 @@ impl AccountCommandSender {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::LinkAccount(tx, privy_account))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn start_pairing(&self) -> Result<QrUrl, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::StartPairing(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self, pub_key))]
+    pub async fn scanned_key(
+        &self,
+        pub_key: String,
+    ) -> Result<QrPairingConfirmation, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::ScannedKey(tx, pub_key))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn verified_pairing_pin(&self, session_id: u32) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::VerifiedPairingPin(tx, session_id))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn cancel_pairing_process(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::CancelPairingProcess(tx))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
@@ -219,6 +272,21 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    /// Redeems a free pass code on the account and returns the subscription it grants.
+    #[instrument(skip(self, code))]
+    pub async fn apply_freepass(
+        &self,
+        code: String,
+    ) -> Result<NymVpnSubscription, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(CommonCommand::ApplyFreepass(
+                tx, code,
+            )))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
     /// The denying Apple introductory-offer token, or `None` when Apple's own rule should decide.
     #[instrument(skip(self, product_id, transaction_id))]
     pub async fn check_apple_intro_offer_eligibility(
@@ -277,7 +345,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    #[instrument(skip(self))]
+    #[instrument(skip_all)]
     pub async fn derive_deeplink_mnemonic(
         &self,
         deeplink_callback_url: String,

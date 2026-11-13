@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +38,7 @@ import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.deviceauth.rememberScreenLockGate
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
+import net.nymtech.nymvpn.ui.screens.scan.RedeemCodeSheet
 import net.nymtech.nymvpn.ui.screens.settings.components.AccountSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppVersionSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppearanceSection
@@ -61,6 +63,7 @@ import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import androidx.compose.foundation.layout.navigationBarsPadding
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import kotlin.Boolean
+import net.nymtech.qrscanner.isQrCameraAvailable
 
 @Composable
 fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSettings: Boolean = false, viewModel: SettingsViewModel = hiltViewModel()) {
@@ -70,6 +73,8 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
 	var showPrivateDnsDialog by remember { mutableStateOf(false) }
+	var showRedeemCodeSheet by rememberSaveable { mutableStateOf(false) }
+	val cameraAvailable = remember(context) { isQrCameraAvailable(context) }
 
 	val lanReconnectingText = stringResource(R.string.settings_event_lan_reconnecting)
 	LaunchedEffect(viewModel) {
@@ -115,6 +120,10 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 		},
 	)
 
+	if (showRedeemCodeSheet) {
+		RedeemCodeSheet(onDismiss = { showRedeemCodeSheet = false })
+	}
+
 	val shortcutsLockGate = rememberScreenLockGate(
 		setupBody = R.string.screen_lock_setup_shortcuts_body,
 		onLockSetAfterSetup = { viewModel.onAppShortcutsSelected(true) },
@@ -147,6 +156,9 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			},
 			onPassphraseClick = {
 				navController.navigate(Route.Passphrase)
+			},
+			onRedeemCodeClick = {
+				if (cameraAvailable) navController.navigate(Route.QrScan()) else showRedeemCodeSheet = true
 			},
 			onSupportClick = {
 				navController.navigate(Route.Support)
@@ -241,6 +253,7 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 				isMnemonicStored = values.isMnemonicStored,
 				onPassphraseClick = actions.onPassphraseClick,
 				onAccountClick = actions.onAccountClick,
+				onRedeemCodeClick = actions.onRedeemCodeClick,
 				subscription = values.subscription,
 			)
 			SupportSection(actions.onSupportClick)

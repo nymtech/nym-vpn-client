@@ -154,6 +154,7 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 			override fun isPrivyEnabled(): Boolean? = true
 			override fun isDomainFrontingEnabled(): Boolean? = true
 			override fun isQuicEnabled(): Boolean? = true
+			override fun isBridgeTransportsEnabled(): Boolean? = true
 			override fun getGroupFlag(groupName: String, flagName: String): Boolean? = null
 		}
 
@@ -314,6 +315,8 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 	override suspend fun getAutologinDeeplink(kind: DeeplinkKind): AutologinResponse = AutologinResponse(url = "https://nym.com/autologin/mock", pinCode = "000000")
 
 	override suspend fun storeDeeplinkAccount(url: String) {}
+
+	override suspend fun refreshStoredAccount() {}
 
 	override suspend fun getAccountMode(): StoredAccountMode = StoredAccountMode.PRIVY
 

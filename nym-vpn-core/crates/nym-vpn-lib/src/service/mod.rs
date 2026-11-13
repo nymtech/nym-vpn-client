@@ -3,6 +3,8 @@
 
 mod config;
 mod error;
+#[cfg(target_os = "linux")]
+mod network_manager;
 mod socks5;
 mod vpn_service;
 
@@ -12,11 +14,12 @@ pub use config::{
 };
 pub use error::{
     AccountLinksError, Error, GeoExclusionConfigError, GlobalConfigError, ListGatewaysError,
-    SetNetworkError,
+    SetCustomDnsError, SetNetworkError,
 };
 pub use socks5::{
     Socks5Error, Socks5Service, Socks5Status, socks5_idle_timeout, socks5_request_timeout,
 };
 pub use vpn_service::{
-    NymVpnService, NymVpnServiceParameters, ServiceConfigStorageType, VpnServiceCommand,
+    ClientRequest, NymVpnService, NymVpnServiceParameters, ServiceConfigStorageType,
+    VpnServiceCommand,
 };

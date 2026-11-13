@@ -83,6 +83,12 @@ sealed class Route {
 	data object DeletedAccount : Route()
 
 	@Serializable
+	data class QrScan(val fromWelcome: Boolean = false) : Route()
+
+	@Serializable
+	data object PairingSignIn : Route()
+
+	@Serializable
 	data class ServerDetails(val id: String, val location: String) : Route()
 
 	@Serializable

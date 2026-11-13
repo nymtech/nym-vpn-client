@@ -53,11 +53,13 @@ import net.nymtech.nymvpn.ui.screens.account.delete.DeleteScreen
 import net.nymtech.nymvpn.ui.screens.account.delete.DeletedScreen
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
+import net.nymtech.nymvpn.ui.screens.account.pairing.PairingSignInScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
 import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
 import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.onboarding.OnboardingScreen
+import net.nymtech.nymvpn.ui.screens.scan.QrScanScreen
 import net.nymtech.nymvpn.ui.screens.server.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.server.ServerScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
@@ -346,6 +348,10 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.DeleteAccount> { DeleteScreen() }
 
 								composable<Route.DeletedAccount> { DeletedScreen() }
+
+								composable<Route.QrScan> { QrScanScreen(fromWelcome = it.toRoute<Route.QrScan>().fromWelcome) }
+
+								composable<Route.PairingSignIn> { PairingSignInScreen() }
 
 								composable<Route.SplitTunneling> {
 									SplitTunnelingScreen(

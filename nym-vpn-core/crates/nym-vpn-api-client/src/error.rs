@@ -41,6 +41,21 @@ pub enum VpnApiClientError {
     #[error("failed to link privy account")]
     LinkPrivyAccount(#[source] Box<HttpClientError>),
 
+    #[error("failed to pair account")]
+    PairAccount(#[source] Box<HttpClientError>),
+
+    #[error("failed trying to pair to account")]
+    TryToPairToAccount(#[source] Box<HttpClientError>),
+
+    #[error("failed to check account pairing")]
+    CheckPairingAccount(#[source] Box<HttpClientError>),
+
+    #[error("failed to get pairing secret account")]
+    GetPairingSecretAccount(#[source] Box<HttpClientError>),
+
+    #[error("failed to share pairing secret account")]
+    SharePairingSecretAccount(#[source] Box<HttpClientError>),
+
     #[error("failed to get devices")]
     GetDevices(#[source] Box<HttpClientError>),
 
@@ -79,6 +94,9 @@ pub enum VpnApiClientError {
 
     #[error("failed to apply free pass")]
     ApplyFreepass(#[source] Box<HttpClientError>),
+
+    #[error("failed to redeem free pass")]
+    RedeemFreepass(#[source] Box<HttpClientError>),
 
     #[error("failed to get subscriptions")]
     GetSubscriptions(#[source] Box<HttpClientError>),

@@ -1,0 +1,36 @@
+# Deliverfile — iOS App Store metadata upload (fastlane deliver)
+#
+# Metadata-only pipeline: uploads the App Store listing text under
+# fastlane/metadata/ios/ to App Store Connect. No binary upload; screenshots are
+# fetched from the bucket by the workflow's fetch step before this runs (never
+# committed to git); never auto-submits — a human submits the version.
+# The App Store Connect API key is supplied at runtime by the :ios upload_metadata lane.
+
+app_identifier "net.nymtech.vpn"
+
+# Isolate from the Android `supply` metadata at fastlane/metadata/android.
+metadata_path "./fastlane/metadata/ios"
+screenshots_path "./fastlane/screenshots/ios"
+
+# Listing text only.
+skip_binary_upload true
+skip_metadata false
+
+# Screenshots are fetched from the bucket into fastlane/screenshots/ios by the
+# workflow, which sets UPLOAD_SCREENSHOTS=true. A direct local run leaves it unset
+# and skips screenshots, so it can't replace the live App Store set with stale or
+# partial local files. overwrite_screenshots replaces the live set per locale.
+skip_screenshots ENV['UPLOAD_SCREENSHOTS'] != 'true'
+overwrite_screenshots true
+
+# Default: no submission. The upload_metadata lane overrides this with its submit
+# option, which the workflow's submit_for_review input (default false) sets — so a
+# dispatch with that input true will submit the version for review.
+submit_for_review false
+automatic_release false
+
+# Don't run the metadata precheck as a blocking gate here.
+run_precheck_before_submit false
+
+# CI is non-interactive: skip the HTML preview confirmation prompt.
+force true

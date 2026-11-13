@@ -246,6 +246,7 @@ impl TunnelNetworkSettings {
     /// Returns CIDRs for all tunnel networks excluding LAN networks when `allow_lan` is true.
     pub fn compute_tunnel_networks(&self, allow_lan: bool) -> Vec<String> {
         use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
+        use nym_network_defaults::{WG_TUN_DEVICE_IP_ADDRESS_V4, WG_TUN_DEVICE_IP_ADDRESS_V6};
 
         let mut tunnel_ipv4 = self
             .ipv4_settings
@@ -290,20 +291,8 @@ impl TunnelNetworkSettings {
             tunnel_ipv6 = tunnel_ipv6.exclude(&exclude_ipv6_lan);
 
             // Exit metadata is 10.1.0.1 / fc01::1, inside the LAN carve-out.
-            for network in nym_firewall_config::keep_on_tunnel_after_lan_bypass() {
-                match network {
-                    IpNetwork::V4(address) => {
-                        if let Ok(net) = Ipv4Net::new(address.ip(), address.prefix()) {
-                            tunnel_ipv4.add(net);
-                        }
-                    }
-                    IpNetwork::V6(address) => {
-                        if let Ok(net) = Ipv6Net::new(address.ip(), address.prefix()) {
-                            tunnel_ipv6.add(net);
-                        }
-                    }
-                }
-            }
+            tunnel_ipv4.add(Ipv4Net::from(WG_TUN_DEVICE_IP_ADDRESS_V4));
+            tunnel_ipv6.add(Ipv6Net::from(WG_TUN_DEVICE_IP_ADDRESS_V6));
         }
 
         tunnel_ipv4

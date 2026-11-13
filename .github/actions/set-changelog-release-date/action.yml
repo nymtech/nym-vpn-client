@@ -1,0 +1,34 @@
+name: 'Set Changelog Release Date'
+description: 'Replaces the TBD release date of a version header in the changelog file'
+inputs:
+  changelog:
+    description: 'The changelog file to update'
+    required: false
+    default: 'CHANGELOG.md'
+  version:
+    description: 'The released version'
+    required: true
+  release_date:
+    description: 'The release date (YYYY-MM-DD)'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Update ${{ inputs.changelog }}
+      shell: bash
+      env:
+        CHANGELOG: ${{ inputs.changelog }}
+        VERSION: ${{ inputs.version }}
+        RELEASE_DATE: ${{ inputs.release_date }}
+      run: |
+        set -euo pipefail
+        VERSION_RE="${VERSION//./\\.}"
+
+        if ! grep -qE "^## \[${VERSION_RE}\] - TBD\s*$" "$CHANGELOG"; then
+          echo "::warning:: ${CHANGELOG}: no '## [${VERSION}] - TBD' header found"
+          exit 0
+        fi
+
+        sed -i -E "s|^## \[${VERSION_RE}\] - TBD\s*$|## [${VERSION}] - ${RELEASE_DATE}|" "$CHANGELOG"
+        echo "::notice:: ${CHANGELOG}: set ${VERSION} release date to ${RELEASE_DATE}"

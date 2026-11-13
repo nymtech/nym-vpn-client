@@ -37,6 +37,10 @@ on:
         type: boolean
         default: true
 
+env:
+  GIT_USER: NYM CI
+  GIT_EMAIL: ci@nymtech.net
+
 jobs:
   post-release:
     runs-on: arc-linux-latest
@@ -45,7 +49,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
           ref: "develop"
@@ -58,15 +62,9 @@ jobs:
       - name: Set release date
         # current date in YYYY-MM-DD format
         run: |
-          date=$(date -u +'%Y-%m-%d')
+          date=$(date -u +%F)
           echo "release date: $date"
           echo "RELEASE_DATE=$date" >> $GITHUB_ENV
-
-      # NOTE: the app CHANGELOG is stamped by the unified `add-changelog-release`
-      # (via bump-all-platforms) at release cut and final, like the other three
-      # components — so this workflow no longer touches the changelog. (It used to,
-      # from when the tauri app shipped on its own cadence; #5992 made the unified
-      # stamp cover the app changelog, leaving this a redundant second stamper.)
 
       - name: Bump installer script
         if: ${{ inputs.linux }}
@@ -89,9 +87,6 @@ jobs:
           ./update_metainfo.sh
 
       - name: Create PR
-        # Only the installer + flatpak steps stage anything, and both are gated on inputs.linux; a
-        # Windows-only release stages nothing, so without this guard `git commit` would fail on an
-        # empty index. (This step no longer touches the changelog — that moved to the unified stamp.)
         if: ${{ inputs.linux }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -102,11 +97,15 @@ jobs:
             - bump Linux installer script
             - update flatpak package metainfo.xml
         run: |
-          git config --global user.name "NYM_bot"
-          git config --global user.email "_@_"
+          git config --global user.name "${{ env.GIT_USER }}"
+          git config --global user.email "${{ env.GIT_EMAIL }}"
           git switch -C ${{ env.GIT_BRANCH }}
           git add .pkg/linux
           git add nym-vpn-app/.pkg/flatpak
+          if git diff --cached --quiet; then
+            echo "::notice:: nothing to commit, skipping PR"
+            exit 0
+          fi
           git commit -m "${{ env.COMMIT_MSG }}"
           git push --force origin ${{ env.GIT_BRANCH }}
           existing=$(gh pr list --head "${{ env.GIT_BRANCH }}" --json number --jq 'length')

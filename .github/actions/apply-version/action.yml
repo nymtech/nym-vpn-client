@@ -30,7 +30,7 @@ runs:
   steps:
     - name: Install toml-cli
       if: ${{ inputs.version != '' && (inputs.target == 'core' || inputs.target == 'tauri') }}
-      uses: baptiste0928/cargo-install@v3
+      uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
       with:
         crate: toml-cli
 
@@ -73,10 +73,9 @@ runs:
             # The channel is carried by the release tag and TestFlight build, not the
             # marketing version. CURRENT_PROJECT_VERSION (build number) is set by bump_build.
             MV="${VERSION%%-*}"
-            cd nym-vpn-apple
             fastlane mac bump_version "$MV"
-            fastlane run set_info_plist_value path:"NymVPN/Resources/Info.plist" key:"ApplicationVersion" value:"$VERSION"
-            fastlane run set_info_plist_value path:"NymVPNDaemon/Resources/Info.plist" key:"ApplicationVersion" value:"$VERSION"
+            fastlane run set_info_plist_value path:"nym-vpn-apple/NymVPN/Resources/Info.plist" key:"ApplicationVersion" value:"$VERSION"
+            fastlane run set_info_plist_value path:"nym-vpn-apple/NymVPNDaemon/Resources/Info.plist" key:"ApplicationVersion" value:"$VERSION"
             ;;
           *)
             echo "::error:: unknown target '${TARGET}' (expected core|tauri|android|apple)"

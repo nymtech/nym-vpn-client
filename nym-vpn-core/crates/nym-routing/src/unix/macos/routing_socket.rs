@@ -4,9 +4,9 @@
 
 use std::{
     collections::VecDeque,
+    fs::File,
+    io::{self, Read, Write},
     mem::size_of,
-    pin::Pin,
-    task::{Context, Poll, ready},
     time::Duration,
 };
 
@@ -14,15 +14,9 @@ use nix::{
     fcntl,
     sys::socket::{AddressFamily, SockFlag, SockType, socket},
 };
-use std::{
-    fs::File,
-    io::{self, Read, Write},
-    os::fd::{AsRawFd, RawFd},
-};
+use tokio::io::{Interest, unix::AsyncFd};
 
 use super::data::{MessageType, RouteMessage, rt_msghdr_short};
-
-use tokio::io::{AsyncWrite, AsyncWriteExt, unix::AsyncFd};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -154,61 +148,28 @@ impl RoutingSocket {
 }
 
 struct RoutingSocketInner {
-    // storing the file handle in a std::file::File automagically provides sane io::{Write,
-    // Read} and Drop implementations.
     socket: AsyncFd<File>,
 }
 
 impl RoutingSocketInner {
     fn new() -> io::Result<Self> {
         let fd = socket(AddressFamily::Route, SockType::Raw, SockFlag::empty(), None)?;
-        let _ = fcntl::fcntl(&fd, fcntl::FcntlArg::F_SETFL(fcntl::OFlag::O_NONBLOCK))?;
-        let socket = File::from(fd);
-        Ok(Self {
-            socket: AsyncFd::new(socket)?,
-        })
+        fcntl::fcntl(&fd, fcntl::FcntlArg::F_SETFL(fcntl::OFlag::O_NONBLOCK))?;
+
+        // SAFETY: `File` owns `fd`
+        let socket = unsafe { AsyncFd::register(File::from(fd)) }?;
+        Ok(Self { socket })
     }
 
-    async fn read(&mut self, out: &mut [u8]) -> std::io::Result<usize> {
-        loop {
-            let mut guard = self.socket.readable().await?;
-            match guard.try_io(|sock| sock.get_ref().read(out)) {
-                Ok(result) => return result,
-                Err(_would_block) => continue,
-            }
-        }
-    }
-}
-
-impl AsRawFd for RoutingSocketInner {
-    fn as_raw_fd(&self) -> RawFd {
-        self.socket.as_raw_fd()
-    }
-}
-
-impl AsyncWrite for RoutingSocketInner {
-    fn poll_write(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-        buf: &[u8],
-    ) -> Poll<io::Result<usize>> {
-        loop {
-            let mut guard = ready!(self.socket.poll_write_ready(cx))?;
-
-            match guard.try_io(|inner| inner.get_ref().write(buf)) {
-                Ok(result) => return Poll::Ready(result),
-                Err(_would_block) => continue,
-            }
-        }
+    async fn read(&self, out: &mut [u8]) -> io::Result<usize> {
+        self.socket
+            .async_io(Interest::READABLE, |mut sock| sock.read(out))
+            .await
     }
 
-    fn poll_flush(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<io::Result<()>> {
-        // tcp flush is a no-op
-        Poll::Ready(Ok(()))
-    }
-
-    fn poll_shutdown(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<io::Result<()>> {
-        // no need for a shutdown on the routing socket
-        Poll::Ready(Ok(()))
+    async fn write(&self, buf: &[u8]) -> io::Result<usize> {
+        self.socket
+            .async_io(Interest::WRITABLE, |mut sock| sock.write(buf))
+            .await
     }
 }

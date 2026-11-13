@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+# Drop the shipped NymVPN profile from NetworkManager's view once its keyfile is gone.
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    if command -v nmcli >/dev/null 2>&1; then
+        nmcli connection reload >/dev/null 2>&1 || true
+    fi
+fi
+
+#DEBHELPER#
+exit 0

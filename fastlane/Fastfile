@@ -38,3 +38,78 @@ platform :android do
 	end
 end
 
+
+platform :mac do
+	apple_project_path = '../nym-vpn-apple/NymVPN.xcodeproj'
+	apple_targets = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon", "NymVPND"]
+
+	desc "Bump version"
+	lane :bump_version do
+		app_version = ARGV[2]
+
+		puts "App version to set: #{app_version}"
+
+		if app_version.nil? || app_version.strip.empty?
+			UI.user_error!("App version is missing. Please provide an app version, e.g., 'fastlane mac bump_version 1.3'")
+		end
+
+		project = Xcodeproj::Project.open(apple_project_path)
+
+		project.targets.each do |projectTarget|
+			if apple_targets.include?(projectTarget.name)
+				projectTarget.build_configurations.each do |configuration|
+					configuration.build_settings["MARKETING_VERSION"] = app_version
+				end
+			end
+		end
+
+		project.save
+	end
+
+	desc "Bump build"
+	lane :bump_build do |options|
+		# Optionally passed build number (string or int)
+		provided_build = options[:build].to_i if options[:build]
+
+		project = Xcodeproj::Project.open(apple_project_path)
+
+		project.targets.each do |projectTarget|
+			next unless apple_targets.include?(projectTarget.name)
+
+			projectTarget.build_configurations.each do |configuration|
+				current = configuration.build_settings["CURRENT_PROJECT_VERSION"].to_i
+				new_build = provided_build && provided_build > 0 ? provided_build : (current + 1)
+
+				configuration.build_settings["CURRENT_PROJECT_VERSION"] = new_build.to_s
+				UI.message("✅ #{projectTarget.name}: #{current} → #{new_build}")
+			end
+		end
+
+		project.save
+	end
+end
+
+
+platform :ios do
+	desc "Upload iOS App Store metadata to App Store Connect (listing text + screenshots when the workflow fetches them; no binary, no auto-submit)"
+	lane :upload_metadata do |options|
+		# Default off: a human submits the version for review. Pass submit:true to override.
+		submit = options[:submit].to_s == 'true'
+
+		# App Store Connect API key auth, from CI secrets (raw .p8 content, not base64).
+		api_key = app_store_connect_api_key(
+			key_id: ENV.fetch('APP_STORE_CONNECT_API_KEY'),
+			issuer_id: ENV.fetch('APP_STORE_CONNECT_API_ISSUER_ID'),
+			key_content: ENV.fetch('APP_STORE_CONNECT_API_PRIVATE_KEY'),
+			is_key_content_base64: false,
+			in_house: false
+		)
+
+		# Static options (app_identifier, metadata_path, skip_binary_upload, skip_screenshots,
+		# force, …) live in fastlane/Deliverfile. Only the runtime bits are passed here.
+		deliver(
+			api_key: api_key,
+			submit_for_review: submit
+		)
+	end
+end

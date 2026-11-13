@@ -272,6 +272,9 @@ pub enum ErrorStateReason {
     /// Invalid identity set for exit gateway
     InvalidExitGatewayIdentity,
 
+    /// Bridge mode is on and the chosen entry gateway does not offer a bridge
+    EntryGatewayHasNoBridge,
+
     /// Invalid country set for entry gateway
     InvalidEntryGatewayCountry,
 
@@ -344,6 +347,7 @@ impl std::fmt::Display for ErrorStateReason {
                 f.write_str("PerformantExitGatewayUnavailable")
             }
             Self::InvalidEntryGatewayIdentity => f.write_str("InvalidEntryGatewayIdentity"),
+            Self::EntryGatewayHasNoBridge => f.write_str("EntryGatewayHasNoBridge"),
             Self::InvalidExitGatewayIdentity => f.write_str("InvalidExitGatewayIdentity"),
             Self::InvalidEntryGatewayCountry => f.write_str("InvalidEntryGatewayCountry"),
             Self::InvalidExitGatewayCountry => f.write_str("InvalidExitGatewayCountry"),

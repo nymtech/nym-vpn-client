@@ -16,6 +16,10 @@ use nym_http_api_client::{
         header::{DATE, HeaderMap},
     },
 };
+use nym_qr_pairing_requests::{
+    NymVpnGetPairingSecretResponse, NymVpnPairingCheckResponse, NymVpnPairingResponse,
+    PairAccountRequestBody, PairingParams, SharePairSecretBody, TryToPairRequestBody,
+};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use time::{
     Date, OffsetDateTime,
@@ -29,8 +33,9 @@ use crate::{
     request::{
         AccountKind, AppleIntroOfferEligibilityRequestBody, ApplyFreepassRequestBody,
         CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody, CreateSubscriptionKind,
-        CreateSubscriptionRequestBody, LinkAccountRequestBody, RegisterDeviceRequestBody,
-        RequestZkNymRequestBody, UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
+        CreateSubscriptionRequestBody, LinkAccountRequestBody, RedeemFreepassRequestBody,
+        RegisterDeviceRequestBody, RequestZkNymRequestBody, UpdateDeviceRequestBody,
+        UpdateDeviceRequestStatus,
     },
     response::{
         AppleIntroOfferEligibilityResponse, NymDirectoryGatewayCountriesResponse,
@@ -627,6 +632,140 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::LinkPrivyAccount)
     }
 
+    pub async fn pair_account(
+        &self,
+        account: &VpnAccount,
+        qr_pub_key: &str,
+    ) -> Result<NymVpnPairingResponse> {
+        let request = PairAccountRequestBody {
+            pubkey: qr_pub_key.to_string(),
+            account_id: account.id(),
+        };
+
+        self.post_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::PAIRING,
+            ],
+            &request,
+            Authorization::default().account(account),
+        )
+        .await
+        .inspect_err(|e| tracing::error!("Failed to pair account: {e:?}"))
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::PairAccount)
+    }
+
+    pub async fn check_pairing_account(
+        &self,
+        account: &VpnAccount,
+        qr_pub_key: &str,
+    ) -> Result<NymVpnPairingCheckResponse> {
+        self.get_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::PAIRING,
+                qr_pub_key,
+                routes::CHECK,
+            ],
+            Authorization::default().account(account),
+        )
+        .await
+        .inspect_err(|e| tracing::error!("Failed to check pairing account status: {e:?}"))
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::CheckPairingAccount)
+    }
+
+    pub async fn try_to_pair_to_account(
+        &self,
+        remote_qr_pub_key: &str,
+        local_qr_pub_key: &str,
+        pin_code: &str,
+        token: &str,
+    ) -> Result<NymVpnPairingResponse> {
+        let request = TryToPairRequestBody {
+            pubkey: local_qr_pub_key.to_string(),
+            pin_code: pin_code.to_string(),
+            token: token.to_string(),
+        };
+
+        self.inner
+            .post_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::PAIRING,
+                    remote_qr_pub_key,
+                    routes::PAIR,
+                ],
+                NO_PARAMS,
+                &request,
+            )
+            .await
+            .inspect_err(|e| tracing::error!("Failed trying to pair to account: {e:?}"))
+            .map_err(Box::new)
+            .map_err(VpnApiClientError::TryToPairToAccount)
+    }
+
+    pub async fn try_to_get_secret_account(
+        &self,
+        remote_qr_pub_key: &str,
+        pairing_params: &PairingParams,
+    ) -> Result<NymVpnGetPairingSecretResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::PAIRING,
+                remote_qr_pub_key,
+                routes::GET_SECRET,
+            ],
+            &pairing_params.to_param(),
+        )
+        .await
+        .inspect_err(|e| tracing::error!("Failed to get pairing account secret: {e:?}"))
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::GetPairingSecretAccount)
+    }
+
+    pub async fn share_secret_account(
+        &self,
+        account: &VpnAccount,
+        remote_qr_pub_key: &str,
+        enc_mnemonic: Vec<u8>,
+        nonce: Vec<u8>,
+    ) -> Result<StatusOk> {
+        let request = SharePairSecretBody {
+            enc_mnemonic,
+            nonce,
+            account_id: account.id(),
+        };
+
+        self.post_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::PAIRING,
+                remote_qr_pub_key,
+                routes::SHARE_SECRET,
+            ],
+            &request,
+            Authorization::default().account(account),
+        )
+        .await
+        .inspect_err(|e| tracing::error!("Failed to share secret account: {e:?}"))
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::SharePairingSecretAccount)
+    }
+
     pub async fn get_canonical_account_identity(
         &self,
         account: &VpnAccount,
@@ -956,6 +1095,29 @@ impl VpnApiClient {
         .await
         .map_err(Box::new)
         .map_err(VpnApiClientError::ApplyFreepass)
+    }
+
+    /// Creates the account on the API and applies the free pass to it in one request.
+    pub async fn redeem_freepass(
+        &self,
+        account: &VpnAccount,
+        code: String,
+    ) -> Result<NymVpnAccountResponse> {
+        let body = RedeemFreepassRequestBody {
+            redemption_code: code,
+            account_addr: account.id().to_string(),
+            pub_key: account.pub_key().to_string(),
+            signature_base64: account.signature_base64().to_string(),
+        };
+
+        self.post_json_with_retry(
+            &[routes::PUBLIC, routes::V1, routes::FREEPASS, routes::REDEEM],
+            NO_PARAMS,
+            &body,
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::RedeemFreepass)
     }
 
     // SUBSCRIPTIONS

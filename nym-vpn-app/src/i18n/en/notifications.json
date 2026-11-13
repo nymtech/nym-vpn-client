@@ -41,9 +41,14 @@
       "subscription": "Your plan has expired",
       "freepass": "Your free pass has expired"
     },
+    "body": {
+      "subscription": "Renew now to stay protected without interruption.",
+      "freepass": "Get a plan to keep your protection."
+    },
     "action": {
       "renew": "Renew now",
-      "get-plan": "Get a plan"
+      "get-plan": "Get a plan",
+      "not-now": "Not now"
     }
   }
 }

@@ -12,7 +12,7 @@ workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 dispatch2.workspace = true
-objc2-foundation = { workspace = true, features = ["NSString"] }
+objc2-foundation = { workspace = true, features = ["std", "NSString"] }
 block2.workspace = true
 objc2.workspace = true
 nix = { workspace = true, features = ["socket", "net"] }

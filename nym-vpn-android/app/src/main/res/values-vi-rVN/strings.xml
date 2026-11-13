@@ -3,7 +3,7 @@
 	<string name="settings">Cài đặt</string>
 	<string name="disconnecting">Đang ngắt kết nối</string>
 	<string name="connecting">Đang kết nối</string>
-	<string name="five_hop_mixnet">Ẩn danh (mixnet)</string>
+	<string name="five_hop_mixnet">Mixnet</string>
 	<string name="connect">Kết nối</string>
 	<string name="disconnect">Ngắt kết nối</string>
 	<string name="init_client">Đang khởi tạo máy khách…</string>
@@ -32,6 +32,7 @@
 	<string name="okay">Okay</string>
 	<string name="two_hop">2 bước nhảy</string>
 	<string name="country_load_failure">Không tải được các quốc gia bước nhảy</string>
+	<string name="server_list_update_failed">Couldn\'t update the server list. Showing saved servers.</string>
 	<string name="permission_required">Yêu cầu cấp quyền</string>
 	<string name="permission_message">Để đảm bảo ứng dụng hoạt động đúng trên thiết bị của bạn, vui lòng cho phép các quyền sau. Đây là những quyền cần thiết để ứng dụng có thể hoạt động.</string>
 	<string name="notification_permission_required">Vui lòng bật quyền thông báo để ứng dụng hoạt động bình thường</string>
@@ -58,20 +59,20 @@
 	<string name="always_on_message">Không hoạt động? Hãy đảm bảo rằng chế độ VPN luôn bật đã được tắt cho các ứng dụng khác trong cài đặt</string>
 	<string name="vpn_settings">Cài đặt hệ thống VPN</string>
 	<string name="try_again">và cố gắng kết nối lại</string>
-	<string name="network_error">Đã xảy ra sự cố kết nối mạng. Vui lòng kiểm tra kết nối mạng của bạn và thử lại.</string>
+	<string name="network_error">Không thể kết nối với máy chủ. Kiểm tra kết nối của bạn và thử lại.</string>
 	<string name="vpn_alerts_channel_id">Kênh Cảnh Báo NymVPN</string>
 	<string name="vpn_alerts_channel_description">Kênh thông báo cảnh báo liên quan đến ứng dụng.</string>
 	<string name="connection_failed">Kết nối không thành công</string>
 	<string name="vpn_permission_missing">Quyền VPN chưa được chấp nhận hoặc đang được sử dụng bởi ứng dụng khác.</string>
 	<string name="action_requires_tunnel_down">Hành động yêu cầu ngắt kết nối tunnel</string>
 	<string name="device_added_success">Thiết bị đã được thêm thành công vào tài khoản của bạn</string>
-	<string name="invalid_recovery_phrase">Cụm từ khôi phục không hợp lệ</string>
+	<string name="invalid_recovery_phrase">Mật khẩu khôi phục đó không hợp lệ. Kiểm tra 24 từ và thử lại.</string>
 	<string name="log_out">Đăng xuất</string>
 	<string name="account">Tài khoản</string>
 	<string name="mnemonic_example">ví dụ: smoke artefact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">Động</string>
 	<string name="system_wallpaper">Giao diện hình nền hệ thống</string>
-	<string name="initializing">Đang khởi tạo</string>
+	<string name="initializing">Starting NymVPN</string>
 	<string name="stop">Dừng</string>
 	<string name="app_restart_required">Yêu cầu khởi động lại ứng dụng</string>
 	<string name="max_devices_reached_title">Bạn đã đạt đến số lượng thiết bị tối đa cho tài khoản của mình</string>
@@ -82,20 +83,23 @@
 	<string name="loading">Đang tải</string>
 	<string name="offline">Không có Internet</string>
 	<string name="two_hop_explanation">Trải nghiệm tốc độ duyệt web nhanh (250+ Mbps) với kết nối 2 máy chủ. Chế độ này tận dụng AmneziaWG, phiên bản chống kiểm duyệt của WireGuard, lý tưởng cho phát trực tuyến, việc duyệt web và tải xuống nhanh.</string>
-	<string name="two_hop_title">Nhanh (WireGuard)</string>
+	<string name="two_hop_title">dVPN</string>
 	<string name="disabled_while_connecting">Đã tắt trong khi đang kết nối đến VPN</string>
 	<string name="exit_location">Máy chủ thoát</string>
 	<string name="entry_location">Máy chủ vào</string>
 	<string name="no_results_found">Không tìm thấy kết quả nào.</string>
-	<string name="how_to_run_gateway">cách chạy một máy chủ.</string>
+	<string name="how_to_run_gateway">cách chạy một máy chủ</string>
 	<string name="or_learn">hoặc tìm hiểu</string>
 	<string name="contact_for_help">Liên hệ với chúng tôi để được hỗ trợ</string>
 	<string name="try_another_server_name">Thử một vị trí khác hoặc kiểm tra tên máy chủ.</string>
 	<string name="servers">các máy chủ</string>
 	<string name="local_logs">Nhật ký (lưu trữ cục bộ)</string>
-	<string name="logging_out">Đang đăng xuất..</string>
+	<string name="logging_out">Đang đăng xuất</string>
 	<string name="app_update_required">Ứng dụng của bạn không còn được hỗ trợ. Vui lòng cập nhật lên phiên bản mới nhất để tiếp tục sử dụng NymVPN.    </string>
 	<string name="update_required">Cần cập nhật!</string>
+	<string name="app_update_available_title">Đã có bản cập nhật</string>
+	<string name="app_update_available_body">Có phiên bản mới hơn của NymVPN. Bạn có thể tiếp tục sử dụng phiên bản này hoặc cập nhật ngay bây giờ.</string>
+	<string name="app_update_not_now">Không bây giờ</string>
 	<string name="update">Cập nhật</string>
 	<string name="log_out_title">Bạn muốn đăng xuất khỏi thiết bị này?</string>
 	<string name="log_out_body">Thao tác này sẽ ngắt kết nối VPN và xóa tài khoản của bạn khỏi thiết bị này. Nếu không có mật khẩu, bạn sẽ không thể đăng nhập lại.</string>
@@ -107,7 +111,7 @@
 	<string name="collapse">Thu nhỏ</string>
 	<string name="expand">Mở rộng</string>
 	<string name="country_flag">Cờ của %1$s</string>
-	<string name="anonymous">Ẩn danh</string>
+	<string name="anonymous">Mixnet</string>
 	<string name="back">Quay Lại</string>
 	<string name="rotate">Xoay</string>
 	<string name="refresh">Làm mới</string>
@@ -135,35 +139,36 @@
 	<!-- Status pill -->
 	<string name="pill_error">Lỗi</string>
 	<!-- Error State -->
-	<string name="error_same_entry_exit">Không thể kết nối với cùng một node vào và thoát. Vui lòng thay đổi vị trí node vào hoặc node thoát và kết nối lại.</string>
+	<string name="error_same_entry_exit">Máy chủ vào và ra không thể là cùng một máy chủ. Hãy chọn một máy chủ vào hoặc ra khác, sau đó kết nối lại.</string>
 	<string name="unexpected_error">Đã xảy ra lỗi không mong muốn:</string>
-	<string name="error_invalid_entry_gateway_country">Vị trí node vào không hợp lệ. Vui lòng thay đổi vị trí node vào và kết nối lại.</string>
-	<string name="error_invalid_exit_gateway_country">Vị trí node thoát không hợp lệ. Vui lòng thay đổi vị trí node thoát và kết nối lại.</string>
-	<string name="bandwidth_error">Đã vượt quá băng thông hàng ngày. Vui lòng liên hệ bộ phận Hỗ trợ để nâng cấp dung lượng.</string>
-	<string name="error_credential_fetching_failed">Không thể lấy được thông tin xác thực cần thiết để kết nối. Vui lòng thử lại.</string>
-	<string name="error_no_credential_available">Không có thông tin xác thực nào để kết nối. Vui lòng thử lại.</string>
-	<string name="max_devices_error">Đã vượt quá giới hạn thiết bị của tài khoản. Vui lòng xóa một thiết bị khỏi tài khoản của bạn trước khi kết nối.</string>
-	<string name="error_ipv6_unavailable">Ipv6 không khả dụng</string>
-	<string name="error_device_logged_out">Thiết bị đã đăng xuất.</string>
-	<string name="error_inactive_account">Tài khoản không trong trạng thái \"Hoạt động\".</string>
+	<string name="error_invalid_entry_gateway_country">Không có máy chủ nào khả dụng tại vị trí đó. Vui lòng chọn một vị trí khác, sau đó kết nối lại.</string>
+	<string name="error_invalid_exit_gateway_country">Không có máy chủ thoát nào khả dụng tại vị trí đó. Vui lòng chọn một vị trí khác, sau đó kết nối lại.</string>
+	<string name="bandwidth_error">Bạn đã đạt đến giới hạn cho phép của ngày hôm nay. Hãy thử lại sau.</string>
+	<string name="error_credential_fetching_failed">Không thể lấy thông tin đăng nhập kết nối của bạn. Vui lòng thử lại sau một lúc. Nếu vấn đề vẫn tiếp diễn, hãy khởi động lại ứng dụng hoặc liên hệ với bộ phận hỗ trợ.</string>
+	<string name="error_no_credential_available">Không có thông tin đăng nhập kết nối. Khởi động lại NymVPN và thử lại. Nếu vẫn gặp sự cố, hãy liên hệ với bộ phận hỗ trợ.</string>
+	<string name="max_devices_error">Bạn đã đạt đến giới hạn thiết bị. Hãy xóa một thiết bị trên nym.com hoặc đăng xuất khỏi các phiên bản khác, sau đó kết nối lại.</string>
+	<string name="error_ipv6_unavailable">IPv6 đã bị tắt trên hệ thống này, nhưng NymVPN được thiết lập để sử dụng nó. Hãy tắt IPv6 trong cài đặt NymVPN, sau đó kết nối lại.</string>
+	<string name="error_device_logged_out">Thiết bị này đã đăng xuất. Vui lòng đăng nhập lại để kết nối lại.</string>
+	<string name="error_inactive_account">Tài khoản của bạn chưa được kích hoạt. Vui lòng mở Tài khoản và làm mới, hoặc liên hệ với bộ phận hỗ trợ.</string>
 	<string name="error_inactive_account_subtitle">Nhấn vào Bắt đầu</string>
-	<string name="error_set_dns">Không cấu hình được dns.</string>
-	<string name="error_set_firewall_policy">Không thể thiết lập chính sách tường lửa.</string>
-	<string name="error_set_routing">Không cấu hình được định truyến.</string>
-	<string name="error_tun_device">Không thể cấu hình thiết bị tunnel.</string>
-	<string name="error_tunnel_provider">Không thể cấu hình nhà cung cấp tunnel gói dữ liệu.</string>
-	<string name="error_active_plan">Bạn chưa có gói dịch vụ khả dụng. Nhấn Bắt đầu để bắt đầu duyệt web ẩn danh.</string>
-	<string name="error_bandwidth_entry">Máy chủ vào không phản hồi hoặc phản hồi kém khi tăng băng thông.</string>
-	<string name="error_bandwidth_exit">Máy chủ thoát không phản hồi hoặc phản hồi kém khi tăng băng thông.</string>
-	<string name="error_gateway_unavailable_entry">Không thể kết nối máy chủ vào. Thử một máy chủ khác!</string>
-	<string name="error_gateway_unavailable_exit">Không thể kết nối với máy chủ thoát. Vui lòng thử máy chủ khác!</string>
-	<string name="error_invalid_entry_gateway_identity">Máy chủ vào ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại.</string>
-	<string name="error_invalid_exit_gateway_identity">Máy chủ thoát ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại.</string>
+	<string name="error_set_dns">Không thể áp dụng cài đặt DNS. Kết nối lại. Nếu vẫn gặp sự cố, hãy chạy chẩn đoán trong Cài đặt hoặc liên hệ với bộ phận hỗ trợ.</string>
+	<string name="error_set_firewall_policy">Không thể thiết lập các quy tắc tường lửa của NymVPN. Kết nối lại. Nếu vẫn gặp sự cố, hãy đóng các ứng dụng VPN /firewall khác hoặc liên hệ với bộ phận hỗ trợ.</string>
+	<string name="error_set_routing">Không thể thiết lập định tuyến mạng. Kết nối lại. Nếu sự cố vẫn tiếp diễn, hãy đóng các ứng dụng VPN khác hoặc liên hệ với bộ phận hỗ trợ.</string>
+	<string name="error_tun_device">Không thể thiết lập giao diện mạng VPN. Kết nối lại. Nếu vẫn gặp sự cố, hãy khởi động lại ứng dụng hoặc thiết bị của bạn, hoặc liên hệ với bộ phận hỗ trợ.</string>
+	<string name="error_tunnel_provider">Không thể khởi động VPN trên thiết bị này. Hãy kết nối lại và cho phép kết nối VPN nếu được yêu cầu. Nếu vấn đề vẫn tiếp diễn, hãy liên hệ với bộ phận hỗ trợ.</string>
+	<string name="error_active_plan">Bạn không có đăng ký đang hoạt động. Hãy đăng ký hoặc gia hạn gói cước, sau đó làm mới tài khoản và kết nối lại.</string>
+	<string name="error_bandwidth_entry">Máy chủ đầu vào không hoàn tất kết nối của bạn. Hãy thử lại hoặc bật QUIC trong cài đặt Chống kiểm duyệt.</string>
+	<string name="error_bandwidth_exit">Máy chủ đầu ra đã không hoàn tất kết nối của bạn. Vui lòng chọn một vị trí đầu ra khác và thử lại.</string>
+	<string name="error_gateway_unavailable_entry">Không có máy chủ nào có sẵn để bạn lựa chọn. Vui lòng chọn một vị trí khác hoặc thử lại sau vài phút.</string>
+	<string name="error_gateway_unavailable_exit">Không có máy chủ đầu ra nào để bạn lựa chọn. Hãy chọn một vị trí khác hoặc thử lại sau vài phút.</string>
+	<string name="error_invalid_entry_gateway_identity">Máy chủ đầu vào bạn đã chọn hiện không khả dụng. Vui lòng chọn một máy chủ đầu vào khác, sau đó kết nối lại.</string>
+	<string name="error_invalid_exit_gateway_identity">Máy chủ thoát mà bạn đã chọn không khả dụng với cài đặt hiện tại của bạn. Hãy chọn một máy chủ thoát hoặc máy chủ vào khác, sau đó kết nối lại.</string>
 	<string name="error_needs_device_location">Tính năng định tuyến tự động hiện không khả dụng. Vui lòng thử lại sau hoặc chọn máy chủ của riêng bạn.</string>
-	<string name="error_connection_attempts_exceeded">Không thể thiết lập kết nối sau nhiều lần thử. Vui lòng thử lại.</string>
+	<string name="error_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
 	<string name="error_expired_subscription_title">Gói đăng ký của bạn đã hết hạn</string>
 	<string name="error_expired_subscription_description">Phương thức thanh toán định kỳ đã bị từ chối</string>
 	<string name="error_expired_subscription_button">Gia hạn ngay</string>
+	<string name="renewal_reminder_description">Renew now to stay protected without interruption.</string>
 	<string name="error_no_subscription_title">Không phát hiện gói đăng ký đang hoạt động</string>
 	<string name="error_no_subscription_description">Chọn gói dịch vụ để bắt đầu sử dụng NymVPN</string>
 	<string name="error_no_subscription_button">Chọn Gói</string>
@@ -184,8 +189,10 @@
 	<string name="one_click_nym_entry_node">Máy chủ vào</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Không được bảo vệ</string>
-	<string name="connection_status_fast_mode">Bảo vệ bởi chế độ Nhanh</string>
+	<string name="connection_status_fast_mode">dVPN protection</string>
 	<string name="connection_status_anonymous">Bảo vệ từ mixnet</string>
+	<string name="connection_status_bridge">Connected via %1$s bridge</string>
+	<string name="connection_status_direct">Connected directly</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Tự động</string>
 	<string name="gateway_random">Máy chủ ngẫu nhiên</string>
@@ -208,15 +215,15 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Chào mừng!</string>
 	<string name="auth_welcome_description">Vào VPN riêng tư nhất thế giới</string>
-	<string name="auth_welcome_login_button">Đăng nhập vào tài khoản của tôi</string>
-	<string name="auth_sign_up_title">Đăng Ký</string>
+	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_sign_up_title">Đăng ký</string>
 	<string name="auth_sign_up_account_button">Tài khoản ẩn danh</string>
 	<string name="auth_sign_up_social_button">Đăng ký bằng tài khoản mạng xã hội *</string>
-	<string name="auth_sign_up_info">* Việc đăng ký bằng tài khoản mạng xã hội hiện có \nsẽ làm giảm tính ẩn danh của bạn.</string>
+	<string name="auth_sign_up_info">*May not be anonymous.</string>
 	<string name="auth_log_in_title">Đăng nhập</string>
 	<string name="auth_log_in_passphrase_button">Đăng nhập bằng cụm 24 từ</string>
 	<string name="auth_log_in_social_button">Đăng nhập bằng tài khoản mạng xã hội *</string>
-	<string name="auth_log_in_info">* Bạn cần liên kết tài khoản mạng xã hội với tài khoản hiện có \ntrước khi có thể sử dụng chúng để đăng nhập. </string>
+	<string name="auth_log_in_info">*Account must be connected before NymVPN login.</string>
 	<string name="auth_passphrase_login_button">Đăng nhập</string>
 	<string name="auth_passphrase_input_placeholder">cụm từ mật khẩu 24 từ</string>
 	<!-- Settings Screen -->
@@ -244,7 +251,7 @@
 	<string name="settings_shortcuts_title">Phím tắt ứng dụng</string>
 	<string name="settings_logs_title">Nhật ký &amp; dữ liệu</string>
 	<string name="settings_legal_title">Pháp lý</string>
-	<string name="settings_geo_exclusion_title">Loại Trừ Địa Lý</string>
+	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Các dải IP cụ thể kết nối trực tiếp</string>
 	<string name="settings_profiles_title">Cấu hình kết nối</string>
 	<string name="settings_profiles_description">Hãy để chúng tôi giúp bạn kết nối</string>
@@ -252,7 +259,7 @@
 	<string name="shortcut_title">Xác nhận hành động</string>
 	<string name="shortcut_subtitle_stop">Mở khóa để ngắt kết nối VPN</string>
 	<string name="shortcut_subtitle_start_mixnet">Mở khóa để khởi động Mixnet</string>
-	<string name="shortcut_subtitle_start_wg">Mở khóa để bắt đầu Chế độ nhanh</string>
+	<string name="shortcut_subtitle_start_wg">Unlock to start dVPN</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Để có kết nối tốt nhất</string>
 	<string name="battery_opt_descr">Vô hiệu hóa chế độ tối ưu hóa pin NymVPN để có kết nối VPN ổn định hơn.</string>
@@ -260,11 +267,11 @@
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">Dữ liệu, quyền riêng tư &amp; ghi nhật ký</string>
 	<string name="privacy_anonymous_stats_title">Thống kê mạng ẩn danh</string>
-	<string name="privacy_anonymous_stats_description">Giúp chúng tôi xây dựng mạng nhanh hơn bằng cách chia sẻ dữ liệu hiệu suất ẩn danh từ khu vực của bạn. Chúng tôi sử dụng dữ liệu này để tối ưu tốc độ, giảm mất kết nối và điều hướng vùng phủ sóng máy chủ nơi cần thiết nhất. \n\nChỉ dữ liệu hiệu suất mạng được chia sẻ – không bao giờ hoạt động duyệt web hoặc dữ liệu cá nhân của bạn.</string>
+	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
 	<string name="privacy_anonymous_stats_link_text">Tìm hiểu chính xác những gì được chia sẻ</string>
 	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
 	<string name="privacy_error_reports_title">Báo cáo lỗi &amp; sự cố</string>
-	<string name="privacy_error_reports_description">Gửi thông tin sự cố để giúp chúng tôi sửa lỗi nhanh hơn. Các báo cáo sẽ được chuyển qua hệ thống bảo mật của Sentry và chỉ chứa dữ liệu gỡ lỗi kỹ thuật.</string>
+	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
 	<string name="privacy_error_reports_link_text">Xem Chính sách quyền riêng tư của Sentry</string>
 	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">Thay đổi sẽ có hiệu lực sau khi khởi động lại ứng dụng.</string>
@@ -279,7 +286,7 @@
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Tiếp tục</string>
 	<string name="welcome_title">Hãy giúp chúng tôi cải thiện NymVPN</string>
-	<string name="welcome_description">Chọn dữ liệu ẩn danh bạn muốn chia sẻ. \nTất cả dữ liệu đều được loại bỏ thông tin định danh trước khi gửi đi.</string>
+	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
 	<string name="welcome_error_reports_title">Chia sẻ báo cáo lỗi</string>
 	<string name="welcome_error_reports_description_start">Giúp chúng tôi khắc phục lỗi nhanh hơn, không dữ liệu cá nhân bị thu thập (qua </string>
 	<string name="welcome_error_reports_link_text">Sentry</string>
@@ -291,7 +298,7 @@
 	<string name="onboarding_welcome_description">Truy cập riêng tư của bạn vào \nan **internet không giới hạn.**</string>
 	<string name="onboarding_modes_title_dvpn">dVPN của bạn</string>
 	<string name="onboarding_modes_description_dvpn">Bảo mật cho mọi hoạt động trực tuyến của bạn \n**Mạng lưới phi tập trung** 2 bước nhảy \n**AmneziaWG** là phiên bản phát triển từ WireGuard</string>
-	<string name="onboarding_modes_title_mixnet">Mixnet của bạn</string>
+	<string name="onboarding_modes_title_mixnet">Your Mixnet</string>
 	<string name="onboarding_modes_description_mixnet">Cách **ẩn danh** nhất để trực tuyến \n5 bước nhảy **mixnet** với **nhiễu** \ntùy chỉnh mô hình lưu lượng truy cập của bạn.</string>
 	<string name="onboarding_modes_tagline_dvpn">Không thể tiết lộ - sẽ không tiết lộ thiết kế mạng.</string>
 	<string name="onboarding_modes_tagline_mixnet">Bảo vệ dấu vân tay siêu dữ liệu.</string>
@@ -308,12 +315,20 @@
 	<string name="onboarding_plan_one_month">1 tháng</string>
 	<string name="onboarding_plan_try_suffix">, không cần cam kết.</string>
 	<!-- Select Plan screen -->
-	<string name="select_plan_title">Chọn gói đăng ký \ncủa bạn</string>
+	<string name="select_plan_title">Choose your plan</string>
 	<string name="select_plan_line_1">Đầy đủ tất cả các tính năng</string>
 	<string name="select_plan_line_2">Không quảng cáo</string>
 	<string name="select_plan_line_3">Hủy bất kỳ lúc nào</string>
-	<string name="select_plan_button">Chọn gói NymVPN</string>
+	<string name="select_plan_button">Chọn gói NymVPN của bạn</string>
+	<string name="select_plan_billing_unavailable">Google Play billing is unavailable. Make sure you are signed in to the Play Store and try again.</string>
+	<string name="account_info_manage_play_unavailable">This subscription wasn\'t purchased through Google Play. Manage it where you bought it.</string>
 	<string name="select_plan_modal_title">Chọn gói dịch vụ của bạn. Đầy đủ tính năng, hủy bất cứ lúc nào.</string>
+	<plurals name="select_plan_free_trial_days">
+		<item quantity="other">Dùng thử miễn phí trong %1$d ngày</item>
+	</plurals>
+	<plurals name="select_plan_modal_free_trial_days">
+		<item quantity="other">Giai đoạn dùng thử miễn phí %1$d ngày bắt đầu từ hôm nay</item>
+	</plurals>
 	<!-- Server Details screen -->
 	<string name="details_title">Thông tin máy chủ</string>
 	<string name="details_features_title">Tính năng node</string>
@@ -324,8 +339,8 @@
 	<string name="details_advanced_privacy">Quyền riêng tư nâng cao</string>
 	<string name="details_with_mixnet">Mixnet</string>
 	<string name="details_streaming_content">Phát trực tuyến &amp; IP</string>
-	<string name="details_residental_ip">Địa chỉ IP dân cư</string>
-	<string name="details_datacenter_ip">IP trung tâm dữ liệu</string>
+	<string name="details_residental_ip">Dân dụng</string>
+	<string name="details_datacenter_ip">Trung tâm dữ liệu</string>
 	<string name="details_post_quantum_secure_keys">Các khóa bảo mật hậu lượng tử</string>
 	<string name="details_lewes_protocol">Giao thức Lewes</string>
 	<string name="details_standard_key_exchange">Trao đổi khóa tiêu chuẩn</string>
@@ -355,14 +370,21 @@
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
 	<string name="censorship_description">Bật các tính năng này nếu bạn gặp sự cố kết nối hoặc NymVPN bị chặn tại vị trí của bạn.</string>
-	<string name="censorship_learn_more_link_text">Tìm hiểu thêm</string>
-	<string name="censorship_quic_title">Kết nối nâng cao (QUIC)</string>
-	<string name="censorship_quic_description">Cải thiện kết nối trên các mạng bị hạn chế bằng cách tích hợp WireGuard vào QUIC (HTTP/3).\n\nLưu ý: Giới hạn các tùy chọn máy chủ đầu vào chỉ dành cho các máy chủ tương thích với QUIC.</string>
+	<string name="censorship_learn_more_link_text">Learn more</string>
+	<string name="censorship_quic_title">Enhanced connection</string>
+	<string name="censorship_bridge_changes_apply">Changes will apply after reconnect</string>
+	<string name="censorship_bridge_off_title">Tắt</string>
+	<string name="censorship_bridge_off_description">Connect directly without a bridge.</string>
+	<string name="censorship_bridge_auto_title">Tự động</string>
+	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
+	<string name="censorship_bridge_on_title">Bật</string>
+	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
+	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Kết nối API Ẩn danh</string>
 	<string name="censorship_stealth_description">Bảo vệ khỏi việc bị chặn VPN bằng cách sử dụng các tên miền giả. Bật tùy chọn này để sử dụng mọi lúc, hoặc tắt để sử dụng khi các kết nối thông thường gặp sự cố.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic_gateway_filter_info_msg">Chỉ hiển thị các vị trí trong chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, hãy tắt QUIC</string>
+	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
 	<string name="censorship_amnezia_title">Mức độ che giấu tối thiểu (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Che giấu lưu lượng WireGuard bằng các gói tin giả để ngăn việc chặn VPN. \n\nLưu ý: Chỉ được triển khai ở phía máy khách.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
@@ -374,13 +396,13 @@
 	<string name="account_subscription_description">Chúng tôi đã tìm thấy một gói đăng ký đang hoạt động được liên kết với tài khoản Google Play của bạn. Bỏ qua bước đăng ký và bắt đầu sử dụng NymVPN ngay. Chỉ cần chuẩn bị sẵn cụm từ mật khẩu 24 từ.</string>
 	<string name="account_subscription_button">Đăng nhập bằng cụm từ mật khẩu Nym</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_title_1">Đang tạo cặp khóa mã hóa…</string>
-	<string name="account_generating_title_2">Đang tạo danh tính ẩn danh của bạn…</string>
-	<string name="account_generating_title_3">Đang bảo mật cục bộ thông tin xác thực của bạn…</string>
+	<string name="account_generating_title_1">Đang tạo cặp khóa mã hóa...</string>
+	<string name="account_generating_title_2">Đang tạo danh tính ẩn danh của bạn...</string>
+	<string name="account_generating_title_3">Đang bảo mật cục bộ thông tin xác thực của bạn...</string>
 	<string name="account_generating_description_1">Tạo khóa và lưu giữ hoàn toàn trong thiết bị</string>
 	<string name="account_generating_description_2">Đang thiết lập thông tin xác thực mạng ẩn danh</string>
-	<string name="account_generating_description_3">Đang mã hóa thông tin xác thực bằng khóa thiết bị của bạn; chỉ bạn mới có thể mở khóa chúng</string>
-	<string name="account_generating_error">Không thể đăng ký tài khoản. Vui lòng thử lại sau</string>
+	<string name="account_generating_description_3">Mã hóa thông tin xác thực bằng khóa thiết bị của bạn. Chỉ bạn mới có thể mở khóa chúng</string>
+	<string name="account_generating_error">Không thể hoàn tất việc thiết lập tài khoản của bạn. Hãy thử lại. Nếu vẫn gặp sự cố, hãy liên hệ với bộ phận hỗ trợ.</string>
 	<string name="account_generating_deeplink_title">Đang đăng nhập...</string>
 	<string name="account_generating_deeplink_description">Vui lòng chờ trong khi chúng tôi xác minh tài khoản của bạn</string>
 	<string name="account_login_processing_setting_up">Thiết lập tài khoản ẩn danh của bạn</string>
@@ -409,19 +431,21 @@
 	<string name="screen_lock_setup_button">Đặt khóa màn hình</string>
 	<string name="screen_lock_setup_not_now">Không bây giờ</string>
 	<string name="device_auth_error">Không thể xác nhận đó là bạn. Vui lòng thử lại.</string>
+	<string name="device_auth_use_screen_lock">Sử dụng khóa màn hình</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Cụm mật khẩu tài khoản của bạn</string>
-	<string name="passphrase_description">🔒Cụm mật khẩu chính của tài khoản bạn: 24 từ giúp bạn truy cập tài khoản từ mọi thiết bị.</string>
-	<string name="passphrase_description_first">🔒Cụm từ mật khẩu tài khoản chính của bạn:</string>
+	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
+	<string name="passphrase_description_first">🔒Your account passphrase:</string>
 	<string name="passphrase_description_last">24 từ cho phép bạn truy cập tài khoản của mình từ bất kỳ thiết bị nào.</string>
 	<string name="passphrase_show">Hiển thị cụm từ mật khẩu của tôi</string>
+	<string name="passphrase_hide">Ẩn mật khẩu của tôi</string>
 	<string name="passphrase_copy">Sao chép cụm từ mật khẩu</string>
 	<string name="passphrase_save">Lưu vào trình quản lý mật khẩu</string>
 	<string name="passphrase_lose">⚠️ Mất những từ này = mất tài khoản của bạn mãi mãi.</string>
 	<string name="passphrase_never">Không bao giờ chia sẻ chúng với bất kỳ ai, bao gồm cả bộ phận Hỗ trợ Nym.</string>
 	<string name="passphrase_saved">Tôi đã lưu 24 từ này một cách an toàn và sẽ không bao giờ chia sẻ chúng</string>
 	<string name="passphrase_info_title">Cụm từ mật khẩu là gì</string>
-	<string name="passphrase_info_description">Đây là một tập hợp 24 từ duy nhất, được tạo trên thiết bị của bạn, hoạt động như thông tin đăng nhập an toàn. Chỉ bạn mới có quyền truy cập vào nó—không có sao lưu, đặt lại hay khôi phục.\n\n ⚠️ Hãy giữ an toàn: cụm từ mật khẩu này là cách duy nhất để truy cập tài khoản của bạn.</string>
+	<string name="passphrase_info_description">It\'s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it – there\'s no backup, reset, or recovery.\n\n ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
 	<string name="passphrase_info_privacy_removed">Để bảo vệ quyền riêng tư của bạn, chúng tôi đã loại bỏ:</string>
 	<string name="passphrase_info_stored_accounts">Tài khoản lưu trữ tập trung</string>
 	<string name="passphrase_info_personal_logins">Đăng nhập dựa trên dữ liệu cá nhân</string>
@@ -444,13 +468,11 @@
 	<string name="account_info_bandwidth_title">Mức dung lượng hằng ngày</string>
 	<string name="account_info_limit_text">Giới hạn</string>
 	<string name="account_info_reset_text">Đặt lại hàng ngày lúc</string>
-	<string name="account_info_data_unavailable">Dữ liệu sử dụng không có sẵn</string>
+	<string name="account_info_data_unavailable">Dữ liệu sử dụng tạm thời không có sẵn</string>
 	<string name="account_info_valid_text">Gói cước có hiệu lực đến %s</string>
 	<string name="account_info_expires_text">Gói cước hết hạn vào ngày %s</string>
-	<string name="banner_plan_expires_text">Gói cước hết hạn vào ngày:\n%s</string>
 	<string name="account_info_renew_text">Gia hạn ngay để tiếp tục được bảo vệ</string>
-	<string name="banner_renew_text">Gia hạn ngay\nđể tiếp tục được bảo vệ</string>
-	<string name="account_info_auto_renew_text">*Tự động gia hạn</string>
+	<string name="account_info_auto_renew_text">Tự động gia hạn</string>
 	<string name="account_info_no_plan">Không phát hiện gói đăng ký đang hoạt động</string>
 	<string name="account_info_contact_support_action">Liên hệ bộ phận Hỗ Trợ Khách Hàng</string>
 	<string name="account_info_contact_support_suffix"> nếu gói của bạn đạt đến giới hạn.</string>
@@ -460,6 +482,7 @@
 	<string name="account_info_add_social_action">Thêm đăng nhập bằng tài khoản mạng xã hội</string>
 	<string name="account_info_add_social_suffix">\u0020phương thức truy cập vào tài khoản của bạn.</string>
 	<string name="account_info_backup">Phương thức đăng nhập dự phòng được liên kết thông qua Privy</string>
+	<string name="account_info_delete_button">Delete account</string>
 	<string name="pin_code_title">Mã Pin</string>
 	<string name="pin_code_subtitle">Nhập mã này trên trang web</string>
 	<string name="pin_code_copy_and_open">Sao chép mã và mở trang web</string>
@@ -468,7 +491,7 @@
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Cho phép ghi lại nhật ký</string>
 	<string name="logs_enable_description">Bật tính năng này để khắc phục sự cố. Tắt tính năng này để bảo mật thông tin cá nhân. Nhật ký sẽ được lưu trữ trên thiết bị của bạn. Nym không bao giờ có quyền truy cập.</string>
-	<string name="logs_debug_enable_title">Cho phép ghi nhật ký chi tiết</string>
+	<string name="logs_debug_enable_title">Bật ghi nhật ký gỡ lỗi</string>
 	<string name="logs_debug_enable_description">Bật chế độ này để ghi lại nhật ký DEBUG chi tiết phục vụ cho việc tự gỡ lỗi hoặc hỗ trợ. Chế độ này sẽ làm tăng mức tiêu hao pin. Kích thước nhật ký có thể tăng lên đến 10 lần.</string>
 	<string name="logs_tab_app">Ứng dụng</string>
 	<string name="logs_tab_tunnel">Tunnel</string>
@@ -542,7 +565,7 @@
 	<string name="mixnet_tuning_traffic_off_high">Cao\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Cân bằng\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Trung bình\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ Chức năng bảo vệ theo thời gian hiện đang bị tắt. Điều này có thể gây nguy hiểm cho quyền riêng tư của bạn.</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Timing protection is currently turned off and could affect your privacy.</string>
 	<string name="mixnet_tuning_delays_title">Xáo trộn gói tin</string>
 	<string name="mixnet_tuning_delays_description">Điều chỉnh độ trễ thời gian để thay đổi cách các gói dữ liệu được trộn.</string>
 	<string name="mixnet_tuning_delays_low">Thấp\n0 ms</string>
@@ -576,13 +599,13 @@
 	<!-- Node Families -->
 	<string name="node_families_title">Các máy chủ được chọn đều thuộc cùng một nhóm nhà vận hành!</string>
 	<string name="node_families_description_text">Tắt lời nhắc trong </string>
-	<string name="node_families_description_link">cài đặt thông báo.</string>
+	<string name="node_families_description_link">cài đặt thông báo</string>
 	<string name="node_families_connect_button">Vẫn kết nối</string>
-	<string name="node_families_error_message">Các máy chủ được chọn thuộc cùng một nhóm. Hãy chọn một cặp khác hoặc vẫn kết nối.</string>
+	<string name="node_families_error_message">Các máy chủ vào và ra này không hoàn toàn độc lập. Chọn các máy chủ khác hoặc vẫn kết nối.</string>
 	<!-- Geo Exclusion -->
-	<string name="geo_exclusion_enable_title">Bật Loại Trừ Địa Lý</string>
+	<string name="geo_exclusion_enable_title">Enable Geo-exclusion</string>
 	<string name="geo_exclusion_description">VPN này định tuyến lưu lượng truy cập cho các khu vực được chọn ra ngoài VPN tunnel, đảm bảo các ứng dụng trong nước hoạt động với tốc độ tối đa. Mọi thứ khác vẫn được bảo vệ.</string>
-	<string name="geo_exclusion_beta_text">Phiên bản beta: Hiện tại chỉ có ở Trung Quốc. Sẽ mở rộng sang các khu vực khác trong thời gian tới.</string>
+	<string name="geo_exclusion_beta_text">China only. More regions coming.</string>
 	<string name="geo_exclusion_traffic_bypass_text">Lưu lượng truy cập đến các khu vực bị loại trừ sẽ bỏ qua VPN.</string>
 	<string name="geo_exclusion_server_title">Máy chủ</string>
 	<string name="geo_exclusion_sock55_title">Cổng SOCKS5</string>
@@ -593,7 +616,7 @@
 	<string name="geo_exclusion_error_failed_start_text">Không thể khởi động tính năng loại trừ theo khu vực địa lý. Vui lòng kết nối lại và thử lại.</string>
 	<string name="geo_exclusion_error_invalid_port_text">Cổng phải nằm trong khoảng từ 1024 đến 65535.</string>
 	<string name="geo_exclusion_error_forbidden_port_text">Cổng 1080 bị cấm. Vui lòng chọn cổng khác.</string>
-	<string name="geo_exclusion_excluded_regions_label">CÁC KHU VỰC BỊ LOẠI TRỪ</string>
+	<string name="geo_exclusion_excluded_regions_label">Khu vực bị loại trừ</string>
 	<string name="geo_exclusion_china">Trung Quốc</string>
 	<string name="geo_exclusion_add_region_button">Thêm khu vực</string>
 	<string name="geo_exclusion_copy_proxy_label">Sao chép địa chỉ proxy</string>
@@ -603,7 +626,7 @@
 	<string name="setup_instructions_step_socks_host">SOCKS Host</string>
 	<string name="setup_instructions_step_socks_port">, Cổng</string>
 	<string name="setup_instructions_step_socks_suffix">, chọn SOCKS v5.</string>
-	<string name="setup_instructions_step_dns">Kiểm tra Proxy DNS khi sử dụng SOCKS v5 (ngăn ngừa rò rỉ DNS).</string>
+	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
 	<string name="setup_instructions_description">Trên Firefox hoặc các trình duyệt cho phép cấu hình SOCKS5.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">Biểu tượng ứng dụng</string>
@@ -627,4 +650,47 @@
 	<string name="profiles_description">Các hồ sơ (Profiles) là các mẫu kết nối mà bạn có thể sử dụng để kết nối nhanh chóng với cấu hình máy chủ phù hợp nhất cho bạn.</string>
 	<string name="profiles_learn_more_text">Tìm hiểu thêm về các hồ sơ tại đây</string>
 	<string name="profiles_learn_more_link">https://nym.com/features/profiles</string>
+	<string name="node_location_excluding_country">Excluding your country</string>
+	<string name="node_location_including_country">Including your country</string>
+	<string name="node_location_random">Global Nym network</string>
+	<!-- Delete Account -->
+	<string name="delete_account_title">Delete your account</string>
+	<string name="delete_account_headline">This closes your NymVPN account. You can\'t undo it.</string>
+	<string name="delete_account_deleted_title">Deleted from this phone</string>
+	<string name="delete_account_deleted_1">Your passphrase</string>
+	<string name="delete_account_deleted_2">Your account and device keys</string>
+	<string name="delete_account_deleted_3">Your VPN keys and stored credentials</string>
+	<string name="delete_account_deleted_4">Your account settings</string>
+	<string name="delete_account_at_nym_title">At Nym</string>
+	<string name="delete_account_at_nym_1">Your account is closed. It can\'t log in again on any device.</string>
+	<string name="delete_account_kept_title">Kept, and why</string>
+	<string name="delete_account_kept_1_headline">Payment and accounting records.</string>
+	<string name="delete_account_kept_1_descr">Swiss law requires Nym to keep accounting records for 10 years. Stripe keeps card payment records for at least 5 years.</string>
+	<string name="delete_account_kept_2_headline">Google Play purchase records.</string>
+	<string name="delete_account_kept_2_descr">They stay with Google, and Nym can\'t delete them.</string>
+	<string name="delete_account_kept_3_headline">Anonymous usage statistics and crash reports.</string>
+	<string name="delete_account_kept_3_descr">They were never linked to your account. Crash reports are kept for about 90 days.</string>
+	<string name="delete_account_kept_4_headline">Support tickets.</string>
+	<string name="delete_account_kept_4_descr">To have them deleted, write to legal@nym.com.</string>
+	<string name="delete_account_kept_5_headline">Copies of your passphrase you saved yourself,</string>
+	<string name="delete_account_kept_5_descr">in a password manager or on paper. They\'re yours to delete.</string>
+	<string name="delete_account_kept_6_headline">Tokens held on-chain stay there.</string>
+	<string name="delete_account_kept_6_descr">Deleting your NymVPN account doesn\'t touch a blockchain. If this passphrase also holds NYM or other tokens, keep a copy of it.</string>
+	<string name="delete_account_keep_button">Keep my account</string>
+	<string name="delete_account_auth_subtitle">You confirm once more before anything is deleted.</string>
+	<string name="delete_account_play_title">Cancel your Google Play subscription first</string>
+	<string name="delete_account_play_descr_1">Deleting your account doesn\'t cancel it, and after you delete you can\'t log in to cancel it here. Google keeps charging you until you cancel it in Google Play.</string>
+	<string name="delete_account_play_descr_2">Once it\'s cancelled, come back to delete your account.</string>
+	<string name="delete_account_play_button">Open Google Play subscriptions</string>
+	<string name="delete_account_dialog_title">Delete your account now?</string>
+	<string name="delete_account_dialog_description">Your account closes on every device, and your passphrase and keys are removed from this phone. You can\'t undo this.</string>
+	<string name="delete_account_dialog_progress_title">Deleting your account…</string>
+	<string name="delete_account_dialog_progress_descr">This disconnects the VPN.</string>
+	<string name="delete_account_confirm_title">Your account is deleted</string>
+	<string name="delete_account_confirm_descr_1">Your account is closed, and your passphrase and keys are gone from this phone.</string>
+	<string name="delete_account_confirm_descr_2">To have your support tickets deleted too, write to legal@nym.com.</string>
+	<string name="delete_account_error_title">Couldn\'t delete your account</string>
+	<string name="delete_account_error_descr">Nothing was deleted. Check your connection and try again.</string>
+	<string name="delete_account_time_title">You lose the time you have left</string>
+	<string name="delete_account_time_descr">Your NymVPN access runs until %1$s and doesn\'t renew. Deleting your account ends it today.</string>
 </resources>

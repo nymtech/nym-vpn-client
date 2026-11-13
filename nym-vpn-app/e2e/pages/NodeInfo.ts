@@ -42,7 +42,9 @@ class NodeInfoPage {
       exact: true,
     });
     this.antiCensorshipValue = page.getByText('QUIC protocol', { exact: true });
-    this.enableQuicHint = page.getByText('Enable “QUIC protocol” in');
+    this.enableQuicHint = page.getByText(
+      'Set “Enhanced connection” to Auto or On in',
+    );
 
     this.overallPerformanceLabel = page.getByText('Overall performance');
     this.overallPerformanceValue = page.getByText('Good', { exact: true });

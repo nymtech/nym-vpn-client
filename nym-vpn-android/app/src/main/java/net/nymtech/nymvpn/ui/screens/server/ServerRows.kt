@@ -1,6 +1,7 @@
 // Builds the flat list of rows rendered by the server screen from grouped gateways.
 package net.nymtech.nymvpn.ui.screens.server
 
+import net.nymtech.nymvpn.util.Constants.countryCodesForRegionSupport
 import net.nymtech.vpn.model.NymGateway
 
 internal fun buildServerRows(
@@ -48,7 +49,7 @@ private fun MutableList<ServerRow>.addCountry(
 	val ungrouped = (if (item.regions != null) item.gateways.filter { it.region == null } else item.gateways).uniqueRows()
 
 	regions.forEachIndexed { index, region ->
-		val regionStateKey = "${expandStatePrefix}_region_${region.region}"
+		val regionStateKey = "${expandStatePrefix}_region_${item.locale.country}_${region.region}"
 		val regionExpanded = expandedOverrides[regionStateKey]
 			?: region.gateways.any { it.region.equals(selectedKey, true) || it.identity == selectedKey }
 		val isLastRegion = ungrouped.isEmpty() && index == regions.lastIndex
@@ -86,7 +87,7 @@ private fun ItemType.CountryItem.isExpandedByDefault(query: String, selectedKey:
 		it.identity == selectedKey ||
 			it.region.equals(selectedKey, true) ||
 			(
-				countryCode == "us" &&
+				countryCode in countryCodesForRegionSupport &&
 					query.takeIf { q -> q.isNotBlank() }?.let { q ->
 						it.region?.contains(q, true)
 					} ?: false

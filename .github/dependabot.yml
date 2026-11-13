@@ -10,7 +10,9 @@ multi-ecosystem-groups:
     milestone: 6
 updates:
   - package-ecosystem: github-actions
-    directory: /
+    directories:
+      - "/"
+      - "/.github/actions/*"
     schedule:
       interval: weekly
     assignees:

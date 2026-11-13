@@ -41,10 +41,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Load .env versions
-        uses: xom9ikk/dotenv@v2.4.0
+        uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
 
       - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         with:
           toolchain: ${{ env.RUST_VERSION }}
           # Simulator slices Maestro drives: aarch64-apple-ios-sim on Apple Silicon, x86_64-apple-ios on Intel hosts.
@@ -55,20 +55,20 @@ jobs:
       - name: Install Protoc
         id: protoc
         continue-on-error: true
-        uses: arduino/setup-protoc@v3
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
         with:
           version: "21.12"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Protoc (retry)
         if: steps.protoc.outcome == 'failure'
-        uses: arduino/setup-protoc@v3
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
         with:
           version: "21.12"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Go
-        uses: actions/setup-go@v7.0.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           # No caching: self-hosted runners keep $HOME between jobs, so the cache restores files that were never lost (and clobbers read-only Go objects).
@@ -176,7 +176,7 @@ jobs:
 
       # Maestro runs on the JVM; the runner has no system Java. Same JDK as ci-maestro-android.yml.
       - name: Set up JDK 21
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version: "21"
           distribution: "temurin"
@@ -278,7 +278,7 @@ jobs:
       - name: Upload Maestro report
         id: upload-report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: maestro-ios-report
           path: nym-vpn-apple/maestro-ios-report.xml
@@ -288,7 +288,7 @@ jobs:
       - name: Upload Maestro debug artifacts
         id: upload-debug
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: maestro-ios-debug
           path: |
@@ -325,7 +325,7 @@ jobs:
       # not fatal - the composer degrades to a "(no test report)" message.
       - name: Download Maestro report
         continue-on-error: true
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: maestro-ios-report
           path: downloaded-report
@@ -388,7 +388,7 @@ jobs:
       # Deliberately not continue-on-error: a missing TEST_UI_ZULIP_TOPIC must
       # go red, because an absent message looks identical to a night with no run.
       - name: Send Zulip notification
-        uses: zulip/github-actions-zulip/send-message@v2
+        uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b # v2.0.2
         with:
           api-key: ${{ secrets.TEST_HARNESS_ZULIP_BOT_API_KEY }}
           email: ${{ secrets.TEST_HARNESS_ZULIP_BOT_EMAIL }}

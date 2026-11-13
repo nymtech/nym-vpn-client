@@ -31,15 +31,15 @@ jobs:
           ls -la ./
 
       - name: Checkout repo
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
       - name: Dotenv Action
-        uses: xom9ikk/dotenv@v2.4.0
+        uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
 
       - name: Cache libwg
-        uses: actions/cache@v6.1.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: cache
         with:
           path: build/lib
@@ -47,14 +47,14 @@ jobs:
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v7.0.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Setup msys2
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
         id: msys2
         with:
           update: true
@@ -81,13 +81,13 @@ jobs:
 
       - name: Install cargo-get
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: baptiste0928/cargo-install@v3
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
           crate: cargo-get
 
       - name: Setup VS dev shell
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: humbletim/vsdevenv-shell@503210b7b39a7405e534ea93c36a733b93f01087
+        uses: humbletim/vsdevenv-shell@503210b7b39a7405e534ea93c36a733b93f01087 # v2
 
       - name: Build wireguard
         if: steps.cache.outputs.cache-hit != 'true'
@@ -98,7 +98,7 @@ jobs:
         run: make -f Windows.mk libwg CPU_ARCH=${{ matrix.cpu_arch == 'ARM64' && 'ARM64' || 'AMD64' }} PWSH=1
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: wireguard-go_${{ matrix.cpu_arch == 'ARM64' && 'aarch64' || 'x86_64' }}-pc-windows-msvc
           path: build/lib

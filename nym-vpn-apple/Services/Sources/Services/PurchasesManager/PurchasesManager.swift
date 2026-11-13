@@ -36,6 +36,11 @@ public enum PurchaseOutcome: Equatable, Sendable {
     @Published public var isAutoRenewEnabled = false
     /// The Nym account's verdict, read when the plan screen appears. Never persisted.
     @Published public private(set) var nymTrialEligibility: NymTrialEligibility = .unknown
+    /// Whether this Apple ID's live subscription belongs to another Nym account. Read when the plan screen appears.
+    /// The verdict is cleared to `.open` when the account token changes, so a new account never inherits it.
+    @Published public private(set) var appleIdSubscriptionGate: AppleIdSubscriptionGate = .open
+    private var appleIdSubscriptionGateGeneration = 0
+    private var appleIdSubscriptionGateToken: String?
 
     /// Yearly plan price divided by 12. Currency comes from the App Store storefront — it is what Apple
     /// charges and cannot be swapped — while number formatting follows the device locale.
@@ -133,8 +138,59 @@ public enum PurchaseOutcome: Equatable, Sendable {
         nymTrialEligibility = isEligible ? .eligible : .notEligible
     }
 
+    /// Call when a plan screen appears: the verdict follows the Apple ID and the signed-in account's token.
+    /// Returns this read's verdict; it is published only if no newer read or environment reset superseded it.
+    @discardableResult
+    public func refreshAppleIdSubscriptionGate(accountToken: String?) async -> AppleIdSubscriptionGate {
+        // A verdict belongs to one account token; the next account starts open instead of inheriting it.
+        if accountToken != appleIdSubscriptionGateToken {
+            appleIdSubscriptionGateToken = accountToken
+            appleIdSubscriptionGate = .open
+        }
+        appleIdSubscriptionGateGeneration += 1
+        let generation = appleIdSubscriptionGateGeneration
+        let gate = await readAppleIdSubscriptionGate(accountToken: accountToken)
+        if generation == appleIdSubscriptionGateGeneration {
+            appleIdSubscriptionGate = gate
+        }
+        return gate
+    }
+
+    private func readAppleIdSubscriptionGate(accountToken: String?) async -> AppleIdSubscriptionGate {
+        try? await loadProducts()
+        // All plans share one subscription group, so one product's statuses describe the whole Apple ID.
+        guard let subscription = products.first?.subscription else { return .unknown }
+        do {
+            let statuses = try await subscription.status
+            // The owner rule only matters for a live status; skip the full history walk otherwise.
+            let hasLive = statuses.contains { $0.state == .subscribed || $0.state == .inGracePeriod }
+            let history = hasLive ? await Self.subscriptionHistory() : []
+            let entitlements = statuses.map { Self.entitlement(from: $0, history: history) }
+            // A live status that does not fully verify cannot be proven ours or foreign; refuse rather than drop it.
+            let unverifiedLive = zip(statuses, entitlements).contains { status, entitlement in
+                entitlement == nil && (status.state == .subscribed || status.state == .inGracePeriod)
+            }
+            if unverifiedLive {
+                logger.warning("Apple ID subscription status has a live entry that did not verify")
+                return .unknown
+            }
+            return AppleIdSubscriptionGatePolicy.gate(
+                entitlements: entitlements.compactMap { $0 },
+                accountToken: accountToken.flatMap(UUID.init(uuidString:))
+            )
+        } catch {
+            logger.warning("Apple ID subscription status read failed: \(error)")
+            return .unknown
+        }
+    }
+
     public func purchase(with product: Product, token: String) async throws -> PurchaseOutcome {
         guard let accountToken = UUID(uuidString: token) else { return .failed }
+        // Re-read, not trusted from the screen: a foreign subscription must never reach StoreKit's purchase sheet.
+        let gate = await refreshAppleIdSubscriptionGate(accountToken: token)
+        if let gateError = gate.purchaseError {
+            throw gateError
+        }
         // Asked right before the purchase and never cached: the token has no `exp`, Apple checks its age from `iat`.
         let decision = await introOfferEligibilityDecision(for: product)
         logger.debug("Intro offer eligibility: \(decision.logDescription)")
@@ -181,6 +237,9 @@ public enum PurchaseOutcome: Equatable, Sendable {
         introOfferEligibilityGeneration += 1
         isRefreshingIntroOfferEligibility = false
         nymTrialEligibility = .unknown
+        appleIdSubscriptionGate = .open
+        appleIdSubscriptionGateToken = nil
+        appleIdSubscriptionGateGeneration += 1
 #if SANTA
         try? await AppStore.sync()
 #endif
@@ -248,13 +307,60 @@ private extension PurchasesManager {
                     await IntroOfferEligibilityResolver.decide(
                         productId: productId,
                         lookups: lookups,
-                        appTransactionID: PurchasesManager.verifiedAppTransactionID
+                        appTransactionID: { try await PurchasesManager.verifiedAppTransactionID() }
                     )
                 }
             } catch {
                 return .noToken(.lookupsUnavailable)
             }
         }
+    }
+
+    static func entitlement(
+        from status: Product.SubscriptionInfo.Status,
+        history: [AppleIdSubscriptionTransaction]
+    ) -> AppleIdSubscriptionEntitlement? {
+        guard case let .verified(transaction) = status.transaction,
+              case let .verified(renewalInfo) = status.renewalInfo
+        else {
+            return nil
+        }
+        let state: AppleIdSubscriptionEntitlement.State
+        switch status.state {
+        case .subscribed: state = .subscribed
+        case .inGracePeriod: state = .inGracePeriod
+        case .inBillingRetryPeriod: state = .inBillingRetryPeriod
+        case .expired: state = .expired
+        case .revoked: state = .revoked
+        default: return nil
+        }
+        return AppleIdSubscriptionEntitlement(
+            state: state,
+            appAccountToken: AppleIdSubscriptionGatePolicy.ownerToken(
+                originalID: transaction.originalID,
+                latestToken: transaction.appAccountToken,
+                history: history
+            ),
+            expirationDate: transaction.expirationDate,
+            willAutoRenew: renewalInfo.willAutoRenew,
+            gracePeriodExpirationDate: renewalInfo.gracePeriodExpirationDate
+        )
+    }
+
+    /// Every verified transaction, for the owner rule; renewals and plan changes share their original's id.
+    nonisolated static func subscriptionHistory() async -> [AppleIdSubscriptionTransaction] {
+        var history: [AppleIdSubscriptionTransaction] = []
+        for await result in Transaction.all {
+            guard case let .verified(transaction) = result else { continue }
+            history.append(AppleIdSubscriptionTransaction(
+                originalID: transaction.originalID,
+                appAccountToken: transaction.appAccountToken,
+                purchaseDate: transaction.purchaseDate,
+                periodEnd: transaction.revocationDate ?? transaction.expirationDate,
+                isCustomerPurchase: transaction.reason == .purchase
+            ))
+        }
+        return history
     }
 
     nonisolated static func verifiedAppTransactionID() async throws -> String? {

@@ -83,17 +83,17 @@ esac
 
 ## STABLE BUILDS #################################################
 # app artifacts
-app_tag=nym-vpn-v2026.14.0
-app_version=2026.14.0
+app_tag=nym-vpn-v2026.15.0
+app_version=2026.15.0
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_${app_image_arch}.AppImage"
 app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_${deb_arch}.deb"
 desktop_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/ac4153bb1/nym-vpn-app/.pkg/app.desktop"
 icon_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/icon.svg"
 
 # nym-vpnd artifacts
-vpnd_tag=nym-vpn-v2026.14.0
+vpnd_tag=nym-vpn-v2026.15.0
 # ⚠ there are inconsistencies in the package version naming…
-vpnd_version=2026.14.0
+vpnd_version=2026.15.0
 vpnd_deb_ver=$vpnd_version
 vpnd_deb_ver_url=$vpnd_version
 vpnd_raw_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_${arch}.tar.gz"
@@ -573,7 +573,7 @@ check_system_deps() {
 
 install_app_appimage() {
   log "  ${B_GRN}Installing$RS NymVPN.AppImage"
-  sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
+  sudo install -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
 
   log "  ${B_GRN}Installing$RS desktop entry"
   _pushd "$temp_dir"
@@ -598,8 +598,8 @@ install_app_deb() {
 
 install_vpnd_raw() {
   log "  ${B_GRN}Installing$RS nym-vpnd"
-  sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$vpnd_bin" "$install_dir/$vpnd_bin"
-  sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$socks5_proxy_bin" "$install_dir/$socks5_proxy_bin"
+  sudo install -Dm755 "$temp_dir/$vpnd_bin" "$install_dir/$vpnd_bin"
+  sudo install -Dm755 "$temp_dir/$socks5_proxy_bin" "$install_dir/$socks5_proxy_bin"
 
   log "  ${B_GRN}Installing$RS systemd service"
   sudo install -Dm644 "$temp_dir/$vpnd_service" "$units_dir/$vpnd_service"

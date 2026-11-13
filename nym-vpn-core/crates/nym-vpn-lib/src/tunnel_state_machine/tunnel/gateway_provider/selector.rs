@@ -127,7 +127,7 @@ impl SelectedGateways {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum OrderingCriteria<T> {
     Random(T),
     ClosestTo(Location),
@@ -302,6 +302,7 @@ fn select_entry(
     mut entry_gateways: GatewayList,
     blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
+    use_bridges: bool,
     gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<&Location>,
 ) -> Result<Gateway, GatewayProviderError> {
@@ -310,11 +311,15 @@ fn select_entry(
         tunnel_settings.entry_point.as_ref(),
         nym_vpn_lib_types::EntryPoint::Gateway { .. }
     );
-    let entry_filters = if pinned_entry || blacklisted_gateways.is_empty().unwrap_or(true) {
+    let mut entry_filters = if pinned_entry || blacklisted_gateways.is_empty().unwrap_or(true) {
         GatewayFilters::default()
     } else {
         GatewayFilters::from(&[GatewayFilter::NotBlacklisted(blacklisted_gateways.clone())])
     };
+
+    if use_bridges {
+        entry_filters.add(GatewayFilter::QuicEnabled);
+    }
 
     let entry_ordering_criteria = OrderingCriteria::new_entry(
         &mut entry_gateways,
@@ -323,8 +328,19 @@ fn select_entry(
         device_location,
     );
 
-    find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters)
-        .map_err(GatewayProviderError::EntryGatewayUnavailable)
+    let entry_gateway = find_best_entry_gateway(
+        &entry_gateways,
+        entry_ordering_criteria.clone(),
+        &entry_filters,
+    );
+    if entry_gateway.is_err() && use_bridges {
+        entry_filters.remove(&GatewayFilter::QuicEnabled);
+        if find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters).is_ok()
+        {
+            return Err(GatewayProviderError::EntryGatewayHasNoBridge);
+        }
+    }
+    entry_gateway.map_err(GatewayProviderError::EntryGatewayUnavailable)
 }
 
 fn select_exit(
@@ -375,6 +391,7 @@ fn loop_select(
     exit_gateways: GatewayList,
     blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
+    use_bridges: bool,
     gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<&Location>,
 ) -> Result<(Gateway, Gateway), GatewayProviderError> {
@@ -384,6 +401,7 @@ fn loop_select(
             entry_gateways.clone(),
             blacklisted_gateways,
             tunnel_settings,
+            use_bridges,
             gateway_provider_event_sender.clone(),
             device_location,
         )
@@ -437,27 +455,18 @@ pub async fn select_gateways(
         });
     };
 
-    let (entry_gateways, exit_gateways) = match tunnel_settings.tunnel_type_used() {
+    let tunnel_type = tunnel_settings.tunnel_type_used();
+    // Bridges are a WireGuard transport; the mixnet entry list is never narrowed to them.
+    let use_bridges = use_bridges && matches!(tunnel_type, TunnelType::Wireguard);
+
+    let (entry_gateways, exit_gateways) = match tunnel_type {
         TunnelType::Wireguard => {
             let all_gateways = gateway_cache
                 .lookup_gateways(GatewayType::Wg)
                 .await
                 .map_err(GatewayProviderError::LookupGateways)?;
 
-            let entry_gateways = if use_bridges {
-                GatewayList::new(
-                    all_gateways.gw_type(),
-                    all_gateways
-                        .clone()
-                        .into_iter()
-                        .filter(Gateway::is_quic_enabled)
-                        .collect(),
-                )
-            } else {
-                all_gateways.clone()
-            };
-
-            (entry_gateways, all_gateways)
+            (all_gateways.clone(), all_gateways)
         }
         TunnelType::Mixnet => {
             // Setup the gateway that we will use as the exit point
@@ -481,6 +490,7 @@ pub async fn select_gateways(
             exit_gateways.clone(),
             blacklisted_gateways,
             tunnel_settings,
+            use_bridges,
             gateway_provider_event_sender.clone(),
             device_location.as_ref(),
         ) {
@@ -498,6 +508,7 @@ pub async fn select_gateways(
                 exit_gateways,
                 blacklisted_gateways,
                 &no_gateway_independence_settings,
+                use_bridges,
                 gateway_provider_event_sender,
                 device_location.as_ref(),
             )?;
@@ -509,6 +520,7 @@ pub async fn select_gateways(
             entry_gateways,
             blacklisted_gateways,
             tunnel_settings,
+            use_bridges,
             gateway_provider_event_sender.clone(),
             device_location.as_ref(),
         )?;
@@ -622,6 +634,41 @@ mod tests {
         assert!(matches!(
             result,
             Err(GatewayProviderError::SameEntryAndExitGateway { .. })
+        ));
+    }
+
+    async fn select_pinned_without_bridge(
+        bridge_mode: nym_vpn_lib_types::BridgeMode,
+    ) -> Result<SelectedGateways, GatewayProviderError> {
+        let gateways = Arc::new(RwLock::new(Some(vec![
+            gateway_id_to_gateway(GW_ID_1),
+            gateway_id_to_gateway(GW_ID_2),
+        ])));
+        let mut settings = default_tunnel_settings();
+        settings.wireguard_tunnel_options.bridge_mode = bridge_mode;
+        *settings.entry_point = EntryPoint::Gateway {
+            identity: GW_ID_1.parse().unwrap(),
+        };
+
+        select_gateways(
+            MockGatewayCache::new(gateways),
+            &BlacklistedGateways::new(),
+            &settings,
+            true,
+            None,
+            None,
+            &WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await
+    }
+
+    #[tokio::test]
+    async fn bridge_mode_on_pinned_entry_without_bridge_returns_error() {
+        let result = select_pinned_without_bridge(nym_vpn_lib_types::BridgeMode::On).await;
+
+        assert!(matches!(
+            result,
+            Err(GatewayProviderError::EntryGatewayHasNoBridge)
         ));
     }
 

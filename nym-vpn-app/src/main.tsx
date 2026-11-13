@@ -43,7 +43,7 @@ console.log('env', window._APP);
 const devMode = window._APP.devMode;
 const startupError = window._APP.startupError;
 const defaultVpnMode = window._APP.defaultVpnMode;
-const defaultQuic = window._APP.defaultQuic;
+const defaultBridgeMode = window._APP.defaultBridgeMode;
 const defaultNoIpv6 = false;
 const defaultAllowLan = false;
 const ErrorWindowLabel = 'error';
@@ -189,7 +189,7 @@ dayjs.extend(localizedFormat);
         (await kvGet<boolean>('technical-optin-seen')) || false,
       entryNode: config?.entryNode || DefaultNode,
       exitNode: config?.exitNode || DefaultNode,
-      quic: config?.bridges !== undefined ? config.bridges : defaultQuic,
+      bridgeMode: config?.bridgeMode ?? defaultBridgeMode,
       noIpv6:
         config?.disableIpv6 !== undefined ? config.disableIpv6 : defaultNoIpv6,
       allowLan:

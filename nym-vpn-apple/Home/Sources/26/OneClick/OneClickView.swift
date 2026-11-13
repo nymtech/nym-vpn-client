@@ -82,12 +82,27 @@ private extension OneClickView {
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
+            if let bridgeStatus {
+                Text(bridgeStatus)
+                    .nymTextStyle(.bodySmall)
+                    .foregroundStyle(Color.Nym.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, NymSpacing.medium)
+            }
             connectDivider
             connectButton
         }
         .padding(.horizontal, NymSpacing.standard)
         .padding(.top, NymSpacing.medium)
         .padding(.bottom, NymSpacing.component)
+    }
+
+    var bridgeStatus: String? {
+        guard viewModel.connectState == .connected else { return nil }
+        if let bridgeTransport = viewModel.bridgeTransport {
+            return String(format: "oneClick.bridge.connected".localizedString, bridgeTransport)
+        }
+        return viewModel.appSettings.bridgeMode == .auto ? "oneClick.bridge.direct".localizedString : nil
     }
 
     var connectDivider: some View {

@@ -7,10 +7,10 @@ import {
   useGatewayIndependenceWatcher,
 } from '../../hooks';
 import DiagnosticsSuggestedDialog from './DiagnosticsSuggestedDialog';
+import ExpiryReminderDialog from './ExpiryReminderDialog';
 import GatewayIndependenceWarningDialog from './GatewayIndependenceWarningDialog';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
-import useExpiryReminderToast from './useExpiryReminderToast';
 import { NewBottomComponent } from './NewBottomComponent';
 import { TunnelState } from './TunnelState';
 
@@ -22,7 +22,6 @@ function Home() {
   const connected = useAppStore((s) => s.state === 'connected');
   useGatewayIndependenceWatcher();
   useDeviceLocationErrorToast();
-  useExpiryReminderToast();
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
@@ -66,6 +65,7 @@ function Home() {
         appUpdate={!networkCompat?.tauri}
         daemonUpdate={!networkCompat?.core}
       />
+      <ExpiryReminderDialog />
       <motion.div
         initial={{ opacity: 0, x: '-1rem' }}
         animate={{ opacity: 1, x: 0 }}

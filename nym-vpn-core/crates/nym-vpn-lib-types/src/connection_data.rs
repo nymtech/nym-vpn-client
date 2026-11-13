@@ -297,6 +297,26 @@ pub struct BridgeAddress {
 
     /// Remote bridge address
     pub remote_addr: SocketAddr,
+
+    /// Bridge transport in use
+    pub transport: BridgeTransport,
+}
+
+/// Transport carrying the bridge connection.
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum BridgeTransport {
+    Quic,
+    Tls,
+    Ssh,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]

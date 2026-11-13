@@ -1,0 +1,2 @@
+-keep class net.nymtech.qrscanner.** { *; }
+-dontwarn java.lang.invoke.StringConcatFactory

@@ -1,0 +1,67 @@
+NymVPN: VPN paling privat di dunia. dVPN Swiss yang aman, terdesentralisasi, anonim, dan tanpa log. Kecepatan WireGuard, anonimitas Noise Generating Mixnet. Tanpa pendaftaran email. Tanpa iklan.
+
+Uji coba VPN gratis selama 7 hari
+
+Coba gratis 7 hari, tanpa kewajiban. Bayar dengan kripto, kartu, atau uang tunai: terserah Anda.
+
+Privasi sejak awal
+
+Kebanyakan VPN menyebut 'tanpa log' sebagai kebijakan — mereka bisa mencatat, hanya berjanji tidak melakukannya. VPN gratis melacak aktivitas Anda untuk menjual data Anda. Arsitektur NymVPN membuat log lalu lintas yang bermakna mustahil: tidak ada satu server pun yang tahu siapa Anda DAN apa yang Anda lakukan. Bahkan Nym tidak bisa mengaitkan identitas dengan aktivitas Anda.
+
+Dua mode VPN, satu aplikasi
+
+• Mode dVPN: dVPN 2-hop berbasis AmneziaWG (WireGuard). Streaming dan penjelajahan yang cepat di jaringan terdesentralisasi.
+
+• Mode Mixnet: Noise Generating Mixnet 5-hop, penerus Tor yang lebih privat. Mencampur lalu lintas Anda dengan pengguna lain, menambahkan noise dan lalu lintas samaran untuk menggagalkan analisis lalu lintas. VPN konsumen yang paling anonim. Cocok untuk kripto, email, dan pesan pribadi seperti Signal.
+
+Bayar secara anonim dengan kripto atau uang tunai
+
+NymVPN menerima lebih banyak mata uang kripto daripada VPN lain, plus pembayaran tunai. Bayar dengan Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM, dan masih banyak lagi. Kredensial zero-knowledge memisahkan pembayaran Anda dari penggunaan VPN: bayar secara anonim, gunakan secara anonim.
+
+Mengapa NymVPN berbeda
+
+• Arsitektur zero-knowledge: identitas Anda tidak terlihat bahkan oleh Nym
+• Tanpa log berdasarkan arsitektur: jaringan tidak dapat menyimpan log lalu lintas yang bermakna
+• Jaringan proxy terdesentralisasi: tidak ada server pusat yang dapat disusupi
+• Yurisdiksi Swiss: di luar aliansi 14 Eyes, undang-undang privasi yang ketat
+• Protokol WireGuard dan mixnet
+• Tanpa pendaftaran email: pembuatan akun anonim
+• Sepenuhnya open source, diaudit oleh peneliti keamanan independen
+• 70+ negara: jaringan server global untuk streaming dan akses
+• Hingga 10 perangkat dalam satu akun
+
+Fitur privasi & keamanan
+
+• Fitur kill switch bawaan: lalu lintas berhenti otomatis jika koneksi VPN terputus
+• Ketahanan terhadap sensor: mengatasi pemblokiran VPN dengan QUIC, AmneziaWG, dan teknik lainnya
+• Enkripsi onion berlapis
+• Pemilihan server masuk dan keluar
+• DNS kustom: gunakan server DNS mana pun yang Anda percayai
+• Pemblokir iklan dengan teknologi Brave
+
+Apa saja yang bisa Anda lakukan dengan NymVPN
+
+• Jelajahi internet secara anonim tanpa meninggalkan jejak
+• Enkripsi lalu lintas Anda di Wi-Fi umum di bandara, kafe, dan hotel
+• Atasi sensor internet di wilayah yang membatasi akses
+• Lindungi komunikasi sensitif untuk jurnalisme, aktivisme, dan riset
+• Cegah ISP memprofilkan penjelajahan Anda untuk penargetan iklan
+• Blokir situs berbahaya, pelacak, dan iklan di tingkat DNS
+
+Privasi Swiss, sejak awal
+
+NymVPN beroperasi di bawah hukum Swiss: di luar aliansi pengawasan 14 Eyes, dengan hak privasi yang dilindungi konstitusi dan tanpa kewajiban penyimpanan data. Berkat arsitektur terdesentralisasi tanpa log kami, data Anda dilindungi oleh hukum dan desain.
+
+Dibangun oleh para ahli kriptografi akademis
+
+NymVPN dikembangkan oleh Nym dan dipercaya jurnalis, aktivis, serta pengguna yang peduli privasi di seluruh dunia. Protokol kami bersifat open-source dan telah diaudit oleh para peneliti keamanan independen.
+
+Yang tidak kami lakukan
+
+• Kami tidak meminta email atau nama Anda
+• Kami tidak bisa melacak situs yang Anda kunjungi
+• Kami tidak bisa menjual, membagikan, atau menyewakan data Anda
+
+Mulai sekarang
+
+Unduh NymVPN, buat akun anonim tanpa email atau bahkan nama, dan mulai menjelajah secara privat.

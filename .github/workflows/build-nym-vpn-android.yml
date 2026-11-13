@@ -22,7 +22,7 @@ on:
         required: true
         default: apk
         options:
-          - bundle
+          - aab
           - apk
       build_flavor:
         type: choice
@@ -96,14 +96,18 @@ on:
       CROWDIN_PERSONAL_TOKEN:
         required: true
 env:
-  UPLOAD_DIR_ANDROID: android_artifacts_${{ inputs.build_flavor }}
+  # Inputs are empty on pull_request, so fall back to a debug F-Droid APK.
+  BUILD_TYPE: ${{ inputs.build_type || 'debug' }}
+  BUILD_FORMAT: ${{ inputs.build_format || 'apk' }}
+  BUILD_FLAVOR: ${{ inputs.build_flavor || 'fdroid' }}
+  UPLOAD_DIR_ANDROID: android_artifacts_${{ inputs.build_flavor || 'fdroid' }}
   SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
   SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
   SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-nym-vpn-app-android:
-    name: build-nym-vpn-android (${{ inputs.build_flavor }})
+    name: build-nym-vpn-android (${{ inputs.build_flavor || 'fdroid' }})
     runs-on: arc-linux-latest
     timeout-minutes: 90
     env:
@@ -120,11 +124,12 @@ jobs:
       upload_dir: ${{ env.UPLOAD_DIR_ANDROID }}
       artifact_name: ${{ steps.output-path.outputs.artifact_name }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
       - name: Setup sccache
+        if: ${{ env.BUILD_FLAVOR != 'fdroid' || env.BUILD_TYPE == 'debug' }}
         uses: ./.github/actions/setup-sccache
 
       - name: Apply orchestrated version
@@ -134,58 +139,38 @@ jobs:
           target: android
 
       - name: Dotenv Action
-        uses: xom9ikk/dotenv@v2.4.0
+        uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v6.0.1
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: "temurin"
           java-version: "21"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/heads/release/') }}
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
           packages: platform-tools
 
-      - name: Cache NDK
-        uses: actions/cache@v6.1.0
-        id: cache-ndk
-        with:
-          path: /usr/local/lib/android/sdk/ndk/${{ env.NDK_VERSION }}
-          key: ndk-${{ env.NDK_VERSION }}
-          restore-keys: |
-            ndk-
-
-      - name: Setup NDK
-        uses: nttld/setup-ndk@v1
-        id: setup-ndk
-        timeout-minutes: 10
-        with:
-          ndk-version: ${{ env.NDK_VERSION }}
-          add-to-path: false
-
-      - name: Verify NDK Setup
+      - name: Install NDK
         run: |
-          echo "NDK Path: ${{ steps.setup-ndk.outputs.ndk-path }}"
-          if [ ! -d "${{ steps.setup-ndk.outputs.ndk-path }}" ]; then
-            echo "Error: NDK directory not found at ${{ steps.setup-ndk.outputs.ndk-path }}"
-            exit 1
-          fi
-          echo "NDK setup successful"
-          ls -la "${{ steps.setup-ndk.outputs.ndk-path }}"
+          ndk_version="$(sed -n 's/.*const val NDK_VERSION = "\(.*\)".*/\1/p' buildSrc/src/main/kotlin/Constants.kt)"
+          [ -n "$ndk_version" ] || { echo "::error::Cannot parse NDK_VERSION from Constants.kt"; exit 1; }
+          sdkmanager --install "ndk;$ndk_version"
+          ndk_home="$ANDROID_HOME/ndk/$ndk_version"
+          echo "ANDROID_NDK_HOME=$ndk_home" >> "$GITHUB_ENV"
+          echo "NDK_TOOLCHAIN_DIR=$ndk_home/toolchains/llvm/prebuilt/linux-x86_64/bin" >> "$GITHUB_ENV"
 
       - name: Set env
         shell: bash
         env:
           NIGHTLY_TIMESTAMP: ${{ inputs.nightly_timestamp }}
         run: |
-          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
-          echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
           # Used by gradle to name nightly apks
           if [ -n "$NIGHTLY_TIMESTAMP" ]; then
             echo "NIGHTLY_TIMESTAMP=$NIGHTLY_TIMESTAMP" >> "$GITHUB_ENV"
@@ -196,24 +181,24 @@ jobs:
         run: chmod +x gradlew
 
       - name: Install Go
-        uses: actions/setup-go@v7.0.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         with:
           toolchain: ${{ env.RUST_VERSION }}
           targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
 
       - name: Install cargo-ndk
-        uses: baptiste0928/cargo-install@v3
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
           crate: cargo-ndk
 
       - name: Install cargo-license
-        uses: baptiste0928/cargo-install@v3
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
           crate: cargo-license
 
@@ -228,28 +213,26 @@ jobs:
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
 
       - name: Decode Keystore
-        if: ${{ inputs.build_type != 'debug' }}
+        if: ${{ env.BUILD_TYPE != 'debug' }}
         id: decode_keystore
-        uses: timheuer/base64-to-file@v2.0
+        uses: timheuer/base64-to-file@dfa5a5dd38803cb4f5c3a081eeb28e8362d43e9c # v2.0.0
         with:
           fileName: ${{ env.KEY_STORE_FILE }}
           fileDir: ${{ env.KEY_STORE_LOCATION }}
           encodedString: ${{ secrets.ANDROID_KEYSTORE }}
 
       - name: Create keystore path env var
-        if: ${{ inputs.build_type != 'debug' }}
+        if: ${{ env.BUILD_TYPE != 'debug' }}
         run: |
           store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
           echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
 
       - name: Create service_account.json
-        if: ${{ inputs.build_type != 'debug' }}
+        if: ${{ env.BUILD_TYPE != 'debug' }}
         id: createServiceAccount
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
       - name: Guard F-Droid compile env
-        env:
-          BUILD_FLAVOR: ${{ inputs.build_flavor }}
         run: |
           set -euo pipefail
           if [ "$BUILD_FLAVOR" = fdroid ] && [ -n "${VPNLIB_SENTRY_DSN+x}" ]; then
@@ -258,103 +241,92 @@ jobs:
           fi
 
       - name: Build Google Play Release Bundle
-        if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'release' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'play' && env.BUILD_TYPE == 'release' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralRelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Google Play Prerelease Bundle
-        if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'play' && env.BUILD_TYPE == 'prerelease' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralPrerelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Google Play Nightly Bundle
-        if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'play' && env.BUILD_TYPE == 'nightly' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleGeneralNightly --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          FDROID: "false"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Release Apk
         # F-Droid rebuilds without VPNLIB_SENTRY_DSN; baking it changes libnym_vpn_lib.so.
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'release' && inputs.build_format == 'apk' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'release' && env.BUILD_FORMAT == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidRelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Release Bundle
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'release' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'release' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidRelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Prerelease Apk
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'prerelease' && inputs.build_format == 'apk' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'prerelease' && env.BUILD_FORMAT == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidPrerelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Prerelease Bundle
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'prerelease' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidPrerelease --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Nightly Apk
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'nightly' && inputs.build_format == 'apk' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'nightly' && env.BUILD_FORMAT == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidNightly --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Nightly Bundle
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'nightly' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidNightly --info
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Debug Apk
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'debug' && inputs.build_format == 'apk' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'debug' && env.BUILD_FORMAT == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidDebug --stacktrace
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Debug Bundle
-        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'debug' && inputs.build_format == 'aab' }}
+        if: ${{ env.BUILD_FLAVOR == 'fdroid' && env.BUILD_TYPE == 'debug' && env.BUILD_FORMAT == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidDebug --stacktrace
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Get output path
         id: output-path
         working-directory: ${{ github.workspace }}
-        env:
-          BUILD_FLAVOR: ${{ inputs.build_flavor }}
-          BUILD_FORMAT: ${{ inputs.build_format }}
         run: |
             OUT_DIR="nym-vpn-android/app/build/outputs"
 
@@ -381,8 +353,36 @@ jobs:
             echo "artifact_path=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
             echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
 
+      # The Android Gradle plugin only warns when it can't strip a library.
+      - name: Check native libraries are stripped
+        working-directory: ${{ github.workspace }}
+        env:
+          ARTIFACT_PATH: ${{ steps.output-path.outputs.artifact_path }}
+        run: |
+          set -euo pipefail
+          case "$ARTIFACT_PATH" in
+            *.aab) libs_prefix=base/lib ;;
+            *) libs_prefix=lib ;;
+          esac
+          libs_dir="$(mktemp -d)"
+          unzip -q "$ARTIFACT_PATH" "$libs_prefix/*.so" -d "$libs_dir" || [ $? -eq 11 ]
+          libs="$(find "$libs_dir" -name '*.so' | sort)"
+          if [ -z "$libs" ]; then
+            echo "::error::No native libraries found in $ARTIFACT_PATH"
+            exit 1
+          fi
+          status=0
+          while IFS= read -r lib; do
+            sections="$("$NDK_TOOLCHAIN_DIR/llvm-readelf" -SW "$lib")"
+            if grep -qE ' \.(debug_|symtab )' <<< "$sections"; then
+              echo "::error::${lib#"$libs_dir"/} is not stripped"
+              status=1
+            fi
+          done <<< "$libs"
+          exit "$status"
+
       - name: Upload artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ steps.output-path.outputs.artifact_path }}

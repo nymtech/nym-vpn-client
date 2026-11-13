@@ -55,11 +55,18 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                         return_sender.send(handler::handle_store_account(shared_state, account).await)
                     },
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_connectivity(return_sender),
+                    AccountCommand::RedeemFreepass(return_sender, _, _) => return_no_connectivity(return_sender),
                     // Before that command gets sent to the AC, the tunnel must be in Disconnected state, so we shouldn't ever end up here
                     // If we nevertheless do, we can't forget the account, because maybe the tunnel is in Offline {reconnect : true} state, and we shouldn't remove the account if it's the case
                     AccountCommand::ForgetAccount(return_sender) => return_no_connectivity(return_sender),
                     AccountCommand::DeleteAccount(return_sender) => return_no_connectivity(return_sender),
                     AccountCommand::LinkAccount(return_sender, _) => return_no_connectivity(return_sender),
+                    AccountCommand::StartPairing(return_sender) => return_no_connectivity(return_sender),
+                    AccountCommand::ScannedKey(return_sender, _) => return_no_connectivity(return_sender),
+                    AccountCommand::VerifiedPairingPin(return_sender, _) => return_no_connectivity(return_sender),
+                    AccountCommand::CancelPairingProcess(return_sender) => {
+                        return_sender.send(handler::handle_qr_cancel_pairing_process(shared_state));
+                    },
                     AccountCommand::RotateKeys(return_sender) => {
                         return_sender.send(handler::handle_rotate_keys(shared_state).await)
                     },
@@ -93,6 +100,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                             CommonCommand::GetAccountSummary(return_sender) => return_sender.send(common_handler::handle_get_account_summary(shared_state).await),
                             CommonCommand::IsTrialEligible(return_sender) => return_no_connectivity(return_sender),
                             CommonCommand::CheckAppleIntroOfferEligibility(return_sender, _, _) => return_no_connectivity(return_sender),
+                            CommonCommand::ApplyFreepass(return_sender, _) => return_no_connectivity(return_sender),
                             CommonCommand::GetDeeplink(return_sender, params) => return_sender.send(common_handler::handle_get_deeplink(shared_state, params).await),
                             CommonCommand::GetAutologinDeeplink(return_sender, params) => return_sender.send(common_handler::handle_get_autologin_deeplink(shared_state, params).await),
                             CommonCommand::DeriveDeeplinkMnemonic(return_sender, deeplink_callback_url) => return_sender.send(common_handler::handle_derive_deeplink_mnemonic(shared_state, deeplink_callback_url).await),

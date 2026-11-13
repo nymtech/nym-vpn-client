@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.data.domain
 
 import net.nymtech.nymvpn.ui.theme.Theme
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.MixnetTrafficConfig
 
 data class Settings(
@@ -13,7 +14,7 @@ data class Settings(
 	val statsEnabled: Boolean = DEFAULT_STATS_ENABLED,
 	val statsDialogSkip: Boolean = FLAG_STATS_DIALOG_SKIP,
 	val technicalOptCompleted: Boolean = FLAG_TECHNICAL_OPT_COMPLETED,
-	val quicEnabled: Boolean = DEFAULT_QUIC_ENABLED,
+	val bridgeMode: BridgeMode = DEFAULT_BRIDGE_MODE,
 	val isStreamingServerBannerDisplayed: Boolean = DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
 	val isPerAppSecurityBannerDisplayed: Boolean = DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 	val logsEnabled: Boolean = DEFAULT_LOGS_ENABLED,
@@ -26,7 +27,6 @@ data class Settings(
 		const val AUTO_START_DEFAULT = false
 		const val SHORTCUTS_DEFAULT = false
 		const val DEFAULT_STATS_ENABLED = false
-		const val DEFAULT_QUIC_ENABLED = false
 		const val FLAG_BATTERY_DIALOG_SKIP = false
 		const val FLAG_STATS_DIALOG_SKIP = false
 		const val FLAG_TECHNICAL_OPT_COMPLETED = false
@@ -36,6 +36,8 @@ data class Settings(
 		const val DEFAULT_WELCOME_SHOWN = false
 		const val DEFAULT_PANEL_COLLAPSED = false
 		const val DEFAULT_ONBOARDING_COMPLETED = false
+
+		val DEFAULT_BRIDGE_MODE = BridgeMode.OFF
 
 		val MIXNET_CONFIG_DEFAULT = MixnetTrafficConfig(
 			poissonParameterForLoopCoverStream = 200u,

@@ -18,6 +18,7 @@ async-compression = { workspace = true, features = ["tokio", "gzip"] }
 async-trait.workspace = true
 bincode.workspace = true
 bytes.workspace = true
+const-addrs = { workspace = true, features = ["ipnet"] }
 futures.workspace = true
 geo.workspace = true
 hex.workspace = true
@@ -49,9 +50,11 @@ nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 nym-apple-network.workspace = true
 nym-authenticator-client.workspace = true
+nym-authorization-service.workspace = true
 nym-common.workspace = true
 nym-conflict.workspace = true
 nym-diagnostic.workspace = true
+nym-firewall-config.workspace = true
 nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-connection-monitor.workspace = true
 nym-gateway-directory.workspace = true
@@ -77,7 +80,7 @@ opentelemetry.workspace = true
 opentelemetry_sdk.workspace = true
 rand.workspace = true
 reqwest = { workspace = true, features = ["socks", "rustls", "stream"] }
-rustls = { workspace = true, default-features = false, features = [
+rustls = { workspace = true, features = [
     "std",
     "ring",
     "logging",
@@ -136,6 +139,7 @@ nix = { workspace = true, features = [
 [target.'cfg(target_os = "linux")'.dependencies]
 nym-cgroup.workspace = true
 nym-dbus.workspace = true
+zbus.workspace = true
 
 # Windows-specific dependencies
 [target.'cfg(windows)'.dependencies]
@@ -143,7 +147,6 @@ nym-windows.workspace = true
 nym-routing.workspace = true
 nym-dns.workspace = true
 nym-firewall.workspace = true
-nym-firewall-config.workspace = true
 windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
 winreg.workspace = true
 
@@ -154,7 +157,6 @@ socket2.workspace = true
 nym-routing.workspace = true
 nym-dns.workspace = true
 nym-firewall.workspace = true
-nym-firewall-config.workspace = true
 
 # Apple-specific dependencies
 [target.'cfg(target_os = "macos")'.dependencies]
@@ -168,7 +170,6 @@ hickory-server = { workspace = true, features = ["resolver"] }
 socket2.workspace = true
 libc.workspace = true
 nym-dns.workspace = true
-nym-firewall-config.workspace = true
 
 # Android-specific dependencies
 [target.'cfg(target_os = "android")'.dependencies]
@@ -193,7 +194,7 @@ tracing-test.workspace = true
 [build-dependencies]
 sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
-vergen-gitcl = { workspace = true, default-features = false, features = [
+vergen-gitcl = { workspace = true, features = [
     "build",
     "cargo",
     "rustc",

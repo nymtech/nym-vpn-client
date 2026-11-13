@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -118,6 +119,15 @@ fun ConnectPanel(
 				visible = panelState == PanelState.FULL,
 				alwaysShowRow = false,
 			)
+
+			state.bridgeText?.let {
+				Text(
+					text = it,
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.primary,
+					modifier = Modifier.padding(top = 12.dp),
+				)
+			}
 
 			HorizontalDivider(
 				thickness = 0.5.dp,

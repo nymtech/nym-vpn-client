@@ -3,6 +3,7 @@ package net.nymtech.vpn.backend.controller
 import android.content.Intent
 import android.os.UserManager
 import java.io.File
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,6 +22,7 @@ import net.nymtech.vpn.model.connect.ConnectResult
 import net.nymtech.vpn.backend.service.VpnService
 import net.nymtech.vpn.model.VpnServiceEvent.*
 import net.nymtech.vpn.model.config.CoreAppConfigProvider
+import net.nymtech.vpn.util.CommandErrorMapper
 import net.nymtech.vpn.util.extensions.asTunnelState
 import nym_vpn_lib.LogLevel
 import nym_vpn_lib.NoHandle
@@ -30,11 +32,12 @@ import nym_vpn_lib.NymVpnServiceCommandException
 import nym_vpn_lib.NymVpnServiceCommandSender
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.initLogger
-import nym_vpn_lib_types.BridgeMode
+import nym_vpn_lib_types.DnsServer
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.FrontingMode
 import nym_vpn_lib_types.MixnetEvent
+import nym_vpn_lib_types.PlainDnsProtocol
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.TunnelState
 import nym_vpn_lib_types.UserAgent
@@ -227,6 +230,7 @@ class VpnCoreController(
 			}
 			is TunnelEvent.DiagnosticsSuggested -> events.tryEmit(Log("TunnelEvent diagnostics_suggested"))
 			is TunnelEvent.ConflictDetected -> events.tryEmit(Log("TunnelEvent conflict_detected: ${event.v1}"))
+			is TunnelEvent.Pairing -> events.tryEmit(Pairing(event.v1.sessionId, event.v1.result))
 		}
 	}
 
@@ -278,6 +282,20 @@ class VpnCoreController(
 		if (!initialized.isCompleted) return null
 		val sender = commandSender ?: return null
 		return runCatching { block(sender) }.getOrNull()
+	}
+
+	// Only the mapped error is logged, as the error text can contain user input.
+	suspend fun <E, R> withCoreSenderResult(errors: CommandErrorMapper<E>, failed: (E) -> R, block: suspend (NymVpnServiceCommandSender) -> R): R = try {
+		requireCoreSender(block)
+	} catch (e: CancellationException) {
+		throw e
+	} catch (e: NymVpnServiceCommandException) {
+		val error = errors.fromErrorChain(runCatching { e.errorChain() }.getOrDefault(""))
+		Timber.tag(TAG).w("Command failed: %s", error)
+		failed(error)
+	} catch (e: Exception) {
+		Timber.tag(TAG).w("Command failed: %s", e::class.java.simpleName)
+		failed(errors.unknown)
 	}
 
 	private suspend fun ensureCoreInitialized(network: Tunnel.Environment, enableDebugLog: Boolean, sentry: Boolean, userAgent: UserAgent, useMainnetFallback: Boolean) {
@@ -359,7 +377,7 @@ class VpnCoreController(
 				sender.setEnableTwoHop(legacy.mode.isTwoHop())
 				sender.setBridgeMode(legacy.bridgeMode)
 				sender.setEnableCustomDns(legacy.customDnsEnabled)
-				if (legacy.customDnsEnabled) sender.setCustomDns(legacy.customDns)
+				if (legacy.customDnsEnabled) sender.setCustomDns(legacy.customDns.toPlainDnsServers())
 				sender.setEnableAdBlocking(legacy.adBlockingEnabled)
 				sender.setFrontingMode(if (legacy.stealthMode) FrontingMode.ALWAYS else FrontingMode.ON_RETRY)
 				sender.setGatewayIndependenceNotifications(legacy.nodeFamiliesNotificationsEnabled)
@@ -421,9 +439,9 @@ class VpnCoreController(
 			is CoreVpnConfigUpdate.SetMode -> requireCoreSender { it.setEnableTwoHop(update.value.isTwoHop()) }
 			is CoreVpnConfigUpdate.SetProfile -> requireCoreSender { it.setProfile(update.value) }
 			is CoreVpnConfigUpdate.SetEnableGeoLocation -> requireCoreSender { it.setEnableGeoLocation(update.value) }
-			is CoreVpnConfigUpdate.SetEnableBridges -> requireCoreSender { it.setBridgeMode(if (update.value) BridgeMode.ON else BridgeMode.OFF) }
+			is CoreVpnConfigUpdate.SetBridgeMode -> requireCoreSender { it.setBridgeMode(update.value) }
 			is CoreVpnConfigUpdate.SetCustomDnsEnabled -> requireCoreSender { it.setEnableCustomDns(update.value) }
-			is CoreVpnConfigUpdate.SetCustomDns -> requireCoreSender { it.setCustomDns(update.value) }
+			is CoreVpnConfigUpdate.SetCustomDns -> requireCoreSender { it.setCustomDns(update.value.toPlainDnsServers()) }
 			is CoreVpnConfigUpdate.SetAdBlockingEnabled -> requireCoreSender { it.setEnableAdBlocking(update.value) }
 			is CoreVpnConfigUpdate.SetStealthMode -> requireCoreSender {
 				it.setFrontingMode(if (update.value) FrontingMode.ALWAYS else FrontingMode.ON_RETRY)
@@ -456,8 +474,8 @@ private fun VpnServiceConfig.asCoreVpnConfig(localPrefs: LocalVpnPrefs): CoreVpn
 	mode = if (enableTwoHop) Tunnel.Mode.TWO_HOP_MIXNET else Tunnel.Mode.FIVE_HOP_MIXNET,
 	bypassLan = localPrefs.bypassLan,
 	bridgeMode = bridgeMode,
-	customDnsEnabled = enableCustomDns,
-	customDns = customDns,
+	customDnsEnabled = customDns.enabled,
+	customDns = customDns.dnsServers.map { it.address },
 	restrictedApps = localPrefs.restrictedApps,
 	network = localPrefs.network,
 	debugLog = localPrefs.debugLog,
@@ -469,3 +487,14 @@ private fun VpnServiceConfig.asCoreVpnConfig(localPrefs: LocalVpnPrefs): CoreVpn
 	geoExclusionPort = geoExclusion.listenPort.toInt(),
 	geoExclusionCountries = geoExclusion.excludedCountries,
 )
+
+private fun List<String>.toPlainDnsServers(): List<DnsServer> = map { DnsServer.Plain(address = it, port = null, ipProto = PlainDnsProtocol.UDP_AND_TCP) }
+
+private val DnsServer.address: String
+	get() = when (this) {
+		is DnsServer.Plain -> address
+		is DnsServer.Tls -> address
+		is DnsServer.Https -> address
+		is DnsServer.Quic -> address
+		is DnsServer.Http3 -> address
+	}

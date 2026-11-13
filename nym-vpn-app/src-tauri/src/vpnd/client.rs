@@ -14,7 +14,7 @@ use super::{
     events::{ConflictDetected, DiagnosticsSuggestedReason, MixnetEvent},
     gateway::{Gateway, GatewayType, RecentGateways, parse_gateways},
     tentative_gateways::TentativeGateways,
-    tunnel::{FrontingMode, Profile, SplitApp, TunnelState},
+    tunnel::{BridgeMode, FrontingMode, Profile, SplitApp, TunnelState},
 };
 
 use anyhow::Result;
@@ -311,6 +311,9 @@ impl VpndClient {
                 debug!("conflict detected: {conflict}");
                 app.emit_conflict_detected(ConflictDetected::from_lib(conflict));
             }
+            lib::TunnelEvent::Pairing(event) => {
+                debug!("pairing event: {event}");
+            }
         }
         Ok(())
     }
@@ -398,17 +401,12 @@ impl VpndClient {
             .await
     }
 
-    /// Enable or disable QUIC mode (aka bridges)
+    /// Set the bridge mode (QUIC, TLS and SSH bridges): off, on or auto
     #[instrument(skip_all)]
-    pub async fn set_quic(&self, enabled: bool) -> Result<(), VpndError> {
+    pub async fn set_bridge_mode(&self, mode: BridgeMode) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let mode = if enabled {
-            lib::BridgeMode::On
-        } else {
-            lib::BridgeMode::Off
-        };
-        vpnd.set_bridge_mode(mode)
+        vpnd.set_bridge_mode(mode.into())
             .or_else(async |e| self.handle_rpc_error("set_bridge_mode", e).await)
             .await
     }
@@ -949,9 +947,11 @@ impl VpndClient {
     pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.get_default_dns()
+        let servers = vpnd
+            .get_default_dns()
             .or_else(async |e| self.handle_rpc_error("get_default_dns", e).await)
-            .await
+            .await?;
+        Ok(servers.iter().map(lib::DnsServer::address).collect())
     }
 
     #[instrument(skip_all)]
@@ -967,7 +967,16 @@ impl VpndClient {
     pub async fn set_custom_dns(&self, dns: Vec<IpAddr>) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.set_custom_dns(dns)
+        // The app only supports plain DNS servers on the default port.
+        let dns_servers = dns
+            .into_iter()
+            .map(|address| lib::DnsServer::Plain {
+                address,
+                port: None,
+                ip_proto: lib::PlainDnsProtocol::UdpAndTcp,
+            })
+            .collect();
+        vpnd.set_custom_dns(dns_servers)
             .or_else(async |e| self.handle_rpc_error("set_custom_dns", e).await)
             .await
     }

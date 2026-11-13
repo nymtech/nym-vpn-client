@@ -41,6 +41,16 @@ pub struct MixnetData {
 pub struct BridgeAddress {
     pub listen_addr: String,
     pub remote_addr: String,
+    pub transport: BridgeTransport,
+}
+
+#[derive(Serialize, Clone, Copy, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub enum BridgeTransport {
+    Quic,
+    Tls,
+    Ssh,
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
@@ -193,6 +203,17 @@ impl From<lib::BridgeAddress> for BridgeAddress {
         BridgeAddress {
             listen_addr: addr.listen_addr.to_string(),
             remote_addr: addr.remote_addr.to_string(),
+            transport: addr.transport.into(),
+        }
+    }
+}
+
+impl From<lib::BridgeTransport> for BridgeTransport {
+    fn from(transport: lib::BridgeTransport) -> Self {
+        match transport {
+            lib::BridgeTransport::Quic => BridgeTransport::Quic,
+            lib::BridgeTransport::Tls => BridgeTransport::Tls,
+            lib::BridgeTransport::Ssh => BridgeTransport::Ssh,
         }
     }
 }
@@ -375,6 +396,36 @@ impl From<lib::SplitApp> for SplitApp {
 impl From<SplitApp> for lib::SplitApp {
     fn from(app: SplitApp) -> Self {
         lib::SplitApp { path: app.path }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub enum BridgeMode {
+    #[default]
+    Off,
+    On,
+    Auto,
+}
+
+impl From<lib::BridgeMode> for BridgeMode {
+    fn from(mode: lib::BridgeMode) -> Self {
+        match mode {
+            lib::BridgeMode::Off => BridgeMode::Off,
+            lib::BridgeMode::On => BridgeMode::On,
+            lib::BridgeMode::Auto => BridgeMode::Auto,
+        }
+    }
+}
+
+impl From<BridgeMode> for lib::BridgeMode {
+    fn from(mode: BridgeMode) -> Self {
+        match mode {
+            BridgeMode::Off => lib::BridgeMode::Off,
+            BridgeMode::On => lib::BridgeMode::On,
+            BridgeMode::Auto => lib::BridgeMode::Auto,
+        }
     }
 }
 

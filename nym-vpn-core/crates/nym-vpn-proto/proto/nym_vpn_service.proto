@@ -115,10 +115,6 @@ message Dns {
   optional string ip = 1;
 }
 
-message IpAddrList {
-  repeated IpAddr ips = 1;
-}
-
 message StringList {
   repeated string values = 1;
 }
@@ -325,8 +321,8 @@ message VpnServiceConfig {
   bool enable_conflict_detection = 33;
   bool residential_exit = 15;
   bool netstack = 13;
-  bool enable_custom_dns = 17;
-  IpAddrList custom_dns = 16;
+  reserved 17; // formerly enable_custom_dns, now CustomDnsSettings.enabled
+  CustomDnsSettings custom_dns = 16;
   optional uint32 min_gateway_vpn_performance = 10;
   NetworkStatsConfig network_stats = 18;
   MixnetTrafficConfig mixnet_traffic = 25;
@@ -555,6 +551,13 @@ message MixnetConnectionData {
 message BridgeAddress {
   SocketAddr listen_addr = 1;
   SocketAddr remote_addr = 2;
+  BridgeTransport transport = 3;
+}
+
+enum BridgeTransport {
+  BRIDGE_TRANSPORT_QUIC = 0;
+  BRIDGE_TRANSPORT_TLS = 1;
+  BRIDGE_TRANSPORT_SSH = 2;
 }
 
 message WireguardConnectionData {
@@ -614,6 +617,7 @@ message TunnelState {
     NO_CREDENTIAL_AVAILABLE = 26;
     NEEDS_DEVICE_LOCATION = 27;
     CONNECTION_ATTEMPTS_EXCEEDED = 28;
+    ENTRY_GATEWAY_HAS_NO_BRIDGE = 30;
     INTERNAL = 17;
   }
 
@@ -664,6 +668,7 @@ message TunnelEvent {
     AccountControllerState account_state = 4;
     DiagnosticsSuggestedEvent diagnostics_suggested_event = 5;
     ConflictDetectedEvent conflict_detected_event = 6;
+    PairingCheckResult pairing_check_result = 7;
   }
 }
 
@@ -687,6 +692,19 @@ message ConflictDetectedEvent {
     COMPETING_FIREWALL = 2;
   }
   Conflict conflict = 1;
+}
+
+// The result from the pairing process has arrived and needs to be actioned in the UI
+message PairingCheckResult {
+  oneof result {
+    google.protobuf.Empty cancelled = 1;
+    google.protobuf.Empty timed_out = 2;
+    string error = 3;
+    string pin_code = 4;
+    google.protobuf.Empty stored_mnemonic = 5;
+  }
+  // The session ID returned by the call that started the pairing process
+  uint32 session_id = 6;
 }
 
 message MixnetEvent {
@@ -779,6 +797,11 @@ message AccountCommandError {
     bool account_not_decentralised = 16;
     string zk_nym_acquisition_failure = 17;
     string deeplink_error = 18;
+    string invalid_public_key = 19;
+    bool pairing_not_started = 20;
+    bool pairing_session_id_mismatch = 21;
+    bool no_pairing_shared_secret = 22;
+    string pairing_deriving_shared_secret = 23;
   }
 }
 
@@ -1189,6 +1212,18 @@ message AutologinResponse {
   string pin_code = 2;
 }
 
+message QrUrlResponse {
+  string url = 1;
+  // Identifies the started pairing process in its PairingCheckResult events
+  uint32 session_id = 2;
+}
+
+message QrPairingConfirmationResponse {
+  string pin_code = 1;
+  // Identifies the started pairing process in its PairingCheckResult events
+  uint32 session_id = 2;
+}
+
 message GetDeeplinkParams {
   DeeplinkClient client = 1;
   string locale = 2;
@@ -1224,6 +1259,63 @@ message GetRecentGatewaysParams {
   TunnelType tunnel_type = 1;
 }
 
+message DnsServerList {
+  repeated DnsServer servers = 1;
+}
+
+message CustomDnsSettings {
+  repeated DnsServer dns_servers = 1;
+  bool enabled = 2;
+}
+
+enum PlainDnsProtocol {
+  PLAIN_DNS_PROTOCOL_UDP = 0;
+  PLAIN_DNS_PROTOCOL_TCP = 1;
+  PLAIN_DNS_PROTOCOL_UDP_AND_TCP = 2;
+}
+
+message DnsServer {
+    message PlainDns {
+        IpAddr address = 1;
+        optional uint32 port = 2;
+        PlainDnsProtocol ip_proto = 3;
+    }
+    message DnsOverTls {
+        IpAddr address = 1;
+        optional uint32 port = 2;
+        string server_name = 3;
+    }
+    message DnsOverHttps {
+        IpAddr address = 1;
+        optional uint32 port = 2;
+        string server_name = 3;
+        optional string query_path = 4;
+    }
+    message DnsOverQuic {
+        IpAddr address = 1;
+        optional uint32 port = 2;
+        string server_name = 3;
+    }
+    message DnsOverHttp3 {
+        IpAddr address = 1;
+        optional uint32 port = 2;
+        string server_name = 3;
+        optional string query_path = 4;
+    }
+    oneof server {
+      PlainDns plain = 1;
+      DnsOverTls tls = 2;
+      DnsOverHttps https = 3;
+      DnsOverQuic quic = 4;
+      DnsOverHttp3 http3 = 5;
+    }
+}
+
+message AuthorizeRequest {
+  // Authorization obtained in the user's session (macOS)
+  bytes authorization = 1;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info(google.protobuf.Empty) returns (InfoResponse) {}
@@ -1243,7 +1335,7 @@ service NymVpnService {
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableCustomDns(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetCustomDns(IpAddrList) returns (google.protobuf.Empty) {}
+  rpc SetCustomDns(DnsServerList) returns (google.protobuf.Empty) {}
   rpc SetMixnetTrafficConfig(MixnetTrafficConfig) returns (google.protobuf.Empty) {}
   rpc SetGeoExclusionEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetGeoExclusionListenPort(GeoExclusionListenPortRequest) returns (google.protobuf.Empty) {}
@@ -1266,7 +1358,7 @@ service NymVpnService {
   rpc GetFeatureFlags(google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
 
   // Get the default DNS used by the daemon
-  rpc GetDefaultDns(google.protobuf.Empty) returns (IpAddrList) {}
+  rpc GetDefaultDns(google.protobuf.Empty) returns (DnsServerList) {}
 
   // Connect the tunnel
   rpc ConnectTunnel(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
@@ -1367,6 +1459,18 @@ service NymVpnService {
   // Login using a deeplink callback URL
   rpc DeeplinkStoreAccount(google.protobuf.StringValue) returns (AccountCommandResponse) {}
 
+  // Pair a device with this account using a QR encoded URL
+  rpc StartPairing(google.protobuf.Empty) returns (QrUrlResponse) {}
+
+  // Pair this device with the account using the public key value embedded in a QR URL
+  rpc ScannedKey(google.protobuf.StringValue) returns (QrPairingConfirmationResponse) {}
+
+  // Confirm that the pairing PIN matches on both devices, sharing the account with the other device
+  rpc VerifiedPairingPin(google.protobuf.UInt32Value) returns (google.protobuf.Empty) {}
+
+  // Cancel the running pairing process, e.g. when the user closes the pairing window
+  rpc CancelPairingProcess(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
   // Get the log file path
   rpc GetLogPath(google.protobuf.Empty) returns (GetLogPathResponse) {}
 
@@ -1412,6 +1516,12 @@ service NymVpnService {
 
   // Get the most probable gateway pair that is going to be used with the set tunnel settings
   rpc GetTentativeGateways(google.protobuf.Empty) returns (TentativeGateways) {}
+
+  // Authorization (macOS)
+  // Authorize account operations with the token obtained in the user's session
+  rpc Authorize(AuthorizeRequest) returns (google.protobuf.Empty) {}
+  // Revoke the authorization obtained with Authorize
+  rpc Deauthorize(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Split-tunnel (all platforms)
   rpc IsSplitTunnelSupported(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}

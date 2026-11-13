@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.data
 import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.MixnetTrafficConfig
 
 interface SettingsRepository {
@@ -40,8 +41,8 @@ interface SettingsRepository {
 	suspend fun setTechnicalOptScreenCompleted()
 	suspend fun isTechnicalOptScreenCompleted(): Boolean
 
-	suspend fun getQUICEnabled(): Boolean
-	suspend fun setQUICEnabled(enabled: Boolean)
+	suspend fun getBridgeMode(): BridgeMode
+	suspend fun setBridgeMode(mode: BridgeMode)
 
 	suspend fun getIsStreamServerBannerDisplayed(): Boolean
 	suspend fun setIsStreamServerBannerDisplayed(displayed: Boolean)

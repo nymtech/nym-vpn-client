@@ -1,17 +1,19 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::AccountControllerEvent;
 use tokio::sync::{
     broadcast,
     broadcast::error::{RecvError, TryRecvError},
 };
 use tracing::debug;
 
+use crate::event::AccountControllerEvent;
+
 pub struct AccountControllerEventReceiver {
     inner: broadcast::Receiver<AccountControllerEvent>,
 }
 
+#[derive(Clone)]
 pub struct AccountControllerEventSender {
     inner: broadcast::Sender<AccountControllerEvent>,
 }

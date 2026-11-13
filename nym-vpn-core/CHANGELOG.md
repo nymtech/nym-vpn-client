@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- [Linux] Add NetworkManager VPN plugin that can be used to manage VPN connection from system menu. Note that removing VPN from system network settings also disconnects VPN. In all other cases VPN is only managed via UI interaction by user. (https://github.com/nymtech/nym-vpn-client/pull/6873, https://github.com/nymtech/nym-vpn-client/pull/6861)
+- Add `NYM_VPN_API_URL_OVERRIDE` compile time environment variable to override VPN API server in `nym-vpnd` during development (https://github.com/nymtech/nym-vpn-client/pull/6962)
+- [Android] Expose `apply_freepass` to apply a free pass to the signed-in account (https://github.com/nymtech/nym-vpn-client/pull/7085)
+- Add `redeem_freepass` command that creates the stored account on the VPN API with a free pass applied (https://github.com/nymtech/nym-vpn-client/pull/7085)
+
+### Changed
+
+- Strip debug info in release builds (https://github.com/nymtech/nym-vpn-client/pull/7018)
+- [Linux] Use the same systemd unit for `nym-vpnd` in the Debian and AUR packages. The daemon restarts only on failure, 2 seconds after it stops, and no longer orders itself relative to `network-pre.target` or `network-online.target` (https://github.com/nymtech/nym-vpn-client/pull/7072)
+
+### Fixed
+
+- Restrict allowed IPs for exit gateway (https://github.com/nymtech/nym-vpn-client/pull/6952)
+- Show a specific error when Enhanced connection is On and the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6973)
+- Connect directly in Auto when the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6976)
+
+### Security
+
+- [Android] Build C/C++ dependencies of `nym-vpn-lib` with `-fstack-protector-strong` (https://github.com/nymtech/nym-vpn-client/pull/6960)
+- [Linux] Disable core dumps of `nym-vpnd`, which would contain the WireGuard private key and account tokens (https://github.com/nymtech/nym-vpn-client/pull/7067)
+- [macOS] Require user presence with password or Touch ID for account-related operations. Affects the app and the CLI. Use `nym-vpnc authorize` and `nym-vpnc deauthorize` to manage authorization (https://github.com/nymtech/nym-vpn-client/pull/6980)
+- Keep the login link received from the website, which carries login data, out of the logs and error messages (https://github.com/nymtech/nym-vpn-client/pull/7086)
+- Zeroize the copy of the account's ecash private key taken when deriving the ecash keypair (https://github.com/nymtech/nym-vpn-client/pull/7084)
+- Zero WireGuard configuration buffers holding private and preshared keys after passing them to wireguard-go (https://github.com/nymtech/nym-vpn-client/pull/7069)
+
+
+## [2026.15.0] - 2026-11-05
 
 ### Added
 
@@ -14,12 +43,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `delete_account` command that deletes the account through the VPN API and removes local account data (https://github.com/nymtech/nym-vpn-client/pull/6790)
 - Add a `SetBridgeMode` gRPC call and `vpnc tunnel set --bridge-mode` to choose the bridge mode (auto, on or off), replacing the `SetEnableBridges` gRPC call and `vpnc tunnel set --circumvention-transports`, which are removed (breaking: an older desktop app calling `SetEnableBridges` against this daemon gets UNIMPLEMENTED)
 - Add `--wait` to `nym-vpnc reconnect` to block until the tunnel has reconnected or failed (https://github.com/nymtech/nym-vpn-client/pull/6849)
-
+- `bridge_transports.enabled` feature flag (`FeatureFlags::bridge_transports_enabled`, uniffi `is_bridge_transports_enabled`) for the v2 bridge transports (TLS and SSH after QUIC). Bridges and QUIC do not depend on it
+- `BridgeAddress` in the connection data carries the bridge transport in use (`transport`: QUIC, TLS or SSH)
+- When the `bridge_transports.enabled` feature flag is on, a bridge connection tries QUIC for 5 seconds, then races the entry gateway's TLS and SSH bridges. The firewall allows only the bridges being tried, QUIC over UDP and TLS and SSH over TCP, in both the connecting and connected states. With the flag off or unset, QUIC only as before
+- Add support for custom secure DNS. Supported protocols: TLS, HTTPS, QUIC, HTTP/3. Currently only cli supports that. No UI support yet. (https://github.com/nymtech/nym-vpn-client/pull/6876)
 
 ### Changed
 
 - Read gateway bridge transports from `transports_v2` (falling back to `transports` for older bridges), skipping transport types this build does not know, so gateways can advertise TLS, SSH and future transports without breaking the gateway list
 - `nym-vpnc reconnect` now fails when the daemon rejects the reconnect because the tunnel is not set to connect (https://github.com/nymtech/nym-vpn-client/pull/6849)
+- [iOS] Flush DNS when changing ad-block setting by reconnecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6866)
+- `nym-vpnc dns set` no longer removes all custom DNS. Use `nym-vpnc dns clear` instead (https://github.com/nymtech/nym-vpn-client/pull/6876)
+- `nym-vpnc dns set` no longer accepts positional argument to configure plain DNS. Use one of the following arguments instead: `--plain`, `--tcp` or `--udp` (https://github.com/nymtech/nym-vpn-client/pull/6876)
+- Count bandwidth usage locally and fetch remote gateway quota less frequently to improve mobile battery usage (https://github.com/nymtech/nym-vpn-client/pull/6803)
 
 ### Fixed
 
@@ -29,15 +65,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SOCKS5 proxy no longer misses tunnel state updates and reacts to them immediately instead of polling every 2 seconds. Fixed the SOCKS5 proxy sometimes staying on after the VPN disconnected, or turning off right after being enabled (https://github.com/nymtech/nym-vpn-client/pull/6850)
 - Stop the internal SOCKS5 mixnet client and its listener on `127.0.0.1:1081` when SOCKS5 is disabled, so the next enable starts a new mixnet client instead of reusing the first session's (https://github.com/nymtech/nym-vpn-client/pull/6854)
 - Enabling SOCKS5 now fails when the SOCKS5 address is already in use, instead of reporting success while nothing listens on it (https://github.com/nymtech/nym-vpn-client/pull/6854)
+- Stop emitting the same tunnel state twice while connecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6852)
+- Top-up blocking the shutdown (https://github.com/nymtech/nym-vpn-client/pull/6912)
+- Respect cancellation during skew resync after registration failure (https://github.com/nymtech/nym-vpn-client/pull/6953)
 
+### Security
 
-### Changed
-
-- Count bandwidth usage locally and fetch remote gateway quota less frequently to improve mobile battery usage (https://github.com/nymtech/nym-vpn-client/pull/6803)
+- [Linux] The install script now installs `nym-vpnd`, `nym-socks5-proxy` and `NymVPN.AppImage` as root-owned. Previously, raw installs (the default on distros other than Debian, Ubuntu and Mint) left them owned by the installing user, who could replace them and get code run as root. Existing raw installs stay affected until fixed with `sudo chown root:root /usr/bin/nym-vpnd /usr/bin/nym-socks5-proxy /usr/bin/NymVPN.AppImage`, or until reinstalled with `./install uninstall` followed by `./install` (uninstalling removes `/etc/nym/nym-vpnd.toml`) (https://github.com/nymtech/nym-vpn-client/pull/6914)
 
 
 ## [2026.14.0] - 2026-10-22
-
 
 ### Added
 
@@ -46,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Publish the app update policy, with optional per-platform overrides, from discovery so clients can ask for or require an update (https://github.com/nymtech/nym-vpn-client/pull/6450)
 - Add `polkit-1-auth-agent` to deb package dependencies to ensure that components used for graphical password prompts are installed alongside (https://github.com/nymtech/nym-vpn-client/pull/6502)
 - Add `nym-vpnc completions <shell>` to generate shell completions, and install bash, zsh and fish completions with the macOS, deb and AUR packages (https://github.com/nymtech/nym-vpn-client/pull/6735)
+- [core] QR pairing (https://github.com/nymtech/nym-vpn-client/pull/6730)
 
 ### Fixed
 

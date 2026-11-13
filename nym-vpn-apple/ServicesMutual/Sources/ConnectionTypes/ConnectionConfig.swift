@@ -4,11 +4,11 @@ import NymVPNLib
 public struct ConnectionConfig: Codable {
     public var entry: EntryGateway
     public var exit: ExitRouter
-    public var dns: [String]?
+    public var customDns: CustomDnsConfig
     public var allowLan: Bool
     public var disableIpv6: Bool
     public var enableTwoHop: Bool
-    public var enableBridges: Bool
+    public var bridgeMode: BridgeModeSetting
     public var enableAdBlocking: Bool
     public var stealthMode: Bool
     public var netstack: Bool
@@ -29,11 +29,10 @@ public struct ConnectionConfig: Codable {
     public init(
         entry: EntryGateway,
         exit: ExitRouter,
-        dns: [String]?,
         allowLan: Bool,
         disableIpv6: Bool,
         enableTwoHop: Bool,
-        enableBridges: Bool,
+        bridgeMode: BridgeModeSetting,
         enableAdBlocking: Bool,
         netstack: Bool,
         residentialExit: Bool,
@@ -41,15 +40,16 @@ public struct ConnectionConfig: Codable {
         splitTunnelConfig: SplitTunnelConfig,
         geoExclusionConfig: GeoExclusionConfig = GeoExclusionConfig(),
         gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true),
-        stealthMode: Bool = false
+        stealthMode: Bool = false,
+        customDns: CustomDnsConfig = CustomDnsConfig()
     ) {
         self.entry = entry
         self.exit = exit
-        self.dns = dns
+        self.customDns = customDns
         self.allowLan = allowLan
         self.disableIpv6 = disableIpv6
         self.enableTwoHop = enableTwoHop
-        self.enableBridges = enableBridges
+        self.bridgeMode = bridgeMode
         self.enableAdBlocking = enableAdBlocking
         self.stealthMode = stealthMode
         self.netstack = netstack
@@ -63,11 +63,11 @@ public struct ConnectionConfig: Codable {
     public init(from config: VpnServiceConfig) {
         self.entry = ConnectionConfig.entryGateway(from: config.entryPoint)
         self.exit = ConnectionConfig.exitRouter(from: config.exitPoint)
-        self.dns = config.customDns
+        self.customDns = CustomDnsConfig(from: config.customDns)
         self.allowLan = config.allowLan
         self.disableIpv6 = config.disableIpv6
         self.enableTwoHop = config.enableTwoHop
-        self.enableBridges = config.bridgeMode == .on
+        self.bridgeMode = BridgeModeSetting(config.bridgeMode)
         self.stealthMode = config.frontingMode == .always
         self.netstack = config.netstack
         self.residentialExit = config.residentialExit
@@ -155,11 +155,11 @@ extension ConnectionConfig: Equatable {
     public static func == (lhs: ConnectionConfig, rhs: ConnectionConfig) -> Bool {
         lhs.entry == rhs.entry &&
         lhs.exit == rhs.exit &&
-        lhs.dns == rhs.dns &&
+        lhs.customDns == rhs.customDns &&
         lhs.allowLan == rhs.allowLan &&
         lhs.disableIpv6 == rhs.disableIpv6 &&
         lhs.enableTwoHop == rhs.enableTwoHop &&
-        lhs.enableBridges == rhs.enableBridges &&
+        lhs.bridgeMode == rhs.bridgeMode &&
         lhs.stealthMode == rhs.stealthMode &&
         lhs.netstack == rhs.netstack &&
         lhs.residentialExit == rhs.residentialExit &&
@@ -170,10 +170,38 @@ extension ConnectionConfig: Equatable {
     }
 }
 
+public enum BridgeModeSetting: String, Codable, CaseIterable {
+    case off, auto, on
+
+    public init(_ mode: BridgeMode) {
+        switch mode {
+        case .off:
+            self = .off
+        case .auto:
+            self = .auto
+        case .on:
+            self = .on
+        }
+    }
+
+    public var bridgeMode: BridgeMode {
+        switch self {
+        case .off:
+            .off
+        case .auto:
+            .auto
+        case .on:
+            .on
+        }
+    }
+}
+
 extension ConnectionConfig {
+    private enum LegacyCodingKeys: String, CodingKey { case enableBridges, dns }
+
     private enum CodingKeys: String, CodingKey {
-        case entry, exit, dns, allowLan, disableIpv6, enableTwoHop
-        case enableBridges, enableAdBlocking, stealthMode, netstack
+        case entry, exit, customDns, allowLan, disableIpv6, enableTwoHop
+        case bridgeMode, enableAdBlocking, stealthMode, netstack
         case residentialExit, mixnetTuningConfig, splitTunnelConfig
         case geoExclusionConfig
         case gatewaySelectionAlgorithmConfig
@@ -183,11 +211,21 @@ extension ConnectionConfig {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.entry = try container.decode(EntryGateway.self, forKey: .entry)
         self.exit = try container.decode(ExitRouter.self, forKey: .exit)
-        self.dns = try container.decodeIfPresent([String].self, forKey: .dns)
         self.allowLan = try container.decode(Bool.self, forKey: .allowLan)
         self.disableIpv6 = try container.decode(Bool.self, forKey: .disableIpv6)
         self.enableTwoHop = try container.decode(Bool.self, forKey: .enableTwoHop)
-        self.enableBridges = try container.decode(Bool.self, forKey: .enableBridges)
+        let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
+        if let customDns = try container.decodeIfPresent(CustomDnsConfig.self, forKey: .customDns) {
+            self.customDns = customDns
+        } else {
+            let addresses = try legacy.decodeIfPresent([String].self, forKey: .dns) ?? []
+            self.customDns = CustomDnsConfig(
+                isEnabled: !addresses.isEmpty,
+                dnsServers: addresses.map { .plain(address: $0, port: nil, ipProto: .udpAndTcp) }
+            )
+        }
+        self.bridgeMode = try container.decodeIfPresent(BridgeModeSetting.self, forKey: .bridgeMode)
+            ?? (try legacy.decodeIfPresent(Bool.self, forKey: .enableBridges) == true ? .on : .off)
         self.enableAdBlocking = try container.decode(Bool.self, forKey: .enableAdBlocking)
         self.stealthMode = try container.decodeIfPresent(Bool.self, forKey: .stealthMode) ?? false
         self.netstack = try container.decode(Bool.self, forKey: .netstack)

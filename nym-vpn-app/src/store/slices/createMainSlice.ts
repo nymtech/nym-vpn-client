@@ -10,6 +10,7 @@ import {
   AccountState,
   AppError,
   AppState,
+  BridgeMode,
   CodeDependency,
   ConnectingState,
   DaemonStatus,
@@ -89,7 +90,7 @@ export type StateAction =
   | { type: 'set-technical-optin-seen'; seen: boolean }
   | { type: 'set-account-error'; error: AppError | null }
   | { type: 'set-backend-flags'; flags: FeatureFlags }
-  | { type: 'set-quic'; enabled: boolean }
+  | { type: 'set-bridge-mode'; mode: BridgeMode }
   | { type: 'set-fronting-mode'; mode: FrontingMode }
   | { type: 'set-custom-dns-enabled'; enabled: boolean }
   | { type: 'set-custom-dns'; dns: string[] }
@@ -135,7 +136,7 @@ export const initialState: AppState = {
   ipv6Support: true,
   networkStats: false,
   technicalOptinSeen: false,
-  quic: false,
+  bridgeMode: 'off',
   allowLan: false,
   frontingMode: 'onRetry',
   enableAdBlocking: false,
@@ -144,6 +145,7 @@ export const initialState: AppState = {
     quic: false,
     domainFronting: false,
     zknymCredential: false,
+    bridgeTransports: false,
   },
   customDnsEnabled: false,
   customDns: [],
@@ -229,7 +231,7 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
           entryNode: action.config.entryNode,
           exitNode: action.config.exitNode,
           vpnMode: action.config.vpnMode,
-          quic: action.config.bridges,
+          bridgeMode: action.config.bridgeMode,
           frontingMode: action.config.frontingMode,
           ipv6Support: !action.config.disableIpv6,
           allowLan: action.config.allowLan,
@@ -476,8 +478,8 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
         set({ backendFlags: action.flags });
         break;
 
-      case 'set-quic':
-        set({ quic: action.enabled });
+      case 'set-bridge-mode':
+        set({ bridgeMode: action.mode });
         break;
 
       case 'set-fronting-mode':

@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error as _, net::IpAddr, path::PathBuf};
+use std::{error::Error as _, path::PathBuf};
 
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
@@ -13,13 +13,13 @@ use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AppCompatibility,
-    AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport, EntryPoint, ExitPoint,
-    FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions,
-    LogPath, LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, RecentGateways, RegistrationReport,
-    Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage,
-    TentativeGateways, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig,
-    VpnServiceInfo,
+    AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport, DnsServer, EntryPoint,
+    ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings,
+    ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice,
+    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, QrPairingConfirmation,
+    QrUrl, RecentGateways, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
+    StoredAccountMode, SystemMessage, TentativeGateways, TunnelEvent, TunnelState,
+    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
@@ -206,10 +206,8 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_custom_dns(&mut self, ips: Vec<IpAddr>) -> Result<()> {
-        let request = proto::IpAddrList {
-            ips: ips.into_iter().map(proto::IpAddr::from).collect(),
-        };
+    pub async fn set_custom_dns(&mut self, dns_servers: Vec<DnsServer>) -> Result<()> {
+        let request = proto::DnsServerList::from(dns_servers);
 
         self.0
             .set_custom_dns(request)
@@ -275,6 +273,19 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn authorize(&mut self, authorization: Vec<u8>) -> Result<()> {
+        self.0
+            .authorize(proto::AuthorizeRequest { authorization })
+            .await
+            .map_err(Error::Rpc)?;
+        Ok(())
+    }
+
+    pub async fn deauthorize(&mut self) -> Result<()> {
+        self.0.deauthorize(()).await.map_err(Error::Rpc)?;
+        Ok(())
+    }
+
     pub async fn set_fronting_mode(&mut self, fronting_mode: FrontingMode) -> Result<()> {
         self.0
             .set_fronting_mode(proto::FrontingModeRequest {
@@ -325,15 +336,15 @@ impl RpcClient {
         Ok(FeatureFlags::from(response))
     }
 
-    pub async fn get_default_dns(&mut self) -> Result<Vec<IpAddr>> {
+    pub async fn get_default_dns(&mut self) -> Result<Vec<DnsServer>> {
         let response = self
             .0
             .get_default_dns(())
             .await
             .map_err(Error::Rpc)?
             .into_inner();
-        let ip_vec = response.try_into().map_err(Error::InvalidResponse)?;
-        Ok(ip_vec)
+        let servers = response.try_into().map_err(Error::InvalidResponse)?;
+        Ok(servers)
     }
 
     pub async fn connect_tunnel(&mut self) -> Result<bool> {
@@ -708,6 +719,46 @@ impl RpcClient {
             .into_inner();
 
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn start_pairing(&mut self) -> Result<QrUrl> {
+        let response = self
+            .0
+            .start_pairing(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(QrUrl::from(response))
+    }
+
+    pub async fn scanned_key(&mut self, pub_key: String) -> Result<QrPairingConfirmation> {
+        let response = self
+            .0
+            .scanned_key(pub_key)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(QrPairingConfirmation::from(response))
+    }
+
+    pub async fn verified_pairing_pin(&mut self, session_id: u32) -> Result<()> {
+        self.0
+            .verified_pairing_pin(session_id)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn cancel_pairing_process(&mut self) -> Result<()> {
+        self.0
+            .cancel_pairing_process(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
     }
 
     pub async fn get_log_path(&mut self) -> Result<Option<LogPath>> {
@@ -1088,6 +1139,16 @@ pub enum Error {
     #[cfg(not(target_os = "linux"))]
     #[error("Authentication is required to access the daemon.")]
     AuthenticationRequired,
+}
+
+impl Error {
+    /// Whether the daemon requires the user to be present before performing the request.
+    ///
+    /// Not to be confused with [`Error::AuthenticationRequired`], which is returned when the
+    /// client is not allowed to connect to the daemon.
+    pub fn is_user_presence_required(&self) -> bool {
+        matches!(self, Error::Rpc(status) if status.code() == tonic::Code::Unauthenticated)
+    }
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

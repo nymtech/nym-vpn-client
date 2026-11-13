@@ -1,28 +1,39 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor};
+use crate::{
+    environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor,
+    vpn_service::TunnelStatusListener,
+};
 
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use nym_bandwidth_controller::{
     AvailableTicketbooks, BandwidthController, requests::BandwidthControllerRequestSender,
 };
-use tokio::{sync::Mutex, task::JoinHandle};
+use tokio::{
+    sync::{Mutex, mpsc},
+    task::JoinHandle,
+};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
-use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
+use nym_vpn_account_controller::{
+    AccountCommandSender, AccountControllerChannels, AccountControllerClients,
+    AccountStateReceiver, NyxdClient,
+};
 use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
     AccountControllerState, AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    RegisterAccountRequest, RegisterAccountResponse, StorableAccount, StoreAccountRequest,
-    StoredAccountMode, UserAgent, VpnAccountSummary,
+    NymVpnSubscription, QrPairingConfirmation, QrUrl, RegisterAccountRequest,
+    RegisterAccountResponse, StorableAccount, StoreAccountRequest, StoredAccountMode, TunnelEvent,
+    UserAgent, VpnAccountSummary,
 };
 
 struct State {
     account_join_handle: JoinHandle<()>,
     bandwidth_join_handle: JoinHandle<()>,
+    pairing_event_handler: JoinHandle<()>,
     shutdown_drop_guard: DropGuard,
 }
 
@@ -43,6 +54,7 @@ impl NymAccountController {
         user_agent: UserAgent,
         network_env: Arc<NymEnvironment>,
         offline_monitor: Arc<NymOfflineMonitor>,
+        event_listener: Arc<dyn TunnelStatusListener>,
     ) -> Result<Self, VpnError> {
         // Storage setup
         let storage_path = data_dir.join(network_env.network_name());
@@ -84,13 +96,20 @@ impl NymAccountController {
         };
 
         let connectivity_handle = offline_monitor.inner();
+
+        let (pairing_event_tx, mut pairing_event_rx) = mpsc::unbounded_channel();
+        let pairing_event_handler = tokio::spawn(async move {
+            while let Some(pairing_event) = pairing_event_rx.recv().await {
+                event_listener.on_event(TunnelEvent::Pairing(pairing_event))
+            }
+        });
+
         let account_controller = nym_vpn_account_controller::AccountController::new(
-            nym_vpn_api_client,
-            nyxd_client,
+            AccountControllerClients::new(nym_vpn_api_client, nyxd_client),
             account_controller_config,
             storage,
             connectivity_handle,
-            bandwidth_command_sender.clone(),
+            AccountControllerChannels::new(bandwidth_command_sender.clone(), pairing_event_tx),
             shutdown_token.child_token(),
         )
         .await
@@ -111,6 +130,7 @@ impl NymAccountController {
             state: Arc::new(Mutex::new(Some(State {
                 account_join_handle,
                 bandwidth_join_handle,
+                pairing_event_handler,
                 shutdown_drop_guard,
             }))),
         })
@@ -129,6 +149,10 @@ impl NymAccountController {
 
         if let Err(err) = state.bandwidth_join_handle.await {
             tracing::error!("Failed to wait on bandwidth controller join handle: {err}");
+        }
+
+        if let Err(err) = state.pairing_event_handler.await {
+            tracing::error!("Failed to wait on tunnel event join handle: {err}");
         }
     }
 
@@ -242,6 +266,34 @@ impl NymAccountController {
         }
     }
 
+    pub async fn start_pairing(&self) -> Result<QrUrl, VpnError> {
+        self.account_command_sender
+            .start_pairing()
+            .await
+            .map_err(VpnError::from)
+    }
+
+    pub async fn scanned_key(&self, pub_key: String) -> Result<QrPairingConfirmation, VpnError> {
+        self.account_command_sender
+            .scanned_key(pub_key)
+            .await
+            .map_err(VpnError::from)
+    }
+
+    pub async fn verified_pairing_pin(&self, session_id: u32) -> Result<(), VpnError> {
+        self.account_command_sender
+            .verified_pairing_pin(session_id)
+            .await
+            .map_err(VpnError::from)
+    }
+
+    pub async fn cancel_pairing_process(&self) -> Result<(), VpnError> {
+        self.account_command_sender
+            .cancel_pairing_process()
+            .await
+            .map_err(VpnError::from)
+    }
+
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
         self.account_command_sender
             .get_account_summary()
@@ -279,6 +331,41 @@ impl NymAccountController {
             .is_trial_eligible()
             .await
             .map_err(VpnError::from)
+    }
+
+    /// Redeems a free pass code on the signed-in account and returns the subscription it grants.
+    /// The account state is refreshed afterwards.
+    pub async fn apply_freepass(&self, code: String) -> Result<NymVpnSubscription, VpnError> {
+        let subscription = self.account_command_sender.apply_freepass(code).await?;
+        if let Err(err) = self
+            .account_command_sender
+            .refresh_account_state(true)
+            .await
+        {
+            tracing::warn!("Failed to refresh account after applying free pass: {err}");
+        }
+        Ok(subscription)
+    }
+
+    /// Creates the stored account on the API with the free pass applied. The account state is
+    /// refreshed afterwards.
+    pub async fn redeem_freepass(&self, code: String) -> Result<(), VpnError> {
+        let account = self
+            .account_command_sender
+            .get_stored_account()
+            .await?
+            .ok_or(VpnError::NoAccountStored)?;
+        self.account_command_sender
+            .redeem_freepass(account, code)
+            .await?;
+        if let Err(err) = self
+            .account_command_sender
+            .refresh_account_state(true)
+            .await
+        {
+            tracing::warn!("Failed to refresh account after redeeming free pass: {err}");
+        }
+        Ok(())
     }
 
     /// The signed Apple introductory-offer eligibility token for the signed-in account, asked

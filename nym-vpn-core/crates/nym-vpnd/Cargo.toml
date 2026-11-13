@@ -35,12 +35,16 @@ tracing.workspace = true
 nym-bin-common.workspace = true
 nym-sdk.workspace = true
 
+nym-authorization-service.workspace = true
 nym-ipc = { workspace = true, features = ["daemon"] }
 nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-vpn-lib = { workspace = true }
 nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 nym-vpn-network-config = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+nix = { workspace = true, features = ["process"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-service.workspace = true
@@ -64,7 +68,7 @@ features = [
 pretty_assertions.workspace = true
 
 [build-dependencies]
-vergen-gitcl = { workspace = true, default-features = false, features = [
+vergen-gitcl = { workspace = true, features = [
     "build",
     "cargo",
     "rustc",
@@ -85,7 +89,7 @@ assets = [
     "$auto",
     { source = "target/release/nym-exclude", dest = "usr/bin/nym-exclude", mode = "755" },
     { source = "target/release/nym-socks5-proxy", dest = "usr/bin/nym-socks5-proxy", mode = "755" },
-    { source = ".pkg/sysusers.d/nym-vpn.conf", dest = "usr/lib/sysusers.d/nym-vpn.conf", mode = "644" },
+    { source = "linux/sysusers.d/nym-vpn.conf", dest = "usr/lib/sysusers.d/nym-vpn.conf", mode = "644" },
 ]
 revision = ""
 

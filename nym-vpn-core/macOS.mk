@@ -1,6 +1,5 @@
 # This Makefile can only be used on macOS
-OS := Darwin
-include reproducible_builds.mk
+include remap_paths.mk
 
 # Minimum deployment targets for macOS
 export MACOSX_DEPLOYMENT_TARGET = 10.14
@@ -90,7 +89,7 @@ build-dev:
 # Build workspace and run codesigned nym-vpnd
 # Usage: make -f macOS.mk run -- -v
 run: build-dev
-	sudo "$(CURDIR)/target/debug/NymVPND.app/Contents/MacOS/nym-vpnd" $(RUN_ARGS)
+	sudo -E "$(CURDIR)/target/debug/NymVPND.app/Contents/MacOS/nym-vpnd" $(RUN_ARGS)
 
 build-all: binaries swift-package
 
@@ -102,7 +101,7 @@ $(LIBWG_OBJS): $(LIBWG_SOURCES)
 	$(WIREGUARD_DIR)/build-wireguard-go.sh
 
 lib: $(LIBWG_OBJS)
-	$(ALL_IDEMPOTENT_FLAGS) \
+	RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS)" \
 	$(CARGO) build --package nym-vpn-lib-uniffi $(addprefix --target ,$(LIB_TRIPLETS)) $(RELEASE_FLAG)
 
 swift-package: lib
@@ -119,13 +118,13 @@ $(BIN_TARGETS): create-upload-dir
 
 ifeq ($(BUILD_X86), true)
 	@echo "🔨 Building $@ binaries (x86_64)…"
-	$(ALL_IDEMPOTENT_FLAGS) \
+	RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS)" \
 	$(CARGO) build --package $@ --target x86_64-apple-darwin $(RELEASE_FLAG)
 endif
 
 ifeq ($(BUILD_ARM), true)
 	@echo "🔨 Building $@ binaries (aarch64)…"
-	$(ALL_IDEMPOTENT_FLAGS) \
+	RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS)" \
 	$(CARGO) build --package $@ --target aarch64-apple-darwin $(RELEASE_FLAG)
 endif
 

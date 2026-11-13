@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 import android.content.res.Configuration
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Redeem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,59 +17,81 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 
 @Composable
-fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?, onAccountClick: () -> Unit, onPassphraseClick: () -> Unit) {
-	if (isMnemonicStored) {
-		SettingsGroup(
-			items = listOf(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							Icons.Outlined.AccountCircle,
-							stringResource(R.string.account),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.account))
-					},
-					description = {
-						SubscriptionStatusText(subscription = subscription)
-						if (subscription != null && subscription.isRecurring && subscription.expiryState != ExpiryState.EXPIRED) {
-							Text(
-								text = stringResource(R.string.account_info_auto_renew_text),
-								style = MaterialTheme.typography.bodySmall,
-								color = MaterialTheme.colorScheme.onBackground,
+fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?, onAccountClick: () -> Unit, onPassphraseClick: () -> Unit, onRedeemCodeClick: () -> Unit) {
+	// Redeeming without an account creates one, so it shows either way.
+	SettingsGroup(
+		items = buildList {
+			if (isMnemonicStored) {
+				add(
+					SelectionItem(
+						leading = {
+							SettingsIcon(
+								Icons.Outlined.AccountCircle,
+								stringResource(R.string.account),
 							)
-						}
-					},
-					onClick = onAccountClick,
-				),
+						},
+						trailing = {
+							SettingsArrowIcon()
+						},
+						title = {
+							SettingsTitle(stringResource(R.string.account))
+						},
+						description = {
+							SubscriptionStatusText(subscription = subscription)
+							if (subscription != null && subscription.isRecurring && subscription.expiryState != ExpiryState.EXPIRED) {
+								Text(
+									text = stringResource(R.string.account_info_auto_renew_text),
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.onBackground,
+								)
+							}
+						},
+						onClick = onAccountClick,
+					),
+				)
+				add(
+					SelectionItem(
+						leading = {
+							SettingsIcon(
+								ImageVector.vectorResource(R.drawable.ic_passphrase),
+								stringResource(R.string.settings_passphrase_title),
+							)
+						},
+						trailing = {
+							SettingsArrowIcon()
+						},
+						title = {
+							SettingsTitle(stringResource(R.string.settings_passphrase_title))
+						},
+						onClick = onPassphraseClick,
+					),
+				)
+			}
+			add(
 				SelectionItem(
 					leading = {
 						SettingsIcon(
-							ImageVector.vectorResource(R.drawable.ic_passphrase),
-							stringResource(R.string.settings_passphrase_title),
+							Icons.Outlined.Redeem,
+							stringResource(R.string.settings_redeem_code_title),
 						)
 					},
 					trailing = {
 						SettingsArrowIcon()
 					},
 					title = {
-						SettingsTitle(stringResource(R.string.settings_passphrase_title))
+						SettingsTitle(stringResource(R.string.settings_redeem_code_title))
 					},
-					onClick = onPassphraseClick,
+					onClick = onRedeemCodeClick,
 				),
-			),
-		)
-	}
+			)
+		},
+	)
 }
 
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewAccountSection() {
 	NymVPNTheme(Theme.default()) {
-		AccountSection(isMnemonicStored = true, subscription = null, onAccountClick = {}, onPassphraseClick = {})
+		AccountSection(isMnemonicStored = true, subscription = null, onAccountClick = {}, onPassphraseClick = {}, onRedeemCodeClick = {})
 	}
 }

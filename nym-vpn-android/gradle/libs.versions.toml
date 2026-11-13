@@ -1,12 +1,12 @@
 [versions]
 accompanist = "0.37.3"
-agp = "9.4.1"
+agp = "9.5.0"
 coreSplashscreen = "1.2.0"
 detektRulesCompose = "2.1.2"
 ipaddress = "5.6.2"
 jna = "5.19.1"
 kotlin = "2.4.21"
-ksp = "2.3.12"
+ksp = "2.3.13"
 coreKtx = "1.19.1"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -19,22 +19,24 @@ lifecycle-compose = "2.11.0"
 activityCompose = "1.13.0"
 appcompat = "1.8.0"
 composeBom = "2026.09.00"
-datastorePreferences = "1.2.1"
+datastorePreferences = "1.3.0"
 relinker = "1.4.5"
 securityCrypto = "1.1.0"
 semver4j = "6.0.0"
 timber = "5.0.1"
-kotlinx-serialization-json = "1.11.0"
+kotlinx-serialization-json = "1.12.0"
 hiltAndroid = "2.60.1"
 kotlinxCoroutinesCore = "1.11.0"
 uiautomator = "2.4.0"
 window = "1.5.1"
 windowCoreAndroid = "1.5.1"
 desugar = "2.1.5"
-sentry = "8.61.0"
+sentry = "8.62.0"
 billing-client = "9.1.0"
 biometric = "1.4.0-alpha07"
 credentials = "1.7.0-alpha03"
+camerax = "1.6.2"
+zxing = "3.5.4"
 
 gradlePlugins-licensee = "1.14.1"
 gradlePlugins-detekt = "2.0.0-alpha.6"
@@ -52,6 +54,7 @@ androidx-window = { module = "androidx.window:window", version.ref = "window" }
 detekt-rules-compose = { module = "ru.kode:detekt-rules-compose", version.ref = "detektRulesCompose" }
 ipaddress = { module = "com.github.seancfoley:ipaddress", version.ref = "ipaddress" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesCore" }
 
 
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
@@ -86,6 +89,7 @@ timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 
 #compose
 lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle-compose" }
+lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle-compose" }
 
 
 #storage
@@ -112,6 +116,13 @@ biometric = { module = "androidx.biometric:biometric", version.ref = "biometric"
 
 #credentials
 credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
+
+#camera / qr
+androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "camerax" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 
 
 [plugins]

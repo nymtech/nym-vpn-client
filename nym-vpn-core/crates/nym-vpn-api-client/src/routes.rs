@@ -15,6 +15,7 @@ pub(crate) const ACTIVE: &str = "active";
 pub(crate) const ZKNYM: &str = "zknym";
 pub(crate) const AVAILABLE: &str = "available";
 pub(crate) const FREEPASS: &str = "freepass";
+pub(crate) const REDEEM: &str = "redeem";
 pub(crate) const SUBSCRIPTION: &str = "subscription";
 pub(crate) const INTRO_OFFER_ELIGIBILITY: &str = "intro-offer-eligibility";
 pub(crate) const USAGE: &str = "usage";
@@ -32,6 +33,11 @@ pub(crate) const AGGREGATED_EXPIRATION_DATE_SIGNATURES: &str =
     "aggregated-expiration-date-signatures";
 pub(crate) const GEO: &str = "geo";
 pub(crate) const IP: &str = "ip";
+pub(crate) const PAIRING: &str = "pairing";
+pub(crate) const CHECK: &str = "check";
+pub(crate) const PAIR: &str = "pair";
+pub(crate) const GET_SECRET: &str = "get-secret";
+pub(crate) const SHARE_SECRET: &str = "share-secret";
 
 pub(crate) const EPOCH_ID: &str = "epoch-id";
 pub(crate) const EXPIRATION_DATE: &str = "expiration-date";

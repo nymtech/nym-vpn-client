@@ -80,11 +80,10 @@ extension ConnectionStorage {
         ConnectionConfig(
             entry: .auto(excludeUserCountry: true),
             exit: .auto,
-            dns: nil,
             allowLan: false,
             disableIpv6: false,
             enableTwoHop: true,
-            enableBridges: false,
+            bridgeMode: .off,
             enableAdBlocking: false,
             netstack: false,
             residentialExit: false,

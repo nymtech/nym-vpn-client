@@ -253,7 +253,7 @@ jobs:
           echo "appcast_item=$APP_CAST_ITEM" >> $GITHUB_OUTPUT
 
       - name: Checkout nym-websites
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
           repository: nymtech/nym-websites
@@ -287,7 +287,7 @@ jobs:
           git diff
 
       - name: Create PR in nym-websites
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8 # v8.1.2
         id: pr
         with:
           token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}

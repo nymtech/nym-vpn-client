@@ -9,6 +9,9 @@ pub enum GatewayProviderError {
     #[error("unable to use same entry and exit gateway: {identity}")]
     SameEntryAndExitGateway { identity: String },
 
+    #[error("selected entry gateways do not offer a bridge")]
+    EntryGatewayHasNoBridge,
+
     #[error("failed to lookup gateways")]
     LookupGateways(#[source] nym_gateway_directory::Error),
 

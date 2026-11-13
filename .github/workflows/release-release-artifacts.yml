@@ -148,19 +148,19 @@ jobs:
       ios: ${{ steps.resolve.outputs.ios }}
       macos: ${{ steps.resolve.outputs.macos }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
       - name: Dotenv Action
-        uses: xom9ikk/dotenv@v2.4.0
+        uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
 
       - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         with:
           toolchain: ${{ env.RUST_VERSION }}
 
-      - uses: baptiste0928/cargo-install@v3
+      - uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
           crate: cargo-get
 
@@ -206,6 +206,8 @@ jobs:
       vpnc_deb_aarch64: ${{ steps.linux.outputs.vpnc_deb_aarch64 }}
       vpnd_deb_x86_64: ${{ steps.linux.outputs.vpnd_deb_x86_64 }}
       vpnd_deb_aarch64: ${{ steps.linux.outputs.vpnd_deb_aarch64 }}
+      nm_plugin_deb_x86_64: ${{ steps.linux.outputs.nm_plugin_deb_x86_64 }}
+      nm_plugin_deb_aarch64: ${{ steps.linux.outputs.nm_plugin_deb_aarch64 }}
       archive_windows_x64: ${{ steps.windows.outputs.archive_windows_x64 }}
       archive_windows_arm64: ${{ steps.windows.outputs.archive_windows_arm64 }}
       archive_windows_x64_dir: ${{ steps.windows.outputs.archive_windows_x64_dir }}
@@ -236,8 +238,9 @@ jobs:
           DEB_VERSION="${RAW_VERSION//-/\~}"
           VPNC_DEB_BASENAME="nym-vpnc_${DEB_VERSION}"
           VPND_DEB_BASENAME="nym-vpnd_${DEB_VERSION}"
+          NM_PLUGIN_DEB_BASENAME="nym-vpn-networkmanager_${DEB_VERSION}"
 
-          echo "::notice:: deb_version=${DEB_VERSION}, vpnc_base=${VPNC_DEB_BASENAME}, vpnd_base=${VPND_DEB_BASENAME}"
+          echo "::notice:: deb_version=${DEB_VERSION}, vpnc_base=${VPNC_DEB_BASENAME}, vpnd_base=${VPND_DEB_BASENAME}, nm_plugin_base=${NM_PLUGIN_DEB_BASENAME}"
 
           ARCHIVE_LINUX_X86_64=${ARCHIVE_BASENAME}_linux_x86_64
           ARCHIVE_LINUX_AARCH64=${ARCHIVE_BASENAME}_linux_aarch64
@@ -245,6 +248,8 @@ jobs:
           VPNC_DEB_AARCH64="${VPNC_DEB_BASENAME}_arm64.deb"
           VPND_DEB_X86_64="${VPND_DEB_BASENAME}_amd64.deb"
           VPND_DEB_AARCH64="${VPND_DEB_BASENAME}_arm64.deb"
+          NM_PLUGIN_DEB_X86_64="${NM_PLUGIN_DEB_BASENAME}_amd64.deb"
+          NM_PLUGIN_DEB_AARCH64="${NM_PLUGIN_DEB_BASENAME}_arm64.deb"
 
           echo "archive_linux_x86_64_dir=${ARCHIVE_LINUX_X86_64}" >> $GITHUB_OUTPUT
           echo "archive_linux_aarch64_dir=${ARCHIVE_LINUX_AARCH64}" >> $GITHUB_OUTPUT
@@ -254,6 +259,8 @@ jobs:
           echo "vpnc_deb_aarch64=${VPNC_DEB_AARCH64}" >> $GITHUB_OUTPUT
           echo "vpnd_deb_x86_64=${VPND_DEB_X86_64}" >> $GITHUB_OUTPUT
           echo "vpnd_deb_aarch64=${VPND_DEB_AARCH64}" >> $GITHUB_OUTPUT
+          echo "nm_plugin_deb_x86_64=${NM_PLUGIN_DEB_X86_64}" >> $GITHUB_OUTPUT
+          echo "nm_plugin_deb_aarch64=${NM_PLUGIN_DEB_AARCH64}" >> $GITHUB_OUTPUT
 
       - name: Core artifacts (Windows)
         id: windows
@@ -360,6 +367,8 @@ jobs:
       vpnd_deb_aarch64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
       vpnc_deb_x86_64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_x86_64 }}
       vpnc_deb_aarch64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
+      nm_plugin_deb_x86_64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_x86_64 }}
+      nm_plugin_deb_aarch64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_aarch64 }}
       linux_app_deb_x64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
       linux_app_deb_arm64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_arm64 }}
       linux_app_appimage_x64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
@@ -386,12 +395,12 @@ jobs:
         vpnc_macos_installer_url: ${{ steps.extract_urls.outputs.vpnc_macos_installer_url }}
         android_apk_url: ${{ steps.extract_urls.outputs.android_apk_url }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
 
       - name: Prepare build output directory
         shell: bash
@@ -414,6 +423,8 @@ jobs:
           VPNC_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
           VPND_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_x86_64 }}
           VPND_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
+          NM_PLUGIN_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_x86_64 }}
+          NM_PLUGIN_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_aarch64 }}
         run: |
           set -euo pipefail
 
@@ -423,12 +434,14 @@ jobs:
           test -d "${ARCHIVE_LINUX_X86_64_DIR}" && tar cvzf "${ARCHIVE_LINUX_X86_64}" "${ARCHIVE_LINUX_X86_64_DIR}"
           test -d "${ARCHIVE_LINUX_AARCH64_DIR}" && tar cvzf "${ARCHIVE_LINUX_AARCH64}" "${ARCHIVE_LINUX_AARCH64_DIR}"
 
-          cp -v "${ARCHIVE_LINUX_X86_64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${ARCHIVE_LINUX_AARCH64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${DEB_ARTIFACTS_X86_64}/${VPNC_DEB_X86_64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${DEB_ARTIFACTS_AARCH64}/${VPNC_DEB_AARCH64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${DEB_ARTIFACTS_X86_64}/${VPND_DEB_X86_64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${DEB_ARTIFACTS_AARCH64}/${VPND_DEB_AARCH64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${ARCHIVE_LINUX_X86_64}" "$OUTPUT_DIR"
+          cp -v "${ARCHIVE_LINUX_AARCH64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_X86_64}/${VPNC_DEB_X86_64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_AARCH64}/${VPNC_DEB_AARCH64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_X86_64}/${VPND_DEB_X86_64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_AARCH64}/${VPND_DEB_AARCH64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_X86_64}/${NM_PLUGIN_DEB_X86_64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_AARCH64}/${NM_PLUGIN_DEB_AARCH64}" "$OUTPUT_DIR"
 
       - name: Copy artifacts (Windows)
         if: ${{ needs.resolve.outputs.windows == 'true' }}
@@ -444,8 +457,8 @@ jobs:
           test -d "${ARCHIVE_WINDOWS_X64_DIR}" && zip -r "${ARCHIVE_WINDOWS_X64}" "${ARCHIVE_WINDOWS_X64_DIR}"
           test -d "${ARCHIVE_WINDOWS_ARM64_DIR}" && zip -r "${ARCHIVE_WINDOWS_ARM64}" "${ARCHIVE_WINDOWS_ARM64_DIR}"
 
-          cp -v "${ARCHIVE_WINDOWS_X64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${ARCHIVE_WINDOWS_ARM64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${ARCHIVE_WINDOWS_X64}" "$OUTPUT_DIR"
+          cp -v "${ARCHIVE_WINDOWS_ARM64}" "$OUTPUT_DIR"
 
       - name: Copy artifacts (macOS)
         if: ${{ needs.resolve.outputs.macos == 'true' }}
@@ -453,8 +466,8 @@ jobs:
           MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
           VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
         run: |
-          cp -v "${{ env.MACOS_ARTIFACTS }}/${MACOS_INSTALLER_NAME}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.VPNC_MACOS_ARTIFACTS }}/${VPNC_MACOS_INSTALLER_NAME}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.MACOS_ARTIFACTS }}/${MACOS_INSTALLER_NAME}" "$OUTPUT_DIR"
+          cp -v "${{ env.VPNC_MACOS_ARTIFACTS }}/${VPNC_MACOS_INSTALLER_NAME}" "$OUTPUT_DIR"
 
       - name: Copy artifacts (Linux/App)
         if: ${{ needs.resolve.outputs.linux == 'true' }}
@@ -467,16 +480,16 @@ jobs:
           LINUX_APP_APPIMAGE_X64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
           LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
         run: |
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/$LINUX_INSTALL" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/$LINUX_INSTALL" "$OUTPUT_DIR"
 
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_X64_BIN}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_ARM64_BIN}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_X64_BIN}" "$OUTPUT_DIR"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_ARM64_BIN}" "$OUTPUT_DIR"
 
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_DEB_X64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_DEB_ARM64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_DEB_X64}" "$OUTPUT_DIR"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_DEB_ARM64}" "$OUTPUT_DIR"
 
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_APPIMAGE_X64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_APPIMAGE_ARM64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_APPIMAGE_X64}" "$OUTPUT_DIR"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_APPIMAGE_ARM64}" "$OUTPUT_DIR"
 
       - name: Copy artifacts (Windows/App)
         if: ${{ needs.resolve.outputs.windows == 'true' }}
@@ -486,15 +499,15 @@ jobs:
           WINDOWS_APP_INSTALLER_X64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64_sig }}
           WINDOWS_APP_INSTALLER_ARM64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64_sig }}
         run: |
-          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64}" "$OUTPUT_DIR"
+          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64}" "$OUTPUT_DIR"
           if [ -f "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64_SIG}" ]; then
-            cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64_SIG}" "${{ env.OUTPUT_DIR }}"
+            cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64_SIG}" "$OUTPUT_DIR"
           else
             echo "::notice::Skipping optional Windows x64 installer signature (absent): ${WINDOWS_APP_INSTALLER_X64_SIG:-<empty>}"
           fi
           if [ -f "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" ]; then
-            cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" "${{ env.OUTPUT_DIR }}"
+            cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" "$OUTPUT_DIR"
           else
             echo "::notice::Skipping optional Windows arm64 installer signature (absent): ${WINDOWS_APP_INSTALLER_ARM64_SIG:-<empty>}"
           fi
@@ -504,7 +517,7 @@ jobs:
         env:
           ANDROID_APK: ${{ needs.resolve-artifacts.outputs.android_apk }}
         run: |
-          cp -v "${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK}" "$OUTPUT_DIR"
 
       - name: Generate checksums
         working-directory: ${{ env.OUTPUT_DIR }}
@@ -530,6 +543,8 @@ jobs:
           VPNC_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
           VPND_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_x86_64 }}
           VPND_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
+          NM_PLUGIN_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_x86_64 }}
+          NM_PLUGIN_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_aarch64 }}
           LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_install }}
           LINUX_APP_X64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_x64_bin }}
           LINUX_APP_ARM64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_arm64_bin }}
@@ -563,6 +578,8 @@ jobs:
               "${VPNC_DEB_AARCH64}"
               "${VPND_DEB_X86_64}"
               "${VPND_DEB_AARCH64}"
+              "${NM_PLUGIN_DEB_X86_64}"
+              "${NM_PLUGIN_DEB_AARCH64}"
             )
           fi
 
@@ -573,8 +590,8 @@ jobs:
               "${WINDOWS_APP_INSTALLER_X64}"
               "${WINDOWS_APP_INSTALLER_ARM64}"
             )
-            [ -f "${{ env.OUTPUT_DIR }}/${WINDOWS_APP_INSTALLER_X64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_X64_SIG}")
-            [ -f "${{ env.OUTPUT_DIR }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_ARM64_SIG}")
+            [ -f "$OUTPUT_DIR/${WINDOWS_APP_INSTALLER_X64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_X64_SIG}")
+            [ -f "$OUTPUT_DIR/${WINDOWS_APP_INSTALLER_ARM64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_ARM64_SIG}")
           fi
 
           if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
@@ -599,7 +616,7 @@ jobs:
           fi
 
       - name: Upload release assets list
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.RELEASE_ASSETS_ARTIFACT }}
           path: ${{ env.RELEASE_ASSETS }}
@@ -661,7 +678,7 @@ jobs:
           gh release view "$TAG" --json assets --repo "$GITHUB_REPOSITORY" > "${{ env.RELEASE_PAYLOAD }}"
 
       - name: Upload release payload
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ inputs.publish_github == true }}
         with:
           name: ${{ env.RELEASE_PAYLOAD_ARTIFACT }}
