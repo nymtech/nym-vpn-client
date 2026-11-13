@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- macOS: Split tunneling settings explain that excluded apps' DNS lookups still go through NymVPN (https://github.com/nymtech/nym-vpn-client/pull/7104)
+
 ### Fixed
 
 - iOS: when the Apple ID's subscription belongs to another NymVPN account, the plan screen now explains it and opens Apple's subscription settings instead of letting a second account pay into that subscription (https://github.com/nymtech/nym-vpn-client/pull/6915)
