@@ -66,7 +66,8 @@ impl NymAccountController {
         let sdk_storage_paths = nym_sdk::mixnet::StoragePaths::new_from_dir(&storage_path)
             .map_err(|err| VpnError::InternalError {
                 details: err.to_string(),
-            })?;
+            })?
+            .with_database_key(Some(database_key.clone()));
         let credential_storage = sdk_storage_paths
             .persistent_credential_storage()
             .await
