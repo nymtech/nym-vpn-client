@@ -28077,6 +28077,17 @@
         }
       }
     },
+    "splitTunnel.customDnsWarning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom DNS is on. Excluded apps will use your device's DNS instead."
+          }
+        }
+      }
+    },
     "splitTunnel.enableSystemSettings" : {
       "extractionState" : "manual",
       "localizations" : {

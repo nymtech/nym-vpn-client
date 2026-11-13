@@ -3,6 +3,7 @@ import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
 import AppDiscoveryService
+import AppSettings
 import ConnectionManager
 import ConnectionTypes
 import ExternalLinkManager
@@ -16,6 +17,7 @@ public struct SplitTunnelView: View {
 
     @Environment(\.appearsActive) private var appearsActive
     @Environment(AppDiscoveryService.self) private var appDiscoveryService
+    @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var impactGenerator: ImpactGenerator
     @EnvironmentObject private var grpcManager: GRPCManager
@@ -109,6 +111,15 @@ private extension SplitTunnelView {
     var changesText: some View {
         HStack {
             Text("⚠️ \("splitTunnel.betaFeature".localizedString)\n\("splitTunel.apps.exclude".localizedString) \n\("splitTunnel.apps.unprotected".localizedString)")
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
+            Spacer()
+        }
+    }
+
+    var customDnsWarningText: some View {
+        HStack {
+            Text("⚠️ \("splitTunnel.customDnsWarning".localizedString)")
                 .foregroundStyle(Color.Nym.textSecondary)
                 .nymTextStyle(.bodyDefault)
             Spacer()
@@ -211,6 +222,11 @@ private extension SplitTunnelView {
                 changesText
                 Spacer()
                     .frame(height: 24)
+                if appSettings.isCustomDnsEnabled {
+                    customDnsWarningText
+                    Spacer()
+                        .frame(height: 24)
+                }
                 appsText
                 Spacer()
                     .frame(height: 8)
