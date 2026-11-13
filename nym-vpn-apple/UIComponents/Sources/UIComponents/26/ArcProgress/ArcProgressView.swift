@@ -290,9 +290,9 @@ private extension ArcProgressView {
     var secondaryCaptionKey: String? {
         switch state {
         case .blocked:
-            return "home.deviceNoInternetReconnect"
+            return "arcProgress.blockedAction"
         case .offline:
-            return "home.deviceNoInternet"
+            return "arcProgress.noInternet"
         default:
             return showsSecondaryWarning ? "gatewayIndependence.warning.title" : nil
         }
