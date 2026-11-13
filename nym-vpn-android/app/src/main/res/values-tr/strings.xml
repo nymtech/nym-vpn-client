@@ -383,16 +383,10 @@
 	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
 	<string name="censorship_bridge_on_title">Açık</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
-	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API (Gizlilik odaklı API) bağlantısı</string>
 	<string name="censorship_stealth_description">Bu özellik, VPN bağlantınız engellendiğinde alternatif alan adları kullanarak erişim sağlar. Modu \"Her zaman açık\" veya \"Bağlantı hatasında etkinleştir\" olarak ayarlayabilirsiniz.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
-	<string name="censorship_amnezia_title">Minimum gizleme (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">WireGuard trafiğinin tespit edilmesini zorlaştırır.
-Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kuralları bozmak için sahte paketler (decoy packets) ekler ve bu da kısıtlayıcı ortamlarda bağlantı güvenilirliğini artırır. \n\nNot: Yalnızca istemci tarafında uygulanmıştır.</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">Devam ederek NymVPN’in şart ve koşullarını kabul etmiş sayılırsınız  </string>
 	<string name="account_welcome_privacy_middle">ve</string>

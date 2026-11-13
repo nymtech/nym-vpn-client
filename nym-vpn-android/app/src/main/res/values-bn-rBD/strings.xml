@@ -383,15 +383,10 @@
 	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
 	<string name="censorship_bridge_on_title">চালু</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
-	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API সংযোগ</string>
 	<string name="censorship_stealth_description">কভার ডোমেইন ব্যবহার করে VPN ব্লক হওয়া থেকে সুরক্ষা দেয়। সর্বদা ব্যবহার করতে এটি চালু করুন, অথবা সাধারণ সংযোগ ব্যর্থ হলে ব্যবহার করতে এটি বন্ধ করুন।</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
-	<string name="censorship_amnezia_title">ন্যূনতম ওবফাসকেশন (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">ভিপিএন ব্লকিং প্রতিরোধ করার জন্য ডিকয় প্যাকেট ব্যবহার করে WireGuard ট্র্যাফিককে ছদ্মবেশে রাখে। \n\nদ্রষ্টব্য: শুধুমাত্র ক্লায়েন্ট-সাইডে প্রয়োগ করা হয়েছে।</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">চালিয়ে যাওয়ার মাধ্যমে, আপনি NymVPN-এর শর্তাবলীতে সম্মত হচ্ছেন  </string>
 	<string name="account_welcome_privacy_middle">এবং</string>

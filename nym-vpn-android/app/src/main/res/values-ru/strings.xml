@@ -393,15 +393,10 @@
 	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
 	<string name="censorship_bridge_on_title">Включить</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
-	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API соединение</string>
 	<string name="censorship_stealth_description">Защищает от блокировки VPN, используя подставные домены. Включите для постоянного использования или выключите, чтобы использовать при сбое обычных подключений.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
-	<string name="censorship_amnezia_title">Минимальная обфускация (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">Маскирует трафик WireGuard с помощью ложных пакетов для предотвращения блокировки VPN.\n\nПримечание: Реализовано только на стороне клиента.</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/ru/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">Продолжая, вы соглашаетесь с тем, что NymVPN  </string>
 	<string name="account_welcome_privacy_middle">и</string>

@@ -383,15 +383,10 @@
 	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
 	<string name="censorship_bridge_on_title">ऑन</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
-	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">स्टेल्थ API कनेक्ट</string>
 	<string name="censorship_stealth_description">कवर डोमेन का उपयोग करके VPN ब्लॉकिंग से सुरक्षा करता है। हमेशा उपयोग करने के लिए टॉगल चालू करें, या सामान्य कनेक्शन विफल होने पर उपयोग करने के लिए बंद करें।</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
-	<string name="censorship_amnezia_title">मिनिमल ऑब्फ़स्केशन (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">WireGuard ट्रैफ़िक का पता लगाना कठिन बनाता है। डीप पैकेट इंस्पेक्शन (DPI) सेंसरशिप सिस्टम द्वारा अक्सर इस्तेमाल किए जाने वाले सरल नियमों को बाधित करने वाले डिकॉय पैकेट पेश करता है, जिससे प्रतिबंधात्मक वातावरण में कनेक्शन की विश्वसनीयता बेहतर होती है। \n\nनोट: केवल क्लाइंट-साइड पर इम्पलिमेंट किया जाता है।</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">जारी रखने पर, आप NymVPN की  </string>
 	<string name="account_welcome_privacy_middle">और</string>
