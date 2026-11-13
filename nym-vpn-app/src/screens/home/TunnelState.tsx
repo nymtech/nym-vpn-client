@@ -353,7 +353,9 @@ export function TunnelState() {
               </motion.div>
             )}
           </AnimatePresence>
-          {phase === 'blocked' && (
+          {/* blocked: will reconnect once online; offline with no session: not protected, no internet */}
+          {(phase === 'blocked' ||
+            (phase === 'disconnected' && state === 'offline')) && (
             <p className="text-text-secondary text-center text-base">
               {state === 'offline'
                 ? t('offline-message')
