@@ -19,6 +19,11 @@
   "connected-directly": "Connected directly",
   "connected-via-bridge": "Connected via {{transport}} bridge",
   "connection-time": "Connection time",
+  "exit-address": {
+    "label": "Sites see",
+    "note": "Shared Nym exit, not yours",
+    "a11y": "Sites see the shared exit address {{ip}}. This is not your own address."
+  },
   "random-server": "Random server",
   "safest-server-selection": "Auto server selection",
   "fastest-server-selection": "Fastest server selection",
