@@ -10,6 +10,7 @@ import Theme
 public struct ArcProgressView: View {
     public let state: ArcProgressState
     public let mode: ArcProgressMode
+    public let markerMode: MarkerMode
     public let connectedDate: Date?
     public let showsIndependenceWarning: Bool
     public let availableHeight: CGFloat?
@@ -20,12 +21,14 @@ public struct ArcProgressView: View {
     public init(
         state: ArcProgressState,
         mode: ArcProgressMode = .fast,
+        markerMode: MarkerMode = .dvpn,
         connectedDate: Date? = nil,
         showsIndependenceWarning: Bool = false,
         availableHeight: CGFloat? = nil
     ) {
         self.state = state
         self.mode = mode
+        self.markerMode = markerMode
         self.connectedDate = connectedDate
         self.showsIndependenceWarning = showsIndependenceWarning
         self.availableHeight = availableHeight
@@ -66,7 +69,21 @@ private extension ArcProgressView {
             ring(.inner)
             glow
             sphere
+            face
         }
+    }
+
+    /// The mode face, centred in the rings: unlit in the track grey while not
+    /// protected, playing the illustrative route while connected.
+    var face: some View {
+        MarkerFace(
+            mode: markerMode,
+            lit: markerState != .notProtected,
+            playing: markerState == .connected,
+            litColor: Color.Nym.textPrimary,
+            unlitColor: trackColor
+        )
+        .frame(width: Constants.sphereDiameter, height: Constants.sphereDiameter)
     }
 
     func ring(_ ring: Ring) -> some View {

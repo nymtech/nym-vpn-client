@@ -12,6 +12,7 @@ struct ConnectionStatusBackdrop: View {
         ArcProgressView(
             state: viewModel.arcProgressState,
             mode: viewModel.mode,
+            markerMode: viewModel.marker.mode,
             connectedDate: viewModel.connectedDate,
             showsIndependenceWarning: viewModel.showsIndependenceWarning,
             availableHeight: availableHeight
