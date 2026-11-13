@@ -1,6 +1,7 @@
 {
   "failed-to-disconnect": "Failed to disconnect",
   "not-protected": "Not protected",
+  "blocked": "Kill switch is blocking traffic",
   "status": {
     "connected": "Tap to disconnect",
     "disconnected": "Tap to connect",

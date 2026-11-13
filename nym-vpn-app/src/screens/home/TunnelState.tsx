@@ -11,6 +11,7 @@ import {
 } from '../../hooks';
 import { setToString } from '../../util';
 import ConnectionTimer from './ConnectionTimer';
+import { markerFromTunnel } from './marker/markerState';
 
 // ─── Geometry ────────────────────────────────────────────────────────────────
 const SIZE = 180;
@@ -41,6 +42,7 @@ const PROGRESS_STEPS = {
 // ─── Colors ───────────────────────────────────────────────────────────────────
 const TRACK = 'var(--nv-connection-arc-track)';
 const FILL = 'var(--nv-brand-primary)';
+const CONNECTING_CLR = 'var(--nv-connection-connecting)';
 const ERROR_CLR = 'var(--nv-status-error)';
 
 // Delay (ms) before surfacing the transient `needs-relaxed-independence-criteria`
@@ -49,12 +51,22 @@ const ERROR_CLR = 'var(--nv-status-error)';
 const RELAXED_INDEPENDENCE_ERROR_DELAY = 1000;
 
 type Phase =
-  'disconnected' | 'connecting' | 'connected' | 'canceling' | 'error';
+  | 'disconnected'
+  | 'connecting'
+  | 'connected'
+  | 'canceling'
+  | 'error'
+  | 'blocked';
+
+// Error rings each lose a segment centred on 3 o'clock, so the state reads
+// without colour. The SVG is rotated so 0 is 12 o'clock.
+const ERROR_GAP = 0.1;
+const ERROR_GAP_START = 0.25 + ERROR_GAP / 2;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function TunnelState() {
-  const { state, connectingState, progressMessages } = useAppStore(
+  const { state, connectingState, progressMessages, vpnMode } = useAppStore(
     useShallow((s) => ({
       state: s.state,
       connectingState: s.connectingState,
@@ -107,25 +119,28 @@ export function TunnelState() {
   const suppressRelaxedIndependenceError =
     isRelaxedIndependenceError && !showRelaxedIndependenceError;
 
+  // Offline with the kill switch on holds traffic: blocked, not an error.
+  const isBlocked =
+    markerFromTunnel(state, vpnMode, connectingState?.progress).state ===
+    'blocked';
   const isError =
     !suppressRelaxedIndependenceError &&
-    (state === 'error' ||
-      state === 'unknown' ||
-      state === 'offline' ||
-      state === 'offline-auto-reconnect');
+    (state === 'error' || state === 'unknown');
   const isConnected = state === 'connected';
   const isConnecting = state === 'connecting';
   const isCanceling = state === 'disconnecting';
 
   const computedPhase: Phase = isError
     ? 'error'
-    : isCanceling
-      ? 'canceling'
-      : isConnected
-        ? 'connected'
-        : isConnecting
-          ? 'connecting'
-          : 'disconnected';
+    : isBlocked
+      ? 'blocked'
+      : isCanceling
+        ? 'canceling'
+        : isConnected
+          ? 'connected'
+          : isConnecting
+            ? 'connecting'
+            : 'disconnected';
 
   // While suppressing the transient error, keep showing the previous phase
   // (typically `connecting` during a server switch) so nothing flashes.
@@ -145,6 +160,8 @@ export function TunnelState() {
   const ringTargets = useMemo((): number[] => {
     if (phase === 'connected') return [0, 0, 0];
     if (phase === 'error') return [0, 0, 0];
+    // only the outer ring, which blinks
+    if (phase === 'blocked') return [0, CIRCS[1], CIRCS[2]];
     if (phase !== 'connecting' || !progress) return [...CIRCS];
     const step = PROGRESS_STEPS[progress];
     if (!step) return [...CIRCS];
@@ -168,9 +185,14 @@ export function TunnelState() {
   const effectiveOffsets = isCanceling ? frozenOffsetsRef.current : ringTargets;
 
   // ─── Per-ring stroke appearance ───────────────────────────────────────────
-  const strokeColor = phase === 'error' ? ERROR_CLR : FILL;
+  const strokeColor =
+    phase === 'error'
+      ? ERROR_CLR
+      : phase === 'connecting'
+        ? CONNECTING_CLR
+        : FILL;
   const strokeOpacity =
-    phase === 'canceling' ? 0.15 : phase === 'error' ? 0.6 : 1;
+    phase === 'canceling' ? 0.15 : phase === 'error' ? 0.85 : 1;
 
   const ringTransition =
     phase === 'canceling'
@@ -186,6 +208,7 @@ export function TunnelState() {
       return prog ? tP(prog) : null;
     }
     if (phase === 'canceling') return tP('canceling');
+    if (phase === 'blocked') return t('blocked');
     return null;
   }, [phase, progress, progressMessages, tP, t]);
 
@@ -238,6 +261,14 @@ export function TunnelState() {
               fill="none"
               strokeWidth={STROKE}
               strokeLinecap="round"
+              strokeDasharray={
+                phase === 'error'
+                  ? `${CIRCS[i] * (1 - ERROR_GAP)} ${CIRCS[i] * ERROR_GAP}`
+                  : undefined
+              }
+              strokeDashoffset={
+                phase === 'error' ? -CIRCS[i] * ERROR_GAP_START : undefined
+              }
               style={{ stroke: TRACK }}
             />
           ))}
@@ -253,8 +284,19 @@ export function TunnelState() {
               strokeOpacity={strokeOpacity}
               strokeWidth={STROKE}
               strokeLinecap="round"
-              strokeDasharray={CIRCS[i]}
-              strokeDashoffset={effectiveOffsets[i]}
+              strokeDasharray={
+                phase === 'error'
+                  ? `${CIRCS[i] * (1 - ERROR_GAP)} ${CIRCS[i] * ERROR_GAP}`
+                  : CIRCS[i]
+              }
+              strokeDashoffset={
+                phase === 'error'
+                  ? -CIRCS[i] * ERROR_GAP_START
+                  : effectiveOffsets[i]
+              }
+              className={
+                phase === 'blocked' && i === 0 ? 'nv-marker-blink' : undefined
+              }
               style={{ stroke: strokeColor, transition: ringTransition }}
             />
           ))}
@@ -297,6 +339,13 @@ export function TunnelState() {
               </motion.div>
             )}
           </AnimatePresence>
+          {phase === 'blocked' && (
+            <p className="text-text-secondary text-center text-base">
+              {state === 'offline'
+                ? t('offline-message')
+                : t('offline-reconnect-message')}
+            </p>
+          )}
           {phase === 'error' && (
             <div className="text-status-error text-center text-lg">
               {getError()}
