@@ -19,6 +19,10 @@ on:
         description: "Release branch to draft TestFlight notes for (blank = current)."
         required: false
 
+env:
+  GIT_USER: NYM CI
+  GIT_EMAIL: ci@nymtech.net
+
 permissions:
   contents: write
   pull-requests: write
@@ -33,12 +37,12 @@ jobs:
        startsWith(github.event.ref, 'release/'))
     runs-on: arc-linux-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.release_branch || github.ref_name }}
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
 
@@ -72,8 +76,8 @@ jobs:
         run: |
           set -euo pipefail
           HEAD="l10n/testflight-notes-${BASE//\//-}"
-          git config user.name "nym-bot"
-          git config user.email "noreply@nymte.ch"
+          git config user.name "${{ env.GIT_USER }}"
+          git config user.email "${{ env.GIT_EMAIL }}"
           git switch -c "$HEAD"
           git add nym-vpn-apple/fastlane/TestFlight/whats-new.txt
           if git diff --cached --quiet; then

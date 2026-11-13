@@ -22,6 +22,10 @@ on:
   pull_request:
     types: [opened, edited, milestoned, demilestoned, ready_for_review]
 
+env:
+  GIT_USER: NYM CI
+  GIT_EMAIL: ci@nymtech.net
+
 permissions:
   contents: write
   pull-requests: write
@@ -41,7 +45,7 @@ jobs:
     runs-on: arc-linux-latest
     steps:
       - name: Checkout the PR branch
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
@@ -51,14 +55,14 @@ jobs:
       # tree); it needs the PR-head tree (checked out above) only to write + commit the CHANGELOG.
       # So a malicious PR cannot run its own code with ANTHROPIC_API_KEY / the write token.
       - name: Check out the trusted authoring scripts (base ref)
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           path: _trusted
           sparse-checkout: scripts/release-changelog
           sparse-checkout-cone-mode: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
 
@@ -84,8 +88,8 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
-          git config user.name "nym-bot"
-          git config user.email "noreply@nymte.ch"
+          git config user.name "${{ env.GIT_USER }}"
+          git config user.email "${{ env.GIT_EMAIL }}"
           git add '*/CHANGELOG.md'
           if git diff --cached --quiet; then
             echo "::notice::no changelog change to commit"; exit 0
