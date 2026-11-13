@@ -115,6 +115,15 @@ private extension SplitTunnelView {
         }
     }
 
+    var dnsWarningText: some View {
+        HStack {
+            Text("⚠️ \("splitTunnel.dnsWarning".localizedString)")
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
+            Spacer()
+        }
+    }
+
     var appsText: some View {
         HStack {
             Text("splitTunnel.apps".localizedString)
@@ -209,6 +218,9 @@ private extension SplitTunnelView {
                 .frame(height: 24)
             if splitTunnelConfig.isEnabled {
                 changesText
+                Spacer()
+                    .frame(height: 24)
+                dnsWarningText
                 Spacer()
                     .frame(height: 24)
                 appsText

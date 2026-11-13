@@ -28022,6 +28022,17 @@
         }
       }
     },
+    "splitTunnel.dnsWarning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluded apps connect directly to the internet. Their DNS lookups still go through NymVPN, unless the app uses its own DNS."
+          }
+        }
+      }
+    },
     "splitTunnel.enableSystemSettings" : {
       "extractionState" : "manual",
       "localizations" : {
