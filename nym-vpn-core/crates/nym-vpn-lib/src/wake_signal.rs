@@ -9,12 +9,12 @@
 //! tunnel command or state machine layers, neither of which this is a command for.
 
 use std::sync::{Arc, Mutex, OnceLock};
-use std::time::{Duration, Instant};
+use std::time::{Duration, SystemTime};
 
 use tokio::sync::Notify;
 
 static WAKE: OnceLock<Arc<Notify>> = OnceLock::new();
-static LAST_WOKE: Mutex<Option<Instant>> = Mutex::new(None);
+static LAST_WOKE: Mutex<Option<SystemTime>> = Mutex::new(None);
 
 // iOS calls `wake()` on brief process thaw/resuspend cycles while the screen stays off, not
 // only on a real device wake - observed firing in bursts every few seconds for minutes at a
@@ -26,10 +26,15 @@ fn wake_notify() -> &'static Arc<Notify> {
 }
 
 /// Call when the platform reports the device has woken up. Debounced - see `DEBOUNCE`.
+///
+/// Uses wall-clock time, not `Instant`: on Apple targets `Instant` is `CLOCK_UPTIME_RAW`, and
+/// everywhere else it's `CLOCK_MONOTONIC` - both stop advancing while the device is asleep, so a
+/// real multi-minute sleep would otherwise look like under a second had passed and get wrongly
+/// debounced away, exactly the wake this feature exists to catch.
 pub fn notify_woke() {
     let mut last = LAST_WOKE.lock().unwrap();
-    let now = Instant::now();
-    if last.is_some_and(|t| now.duration_since(t) < DEBOUNCE) {
+    let now = SystemTime::now();
+    if last.is_some_and(|t| now.duration_since(t).is_ok_and(|d| d < DEBOUNCE)) {
         return;
     }
     *last = Some(now);
