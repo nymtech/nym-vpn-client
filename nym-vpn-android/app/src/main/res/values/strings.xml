@@ -288,14 +288,6 @@
 	<string name="battery_opt_settings_text">Battery optimization setting can be changed anytime in app settings.</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">Data, privacy &amp; logs</string>
-	<string name="privacy_anonymous_stats_title">Anonymous network stats</string>
-	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
-	<string name="privacy_anonymous_stats_link_text">Learn exactly what\'s shared</string>
-	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
-	<string name="privacy_error_reports_title">Error &amp; crash reports</string>
-	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
-	<string name="privacy_error_reports_link_text">View Sentry Privacy Policy</string>
-	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">Changes will apply after app restart.</string>
 	<string name="modal_network_stats_title">Upgrade your experience</string>
 	<string name="modal_network_stats_descr">Help improve NymVPN by sharing anonymous network stats from your region. \n\nYour data stays private and secure.</string>
@@ -309,13 +301,23 @@
 	<string name="welcome_continue">Continue</string>
 	<string name="welcome_title">Help us improve NymVPN</string>
 	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
-	<string name="welcome_error_reports_title">Share error reports</string>
-	<string name="welcome_error_reports_description_start">Helps us fix bugs faster, no personal data collected (via </string>
-	<string name="welcome_error_reports_link" translatable="false">https://sentry.io/welcome/</string>
-	<string name="welcome_error_reports_link_text">Sentry</string>
-	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">Share usage analytics</string>
-	<string name="welcome_usage_description">Helps us improve the Nym network. No logging or activity tracked.</string>
+	<!-- Telemetry opt-in (onboarding + settings) -->
+	<string name="optin_connection_title">Your connection quality</string>
+	<string name="optin_connection_subtitle">Helps improve network connectivity</string>
+	<string name="optin_monitoring_title">Your app errors &amp; crashes</string>
+	<string name="optin_monitoring_subtitle">Helps improve app performance</string>
+	<string name="optin_privacy_link_text">Read our Privacy Statement</string>
+	<string name="optin_privacy_link" translatable="false">https://nym.com/vpn-privacy-statement</string>
+	<string name="optin_info_title">What\'s shared</string>
+	<string name="optin_info_accessibility">What\'s shared: %1$s</string>
+	<string name="optin_info_got_it">Got it</string>
+	<string name="optin_info_never_label">Never:</string>
+	<string name="optin_connection_shares">Connect time and error codes\nSession date and length\nMode (dVPN / Mixnet) and exit server\nOS, device type, app version\nAn anonymous ID (not tied to your account)</string>
+	<string name="optin_connection_never">your IP, browsing, or traffic contents.</string>
+	<string name="optin_connection_handling">Sent through the VPN tunnel to Nym. No third party.</string>
+	<string name="optin_monitoring_shares">Crashes and error messages\nFreezes, hangs, slow performance\nWhere it happened (stack traces)\nOS, device type, app version</string>
+	<string name="optin_monitoring_never">personal info, browsing, or traffic content.</string>
+	<string name="optin_monitoring_handling">Handled by Sentry, a third-party service. Nym never sees your IP.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">Welcome to NymVPN</string>
 	<string name="onboarding_welcome_description">Your private access to \nan **internet without walls.**</string>

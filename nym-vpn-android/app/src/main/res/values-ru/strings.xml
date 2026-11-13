@@ -274,14 +274,6 @@
 	<string name="battery_opt_settings_text">Настройки оптимизации батареи можно изменить в любое время в настройках приложения.</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">Данные, приватность &amp; логи</string>
-	<string name="privacy_anonymous_stats_title">Анонимная статистика сети</string>
-	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
-	<string name="privacy_anonymous_stats_link_text">Узнайте точно, какие данные передаются</string>
-	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
-	<string name="privacy_error_reports_title">Отчёты об ошибках &amp; сбоях</string>
-	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
-	<string name="privacy_error_reports_link_text">Посмотреть политику конфиденциальности Sentry</string>
-	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">Изменения вступят в силу после перезапуска приложения.</string>
 	<string name="modal_network_stats_title">Улучшите свой опыт</string>
 	<string name="modal_network_stats_descr">Помогите улучшить NymVPN, поделившись анонимной статистикой сети из вашего региона. \n\nВаши данные остаются приватными и защищенными.</string>
@@ -295,12 +287,6 @@
 	<string name="welcome_continue">Продолжить</string>
 	<string name="welcome_title">Помогите нам улучшить NymVPN</string>
 	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
-	<string name="welcome_error_reports_title">Поделитесь отчётами об ошибках</string>
-	<string name="welcome_error_reports_description_start">Помогает нам быстрее устранять ошибки, персональные данные не собираются (через </string>
-	<string name="welcome_error_reports_link_text">Sentry</string>
-	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">Поделитесь аналитикой использования</string>
-	<string name="welcome_usage_description">Помогает нам улучшать сеть Nym. Логи и активность не отслеживаются.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">Добро пожаловать в NymVPN</string>
 	<string name="onboarding_welcome_description">Ваш приватный доступ к \n**интернету без преград.**</string>

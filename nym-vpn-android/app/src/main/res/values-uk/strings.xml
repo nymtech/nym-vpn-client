@@ -272,14 +272,6 @@
 	<string name="battery_opt_settings_text">Налаштування оптимізації батареї можна змінювати в будь-який час у налаштуваннях програми.</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">Дані, конфіденційність &amp; та журнали</string>
-	<string name="privacy_anonymous_stats_title">Анонімна статистика мережі</string>
-	<string name="privacy_anonymous_stats_description">Допоможіть нам покращити NymVPN, надаючи анонімні дані про те, як програма працює у вас. Ці телеметричні дані не міститимуть особистої інформації чи відомостей про вашу активність.</string>
-	<string name="privacy_anonymous_stats_link_text">Дізнайтеся, що саме публікується</string>
-	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
-	<string name="privacy_error_reports_title">Звіти про помилки та збої</string>
-	<string name="privacy_error_reports_description">Надсилайте анонімні звіти про збої, щоб допомогти нам швидше виправляти помилки.</string>
-	<string name="privacy_error_reports_link_text">Переглянути політику конфіденційності Sentry</string>
-	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">Зміни набудуть чинності після перезавантаження програми.</string>
 	<string name="modal_network_stats_title">Покращте свій досвід</string>
 	<string name="modal_network_stats_descr">Допоможіть покращити NymVPN, поділившись анонімними статистичними даними про мережу з вашого регіону. \n\nВаші дані залишаються приватними та безпечними.</string>
@@ -293,12 +285,6 @@
 	<string name="welcome_continue">Продовжити</string>
 	<string name="welcome_title">Допоможіть нам покращити NymVPN</string>
 	<string name="welcome_description">Виберіть, якими анонімними даними ділитися. \nОсобиста інформація не включається.</string>
-	<string name="welcome_error_reports_title">Поділитися звітами про помилки</string>
-	<string name="welcome_error_reports_description_start">Допомагає нам швидше виправляти помилки, не збирати персональні дані (через </string>
-	<string name="welcome_error_reports_link_text">Sentry</string>
-	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">Поділитися аналітикою використання</string>
-	<string name="welcome_usage_description">Допомагає нам покращити якість мережі. Логування та активності не відстежуються.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">Ласкаво просимо до NymVPN</string>
 	<string name="onboarding_welcome_description">Ваш особистий доступ до \n **Інтернету без обмежень.**</string>

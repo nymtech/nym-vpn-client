@@ -266,14 +266,6 @@
 	<string name="battery_opt_settings_text">Cài đặt tối ưu pin có thể được thay đổi bất cứ lúc nào trong phần cài đặt ứng dụng.</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">Dữ liệu, quyền riêng tư &amp; ghi nhật ký</string>
-	<string name="privacy_anonymous_stats_title">Thống kê mạng ẩn danh</string>
-	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
-	<string name="privacy_anonymous_stats_link_text">Tìm hiểu chính xác những gì được chia sẻ</string>
-	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
-	<string name="privacy_error_reports_title">Báo cáo lỗi &amp; sự cố</string>
-	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
-	<string name="privacy_error_reports_link_text">Xem Chính sách quyền riêng tư của Sentry</string>
-	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">Thay đổi sẽ có hiệu lực sau khi khởi động lại ứng dụng.</string>
 	<string name="modal_network_stats_title">Nâng cấp trải nghiệm của bạn</string>
 	<string name="modal_network_stats_descr">Giúp cải thiện NymVPN bằng cách chia sẻ thông tin thống kê mạng ẩn danh từ khu vực của bạn. \n\nDữ liệu của bạn vẫn sẽ được bảo mật và riêng tư.</string>
@@ -287,12 +279,6 @@
 	<string name="welcome_continue">Tiếp tục</string>
 	<string name="welcome_title">Hãy giúp chúng tôi cải thiện NymVPN</string>
 	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
-	<string name="welcome_error_reports_title">Chia sẻ báo cáo lỗi</string>
-	<string name="welcome_error_reports_description_start">Giúp chúng tôi khắc phục lỗi nhanh hơn, không dữ liệu cá nhân bị thu thập (qua </string>
-	<string name="welcome_error_reports_link_text">Sentry</string>
-	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">Chia sẻ dữ liệu phân tích sử dụng</string>
-	<string name="welcome_usage_description">Giúp chúng tôi cải thiện mạng lưới Nym. Không có nhật ký hay hoạt động nào bị theo dõi.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">Chào mừng đến với NymVPN</string>
 	<string name="onboarding_welcome_description">Truy cập riêng tư của bạn vào \nan **internet không giới hạn.**</string>

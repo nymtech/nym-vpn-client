@@ -270,14 +270,6 @@
 	<string name="battery_opt_settings_text">La configuración de optimización de la batería se puede cambiar en cualquier momento en los ajustes de la aplicación.</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">Datos &amp; Privacidad</string>
-	<string name="privacy_anonymous_stats_title">Estadísticas de red anónimas</string>
-	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
-	<string name="privacy_anonymous_stats_link_text">Aprende exactamente lo que es compartido</string>
-	<string name="privacy_anonymous_stats_link">https://nym.com/estadísticas anonimas</string>
-	<string name="privacy_error_reports_title">Error &amp; reportes de error</string>
-	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
-	<string name="privacy_error_reports_link_text">Ver política de privacidad de centinela</string>
-	<string name="privacy_error_reports_link">https://sentry.io/privacidad/</string>
 	<string name="privacy_error_reports_restart">Los cambios se aplicarán después de reiniciar la aplicación.</string>
 	<string name="modal_network_stats_title">Mejora tu experiencia</string>
 	<string name="modal_network_stats_descr">Ayude a mejorar NymVPN compartiendo estadísticas de red anónimas de su región. \n\nSus datos permanecen privados y seguros.</string>
@@ -291,12 +283,6 @@
 	<string name="welcome_continue">Continuar</string>
 	<string name="welcome_title">Ayúdanos a mejorar NymVPN</string>
 	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
-	<string name="welcome_error_reports_title">Compartir reportes de error</string>
-	<string name="welcome_error_reports_description_start">Nos ayuda a corregir errores más rápido, no se recopilan datos personales (a través </string>
-	<string name="welcome_error_reports_link_text">Centinela</string>
-	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">Compartir análisis de uso</string>
-	<string name="welcome_usage_description">Nos ayuda a mejorar la red Nym. Sin registro ni actividad rastreada.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">Bienvenido a NymVPN</string>
 	<string name="onboarding_welcome_description">Tu acceso privado a \nuna **Internet sin paredes.**</string>

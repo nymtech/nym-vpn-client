@@ -268,14 +268,6 @@
 	<string name="battery_opt_settings_text">您隨時可以在系統設置中更改電池優化設置。</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">數據、隱私和日誌</string>
-	<string name="privacy_anonymous_stats_title">匿名網絡數據</string>
-	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
-	<string name="privacy_anonymous_stats_link_text">瞭解我們收集哪些信息</string>
-	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
-	<string name="privacy_error_reports_title">錯誤和崩潰報告</string>
-	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
-	<string name="privacy_error_reports_link_text">查看 Sentry 的隱私政策</string>
-	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">更改將在應用程序重啟後應用。</string>
 	<string name="modal_network_stats_title">升級您的體驗</string>
 	<string name="modal_network_stats_descr">通過分享您的匿名網絡數據來幫助我們改善 NymVPN。\n\n我們承諾您的隱私和安全始終受到保護。</string>
@@ -289,12 +281,6 @@
 	<string name="welcome_continue">繼續</string>
 	<string name="welcome_title">幫助我們改進 NymVPN</string>
 	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
-	<string name="welcome_error_reports_title">共享錯誤報告</string>
-	<string name="welcome_error_reports_description_start">幫助我們更快地修復錯誤，您的敏感數據不會被收集（通過 </string>
-	<string name="welcome_error_reports_link_text">Sentry</string>
-	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">共享使用量分析數據</string>
-	<string name="welcome_usage_description">幫助我們改善 Nym 網絡。請放心，我們不會收集您的個人信息。</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">歡迎使用 NymVPN</string>
 	<string name="onboarding_welcome_description">您通向\n**隱私互聯網**的大門</string>

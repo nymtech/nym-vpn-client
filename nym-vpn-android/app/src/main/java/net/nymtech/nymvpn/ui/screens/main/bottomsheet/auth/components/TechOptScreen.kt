@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,20 +13,29 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.common.TelemetryInfoKind
+import net.nymtech.nymvpn.ui.common.WhatsSharedDialog
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
@@ -37,6 +47,9 @@ fun TechOptView(
 	onContinueClick: () -> Unit,
 	modifier: Modifier = Modifier,
 ) {
+	val context = LocalContext.current
+	var infoKind by remember { mutableStateOf<TelemetryInfoKind?>(null) }
+
 	Column(
 		modifier = modifier
 			.background(MaterialTheme.colorScheme.surface)
@@ -64,12 +77,28 @@ fun TechOptView(
 			textAlign = TextAlign.Center,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		)
+		Text(
+			text = stringResource(R.string.optin_privacy_link_text),
+			style = MaterialTheme.typography.bodySmall.copy(
+				textDecoration = TextDecoration.Underline,
+			),
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
+			modifier = Modifier.clickable {
+				context.openWebUrl(context.getString(R.string.optin_privacy_link))
+			},
+		)
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom),
 			modifier = Modifier.padding(vertical = 24.dp.scaledHeight()),
 		) {
-			SettingsSection(statsEnabled, sentryEnabled, onNetworkStatsEnable, onMonitoringEnable)
+			SettingsSection(
+				statsEnabled,
+				sentryEnabled,
+				onNetworkStatsEnable,
+				onMonitoringEnable,
+				onInfo = { infoKind = it },
+			)
 			Column(
 				horizontalAlignment = Alignment.CenterHorizontally,
 				modifier = Modifier.padding(top = 8.dp),
@@ -90,6 +119,10 @@ fun TechOptView(
 				)
 			}
 		}
+	}
+
+	infoKind?.let { kind ->
+		WhatsSharedDialog(kind = kind, onDismiss = { infoKind = null })
 	}
 }
 
