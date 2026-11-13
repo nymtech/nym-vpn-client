@@ -313,7 +313,11 @@ export function TunnelState() {
             pointerEvents: 'none',
           }}
         >
-          <MarkerFace mode={markerMode(vpnMode)} size={SPHERE_SIZE} />
+          <MarkerFace
+            mode={markerMode(vpnMode)}
+            size={SPHERE_SIZE}
+            lit={phase !== 'disconnected'}
+          />
         </div>
 
         {/* Connected glow halo (behind sphere, fades in) */}
