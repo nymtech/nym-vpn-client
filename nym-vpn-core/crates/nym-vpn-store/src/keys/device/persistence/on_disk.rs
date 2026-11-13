@@ -8,7 +8,7 @@ use nym_pemstore::{KeyPairPath, Passphrase, traits::PemStorableKeyPair};
 use rand::SeedableRng;
 
 use crate::{
-    database_key::DatabaseKey,
+    database_key::{DatabaseKey, key_passphrase},
     keys::device::{DeviceKeyStore, DeviceKeys},
 };
 
@@ -88,7 +88,7 @@ impl OnDiskKeys {
     pub fn new(paths: DeviceKeysPaths, database_key: &DatabaseKey) -> Self {
         OnDiskKeys {
             paths,
-            passphrase: Passphrase::new(hex::encode(database_key.as_bytes())),
+            passphrase: key_passphrase(database_key),
         }
     }
 
