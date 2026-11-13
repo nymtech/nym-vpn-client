@@ -8,6 +8,9 @@ pub enum PendingCredentialRequestsStorageError {
     #[error("sqlx error")]
     Sqlx(#[from] sqlx::Error),
 
+    #[error("failed to encrypt database")]
+    Encryption(#[source] nym_sqlcipher::SqlCipherError),
+
     #[error("migrate error")]
     Migrate(#[from] sqlx::migrate::MigrateError),
 

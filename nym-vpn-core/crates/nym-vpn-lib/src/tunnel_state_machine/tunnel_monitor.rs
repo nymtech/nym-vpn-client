@@ -49,6 +49,7 @@ use nym_registration_client::{
     RegistrationClientBuilderConfig, RegistrationClientError, RegistrationMode,
     RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
 };
+use nym_sqlcipher::DatabaseKey;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::SkewManager;
 use nym_vpn_lib_types::{
@@ -267,6 +268,7 @@ impl TunnelMonitorHandle {
 #[derive(Debug, Clone)]
 pub struct TunnelParameters {
     pub nym_config: NymConfig,
+    pub database_key: DatabaseKey,
     pub tunnel_settings: TunnelSettings,
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
@@ -540,6 +542,7 @@ impl TunnelMonitor {
                     .network_data_dir
                     .clone(),
             )
+            .database_key(Some(self.tunnel_parameters.database_key.clone()))
             .mixnet_client_config(mixnet_client_config)
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .mode(mode)

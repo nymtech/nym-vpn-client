@@ -167,6 +167,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             ecash_keypair.clone(),
             device,
             self.config.data_dir.clone(),
+            &self.config.database_key,
             self.cancel_token.child_token(),
         )
         .await

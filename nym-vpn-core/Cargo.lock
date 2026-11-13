@@ -7914,6 +7914,7 @@ dependencies = [
  "nym-credentials",
  "nym-credentials-interface",
  "nym-ecash-time",
+ "nym-sqlcipher",
  "nym-upgrade-mode-check",
  "nym-validator-client",
  "nym-vpn-api-client",

@@ -494,6 +494,7 @@ impl ConnectingState {
 
         let tunnel_parameters = TunnelParameters {
             nym_config: shared_state.nym_config.clone(),
+            database_key: shared_state.database_key.clone(),
             tunnel_settings: shared_state.tunnel_settings.clone(),
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
