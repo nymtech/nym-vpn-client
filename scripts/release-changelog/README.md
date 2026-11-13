@@ -29,7 +29,7 @@ qualifies for). For **one** PR it:
    (CI never mutates the PR).
 3. **Drafts the entry.** Description-first, backed by the diff (fills gaps when the description is
    thin/vague/jargon, stays conservative), strips internal language, applies the terminology in
-   `style.md`, classifies Added/Changed/Fixed, for each component `CHANGELOG.md` the PR's **changed
+   `style.md`, classifies Added/Changed/Fixed/Security, for each component `CHANGELOG.md` the PR's **changed
    paths** route to.
 4. **Posts it as a suggestion.** On the dev's `- _pending changelog_` stub line (placed under the
    heading they judge right), the bot posts a committable GitHub **suggestion** — one click applies it

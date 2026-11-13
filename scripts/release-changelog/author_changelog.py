@@ -3,19 +3,20 @@
 
 Runs per-PR in CI, gated on the PR carrying a release milestone. For a milestoned PR:
 
-  1. If the `## Description` is empty or an untouched template, author a description FROM THE
-     DIFF and write it back to the PR body (flagged) — repair the base before anything consumes it.
-  2. Author a Keep-a-Changelog entry from the (now-complete) description, using the diff to fill
-     gaps when the description is thin, and upsert it into the `## [Unreleased]` section of each
-     component CHANGELOG.md the PR's changed paths route to.
+  1. If the `## Description` is empty or an untouched template, author a description FROM THE DIFF
+     internally, to write a good entry. The PR body is never edited (the bot does not mutate the PR).
+  2. Author a Keep-a-Changelog entry from the description, using the diff to fill gaps when it is
+     thin, for each component CHANGELOG.md the PR's changed paths route to.
 
-This replaces the hand-written changelog entry a dev used to add (the `- [ ] Changelog` checkbox).
-Everything downstream is unchanged: `add-changelog-release` stamps `[Unreleased]` -> `[version]`
-at release, and `prepare-release-notes` (`extract-release-notes`) assembles the GitHub/TestFlight
-notes. There is no agent in CI — one stateless HTTPS call per task.
+In `--suggest` mode (CI) the entry is posted as a committable GitHub suggestion on the dev's
+`- _pending changelog_` stub (or a paste comment); without it, the entry is written into the
+changelog files (a dev running this locally). This replaces the hand-written changelog entry a dev
+used to add. Everything downstream is unchanged: `add-changelog-release` stamps `[Unreleased]` ->
+`[version]` at release, and `prepare-release-notes` (`extract-release-notes`) assembles the
+GitHub/TestFlight notes. There is no agent in CI — one stateless HTTPS call per task.
 
-Upsert is idempotent: entries are keyed by the PR URL, so re-runs (on `synchronize`) update this
-PR's bullet in place instead of duplicating it, and other PRs' bullets are left untouched.
+Posting/writing is idempotent, keyed by the PR URL (file-write) or a per-component marker
+(suggestion): re-runs update this PR's entry in place, and other PRs' entries are untouched.
 
 Env:
     PR_NUMBER          (required) the PR to author for
@@ -50,7 +51,7 @@ ROOT = os.environ.get("GITHUB_WORKSPACE", os.getcwd())
 HERE = os.path.dirname(os.path.abspath(__file__))
 ACTIVE_MILESTONE = os.environ.get("ACTIVE_MILESTONE", "").strip()
 
-HEADINGS = ("Added", "Changed", "Fixed")
+HEADINGS = ("Added", "Changed", "Fixed", "Security")
 
 # component -> its CHANGELOG file and the source dirs whose changes route a PR to it.
 # Routing is by CHANGED PATHS (reliable); labels are not used (most PRs carry none).
@@ -94,10 +95,11 @@ existing changelog already names the same feature/setting. Never invent ad-hoc p
 write an accurate entry — but be conservative: never claim more than the diff proves.
 - This is the technical/developer changelog (feeds GitHub release notes + TestFlight), NOT \
 app-store copy. Clear, precise, technical-but-readable — not marketing.
-- Classify into Added / Changed / Fixed. Usually ONE line total for a PR; split only if the PR \
-genuinely makes two distinct user-facing changes to this component.
+- Classify into Added / Changed / Fixed / Security (Security = a fix with a security impact). Usually \
+ONE line total for a PR; split only if the PR genuinely makes two distinct user-facing changes to \
+this component.
 - Return ONLY JSON, no prose or code fences:
-  {"added":["..."], "changed":["..."], "fixed":["..."]}"""
+  {"added":["..."], "changed":["..."], "fixed":["..."], "security":["..."]}"""
 
 DESC_SYSTEM = """You write a pull request description from its diff, because the author left it \
 empty or only the template. Write 2–4 plain sentences: what observably changed and, if the diff \
@@ -134,14 +136,6 @@ def pr_diff(number, cap=6000):
         # flag the cut rather than silently dropping the tail, so a thin entry on a big PR is explainable
         return text[:cap] + f"\n\n[diff truncated at {cap} chars; {len(text) - cap} more omitted]"
     return text
-
-
-def set_pr_body(number, body, dry):
-    if dry:
-        print(f"[dry-run] would update PR #{number} body ({len(body)} chars)")
-        return
-    subprocess.run(["gh", "pr", "edit", str(number), "-R", REPO, "--body", body], check=True)
-    print(f"::notice::backfilled PR #{number} description from diff")
 
 
 # ----------------------------------------------------------------------------- milestone gate
@@ -209,15 +203,6 @@ def is_blank_text(text):
             continue
         kept.append(s)
     return len(" ".join(kept)) < 20
-
-
-def replace_section(body, name, new_text):
-    """Replace the body of a `## <name>` section, or prepend one if it doesn't exist."""
-    pat = re.compile(rf"(^##+\s*{re.escape(name)}\s*\n)(.*?)(?=^##\s|\Z)", re.S | re.M | re.I)
-    if pat.search(body):
-        return pat.sub(lambda m: f"{m.group(1)}\n{new_text}\n\n", body, count=1)
-    head = f"## {name}\n\n{new_text}\n"
-    return f"{head}\n{body}" if body.strip() else head
 
 
 # ----------------------------------------------------------------------------- anthropic
@@ -288,7 +273,6 @@ def upsert(path, buckets, pr_url, dry):
 
     # add the new bullets as "- text ([#123](url))": GitHub renders a tidy #123 link, and the dedup
     # above still matches because the "(url)" substring is present inside the markdown link.
-    pr_num = pr_url.rstrip("/").split("/")[-1]
     added_n = 0
     for heading in HEADINGS:
         items = [i for i in (buckets.get(heading.lower()) or []) if i.strip()]
@@ -296,7 +280,7 @@ def upsert(path, buckets, pr_url, dry):
             continue
         sections.setdefault(heading, [])
         for it in items:
-            sections[heading].append(f"- {it.rstrip('.')} ([#{pr_num}]({pr_url}))")
+            sections[heading].append(bullet(it, pr_url))
             added_n += 1
 
     # re-render: canonical heading order first, then any others, preserving bullet order
@@ -325,6 +309,13 @@ def upsert(path, buckets, pr_url, dry):
 
 def stub(title):
     return {"added": [], "changed": [title], "fixed": []}
+
+
+def bullet(text, pr_url):
+    """One changelog bullet in the house format: '- <text> ([#N](url))'. The parenthesised URL is
+    also the dedup / already-applied key, so upsert and the suggestion must build it identically."""
+    num = pr_url.rstrip("/").split("/")[-1]
+    return f"- {text.rstrip('.')} ([#{num}]({pr_url}))"
 
 
 # ----------------------------------------------------------------------------- suggest mode
@@ -372,6 +363,8 @@ def stub_line(patch):
             new_ln += 1
         elif ln.startswith("-"):
             continue                       # removed line: no new-file number
+        elif ln.startswith("\\"):
+            continue                       # "\ No newline at end of file": not a file line (D1)
         else:                              # context line
             if STUB_TOKEN in ln and ctx_hit is None:
                 ctx_hit = new_ln
@@ -382,11 +375,10 @@ def stub_line(patch):
 def entry_lines(buckets, pr_url):
     """(flat, grouped): flat tidy bullets for a one-click suggestion (the stub already sits under a
     heading), and {heading: [bullets]} for the paste-fallback comment. Empty if not user-facing."""
-    num = pr_url.rstrip("/").split("/")[-1]
     flat, grouped = [], {}
     for heading in HEADINGS:
         for it in [i for i in (buckets.get(heading.lower()) or []) if i.strip()]:
-            b = f"- {it.rstrip('.')} ([#{num}]({pr_url}))"
+            b = bullet(it, pr_url)
             flat.append(b)
             grouped.setdefault(heading, []).append(b)
     return flat, grouped
@@ -404,10 +396,36 @@ def _bot_issue_comment(number, marker):
     return None
 
 
+def _set_issue_comment(number, marker, body, dry):
+    """Upsert (body set) or remove (body=None) the single issue comment carrying `marker`."""
+    existing = _bot_issue_comment(number, marker)
+    if body is None:
+        if existing:
+            if dry:
+                print(f"[dry-run] would delete issue comment {existing['id']} ({marker})")
+            else:
+                gh_write(f"repos/{REPO}/issues/comments/{existing['id']}", {}, method="DELETE")
+        return
+    full = f"<!-- {marker} -->\n{body}"
+    if dry:
+        print(f"[dry-run] would {'update' if existing else 'post'} issue comment ({marker})")
+        return
+    if existing:
+        gh_write(f"repos/{REPO}/issues/comments/{existing['id']}", {"body": full}, method="PATCH")
+    else:
+        gh_write(f"repos/{REPO}/issues/{number}/comments", {"body": full})
+
+
 def _drop_review_comments(number, marker, dry):
     for c in _bot_review_comments(number, marker):
-        if not dry:
+        if dry:
+            print(f"[dry-run] would delete review comment {c['id']} ({marker})")
+        else:
             gh_write(f"repos/{REPO}/pulls/comments/{c['id']}", {}, method="DELETE")
+
+
+def _suggestion_body(marker, text, block_lines):
+    return f"<!-- {marker} -->\n{text}\n\n```suggestion\n" + "\n".join(block_lines) + "\n```"
 
 
 def post_suggestion(number, head_sha, component, path, line, flat, dry):
@@ -415,10 +433,9 @@ def post_suggestion(number, head_sha, component, path, line, flat, dry):
     (a prior suggestion for this component on this PR is removed first)."""
     marker = f"{BOT_MARKER}:{component}"
     name = COMPONENTS[component]["changelog"].split("/")[0]
-    body = (f"<!-- {marker} -->\n"
-            f"📝 Proposed **{name}** changelog entry, written from the PR description — click "
-            f"**Commit suggestion** to add it under this heading.\n\n"
-            "```suggestion\n" + "\n".join(flat) + "\n```")
+    text = (f"📝 Proposed **{name}** changelog entry, written from the PR description — click "
+            "**Commit suggestion** to add it under this heading. (Edit the PR description to refresh it.)")
+    body = _suggestion_body(marker, text, flat)
     if dry:
         print(f"[dry-run] {component}: would suggest on {path}:{line}\n    " + "\n    ".join(flat))
         return
@@ -428,47 +445,60 @@ def post_suggestion(number, head_sha, component, path, line, flat, dry):
     print(f"  {component}: suggested entry on {path}:{line}")
 
 
-def upsert_fallback(number, blocks, dry):
-    """One PR comment listing entries for components with no stub to anchor to (paste targets).
-    Rebuilt each run; removed once every component has a stub."""
-    marker = f"{BOT_MARKER}:fallback"
-    existing = _bot_issue_comment(number, marker)
-    if not blocks:
-        if existing and not dry:
-            gh_write(f"repos/{REPO}/issues/comments/{existing['id']}", {}, method="DELETE")
+def post_stub_removal(number, head_sha, component, path, line, dry):
+    """No user-facing entry, but the dev left a stub in the diff — suggest removing the
+    `- _pending changelog_` line so it doesn't merge and ship verbatim (D3). An empty suggestion
+    block deletes the anchored line."""
+    marker = f"{BOT_MARKER}:{component}"
+    name = COMPONENTS[component]["changelog"].split("/")[0]
+    text = (f"📝 No user-facing **{name}** changelog entry for this PR — click **Commit suggestion** "
+            f"to remove the `- {STUB_TOKEN}` placeholder so it doesn't ship.")
+    body = _suggestion_body(marker, text, [])
+    if dry:
+        print(f"[dry-run] {component}: would suggest removing the stub at {path}:{line}")
         return
-    parts = [f"<!-- {marker} -->",
-             "📝 **Proposed changelog entries** from the PR description. I couldn't find a "
-             f"`- {STUB_TOKEN}` stub to attach a one-click suggestion to, so add each block under the "
-             "matching heading in its `## [Unreleased]` (or add the stub and I'll suggest it):"]
+    _drop_review_comments(number, marker, dry)
+    gh_write(f"repos/{REPO}/pulls/{number}/comments",
+             {"body": body, "commit_id": head_sha, "path": path, "line": line, "side": "RIGHT"})
+    print(f"  {component}: suggested removing the orphaned stub at {path}:{line}")
+
+
+def upsert_fallback(number, blocks, dry):
+    """One PR comment with the entries for components that didn't get a one-click suggestion (no stub,
+    or a multi-heading entry that can't go under one heading). Rebuilt each run; removed when none."""
+    text = ("📝 **Proposed changelog entries** from the PR description. Add each block under the "
+            "matching heading in its `## [Unreleased]` — or, for a one-click suggestion, add a single "
+            f"`- {STUB_TOKEN}` stub under that heading. (Edit the PR description to refresh these.)")
+    parts = [text]
     for path, grouped in blocks:
         inner = "\n\n".join(f"### {h}\n" + "\n".join(grouped[h]) for h in HEADINGS if grouped.get(h))
         parts.append(f"\n**`{path}`**\n```markdown\n{inner}\n```")
-    body = "\n".join(parts)
-    if dry:
-        print(f"[dry-run] would post/update the paste-fallback comment for {len(blocks)} file(s)")
-        return
-    if existing:
-        gh_write(f"repos/{REPO}/issues/comments/{existing['id']}", {"body": body}, method="PATCH")
-    else:
-        gh_write(f"repos/{REPO}/issues/{number}/comments", {"body": body})
-    print(f"  fallback comment covers {len(blocks)} file(s)")
+    _set_issue_comment(number, f"{BOT_MARKER}:fallback", "\n".join(parts) if blocks else None, dry)
+    if blocks and not dry:
+        print(f"  fallback comment covers {len(blocks)} file(s)")
+
+
+def set_stranded_notice(number, files, dry):
+    """PR no longer qualifies but an entry was already applied to the branch — CI can't remove it
+    (no write token), so flag it rather than let it ship under the wrong release (D4)."""
+    body = None
+    if files:
+        lst = "\n".join(f"- `{f}`" for f in files)
+        body = ("⚠️ This PR no longer carries the release milestone, but a changelog entry for it was "
+                "already applied to:\n\n" + lst + "\n\nCI can't remove it (no write access to the "
+                "branch). Please delete that entry, or re-milestone the PR, so it doesn't ship under "
+                "the wrong release.")
+    _set_issue_comment(number, f"{BOT_MARKER}:stranded", body, dry)
 
 
 def retract_suggestions(number, dry):
-    """Delete every suggestion / fallback comment we posted for this PR (used on demilestone)."""
+    """Remove every suggestion / fallback comment we posted for this PR (used when it stops
+    qualifying). Returns how many review comments were removed."""
     n = 0
     for comp in COMPONENTS:
-        comments = _bot_review_comments(number, f"{BOT_MARKER}:{comp}")
-        for c in comments:
-            if not dry:
-                gh_write(f"repos/{REPO}/pulls/comments/{c['id']}", {}, method="DELETE")
-        n += len(comments)
-    fb = _bot_issue_comment(number, f"{BOT_MARKER}:fallback")
-    if fb:
-        if not dry:
-            gh_write(f"repos/{REPO}/issues/comments/{fb['id']}", {}, method="DELETE")
-        n += 1
+        n += len(_bot_review_comments(number, f"{BOT_MARKER}:{comp}"))
+        _drop_review_comments(number, f"{BOT_MARKER}:{comp}", dry)
+    _set_issue_comment(number, f"{BOT_MARKER}:fallback", None, dry)
     return n
 
 
@@ -493,7 +523,8 @@ def main():
     # --- milestone gate: the PR must be milestoned to THIS release (the one its base branch
     # feeds). Un-milestoned PRs and PRs milestoned to a later release don't qualify. ---
     ms = pr["milestone"]
-    reason = ""
+    reason = ""     # the PR is disqualified -> retract what we posted
+    skip = ""       # we can't tell the active release -> leave everything as-is (D5)
     if not ms:
         reason = "has no milestone"
     elif ACTIVE_MILESTONE:                      # explicit override (exact title) wins
@@ -502,9 +533,15 @@ def main():
     else:
         target = target_version(pr["base"])
         if not target:
-            reason = f"could not resolve the active release for base {pr['base']!r}"
+            skip = f"could not resolve the active release for base {pr['base']!r}"
         elif ms_version(ms) != target:
             reason = f"milestone {ms!r} is not release {target} (base {pr['base']})"
+
+    if skip:
+        # Transient: between cutting release N and opening milestone N+1 there is no "next" release to
+        # resolve. That is not a disqualification — leave any existing suggestion/entry untouched (D5).
+        print(f"::notice::PR #{number} {skip} — skipping (leaving any existing suggestion/entry as-is)")
+        return
 
     if reason:
         # The PR doesn't belong to this release (unmilestoned, milestoned elsewhere, or just
@@ -513,7 +550,13 @@ def main():
         print(f"::notice::PR #{number} {reason} — not authoring; retracting any prior entry")
         if suggest:
             n = retract_suggestions(number, dry)
-            print(f"done: retracted {n} suggestion/comment(s)")
+            # D4: CI can't un-commit an entry the dev already applied (no write token) — flag it so it
+            # isn't shipped under a release the PR no longer belongs to.
+            stranded = [COMPONENTS[c]["changelog"] for c in sorted(route(pr["files"]))
+                        if already_applied(COMPONENTS[c]["changelog"], pr["url"])]
+            set_stranded_notice(number, stranded, dry)
+            print(f"done: retracted {n} suggestion/comment(s)"
+                  + (f"; flagged {len(stranded)} already-applied entry(ies)" if stranded else ""))
             return
         removed = []
         for component in sorted(route(pr["files"])):
@@ -528,11 +571,6 @@ def main():
             if upsert(path, {"added": [], "changed": [], "fixed": []}, pr["url"], dry):
                 removed.append(COMPONENTS[component]["changelog"])
                 print(f"  {component}: removed stale entry")
-        gh_out = os.environ.get("GITHUB_OUTPUT")
-        if gh_out and not dry:
-            with open(gh_out, "a", encoding="utf-8") as f:
-                f.write(f"changed={' '.join(removed)}\n")
-                f.write("backfilled=false\n")
         print(f"done: removed entry from {len(removed)} changelog file(s)")
         return
     print(f"PR #{number} milestone={ms!r} base={pr['base']} — authoring")
@@ -559,20 +597,13 @@ def main():
 
     diff = pr_diff(number)
 
-    # --- 1. repair the base: backfill an empty/template description ---
+    # --- 1. author the entry's base: if the description is empty/template, derive one from the diff
+    # internally. We never edit the PR body (neither mode) — the bot does not mutate the PR (D11). ---
     desc = section(pr["body"], "Description")
     from_diff = is_blank_text(desc)
     if from_diff:
-        print(f"::warning::PR #{number} description is empty/template — authoring from diff")
-        if no_llm:
-            desc = pr["title"]
-        else:
-            desc = author_description(diff)
-            # suggest mode never mutates the PR: use the diff-authored description only to write the
-            # entry; don't edit the PR body back.
-            if not suggest:
-                new_body = replace_section(pr["body"], "Description", desc)
-                set_pr_body(number, new_body, dry)
+        print(f"::warning::PR #{number} description is empty/template — authoring the entry from the diff")
+        desc = pr["title"] if no_llm else author_description(diff)
 
     # --- 2. author per component, then APPLY: suggest on the stub (CI), or write the file (local) ---
     if suggest:
@@ -583,20 +614,38 @@ def main():
                 author_entry(component, pr["title"], desc, diff)
             flat, grouped = entry_lines(buckets, pr["url"])
             path_rel = COMPONENTS[component]["changelog"]
-            line = stub_line(patches.get(path_rel, "")) if flat else None
-            if flat and line:
+            marker = f"{BOT_MARKER}:{component}"
+            line = stub_line(patches.get(path_rel, ""))
+
+            # already committed on the branch (dev applied it): nothing to do; clear any stale
+            # suggestion we left, and don't re-suggest over it (D6).
+            if flat and already_applied(path_rel, pr["url"]):
+                _drop_review_comments(number, marker, dry)
+                print(f"  {component}: entry already applied on the branch")
+                continue
+
+            # no user-facing entry: if a stub is anchored in the diff, suggest DELETING it so it can't
+            # merge and ship verbatim (D3); otherwise just clear any stale suggestion.
+            if not flat:
+                if line is not None:
+                    post_stub_removal(number, pr["head_sha"], component, path_rel, line, dry)
+                else:
+                    _drop_review_comments(number, marker, dry)
+                    print(f"  {component}: no user-facing entry")
+                continue
+
+            # one-click suggestion only when a single heading is populated AND a stub is anchored; a
+            # multi-heading entry can't sit as one bullet block under one heading, so it (and the
+            # no-stub case) go to the grouped paste comment instead (D2).
+            if line is not None and len(grouped) == 1:
                 post_suggestion(number, pr["head_sha"], component, path_rel, line, flat, dry)
             else:
-                # nothing to suggest here: clear any stale suggestion we left on an earlier run
-                _drop_review_comments(number, f"{BOT_MARKER}:{component}", dry)
-                if not flat:
-                    print(f"  {component}: no user-facing entry")
-                elif already_applied(path_rel, pr["url"]):
-                    print(f"  {component}: entry already applied on the branch")
-                else:
-                    blocks.append((path_rel, grouped))
-                    print(f"  {component}: no stub — added to the paste-fallback comment")
+                _drop_review_comments(number, marker, dry)
+                blocks.append((path_rel, grouped))
+                why = "multi-heading entry" if line is not None else "no stub"
+                print(f"  {component}: {why} — added to the paste-fallback comment")
         upsert_fallback(number, blocks, dry)
+        set_stranded_notice(number, [], dry)   # qualifying again -> clear any prior stranded notice
         if from_diff:
             print(f"::warning::PR #{number} entry authored from a thin description — proofread closely")
         print(f"done: suggested/commented for {len(comps)} component(s)")
@@ -620,11 +669,6 @@ def main():
 
     if from_diff:
         print(f"::warning::PR #{number} entry authored from diff — proofread closely")
-    gh_out = os.environ.get("GITHUB_OUTPUT")
-    if gh_out and not dry:
-        with open(gh_out, "a", encoding="utf-8") as f:
-            f.write(f"changed={' '.join(changed)}\n")
-            f.write(f"backfilled={'true' if from_diff else 'false'}\n")
     print(f"done: {len(changed)} changelog file(s) changed")
 
 
