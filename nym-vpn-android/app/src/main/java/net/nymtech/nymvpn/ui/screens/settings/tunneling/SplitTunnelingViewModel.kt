@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.SplitTunnelingRepository
-import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.events.UiEvent as CommonUiEvent
@@ -34,7 +33,6 @@ class SplitTunnelingViewModel @Inject constructor(
 	private val backendManager: BackendManager,
 	private val settingsRepository: SettingsRepository,
 	private val helper: SplitTunnelingHelper,
-	private val vpnConfigRepository: VpnConfigRepository,
 ) : ViewModel() {
 
 	companion object {
@@ -64,12 +62,6 @@ class SplitTunnelingViewModel @Inject constructor(
 					tunnelState = s.tunnelState,
 					isRestarting = s.isRestarting,
 				)
-			}
-		}
-
-		viewModelScope.launch {
-			vpnConfigRepository.configFlow.collect { config ->
-				_uiState.update { it.copy(isCustomDnsEnabled = config.customDnsEnabled) }
 			}
 		}
 	}

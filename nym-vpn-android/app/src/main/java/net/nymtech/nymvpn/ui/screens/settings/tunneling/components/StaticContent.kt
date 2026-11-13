@@ -42,10 +42,8 @@ fun StaticContent(uiState: SplitTunnelingUiState, onQueryChange: (String) -> Uni
 		modifier = Modifier.padding(top = 8.dp.scaledHeight()),
 	)
 
-	if (uiState.isCustomDnsEnabled) {
-		Spacer(modifier = Modifier.height(16.dp.scaledHeight()))
-		WarningCard(stringResource(R.string.split_tunneling_custom_dns_warning))
-	}
+	Spacer(modifier = Modifier.height(16.dp.scaledHeight()))
+	WarningCard(stringResource(R.string.split_tunneling_dns_warning))
 
 	CustomTextField(
 		value = uiState.query,

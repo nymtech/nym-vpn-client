@@ -16,7 +16,6 @@ data class SplitTunnelingUiState(
 	val hasUnsavedChanges: Boolean = false,
 	val showSaveChangesDialog: Boolean = false,
 	val navigateBack: Boolean = false,
-	val isCustomDnsEnabled: Boolean = false,
 )
 
 @Serializable
