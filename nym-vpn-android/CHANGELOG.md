@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Home screen: the connection rings show the new connection marker. Connecting fills the rings in yellow step by step, an error breaks every ring at the same point, and losing the network mid-session with "Block connections without VPN" on shows "Kill switch is blocking traffic". The centre shows the mode: two linked blocks for dVPN, the mix layers for Mixnet, with the route playing while connected (https://github.com/nymtech/nym-vpn-client/pull/7096)
+
 ### Added
 - Sign in by scanning a QR code from a signed-in device (https://github.com/nymtech/nym-vpn-client/pull/7085)
 - Redeem a free pass by scanning or typing a code, from Welcome or Settings (https://github.com/nymtech/nym-vpn-client/pull/7085)
