@@ -225,6 +225,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             NyxdCredentialFetcher::new_with_keypair(
                 client,
                 &self.config.storage_paths.credential_requests_database_path,
+                Some(&self.config.database_key),
                 ecash_keypair,
             )
             .await

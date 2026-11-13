@@ -590,6 +590,11 @@ impl NymVpnService {
             secure_enclave.clone(),
         );
 
+        let database_key = storage
+            .load_or_create_database_key()
+            .await
+            .map_err(Error::LoadDatabaseKey)?;
+
         let state_machine_shutdown_token = CancellationToken::new();
         let services_shutdown_token = CancellationToken::new();
 
@@ -635,6 +640,7 @@ impl NymVpnService {
             data_dir: paths.network_data_dir.clone(),
             storage_paths,
             network_env: *network_env.clone(),
+            database_key: database_key.clone(),
         };
 
         let network_details = network_env.nym_network_details();
@@ -716,6 +722,7 @@ impl NymVpnService {
             statistics_controller_config,
             stats_api_client,
             paths.network_data_dir.clone(),
+            &database_key,
             services_shutdown_token.child_token(),
         )
         .await;

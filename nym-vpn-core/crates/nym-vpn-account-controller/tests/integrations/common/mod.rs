@@ -254,6 +254,7 @@ impl TestBench {
             data_dir: tempdir.path().to_owned(),
             storage_paths: nym_sdk::mixnet::StoragePaths::new_from_dir(tempdir.path())?,
             network_env,
+            database_key: nym_vpn_store::database_key::generate_database_key(),
         };
 
         let credential_proxy = MockCredentialProxy::new()?;

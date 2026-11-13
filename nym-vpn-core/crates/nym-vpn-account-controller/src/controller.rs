@@ -164,7 +164,8 @@ where
         // todo: log out on failure to load device state?
 
         let device_keys = account_storage.load_device_keys().await?;
-        let wireguard_keys_storage = WireguardKeysDb::init(Some(config.data_dir.clone())).await?;
+        let wireguard_keys_storage =
+            WireguardKeysDb::init(Some(config.data_dir.clone()), &config.database_key).await?;
 
         // Shared_state
         let mut shared_state = SharedAccountState::new(

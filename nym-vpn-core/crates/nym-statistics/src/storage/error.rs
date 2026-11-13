@@ -5,6 +5,9 @@ pub enum StatsStorageError {
     #[error("sqlx error: {0}")]
     Sqlx(#[from] sqlx::Error),
 
+    #[error("failed to encrypt database")]
+    Encryption(#[source] nym_sqlcipher::SqlCipherError),
+
     #[error("migrate error: {0}")]
     Migrate(#[from] sqlx::migrate::MigrateError),
 

@@ -1,9 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::Path;
-#[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
-use std::sync::Arc;
+use std::{path::Path, sync::Arc};
 
 #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
 use nym_secure_enclave::SecureEnclave;
@@ -14,6 +12,7 @@ use nym_vpn_store::store_ciphers::secure_enclave_cipher::{
     SecureEnclaveCipher, SecureEnclaveCipherOptions,
 };
 use nym_vpn_store::{
+    database_key::{DatabaseKey, DatabaseKeyStorageError, OnDiskDatabaseKeyStorage},
     device_state::{
         DeviceStateStorage, StoredDeviceState,
         on_disk::{OnDiskDeviceStateStorage, OnDiskDeviceStateStorageError},
@@ -27,6 +26,7 @@ use nym_vpn_store::{
 
 const MNEMONIC_FILE_NAME: &str = "mnemonic.bin";
 const DEVICE_STATE_FILE_NAME: &str = "device_state.bin";
+const DATABASE_KEY_FILE_NAME: &str = "encryption.key";
 
 /// Key used for mnemonic encryption (checked user presence)
 #[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
@@ -40,6 +40,7 @@ pub struct VpnClientOnDiskStorage {
     key_store: nym_vpn_store::keys::device::OnDiskKeys,
     mnemonic_storage: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorage,
     device_state_storage: nym_vpn_store::device_state::on_disk::OnDiskDeviceStateStorage,
+    database_key_storage: Arc<OnDiskDatabaseKeyStorage>,
 }
 
 impl VpnClientOnDiskStorage {
@@ -49,7 +50,6 @@ impl VpnClientOnDiskStorage {
         secure_enclave: Arc<SecureEnclave>,
     ) -> Self {
         let device_key_paths = DeviceKeysPaths::new(&base_data_directory);
-        let key_store = OnDiskKeys::new(device_key_paths);
 
         let mnemonic_storage_path = base_data_directory.as_ref().join(MNEMONIC_FILE_NAME);
 
@@ -78,7 +78,7 @@ impl VpnClientOnDiskStorage {
         let device_state_storage_cipher = NoopStoreCipher::default();
         #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
         let device_state_storage_cipher = SecureEnclaveCipher::new(
-            secure_enclave,
+            secure_enclave.clone(),
             SecureEnclaveCipherOptions {
                 key_alias: DEVICE_SE_KEY.to_owned(),
                 user_presence: false,
@@ -89,11 +89,37 @@ impl VpnClientOnDiskStorage {
         let device_state_storage =
             OnDiskDeviceStateStorage::new(device_state_storage_path, device_state_storage_cipher);
 
+        #[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]
+        let database_key_cipher = NoopStoreCipher::default();
+        #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+        let database_key_cipher = SecureEnclaveCipher::new(
+            secure_enclave,
+            SecureEnclaveCipherOptions {
+                key_alias: DEVICE_SE_KEY.to_owned(),
+                user_presence: false,
+            },
+        );
+
+        let database_key_path = base_data_directory.as_ref().join(DATABASE_KEY_FILE_NAME);
+        let database_key_storage = Arc::new(OnDiskDatabaseKeyStorage::new(
+            database_key_path,
+            database_key_cipher,
+        ));
+        let key_store = OnDiskKeys::new(device_key_paths, database_key_storage.clone());
+
         VpnClientOnDiskStorage {
             key_store,
             mnemonic_storage,
             device_state_storage,
+            database_key_storage,
         }
+    }
+
+    /// Loads the key used to encrypt the on-disk databases, creating it on first use.
+    pub async fn load_or_create_database_key(
+        &self,
+    ) -> Result<DatabaseKey, DatabaseKeyStorageError> {
+        self.database_key_storage.load_or_create().await
     }
 }
 

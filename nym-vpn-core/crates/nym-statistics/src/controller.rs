@@ -46,12 +46,13 @@ impl StatisticsController {
         config: NetworkStatisticsConfig,
         stats_api_client: Option<StatisticsApiClient>,
         base_storage_path: P,
+        database_key: &nym_sqlcipher::DatabaseKey,
         cancel_token: CancellationToken,
     ) -> Self {
         let (stats_tx, stats_rx) = tokio::sync::mpsc::unbounded_channel();
         let (commands_tx, commands_rx) = tokio::sync::mpsc::unbounded_channel();
 
-        let stats_storage = StatsStorage::init(base_storage_path).await.inspect_err(|e| tracing::error!("Failed to initialize stats storage. Statistics collection will be disabled : {e}")).ok();
+        let stats_storage = StatsStorage::new(base_storage_path, database_key).await.inspect_err(|e| tracing::error!("Failed to initialize stats storage. Statistics collection will be disabled : {e}")).ok();
         if stats_api_client.is_none() {
             tracing::debug!(
                 "StatisticsController : No stats API client availabe, statisticis collection will be disabled"
