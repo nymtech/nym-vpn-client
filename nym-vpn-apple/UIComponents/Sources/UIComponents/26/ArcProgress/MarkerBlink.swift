@@ -15,7 +15,8 @@ struct MarkerBlink: ViewModifier {
     @State private var isOnScreen = true
 
     func body(content: Content) -> some View {
-        Group {
+        // the hooks sit on a stable ZStack, not on the branches, so a branch swap cannot flip isOnScreen
+        ZStack {
             if !isActive {
                 content
             } else if reduceMotion || scenePhase != .active || !isOnScreen {

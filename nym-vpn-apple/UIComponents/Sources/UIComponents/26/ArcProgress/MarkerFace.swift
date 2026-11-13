@@ -31,7 +31,8 @@ public struct MarkerFace: View {
     }
 
     public var body: some View {
-        content
+        // the hooks sit on a stable ZStack, not on the branches, so a branch swap cannot flip isOnScreen
+        ZStack { content }
             .accessibilityHidden(true)
             .onAppear { isOnScreen = true }
             .onDisappear { isOnScreen = false }
