@@ -1,5 +1,6 @@
 # This Makefile can only be used on macOS
 include remap_paths.mk
+include apple_openssl_env.mk
 
 # Minimum deployment targets for macOS
 export MACOSX_DEPLOYMENT_TARGET = 10.14

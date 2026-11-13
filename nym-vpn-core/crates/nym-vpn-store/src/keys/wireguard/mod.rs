@@ -7,6 +7,8 @@ mod persistence;
 
 use std::path::{Path, PathBuf};
 
+use crate::database_key::DatabaseKey;
+
 pub use key_store::WireguardKeyStore;
 pub(crate) use keys::RawWireguardKeys;
 pub use keys::WireguardKeys;
@@ -33,10 +35,13 @@ pub enum KeysDbError {
 }
 
 impl WireguardKeysDb {
-    pub async fn init<P: AsRef<Path>>(database_dir: Option<P>) -> Result<Self, KeysDbError> {
+    pub async fn init<P: AsRef<Path>>(
+        database_dir: Option<P>,
+        database_key: &DatabaseKey,
+    ) -> Result<Self, KeysDbError> {
         let db = if let Some(database_dir) = database_dir {
             let database_path = PathBuf::new().join(database_dir).join(DB_NAME);
-            WireguardKeysDb::OnDisk(OnDiskKeys::init(database_path).await?)
+            WireguardKeysDb::OnDisk(OnDiskKeys::new(database_path, database_key).await?)
         } else {
             WireguardKeysDb::Ephemeral(InMemEphemeralKeys::default())
         };

@@ -52,6 +52,9 @@ pub enum Error {
     #[error("failed to setup bandwidth controller storage paths")]
     BandwidthControllerStorage(#[source] Box<nym_sdk::Error>),
 
+    #[error("failed to load database key")]
+    LoadDatabaseKey(#[source] nym_vpn_store::database_key::DatabaseKeyStorageError),
+
     #[error("failed to create gateway client")]
     CreateGatewayClient(#[source] crate::gateway_directory::Error),
 

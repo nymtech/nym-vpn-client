@@ -15,6 +15,7 @@ nym-bin-common.workspace = true
 nym-vpn-lib-types.workspace = true
 nym-statistics-api-client.workspace = true
 nym-statistics-common.workspace = true
+nym-sqlcipher.workspace = true
 
 futures.workspace = true
 rand.workspace = true

@@ -12,9 +12,12 @@ use sqlx::{
 };
 use time::OffsetDateTime;
 
-use crate::keys::wireguard::{
-    RawWireguardKeys, WireguardKeyStore, WireguardKeys,
-    persistence::{is_expired, random_keys, random_timestamp_from},
+use crate::{
+    database_key::DatabaseKey,
+    keys::wireguard::{
+        RawWireguardKeys, WireguardKeyStore, WireguardKeys,
+        persistence::{is_expired, random_keys, random_timestamp_from},
+    },
 };
 
 #[derive(Debug, Clone)]
@@ -35,6 +38,9 @@ pub enum OnDiskKeysError {
         #[source]
         source: sqlx::error::Error,
     },
+
+    #[error("failed to encrypt database")]
+    Encryption(#[source] nym_sqlcipher::SqlCipherError),
 
     #[error("Failed to perform database migration: {0}")]
     MigrationError(#[from] sqlx::migrate::MigrateError),
@@ -81,8 +87,10 @@ impl WireguardKeyStore for OnDiskKeys {
 
 // all SQL goes here
 impl OnDiskKeys {
-    #[allow(unused)]
-    pub async fn init<P: AsRef<Path>>(database_path: P) -> Result<Self, OnDiskKeysError> {
+    pub async fn new<P: AsRef<Path>>(
+        database_path: P,
+        database_key: &DatabaseKey,
+    ) -> Result<Self, OnDiskKeysError> {
         // ensure the whole directory structure exists
         if let Some(parent_dir) = database_path.as_ref().parent() {
             std::fs::create_dir_all(parent_dir).map_err(|source| {
@@ -100,6 +108,9 @@ impl OnDiskKeys {
             .filename(database_path)
             .create_if_missing(true)
             .disable_statement_logging();
+        let opts = nym_sqlcipher::apply_key(opts, Some(database_key))
+            .await
+            .map_err(OnDiskKeysError::Encryption)?;
 
         let connection_pool = sqlx::SqlitePool::connect_with(opts)
             .await
