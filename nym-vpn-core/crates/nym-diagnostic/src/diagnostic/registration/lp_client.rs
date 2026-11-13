@@ -8,7 +8,7 @@ use nym_bandwidth_controller::BandwidthTicketProvider;
 use nym_credentials_interface::TicketType;
 use nym_lp::{Ciphersuite, peer::LpRemotePeer};
 use nym_lp_data::packet::version;
-use nym_registration_client::{LpDvpnRegistrationClient, LpGatewayClient};
+use nym_registration_client::{LpDvpnRegistrationClient, LpGatewayControlClient};
 use nym_registration_common::WireguardConfiguration;
 use nym_sdk::mixnet::{ed25519, x25519};
 use nym_validator_client::client::NymApiClientExt;
@@ -110,7 +110,7 @@ async fn setup_registration(
     network: &Network,
     gateway_id: &str,
     storage_path: Option<&PathBuf>,
-) -> anyhow::Result<(WgRegistrationConfig, LpGatewayClient)> {
+) -> anyhow::Result<(WgRegistrationConfig, LpGatewayControlClient)> {
     let storage_path = storage_path.ok_or(anyhow::anyhow!("No storage path provided"))?;
 
     let api_client = build_api_client(network).await?;
@@ -172,7 +172,7 @@ async fn setup_registration(
         .await
         .map_err(|e| anyhow::anyhow!("Failed to setup bandwidth provider : {e}"))?;
 
-    let lp_client = LpGatewayClient::<TcpStream>::new_with_default_config(
+    let lp_client = LpGatewayControlClient::<TcpStream>::new_with_default_config(
         local_dh_keypair,
         gateway_lp_peer.clone(),
         gateway_lp_address,

@@ -1,5 +1,6 @@
 # This Makefile can only be used on macOS
 include remap_paths.mk
+include apple_openssl_env.mk
 
 # Minimum iOS deployment target used by clang
 export IPHONEOS_DEPLOYMENT_TARGET = 16.0

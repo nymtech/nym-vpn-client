@@ -69,7 +69,7 @@ After installing Rust, install the following Rust targets and dependencies to en
 1. Install system dependencies:
 
     ```sh
-    sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev
+    sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev libssl-dev
     ```
 
 2. Install the latest protobuf-compiler from https://github.com/protocolbuffers/protobuf/releases

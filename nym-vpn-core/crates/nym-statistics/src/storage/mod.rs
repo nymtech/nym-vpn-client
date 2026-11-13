@@ -6,6 +6,7 @@ use crate::storage::{
     models::{SessionReport, SessionReportWithId},
     sqlite::SqliteStatsStorageManager,
 };
+use nym_sqlcipher::DatabaseKey;
 use rand::distr::{Alphanumeric, SampleString};
 use sqlx::ConnectOptions;
 use std::path::Path;
@@ -25,8 +26,11 @@ pub(crate) struct StatsStorage {
 }
 
 impl StatsStorage {
-    pub(crate) async fn init<P: AsRef<Path>>(
+    /// Opens the stats database encrypted with `database_key`, encrypting an existing plaintext
+    /// database first.
+    pub(crate) async fn new<P: AsRef<Path>>(
         base_data_directory: P,
+        database_key: &DatabaseKey,
     ) -> Result<Self, StatsStorageError> {
         let database_path = base_data_directory.as_ref().join(STATS_DB_FILE_NAME);
 
@@ -36,6 +40,9 @@ impl StatsStorage {
             .filename(&database_path)
             .create_if_missing(true)
             .log_statements(LevelFilter::Trace);
+        let opts = nym_sqlcipher::apply_key(opts, Some(database_key))
+            .await
+            .map_err(StatsStorageError::Encryption)?;
 
         tracing::debug!("Connecting to the database");
         let connection_pool = sqlx::sqlite::SqlitePoolOptions::new()
