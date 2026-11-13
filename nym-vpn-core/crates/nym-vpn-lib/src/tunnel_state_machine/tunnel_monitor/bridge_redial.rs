@@ -5,6 +5,7 @@
 use std::os::fd::BorrowedFd;
 #[cfg(target_os = "android")]
 use std::sync::Arc;
+use std::time::Duration;
 
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
@@ -14,6 +15,9 @@ use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{Result, tunnel::SelectedGateways, tunnel::transports};
+
+/// Cap on waiting for a generation's forwarder to exit gracefully before aborting it.
+const GRACEFUL_EXIT_TIMEOUT: Duration = Duration::from_secs(3);
 
 /// Connects a bridge transport and launches its UDP forwarder. `bind_addr` is `None` on the
 /// first attempt and `Some(listen_addr)` on every redial, so wireguard-go's peer endpoint
@@ -166,13 +170,17 @@ pub(super) async fn start_bridges(
                     return;
                 }
             }
-            // Let this generation exit on its own before rebinding its port (a cancelled
-            // token can't be reused, so the next generation gets a fresh one).
+            // A cancelled token can't be reused, so the next generation gets a fresh one.
             bridge_shutdown_token.cancel();
-            if let Err(err) = join_handle.await
-                && err.is_panic()
-            {
-                tracing::error!("bridge forwarder task panicked: {err}");
+            match tokio::time::timeout(GRACEFUL_EXIT_TIMEOUT, &mut join_handle).await {
+                Ok(Err(err)) if err.is_panic() => {
+                    tracing::error!("bridge forwarder task panicked: {err}");
+                }
+                Ok(_) => {}
+                Err(_) => {
+                    tracing::warn!("bridge forwarder did not exit gracefully, aborting");
+                    join_handle.abort();
+                }
             }
             bridge_shutdown_token = shutdown_token.child_token();
 
