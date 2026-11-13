@@ -155,6 +155,8 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 	val offlineLabel = stringResource(R.string.offline)
 	val blockedLabel = stringResource(R.string.connection_status_blocked)
 	val reconnectLine = stringResource(R.string.connection_status_offline_reconnect)
+	val blockedActionLine = stringResource(R.string.connection_status_blocked_action)
+	val noInternetLine = stringResource(R.string.connection_status_no_internet)
 
 	val isOffline = connectionState == ConnectionState.Offline || connectionState == ConnectionState.WaitingForConnection
 	val currentLabel: String? = when {
@@ -169,11 +171,12 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 			ConnectionState.Disconnected -> notProtectedLabel
 		}
 	}
-	// blocked: will connect once online; offline with no session: not protected, no internet
+	// blocked: how to release it; reconnect pending without the kill switch: will connect once online;
+	// offline with no session: not protected, no internet
 	val offlineLine: String? = when {
-		isBlocked -> reconnectLine
+		isBlocked -> blockedActionLine
 		phase == MarkerState.NOT_PROTECTED && connectionState == ConnectionState.WaitingForConnection -> reconnectLine
-		phase == MarkerState.NOT_PROTECTED && connectionState == ConnectionState.Offline -> offlineLabel
+		phase == MarkerState.NOT_PROTECTED && connectionState == ConnectionState.Offline -> noInternetLine
 		else -> null
 	}
 	val showPulse = isOffline && offlineLine == null

@@ -489,6 +489,8 @@ private fun MainScreenContent(
 	val liveOrOffline = tunnelState == Tunnel.State.Up || tunnelState is Tunnel.State.Offline
 	val markerTunnelState = when {
 		connectionState == ConnectionState.WaitingForConnection && liveOrOffline -> Tunnel.State.Offline(reconnect = true)
+		// a restart with the network down can leave the tunnel Up: still a session, so offline mid-session
+		connectionState == ConnectionState.Offline && tunnelState == Tunnel.State.Up -> Tunnel.State.Offline(reconnect = true)
 		connectionState == ConnectionState.Offline && (tunnelState == Tunnel.State.Down || tunnelState is Tunnel.State.Offline) ->
 			Tunnel.State.Offline(reconnect = false)
 		connectionState == ConnectionState.Disconnecting -> Tunnel.State.Disconnecting
