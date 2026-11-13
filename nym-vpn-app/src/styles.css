@@ -80,6 +80,7 @@
   --nv-status-info: #3548a3;
   /* connection — arc / sphere visuals */
   --nv-connection-arc-track: rgba(10, 10, 10, 0.12);
+  --nv-connection-connecting: #9a5b00;
   --nv-connection-sphere: #0a0a0a;
   --nv-connection-sphere-hi: #2a2a2e;
   --nv-connection-error-tint: rgba(231, 62, 20, 0.08);
@@ -105,6 +106,7 @@
   --nv-status-error: #e73e14;
   --nv-status-info: #485eca;
   --nv-connection-arc-track: rgba(255, 255, 255, 0.15);
+  --nv-connection-connecting: #f4b940;
   --nv-connection-sphere: #0a0a0a;
   --nv-connection-sphere-hi: #2a2a2e;
   --nv-connection-error-tint: rgba(231, 62, 20, 0.08);
@@ -350,5 +352,25 @@
 
   .noise-line-state:first-of-type {
     opacity: 1;
+  }
+}
+
+/* connection marker: blocked = the outer ring blinks slowly (kill switch holds traffic) */
+@keyframes nv-marker-blink {
+  0%,
+  100% {
+    stroke-opacity: 0.15;
+  }
+  50% {
+    stroke-opacity: 0.9;
+  }
+}
+.nv-marker-blink {
+  animation: nv-marker-blink 2.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nv-marker-blink {
+    animation: none;
+    stroke-opacity: 0.9;
   }
 }
