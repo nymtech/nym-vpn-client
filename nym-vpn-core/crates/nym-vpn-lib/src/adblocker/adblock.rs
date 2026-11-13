@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
+    assert_matches,
     path::{Path, PathBuf},
     sync::Arc,
     time::Duration,
@@ -69,7 +70,7 @@ impl AdBlocker {
         engine: AdBlockEngineRef,
         file_updater_handle: FileUpdaterHandle,
     ) -> Self {
-        assert!(matches!(initial_state.get(), State::Disabled));
+        assert_matches!(initial_state.get(), State::Disabled);
 
         let shutdown_token = CancellationToken::new();
         let state = Arc::new(Mutex::new(initial_state));
@@ -377,6 +378,7 @@ async fn unload_filters(adblocker: &AdBlockEngineRef) {
 
 #[cfg(test)]
 mod tests {
+    use std::assert_matches;
     use tracing_test::traced_test;
 
     use super::*;
@@ -398,20 +400,20 @@ mod tests {
         );
         adblocker.enable().await;
 
-        assert!(matches!(
+        assert_matches!(
             wait_state(&mut state_rx).await.unwrap(),
             PrimitiveState::Initializing
-        ));
-        assert!(matches!(
+        );
+        assert_matches!(
             wait_state(&mut state_rx).await.unwrap(),
             PrimitiveState::Enabled
-        ));
+        );
 
         adblocker.disable().await;
-        assert!(matches!(
+        assert_matches!(
             wait_state(&mut state_rx).await.unwrap(),
             PrimitiveState::Disabled
-        ));
+        );
     }
 
     #[tokio::test]
@@ -430,14 +432,14 @@ mod tests {
         );
         adblocker.enable().await;
 
-        assert!(matches!(
+        assert_matches!(
             wait_state(&mut state_rx).await.unwrap(),
             PrimitiveState::Initializing
-        ));
-        assert!(matches!(
+        );
+        assert_matches!(
             wait_state(&mut state_rx).await.unwrap(),
             PrimitiveState::Enabled
-        ));
+        );
 
         assert!(promise.is_fulfilled());
     }

@@ -27,7 +27,7 @@ pub enum Error {
     Deserialize(#[source] serde_json::Error),
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum TestResult {
     Pass,
     Fail,

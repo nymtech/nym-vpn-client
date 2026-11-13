@@ -190,6 +190,7 @@ async fn write_etag(etag_path: &Path, etag: &str) -> Result<(), FileUpdaterError
 
 #[cfg(test)]
 mod tests {
+    use std::assert_matches;
     use tempfile::TempDir;
     use tokio_util::sync::CancellationToken;
     use url::Url;
@@ -267,7 +268,7 @@ mod tests {
         .await
         .unwrap();
 
-        assert!(matches!(outcome, UpdateOutcome::NotModified));
+        assert_matches!(outcome, UpdateOutcome::NotModified);
         assert!(!dest_path.exists(), "file should not be written");
     }
 
@@ -291,7 +292,7 @@ mod tests {
         .await
         .unwrap();
 
-        assert!(matches!(outcome, UpdateOutcome::Updated));
+        assert_matches!(outcome, UpdateOutcome::Updated);
         assert!(dest_path.exists());
         assert_eq!(
             tokio::fs::read_to_string(&etag_path).await.unwrap(),
@@ -317,7 +318,7 @@ mod tests {
         .await
         .unwrap();
 
-        assert!(matches!(outcome, UpdateOutcome::Updated));
+        assert_matches!(outcome, UpdateOutcome::Updated);
         assert!(dest_path.exists());
         assert_eq!(
             tokio::fs::read_to_string(&etag_path).await.unwrap(),

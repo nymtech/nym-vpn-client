@@ -121,6 +121,7 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::assert_matches;
 
     use super::*;
     use crate::security::{
@@ -183,13 +184,13 @@ mod tests {
             entries[0].get_inheritance(),
             AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE
         );
-        assert!(matches!(
+        assert_matches!(
             entries[0]
                 .get_trustee()
                 .get_trustee_specific_info()
                 .unwrap(),
             TrusteeSpecificInfo::Sid(sid) if sid == local_system_sid
-        ));
+        );
 
         assert_eq!(
             entries[1].get_access_permissions(),
@@ -199,12 +200,12 @@ mod tests {
             entries[1].get_inheritance(),
             AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE
         );
-        assert!(matches!(
+        assert_matches!(
             entries[1]
                 .get_trustee()
                 .get_trustee_specific_info()
                 .unwrap(),
             TrusteeSpecificInfo::Sid(sid) if sid == users_sid
-        ));
+        );
     }
 }

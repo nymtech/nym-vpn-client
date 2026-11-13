@@ -1250,6 +1250,7 @@ fn wait_delay(retry_attempt: u32) -> Duration {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::assert_matches;
 
     #[test]
     fn reconnect_keeps_gateways_on_odd_attempts_and_resets_on_even() {
@@ -1269,10 +1270,10 @@ mod test {
 
     #[test]
     fn reconnect_retries_below_max_attempts() {
-        assert!(matches!(
+        assert_matches!(
             reconnect_decision(MAX_RECONNECT_ATTEMPTS - 1),
             ReconnectDecision::Retry { .. }
-        ));
+        );
     }
 
     #[test]

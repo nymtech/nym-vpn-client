@@ -175,6 +175,7 @@ mod tests {
     use bip39::Mnemonic;
     use nym_vpn_lib_types::StoredAccountMode;
     use serde::{Deserialize, Serialize};
+    use std::assert_matches;
 
     #[tokio::test]
     async fn store_account() {
@@ -206,10 +207,10 @@ mod tests {
             .unwrap();
 
         let result = account_storage.store_account(account).await;
-        assert!(matches!(
+        assert_matches!(
             result,
             Err(OnDiskMnemonicStorageError::MnemonicAlreadyStored { .. })
-        ));
+        );
     }
 
     #[tokio::test]
@@ -218,7 +219,7 @@ mod tests {
         let path = tempdir.path().join("test.txt");
         let account_storage = OnDiskAccountStorage::new(path.clone());
         let result = account_storage.load_account().await;
-        assert!(matches!(result, Ok(None)));
+        assert_matches!(result, Ok(None));
     }
 
     #[tokio::test]
@@ -228,10 +229,7 @@ mod tests {
         let account_storage = OnDiskAccountStorage::new(path.clone());
         let _ = File::create(&path).unwrap();
         let result = account_storage.load_account().await;
-        assert!(matches!(
-            result,
-            Err(OnDiskMnemonicStorageError::ReadError(_))
-        ));
+        assert_matches!(result, Err(OnDiskMnemonicStorageError::ReadError(_)));
     }
 
     #[tokio::test]

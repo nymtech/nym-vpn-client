@@ -407,7 +407,10 @@ impl SkewState {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::{
+        assert_matches,
+        sync::atomic::{AtomicUsize, Ordering},
+    };
 
     use super::*;
 
@@ -509,10 +512,7 @@ mod tests {
         let device_time_provider = MockDeviceTimeProvider::new(timestamps);
         let skew_manager = SkewManager::new_for_testing(device_time_provider, MockTimeProvider);
         let time_result = skew_manager.current_remote_time().await;
-        assert!(matches!(
-            time_result,
-            Err(VpnApiClientError::TimeTravelTooMuch)
-        ));
+        assert_matches!(time_result, Err(VpnApiClientError::TimeTravelTooMuch));
     }
 
     #[tokio::test]
@@ -532,10 +532,7 @@ mod tests {
         let device_time_provider = MockDeviceTimeProvider::new(timestamps);
         let skew_manager = SkewManager::new_for_testing(device_time_provider, MockTimeProvider);
         let time_result = skew_manager.current_remote_time().await;
-        assert!(matches!(
-            time_result,
-            Err(VpnApiClientError::TimeTravelTooMuch)
-        ));
+        assert_matches!(time_result, Err(VpnApiClientError::TimeTravelTooMuch));
     }
 
     #[tokio::test]
@@ -604,7 +601,7 @@ mod tests {
         let result = skew_manager
             .sync_with_response_timestamp(time_before, time_before, time_after)
             .await;
-        assert!(matches!(result, Err(VpnApiClientError::TimeTravelTooMuch)));
+        assert_matches!(result, Err(VpnApiClientError::TimeTravelTooMuch));
     }
 
     #[test]
