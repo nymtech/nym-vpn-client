@@ -152,7 +152,7 @@ export function TunnelState() {
     if (phase === 'error') return [0, 0, 0];
     // only the outer ring, which blinks
     if (phase === 'blocked') return [0, CIRCS[1], CIRCS[2]];
-    if (phase !== 'connecting' || !progress) return [...CIRCS];
+    if (phase !== 'connecting') return [...CIRCS];
     // six steps over three rings: odd steps half-fill a ring, even seal it
     const step = marker.step ?? 1;
     const ring = Math.floor((step - 1) / 2);
@@ -353,9 +353,7 @@ export function TunnelState() {
           {(phase === 'blocked' ||
             (phase === 'disconnected' && state === 'offline')) && (
             <p className="text-text-secondary text-center text-base">
-              {state === 'offline'
-                ? t('offline-message')
-                : t('offline-reconnect-message')}
+              {state === 'offline' ? t('offline-message') : t('blocked-action')}
             </p>
           )}
           {phase === 'error' && (
