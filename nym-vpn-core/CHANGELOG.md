@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Restrict allowed IPs for exit gateway (https://github.com/nymtech/nym-vpn-client/pull/6952)
 - Show a specific error when Enhanced connection is On and the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6973)
 - Connect directly in Auto when the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6976)
+- Don't blacklist a gateway that rejects our ticket's spending date when the gateway's date matches the network date, and refresh the clock-skew estimate instead (https://github.com/nymtech/nym-vpn-client/pull/7089)
 
 ### Security
 

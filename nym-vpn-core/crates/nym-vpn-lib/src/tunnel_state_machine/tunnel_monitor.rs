@@ -28,7 +28,7 @@ use nym_bridges::types::TransportAssociation;
 use nym_gateway_directory::{
     GatewayCacheHandle, GatewayClient, GatewayMinPerformance, NodeIdentity,
 };
-use time::OffsetDateTime;
+use time::{Date, Month, OffsetDateTime};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::{CancellationToken, DropGuard};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -162,6 +162,71 @@ fn registration_rejected_due_to_timestamp(err: &RegistrationClientError) -> bool
         lp_error,
         Some(LpClientError::RegistrationRejected { reason }) if reason.to_lowercase().contains("timestamp")
     )
+}
+
+/// The gateway's rejection reason, if a failed LP registration was rejected by the gateway.
+fn lp_rejection_reason(err: &RegistrationClientError) -> Option<&str> {
+    match err {
+        RegistrationClientError::EntryGatewayRegisterLp { source, .. }
+        | RegistrationClientError::ExitGatewayRegisterLp { source, .. } => match source.as_ref() {
+            LpClientError::RegistrationRejected { reason } => Some(reason),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// Whether a failed LP registration was rejected because the gateway's ecash verification found
+/// the ticket's spend date wasn't the gateway's own date (nym-vpn-client#6877).
+fn registration_rejected_due_to_spend_date(err: &RegistrationClientError) -> bool {
+    lp_rejection_reason(err)
+        .is_some_and(|reason| reason.to_lowercase().contains("invalid spending date"))
+}
+
+/// The gateway's own date from a spend-date rejection ("... got 2026-10-31 but expected
+/// 2026-10-30").
+fn spend_date_expected_by_gateway(reason: &str) -> Option<Date> {
+    let reason = reason.to_lowercase();
+    let (_, after) = reason.rsplit_once("expected ")?;
+    let mut parts = after.get(..10)?.splitn(3, '-');
+    let year = parts.next()?.parse().ok()?;
+    let month = Month::try_from(parts.next()?.parse::<u8>().ok()?).ok()?;
+    let day = parts.next()?.parse().ok()?;
+    Date::from_calendar_date(year, month, day).ok()
+}
+
+/// The network's UTC date at `device_time`, given the device clock's skew (how far ahead of the
+/// network it is). Without a skew estimate this is the device's own date.
+fn network_date_at(device_time: OffsetDateTime, skew: Option<time::Duration>) -> Date {
+    skew.map_or(device_time, |skew| device_time - skew)
+        .to_offset(time::UtcOffset::UTC)
+        .date()
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum BlamedGateway {
+    Entry,
+    Exit,
+}
+
+/// Which gateway a failed registration is blamed (and blacklisted) for, if any.
+///
+/// A spend-date rejection is not the gateway's fault when the gateway's date matches the network
+/// date (`network_date`, from our skew-corrected clock): then our ticket carried the wrong date.
+/// If the gateway's date differs, its own clock is off and it is blamed as before. Without a
+/// cached skew estimate `network_date` is the device's own date, so a device with a wrong date
+/// still blames the gateway, as before this check existed.
+fn blamed_gateway(err: &RegistrationClientError, network_date: Date) -> Option<BlamedGateway> {
+    let gateway_date = lp_rejection_reason(err)
+        .filter(|_| registration_rejected_due_to_spend_date(err))
+        .and_then(spend_date_expected_by_gateway);
+    if gateway_date == Some(network_date) {
+        None
+    } else if let RegistrationClientError::ExitGatewayRegisterLp { .. } = err {
+        Some(BlamedGateway::Exit)
+    } else {
+        Some(BlamedGateway::Entry)
+    }
 }
 
 #[derive(Debug)]
@@ -567,17 +632,29 @@ impl TunnelMonitor {
 
         let registration_client = Box::pin(rc_builder.build()).await?;
         let registration_result = Box::pin(registration_client.register()).await;
+        // Device time when the gateway answered, taken before any resync round trip (matters
+        // around midnight); the skew is applied after the resync below.
+        let registered_at = OffsetDateTime::now_utc();
+        // `force_resync` clears the cached skew first, so keep it in case the refresh fails.
+        let prior_skew = self.skew_manager.cached_skew();
 
         if let Err(err) = &registration_result
-            && registration_rejected_due_to_timestamp(err)
+            && (registration_rejected_due_to_timestamp(err)
+                || registration_rejected_due_to_spend_date(err))
         {
             // The cached clock-skew estimate we just handed to the registration client
             // (`spend_time_skew` above) was apparently wrong, so a stale correction, not just a
             // bad device clock, may be to blame. Force a fresh measurement now rather than
             // letting the next attempt reuse the same stale value for up to the cache's TTL.
-            tracing::info!(
-                "Gateway rejected registration due to a timestamp mismatch; refreshing VPN API clock-skew estimate"
-            );
+            if registration_rejected_due_to_spend_date(err) {
+                tracing::info!(
+                    "Gateway rejected the ticket's spending date; refreshing VPN API clock-skew estimate"
+                );
+            } else {
+                tracing::info!(
+                    "Gateway rejected registration due to a timestamp mismatch; refreshing VPN API clock-skew estimate"
+                );
+            }
 
             let res = self
                 .shutdown_token
@@ -593,10 +670,18 @@ impl TunnelMonitor {
         }
 
         let registration_result = registration_result.inspect_err(|err| {
-            let gateway = if let RegistrationClientError::ExitGatewayRegisterLp { .. } = err {
-                selected_gateways.exit_gateway()
-            } else {
-                selected_gateways.entry_gateway()
+            // After a successful resync this uses the refreshed skew; otherwise the prior one.
+            let skew = self.skew_manager.cached_skew().or(prior_skew);
+            let network_date = network_date_at(registered_at, skew);
+            let gateway = match blamed_gateway(err, network_date) {
+                Some(BlamedGateway::Exit) => selected_gateways.exit_gateway(),
+                Some(BlamedGateway::Entry) => selected_gateways.entry_gateway(),
+                None => {
+                    tracing::warn!(
+                        "Gateway expects today's network date but our ticket carried another: the device clock or date is likely off. Not blacklisting the gateway"
+                    );
+                    return;
+                }
             };
             self.send_event(TunnelMonitorEvent::RegistrationFailed {
                 gateway_id: gateway.identity(),
@@ -2164,5 +2249,132 @@ impl WgTunnelRuntime {
         self.authenticator_listener_handle
             .as_ref()
             .map(|handle| handle.mixnet_cancel_token())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // The reason string LP gateways send when a ticket's spend date isn't their own date
+    // (nymtech/nym-vpn-client#6877).
+    const SPEND_DATE_REASON: &str = "LP registration has failed: credential verification \
+        failed: the provided credential has an invalid spending date. got 2026-10-31 but \
+        expected 2026-10-30";
+
+    fn rejected_by_exit(reason: &str) -> RegistrationClientError {
+        RegistrationClientError::ExitGatewayRegisterLp {
+            gateway_id: "exit".to_owned(),
+            lp_address: "1.2.3.4:41264".parse().unwrap(),
+            source: Box::new(LpClientError::RegistrationRejected {
+                reason: reason.to_owned(),
+            }),
+        }
+    }
+
+    fn rejected_by_entry(reason: &str) -> RegistrationClientError {
+        RegistrationClientError::EntryGatewayRegisterLp {
+            gateway_id: "entry".to_owned(),
+            lp_address: "1.2.3.4:41264".parse().unwrap(),
+            source: Box::new(LpClientError::RegistrationRejected {
+                reason: reason.to_owned(),
+            }),
+        }
+    }
+
+    #[test]
+    fn spend_date_rejection_is_recognised() {
+        assert!(registration_rejected_due_to_spend_date(&rejected_by_exit(
+            SPEND_DATE_REASON
+        )));
+        assert!(!registration_rejected_due_to_spend_date(&rejected_by_exit(
+            "dVPN via LP is not enabled on this node"
+        )));
+    }
+
+    fn date(y: i32, m: Month, d: u8) -> Date {
+        Date::from_calendar_date(y, m, d).unwrap()
+    }
+
+    // The gateway expects the network date, so our ticket's date was wrong: not its fault.
+    #[test]
+    fn spend_date_rejection_blames_no_gateway() {
+        let network_date = date(2026, Month::October, 30);
+        assert_eq!(
+            blamed_gateway(&rejected_by_exit(SPEND_DATE_REASON), network_date),
+            None
+        );
+        assert_eq!(
+            blamed_gateway(&rejected_by_entry(SPEND_DATE_REASON), network_date),
+            None
+        );
+    }
+
+    // The gateway expects a date other than the network's: its own clock is off.
+    #[test]
+    fn spend_date_rejection_from_a_gateway_with_a_wrong_date_blames_it() {
+        let network_date = date(2026, Month::October, 31);
+        assert_eq!(
+            blamed_gateway(&rejected_by_exit(SPEND_DATE_REASON), network_date),
+            Some(BlamedGateway::Exit)
+        );
+    }
+
+    #[test]
+    fn spend_date_rejection_without_a_readable_date_blames_the_gateway() {
+        let reason = "credential verification failed: the provided credential has an invalid \
+            spending date";
+        assert_eq!(
+            blamed_gateway(&rejected_by_entry(reason), date(2026, Month::October, 30)),
+            Some(BlamedGateway::Entry)
+        );
+    }
+
+    #[test]
+    fn network_date_applies_the_skew() {
+        // Device clock 10 h ahead: 02:00 on Oct 31 locally is 16:00 on Oct 30 on the network.
+        let device_time = date(2026, Month::October, 31)
+            .with_hms(2, 0, 0)
+            .unwrap()
+            .assume_utc();
+        let ten_hours = time::Duration::hours(10);
+        assert_eq!(
+            network_date_at(device_time, Some(ten_hours)),
+            date(2026, Month::October, 30)
+        );
+        assert_eq!(
+            network_date_at(device_time, None),
+            date(2026, Month::October, 31)
+        );
+    }
+
+    #[test]
+    fn gateway_date_is_read_from_the_rejection() {
+        assert_eq!(
+            spend_date_expected_by_gateway(SPEND_DATE_REASON),
+            Some(date(2026, Month::October, 30))
+        );
+        assert_eq!(spend_date_expected_by_gateway("garbled"), None);
+        // Detection is case-insensitive, so parsing must be too.
+        assert_eq!(
+            spend_date_expected_by_gateway(
+                "Invalid spending date. Got 2026-10-31 but EXPECTED 2026-10-30"
+            ),
+            Some(date(2026, Month::October, 30))
+        );
+    }
+
+    #[test]
+    fn other_rejections_blame_the_rejecting_gateway() {
+        let reason = "dVPN via LP is not enabled on this node";
+        let network_date = date(2026, Month::October, 30);
+        assert_eq!(
+            blamed_gateway(&rejected_by_exit(reason), network_date),
+            Some(BlamedGateway::Exit)
+        );
+        assert_eq!(
+            blamed_gateway(&rejected_by_entry(reason), network_date),
+            Some(BlamedGateway::Entry)
+        );
     }
 }
