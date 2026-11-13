@@ -18,7 +18,9 @@ public struct MarkerFace: View {
     public let unlitColor: Color
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     @State private var playStart = Date()
+    @State private var isOnScreen = true
 
     public init(mode: MarkerMode, lit: Bool, playing: Bool, litColor: Color, unlitColor: Color) {
         self.mode = mode
@@ -31,6 +33,8 @@ public struct MarkerFace: View {
     public var body: some View {
         content
             .accessibilityHidden(true)
+            .onAppear { isOnScreen = true }
+            .onDisappear { isOnScreen = false }
             .onChange(of: isPlaying) { _, newValue in
                 if newValue {
                     playStart = Date()
@@ -40,8 +44,10 @@ public struct MarkerFace: View {
 }
 
 private extension MarkerFace {
+    /// The route plays only while it can be seen: the scene is active and the
+    /// marker is on screen (#7063: the animation pauses when not visible).
     var isPlaying: Bool {
-        lit && playing && !reduceMotion
+        lit && playing && !reduceMotion && scenePhase == .active && isOnScreen
     }
 
     @ViewBuilder
