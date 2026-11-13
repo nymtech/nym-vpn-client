@@ -1,8 +1,8 @@
 import type { ConnectingProgress, TunnelState, VpnMode } from '../../../types';
 
-// Connection marker, state model (#7064, PR 1 of 5).
-// Maps the daemon's tunnel state onto the marker's six visual states.
-// No UI reads this yet; PR 2 draws from it.
+// Connection marker state model (#6909): maps the daemon's tunnel state onto
+// the marker's states. Covers five of the six design states; connected with
+// data comes with the data line.
 
 export type MarkerState =
   | 'not-protected'
@@ -10,14 +10,11 @@ export type MarkerState =
   | 'connected'
   | 'error'
   | 'blocked'
-  // not one of the six Figma variants: a short fade out of the current state
+  // not one of the design states: a short fade out of the current state
   | 'stopping';
 
-// the face: two blocks for dVPN (2 hops), mix nodes for Mixnet
+// the face: two blocks for dVPN (2 hops), the mix field for Mixnet
 export type MarkerMode = 'dvpn' | 'mixnet';
-
-// why traffic is blocked, so the copy never promises a fix that can't work
-export type BlockedCause = 'needs-reconnect' | 'no-internet';
 
 export const CONNECTING_STEP_COUNT = 6;
 
@@ -26,13 +23,10 @@ export type Marker = {
   mode: MarkerMode;
   // 1 to CONNECTING_STEP_COUNT while connecting, otherwise null
   step: number | null;
-  // set only when state is 'blocked'
-  blockedCause: BlockedCause | null;
 };
 
-// Core reports seven connecting phases; the marker draws six steps
-// (three rings, each half then sealed). The two account checks are one
-// step for the person: "Checking your account".
+// Core reports seven connecting phases; the marker draws six steps (three
+// rings, each half then sealed). The two account checks share step 2.
 const CONNECTING_STEP: Record<ConnectingProgress, number> = {
   'resolving-api-addresses': 1,
   'awaiting-account-readiness': 2,
@@ -51,30 +45,30 @@ function marker(
   state: MarkerState,
   mode: MarkerMode,
   step: number | null = null,
-  blockedCause: BlockedCause | null = null,
 ): Marker {
-  return { state, mode, step, blockedCause };
+  return { state, mode, step };
 }
 
-// Desktop's kill switch is always on (no user toggle), so offline means
-// traffic is held: Blocked. The rule is kill switch on = Blocked,
-// off = Not protected; mobile passes its toggle, desktop keeps the default.
+// Blocked only while traffic is really held: offline mid-session (reconnect
+// armed). The desktop kill switch is always on. Offline with nothing to
+// resume leaves networking open, so it is not protected.
 export function markerFromTunnel(
   state: TunnelState,
   vpnMode: VpnMode,
   progress?: ConnectingProgress | null,
-  killSwitch = true,
 ): Marker {
   const mode = markerMode(vpnMode);
   switch (state) {
     case 'disconnected':
     case 'unknown':
+    case 'offline':
       return marker('not-protected', mode);
     case 'connecting':
+      // an unknown phase (daemon newer than the app) starts at step 1
       return marker(
         'connecting',
         mode,
-        progress ? CONNECTING_STEP[progress] : 1,
+        progress ? (CONNECTING_STEP[progress] ?? 1) : 1,
       );
     case 'connected':
       return marker('connected', mode);
@@ -83,12 +77,6 @@ export function markerFromTunnel(
     case 'error':
       return marker('error', mode);
     case 'offline-auto-reconnect':
-      return killSwitch
-        ? marker('blocked', mode, null, 'needs-reconnect')
-        : marker('not-protected', mode);
-    case 'offline':
-      return killSwitch
-        ? marker('blocked', mode, null, 'no-internet')
-        : marker('not-protected', mode);
+      return marker('blocked', mode);
   }
 }
