@@ -56,8 +56,24 @@ import UIKit
         queueTask?.cancel()
     }
 
+    /// Connection marker (#7063) for the live tunnel. `mode` resolves from the
+    /// live tunnel type, falling back to `ConnectionType` (.mixnet5hop is Mixnet).
+    var marker: Marker {
+        Marker(
+            tunnelStatus: status,
+            connectingState: lastConnectingStep,
+            isMixnet: mode == .anonymous
+        )
+    }
+
     var arcProgressState: ArcProgressState {
-        if !isOnline {
+        // Offline mid-session with the kill switch on holds traffic: blocked.
+        if marker.state == .blocked {
+            return .blocked
+        }
+        // Offline with no session to resume: not protected, no internet.
+        // An error still reads as an error.
+        if status == .offline || (!isOnline && status != .error) {
             return .offline
         }
         switch status {

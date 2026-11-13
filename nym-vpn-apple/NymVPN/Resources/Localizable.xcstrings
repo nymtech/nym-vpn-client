@@ -2334,6 +2334,17 @@
         }
       }
     },
+    "arcProgress.blocked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kill switch is blocking traffic"
+          }
+        }
+      }
+    },
     "arcProgress.connectionFailed" : {
       "extractionState" : "manual",
       "localizations" : {

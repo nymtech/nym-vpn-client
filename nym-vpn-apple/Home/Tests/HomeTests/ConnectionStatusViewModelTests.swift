@@ -75,4 +75,29 @@ final class ConnectionStatusViewModelTests: XCTestCase {
             XCTFail("Cleared independence error must not keep awaitingGatewayConsent arc")
         }
     }
+
+    func testOfflineMidSessionIsBlocked() {
+        let viewModel = makeViewModel()
+        viewModel.status = .offlineReconnect
+        viewModel.isOnline = false
+
+        XCTAssertEqual(viewModel.arcProgressState, .blocked)
+    }
+
+    func testOfflineWithNoSessionIsOffline() {
+        let viewModel = makeViewModel()
+        viewModel.status = .offline
+        viewModel.isOnline = false
+
+        XCTAssertEqual(viewModel.arcProgressState, .offline)
+    }
+
+    func testErrorWhileOfflineStillReadsAsError() {
+        let viewModel = makeViewModel()
+        viewModel.status = .error
+        viewModel.isOnline = false
+        ConnectionManager.shared.lastError = nil
+
+        XCTAssertNotEqual(viewModel.arcProgressState, .offline)
+    }
 }
