@@ -12,6 +12,7 @@ import {
 } from '../../hooks';
 import { setToString } from '../../util';
 import ConnectionTimer from './ConnectionTimer';
+import ExitAddress from './ExitAddress';
 import { MarkerFace } from './marker/MarkerFace';
 import { markerFromTunnel, markerMode } from './marker/markerState';
 
@@ -348,6 +349,7 @@ export function TunnelState() {
 
       <div className="flex w-full flex-col items-center">
         <ConnectionTimer />
+        <ExitAddress />
         {/* one polite live region, mounted before any change, so a new state is announced (the timer stays outside it) */}
         <div role="status" className="flex w-full flex-col items-center">
           <div className="min-h-8 w-full">
