@@ -20,6 +20,9 @@
   "connected-directly": "Connected directly",
   "connected-via-bridge": "Connected via {{transport}} bridge",
   "connection-time": "Connection time",
+  "exit-address": {
+    "label": "Your Nym IP is"
+  },
   "random-server": "Random server",
   "safest-server-selection": "Auto server selection",
   "fastest-server-selection": "Fastest server selection",
