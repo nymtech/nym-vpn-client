@@ -39,11 +39,7 @@ import timber.log.Timber
 /**
  * API implementation. Delegates to VpnCoreController.
  */
-internal class VpnServiceApiImpl(
-	private val core: VpnCoreController,
-	override val events: Flow<VpnServiceEvent>,
-	private val lockdownProbe: () -> Boolean? = { null },
-) : VpnServiceApi {
+internal class VpnServiceApiImpl(private val core: VpnCoreController, override val events: Flow<VpnServiceEvent>, private val lockdownProbe: () -> Boolean? = { null }) : VpnServiceApi {
 
 	companion object {
 		private const val TAG = "core-vpn"
