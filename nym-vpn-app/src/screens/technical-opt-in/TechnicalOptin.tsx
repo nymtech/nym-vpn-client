@@ -88,6 +88,11 @@ function TechnicalOptin() {
 
   const applyChoice = async (name: keyof typeof choices) => {
     const choice = choices[name];
+    // An unchanged choice is already saved. Calling the daemon again and then
+    // failing the local write would revert it to the opposite value.
+    if (choice.checked === choice.saved) {
+      return true;
+    }
     try {
       await invoke(choice.checked ? choice.enable : choice.disable);
       dispatch({ type: choice.action, enabled: choice.checked });
