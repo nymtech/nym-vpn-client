@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import { useToast } from '../../../hooks';
 import { MsIcon, PageAnim, Switch } from '../../../ui';
 import { dispatch, useMainState } from '../../../store';
 import SettingsGroup from '../SettingsGroup';
@@ -17,29 +18,42 @@ function DataAndPrivacy() {
 
   const { t } = useTranslation(['settings', 'welcome']);
   const navigate = useNavigate();
+  const { add } = useToast();
 
   const onNetStatsChange = async () => {
     const isChecked = !networkStats;
-    dispatch({ type: 'set-network-stats', enabled: isChecked });
     try {
       if (isChecked) {
         await invoke('enable_netstats');
       } else {
         await invoke('disable_netstats');
       }
-    } catch {}
+      dispatch({ type: 'set-network-stats', enabled: isChecked });
+    } catch (error) {
+      console.error('[data-privacy] network stats error', error);
+      add({
+        title: t('privacy.errors.failed'),
+        type: 'error',
+      });
+    }
   };
 
   const onMonitoringChange = async () => {
     const isChecked = !monitoring;
-    dispatch({ type: 'set-monitoring', enabled: isChecked });
     try {
       if (isChecked) {
         await invoke('enable_sentry');
       } else {
         await invoke('disable_sentry');
       }
-    } catch {}
+      dispatch({ type: 'set-monitoring', enabled: isChecked });
+    } catch (error) {
+      console.error('[data-privacy] monitoring error', error);
+      add({
+        title: t('privacy.errors.failed'),
+        type: 'error',
+      });
+    }
   };
 
   return (

@@ -12,15 +12,15 @@ pub async fn enable_sentry(
     app_config: State<'_, SharedAppConfig>,
     vpnd: State<'_, VpndClient>,
 ) -> Result<(), BackendError> {
+    info!("enabling vpnd sentry monitoring");
+    vpnd.enable_sentry().await?;
+
     let mut config_guard = app_config.lock().await;
     let mut config = config_guard.read()?;
     config.sentry_monitoring = true;
     config_guard.data = config;
     config_guard.write()?;
     info!("sentry monitoring enabled, app restart required");
-
-    info!("enabling vpnd sentry monitoring");
-    vpnd.enable_sentry().await?;
 
     Ok(())
 }
@@ -32,6 +32,9 @@ pub async fn disable_sentry(
     app_state: State<'_, SharedAppState>,
     vpnd: State<'_, VpndClient>,
 ) -> Result<(), BackendError> {
+    info!("disabling vpnd sentry monitoring");
+    vpnd.disable_sentry().await?;
+
     let mut config_guard = app_config.lock().await;
     let mut config = config_guard.read()?;
     config.sentry_monitoring = false;
@@ -47,8 +50,6 @@ pub async fn disable_sentry(
     }
     info!("sentry monitoring disabled ⚠ app restart required ⚠");
 
-    info!("disabling vpnd sentry monitoring");
-    vpnd.disable_sentry().await?;
     Ok(())
 }
 

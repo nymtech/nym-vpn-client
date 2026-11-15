@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { PrivacyPolicyUrl } from '../../constants';
+import { useToast } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { Button, Link, Switch } from '../../ui';
@@ -23,11 +24,19 @@ function TechnicalOptin() {
   const [netstats, setNetstats] = useState<boolean>(defaultNetstats);
   const [info, setInfo] = useState<TelemetryInfoKind | null>(null);
   const navigate = useNavigate();
-  const { t } = useTranslation('welcome');
+  const { t } = useTranslation(['welcome', 'settings']);
+  const { add } = useToast();
 
-  const handleContinue = () => {
-    initMonitoring();
-    initNetworkStats();
+  const handleContinue = async () => {
+    const monitoringApplied = await applyMonitoring();
+    const netstatsApplied = await applyNetworkStats();
+    if (!monitoringApplied || !netstatsApplied) {
+      add({
+        title: t('privacy.errors.failed', { ns: 'settings' }),
+        type: 'error',
+      });
+      return;
+    }
     dispatch({ type: 'set-technical-optin-seen', seen: true });
     kvSet('technical-optin-seen', true);
     navigate(routes.root);
@@ -41,25 +50,34 @@ function TechnicalOptin() {
     setNetstats(!netstats);
   };
 
-  const initMonitoring = async () => {
-    dispatch({ type: 'set-monitoring', enabled: monitoring });
-    // sentry is disabled by default
-    if (monitoring) {
-      try {
+  const applyMonitoring = async () => {
+    try {
+      if (monitoring) {
         await invoke('enable_sentry');
-      } catch {}
+      } else {
+        await invoke('disable_sentry');
+      }
+      dispatch({ type: 'set-monitoring', enabled: monitoring });
+      return true;
+    } catch (error) {
+      console.error('[technical-optin] monitoring error', error);
+      return false;
     }
   };
 
-  const initNetworkStats = async () => {
-    dispatch({ type: 'set-network-stats', enabled: netstats });
+  const applyNetworkStats = async () => {
     try {
       if (netstats) {
         await invoke('enable_netstats');
       } else {
         await invoke('disable_netstats');
       }
-    } catch {}
+      dispatch({ type: 'set-network-stats', enabled: netstats });
+      return true;
+    } catch (error) {
+      console.error('[technical-optin] network stats error', error);
+      return false;
+    }
   };
 
   return (
