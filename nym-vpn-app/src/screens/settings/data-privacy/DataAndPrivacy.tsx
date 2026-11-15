@@ -22,51 +22,45 @@ function DataAndPrivacy() {
   const navigate = useNavigate();
   const { add } = useToast();
 
-  const onNetStatsChange = async () => {
-    if (netStatsPending) {
-      return;
-    }
-    setNetStatsPending(true);
-    const isChecked = !networkStats;
-    try {
-      if (isChecked) {
-        await invoke('enable_netstats');
-      } else {
-        await invoke('disable_netstats');
-      }
-      dispatch({ type: 'set-network-stats', enabled: isChecked });
-    } catch (error) {
-      console.error('[data-privacy] network stats error', error);
-      add({
-        title: t('privacy.errors.failed'),
-        type: 'error',
-      });
-    } finally {
-      setNetStatsPending(false);
-    }
-  };
+  const choices = {
+    netstats: {
+      checked: networkStats,
+      pending: netStatsPending,
+      setPending: setNetStatsPending,
+      enable: 'enable_netstats',
+      disable: 'disable_netstats',
+      action: 'set-network-stats',
+      label: 'network stats',
+    },
+    monitoring: {
+      checked: monitoring,
+      pending: monitoringPending,
+      setPending: setMonitoringPending,
+      enable: 'enable_sentry',
+      disable: 'disable_sentry',
+      action: 'set-monitoring',
+      label: 'monitoring',
+    },
+  } as const;
 
-  const onMonitoringChange = async () => {
-    if (monitoringPending) {
+  const saveChoice = async (name: keyof typeof choices) => {
+    const choice = choices[name];
+    if (choice.pending) {
       return;
     }
-    setMonitoringPending(true);
-    const isChecked = !monitoring;
+    choice.setPending(true);
+    const isChecked = !choice.checked;
     try {
-      if (isChecked) {
-        await invoke('enable_sentry');
-      } else {
-        await invoke('disable_sentry');
-      }
-      dispatch({ type: 'set-monitoring', enabled: isChecked });
+      await invoke(isChecked ? choice.enable : choice.disable);
+      dispatch({ type: choice.action, enabled: isChecked });
     } catch (error) {
-      console.error('[data-privacy] monitoring error', error);
+      console.error(`[data-privacy] ${choice.label} error`, error);
       add({
         title: t('privacy.errors.failed'),
         type: 'error',
       });
     } finally {
-      setMonitoringPending(false);
+      choice.setPending(false);
     }
   };
 
@@ -115,7 +109,7 @@ function DataAndPrivacy() {
             trailing: (
               <Switch
                 checked={networkStats}
-                onChange={onNetStatsChange}
+                onChange={() => saveChoice('netstats')}
                 disabled={netStatsPending}
                 data-testid="data-privacy-netstats-switch"
               />
@@ -144,7 +138,7 @@ function DataAndPrivacy() {
             trailing: (
               <Switch
                 checked={monitoring}
-                onChange={onMonitoringChange}
+                onChange={() => saveChoice('monitoring')}
                 disabled={monitoringPending}
                 data-testid="data-privacy-monitoring-switch"
               />

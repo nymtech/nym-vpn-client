@@ -38,8 +38,8 @@ function TechnicalOptin() {
     }
     setSaving(true);
     try {
-      const monitoringApplied = await applyMonitoring();
-      const netstatsApplied = await applyNetworkStats();
+      const monitoringApplied = await applyChoice('monitoring');
+      const netstatsApplied = await applyChoice('netstats');
       if (!monitoringApplied || !netstatsApplied) {
         add({
           title: t('privacy.errors.failed', { ns: 'settings' }),
@@ -63,36 +63,39 @@ function TechnicalOptin() {
     setNetstats(!netstats);
   };
 
-  const applyMonitoring = async () => {
-    try {
-      if (monitoring) {
-        await invoke('enable_sentry');
-      } else {
-        await invoke('disable_sentry');
-      }
-      dispatch({ type: 'set-monitoring', enabled: monitoring });
-      setSavedMonitoring(monitoring);
-      return true;
-    } catch (error) {
-      console.error('[technical-optin] monitoring error', error);
-      setMonitoring(savedMonitoring);
-      return false;
-    }
-  };
+  const choices = {
+    monitoring: {
+      checked: monitoring,
+      saved: savedMonitoring,
+      setChecked: setMonitoring,
+      setSaved: setSavedMonitoring,
+      enable: 'enable_sentry',
+      disable: 'disable_sentry',
+      action: 'set-monitoring',
+      label: 'monitoring',
+    },
+    netstats: {
+      checked: netstats,
+      saved: savedNetstats,
+      setChecked: setNetstats,
+      setSaved: setSavedNetstats,
+      enable: 'enable_netstats',
+      disable: 'disable_netstats',
+      action: 'set-network-stats',
+      label: 'network stats',
+    },
+  } as const;
 
-  const applyNetworkStats = async () => {
+  const applyChoice = async (name: keyof typeof choices) => {
+    const choice = choices[name];
     try {
-      if (netstats) {
-        await invoke('enable_netstats');
-      } else {
-        await invoke('disable_netstats');
-      }
-      dispatch({ type: 'set-network-stats', enabled: netstats });
-      setSavedNetstats(netstats);
+      await invoke(choice.checked ? choice.enable : choice.disable);
+      dispatch({ type: choice.action, enabled: choice.checked });
+      choice.setSaved(choice.checked);
       return true;
     } catch (error) {
-      console.error('[technical-optin] network stats error', error);
-      setNetstats(savedNetstats);
+      console.error(`[technical-optin] ${choice.label} error`, error);
+      choice.setChecked(choice.saved);
       return false;
     }
   };

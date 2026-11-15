@@ -1,7 +1,8 @@
 use std::time::Duration;
 use tauri::State;
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, info, instrument};
 
+use crate::commands::revert_vpnd_on_save_error;
 use crate::error::BackendError;
 use crate::state::{SharedAppConfig, SharedAppState};
 use crate::vpnd::client::VpndClient;
@@ -23,17 +24,7 @@ pub async fn enable_sentry(
     });
     drop(config_guard);
 
-    if let Err(e) = saved {
-        // vpnd already took the change, put it back so it matches the saved setting
-        warn!("failed to save sentry monitoring setting: {e}, reverting vpnd");
-        vpnd.disable_sentry()
-            .await
-            .inspect_err(|e| {
-                error!("failed to revert vpnd sentry monitoring, it may still be enabled: {e}")
-            })
-            .ok();
-        return Err(e.into());
-    }
+    revert_vpnd_on_save_error(saved, vpnd.disable_sentry()).await?;
     info!("sentry monitoring enabled, app restart required");
 
     Ok(())
@@ -57,17 +48,7 @@ pub async fn disable_sentry(
     });
     drop(config_guard);
 
-    if let Err(e) = saved {
-        // vpnd already took the change, put it back so it matches the saved setting
-        warn!("failed to save sentry monitoring setting: {e}, reverting vpnd");
-        vpnd.enable_sentry()
-            .await
-            .inspect_err(|e| {
-                error!("failed to revert vpnd sentry monitoring, it may still be disabled: {e}")
-            })
-            .ok();
-        return Err(e.into());
-    }
+    revert_vpnd_on_save_error(saved, vpnd.enable_sentry()).await?;
 
     let state_guard = app_state.lock().await;
     if let Some(client) = state_guard.sentry_client.0.as_ref() {
