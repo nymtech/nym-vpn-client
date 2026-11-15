@@ -15,12 +15,18 @@ import TelemetryInfoDialog, {
 function DataAndPrivacy() {
   const { monitoring, networkStats } = useMainState();
   const [info, setInfo] = useState<TelemetryInfoKind | null>(null);
+  const [netStatsPending, setNetStatsPending] = useState(false);
+  const [monitoringPending, setMonitoringPending] = useState(false);
 
   const { t } = useTranslation(['settings', 'welcome']);
   const navigate = useNavigate();
   const { add } = useToast();
 
   const onNetStatsChange = async () => {
+    if (netStatsPending) {
+      return;
+    }
+    setNetStatsPending(true);
     const isChecked = !networkStats;
     try {
       if (isChecked) {
@@ -35,10 +41,16 @@ function DataAndPrivacy() {
         title: t('privacy.errors.failed'),
         type: 'error',
       });
+    } finally {
+      setNetStatsPending(false);
     }
   };
 
   const onMonitoringChange = async () => {
+    if (monitoringPending) {
+      return;
+    }
+    setMonitoringPending(true);
     const isChecked = !monitoring;
     try {
       if (isChecked) {
@@ -53,6 +65,8 @@ function DataAndPrivacy() {
         title: t('privacy.errors.failed'),
         type: 'error',
       });
+    } finally {
+      setMonitoringPending(false);
     }
   };
 
@@ -102,6 +116,7 @@ function DataAndPrivacy() {
               <Switch
                 checked={networkStats}
                 onChange={onNetStatsChange}
+                disabled={netStatsPending}
                 data-testid="data-privacy-netstats-switch"
               />
             ),
@@ -130,6 +145,7 @@ function DataAndPrivacy() {
               <Switch
                 checked={monitoring}
                 onChange={onMonitoringChange}
+                disabled={monitoringPending}
                 data-testid="data-privacy-monitoring-switch"
               />
             ),

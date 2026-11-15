@@ -22,24 +22,37 @@ const defaultNetstats = window._APP.defaultNetstats;
 function TechnicalOptin() {
   const [monitoring, setMonitoring] = useState<boolean>(defaultSentry);
   const [netstats, setNetstats] = useState<boolean>(defaultNetstats);
+  // last values the backend accepted, a rejected save snaps back to these
+  const [savedMonitoring, setSavedMonitoring] =
+    useState<boolean>(defaultSentry);
+  const [savedNetstats, setSavedNetstats] = useState<boolean>(defaultNetstats);
+  const [saving, setSaving] = useState(false);
   const [info, setInfo] = useState<TelemetryInfoKind | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation(['welcome', 'settings']);
   const { add } = useToast();
 
   const handleContinue = async () => {
-    const monitoringApplied = await applyMonitoring();
-    const netstatsApplied = await applyNetworkStats();
-    if (!monitoringApplied || !netstatsApplied) {
-      add({
-        title: t('privacy.errors.failed', { ns: 'settings' }),
-        type: 'error',
-      });
+    if (saving) {
       return;
     }
-    dispatch({ type: 'set-technical-optin-seen', seen: true });
-    kvSet('technical-optin-seen', true);
-    navigate(routes.root);
+    setSaving(true);
+    try {
+      const monitoringApplied = await applyMonitoring();
+      const netstatsApplied = await applyNetworkStats();
+      if (!monitoringApplied || !netstatsApplied) {
+        add({
+          title: t('privacy.errors.failed', { ns: 'settings' }),
+          type: 'error',
+        });
+        return;
+      }
+      dispatch({ type: 'set-technical-optin-seen', seen: true });
+      kvSet('technical-optin-seen', true);
+      navigate(routes.root);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleMonitoring = () => {
@@ -58,9 +71,11 @@ function TechnicalOptin() {
         await invoke('disable_sentry');
       }
       dispatch({ type: 'set-monitoring', enabled: monitoring });
+      setSavedMonitoring(monitoring);
       return true;
     } catch (error) {
       console.error('[technical-optin] monitoring error', error);
+      setMonitoring(savedMonitoring);
       return false;
     }
   };
@@ -73,9 +88,11 @@ function TechnicalOptin() {
         await invoke('disable_netstats');
       }
       dispatch({ type: 'set-network-stats', enabled: netstats });
+      setSavedNetstats(netstats);
       return true;
     } catch (error) {
       console.error('[technical-optin] network stats error', error);
+      setNetstats(savedNetstats);
       return false;
     }
   };
@@ -117,6 +134,7 @@ function TechnicalOptin() {
                 <Switch
                   checked={netstats}
                   onChange={toggleNetstats}
+                  disabled={saving}
                   data-testid="welcome-netstats-switch"
                 />
               ),
@@ -138,6 +156,7 @@ function TechnicalOptin() {
                 <Switch
                   checked={monitoring}
                   onChange={toggleMonitoring}
+                  disabled={saving}
                   data-testid="welcome-monitoring-switch"
                 />
               ),
@@ -146,7 +165,9 @@ function TechnicalOptin() {
           ]}
           data-testid="welcome-optin-group"
         />
-        <Button onClick={handleContinue}>{t('continue-button')}</Button>
+        <Button onClick={handleContinue} disabled={saving}>
+          {t('continue-button')}
+        </Button>
       </div>
 
       <TelemetryInfoDialog kind={info} onClose={() => setInfo(null)} />

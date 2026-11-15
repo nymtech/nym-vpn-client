@@ -92,7 +92,7 @@ test.describe('Technical opt-in save', () => {
 
     await expect(page).toHaveURL(/\/technical-optin$/);
     await expect(page.getByText(privacySaveError)).toBeVisible();
-    await expect(netstats).toHaveAttribute('aria-checked', 'false');
+    await expect(netstats).toHaveAttribute('aria-checked', 'true');
   });
 
   test('leaves the screen after both choices save', async ({ page }) => {
