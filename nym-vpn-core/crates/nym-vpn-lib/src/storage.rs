@@ -24,11 +24,20 @@ use nym_vpn_store::{
         MnemonicStorage, StoredMnemonic,
         on_disk::{OnDiskMnemonicStorage, OnDiskMnemonicStorageError},
     },
+    secure_store_migration::SecureStoreMigrationManager,
 };
 
 const MNEMONIC_FILE_NAME: &str = "mnemonic.bin";
 const DEVICE_STATE_FILE_NAME: &str = "device_state.bin";
 const DATABASE_KEY_FILE_NAME: &str = "encryption.key";
+
+/// Plaintext files replaced by the encrypted stores
+const LEGACY_MNEMONIC_FILE_NAME: &str = "mnemonic.json";
+const LEGACY_ACCOUNT_SUMMARY_FILE_NAME: &str = "account_summary.json";
+
+#[cfg(target_os = "android")]
+const MIGRATION_UNLOCK_REASON: &str =
+    "Unlock your account credentials to perform migration from plain to encrypted account storage";
 
 /// Key used for mnemonic encryption (checked user presence)
 #[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
@@ -96,7 +105,7 @@ impl VpnClientOnDiskStorage {
         let database_key_cipher = NoopStoreCipher::default();
         #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
         let database_key_cipher = SecureEnclaveCipher::new(
-            secure_enclave,
+            secure_enclave.clone(),
             SecureEnclaveCipherOptions {
                 key_alias: DEVICE_SE_KEY.to_owned(),
                 user_presence: false,
@@ -108,6 +117,23 @@ impl VpnClientOnDiskStorage {
             .load_or_create()
             .await?;
         let key_store = OnDiskKeys::new(device_key_paths, &database_key);
+
+        let migration = SecureStoreMigrationManager::new(
+            base_data_directory.as_ref().join(LEGACY_MNEMONIC_FILE_NAME),
+            base_data_directory
+                .as_ref()
+                .join(LEGACY_ACCOUNT_SUMMARY_FILE_NAME),
+            &mnemonic_storage,
+            &device_state_storage,
+            #[cfg(target_os = "android")]
+            secure_enclave,
+            #[cfg(target_os = "android")]
+            MIGRATION_UNLOCK_REASON,
+        );
+        // Plaintext files are kept on failure, so the migration is retried on next start.
+        if let Err(err) = migration.migrate().await {
+            tracing::error!("Failed to migrate to secure store: {err}");
+        }
 
         Ok(VpnClientOnDiskStorage {
             key_store,

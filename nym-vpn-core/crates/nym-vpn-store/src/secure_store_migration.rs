@@ -1,12 +1,16 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "android")]
+use std::sync::Arc;
 use std::{
     error::Error,
     io::ErrorKind as IoErrorKind,
     path::{Path, PathBuf},
 };
 
+#[cfg(target_os = "android")]
+use nym_secure_enclave::{SecureEnclave, SecureEnclaveError};
 use nym_vpn_api_client::types::{VpnAccount, VpnAccountMode};
 use nym_vpn_lib_types::{Mnemonic, StoredAccountMode, VpnAccountSummary};
 use serde::Deserialize;
@@ -44,6 +48,10 @@ pub enum SecureStoreMigrationError {
     #[error("failed to store device state")]
     StoreDeviceState(#[source] Box<dyn Error + Send + Sync>),
 
+    #[cfg(target_os = "android")]
+    #[error("failed to unlock keychain")]
+    UnlockKeychain(#[source] SecureEnclaveError),
+
     #[error("failed to join blocking task")]
     Join(#[source] tokio::task::JoinError),
 
@@ -77,6 +85,10 @@ pub struct SecureStoreMigrationManager<'a, MnemonicStoreType, DeviceStateStoreTy
     account_summary_json_path: PathBuf,
     mnemonic_storage: &'a MnemonicStoreType,
     device_state_storage: &'a DeviceStateStoreType,
+    #[cfg(target_os = "android")]
+    secure_enclave: Arc<SecureEnclave>,
+    #[cfg(target_os = "android")]
+    unlock_reason: String,
 }
 
 impl<'a, MnemonicStoreType, DeviceStateStoreType>
@@ -85,17 +97,25 @@ where
     MnemonicStoreType: MnemonicStorage,
     DeviceStateStoreType: DeviceStateStorage,
 {
+    /// On Android, the keychain is unlocked before the mnemonic is encrypted, since its key requires
+    /// user presence for encryption. The `unlock_reason` is shown to the user when authenticating.
     pub fn new(
         mnemonic_json_path: impl Into<PathBuf>,
         account_summary_json_path: impl Into<PathBuf>,
         mnemonic_storage: &'a MnemonicStoreType,
         device_state_storage: &'a DeviceStateStoreType,
+        #[cfg(target_os = "android")] secure_enclave: Arc<SecureEnclave>,
+        #[cfg(target_os = "android")] unlock_reason: impl Into<String>,
     ) -> Self {
         Self {
             mnemonic_json_path: mnemonic_json_path.into(),
             account_summary_json_path: account_summary_json_path.into(),
             mnemonic_storage,
             device_state_storage,
+            #[cfg(target_os = "android")]
+            secure_enclave,
+            #[cfg(target_os = "android")]
+            unlock_reason: unlock_reason.into(),
         }
     }
 
@@ -131,6 +151,14 @@ where
 
         self.remove_plain_files().await;
         Ok(())
+    }
+
+    #[cfg(target_os = "android")]
+    async fn unlock_keychain(&self) -> Result<()> {
+        self.secure_enclave
+            .unlock(&self.unlock_reason)
+            .await
+            .map_err(SecureStoreMigrationError::UnlockKeychain)
     }
 
     async fn open_plain_mnemonic(&self) -> Result<Option<File>> {
@@ -184,6 +212,11 @@ where
             ecash_keypair,
             summary: account_summary,
         };
+
+        // Android needs authorization for encryption
+        // iOS: does not require authorization for encryption (only for decryption)
+        #[cfg(target_os = "android")]
+        self.unlock_keychain().await?;
 
         self.mnemonic_storage
             .store_mnemonic(StoredMnemonic { mnemonic })
@@ -270,7 +303,8 @@ async fn remove_file_if_exists(path: &Path) {
         .unwrap_or_else(|err| tracing::warn!("Failed to delete {}: {}", path.display(), err));
 }
 
-#[cfg(test)]
+// Constructing the migration manager requires a keystore provider on Android.
+#[cfg(all(test, not(target_os = "android")))]
 mod tests {
 
     use std::assert_matches;
