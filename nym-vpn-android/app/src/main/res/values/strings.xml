@@ -401,10 +401,11 @@
 	<string name="censorship_quic_title">Disguise your traffic</string>
 	<string name="censorship_quic_description">Bridges help you slip past networks that detect and block VPN traffic. **dVPN** mode uses AmneziaWG by default to make **WireGuard** harder to detect.</string>
 	<string name="censorship_bridge_changes_apply">Changes require reconnection.</string>
+	<string name="censorship_transport_auto_mode_disclaimer">Auto only uses a bridge if the direct connection fails, so your pin has no effect unless that happens.</string>
 	<string name="censorship_bridge_off_title">Off</string>
 	<string name="censorship_bridge_off_description">Connect directly, without a bridge. Fastest, but easiest to block.</string>
 	<string name="censorship_bridge_auto_title">Auto</string>
-	<string name="censorship_bridge_auto_description">Tries **WireGuard** first, then switches to a bridge (QUIC, TLS, or SSH) if it fails.</string>
+	<string name="censorship_bridge_auto_description">Tries **WireGuard** first, then switches to a bridge if it fails.</string>
 	<string name="censorship_bridge_on_title">On</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be your entry server.</string>
 	<string name="censorship_quic_link" translatable="false">https://nym.com/features/anti-censorship-bridges</string>
@@ -413,7 +414,7 @@
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_transport_title">Bridge transport</string>
 	<string name="censorship_transport_description">Choose which protocol a bridge connection uses.</string>
-	<string name="censorship_transport_auto_title">Auto</string>
+	<string name="censorship_transport_auto_title">Default</string>
 	<string name="censorship_transport_auto_description">Tries QUIC first, then falls back to TLS or SSH if it fails.</string>
 	<string name="censorship_transport_quic_title">QUIC</string>
 	<string name="censorship_transport_quic_description">Always use QUIC.</string>
