@@ -117,7 +117,7 @@ impl Command {
                     println!("Failed to set account: {err}");
                     return Err(err.into());
                 } else {
-                    println!("Your account has been set. Welcome to the Nym VPN!");
+                    println!("Your account has been set up. Welcome to NymVPN!");
                 }
 
                 Ok(())
