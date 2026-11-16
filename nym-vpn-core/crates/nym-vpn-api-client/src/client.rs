@@ -31,6 +31,7 @@ use crate::{
     api_urls_to_urls,
     error::{Result, VpnApiClientError},
     fronted_http_client,
+    jwt::Jwt,
     request::{
         AccountKind, AppleIntroOfferEligibilityRequestBody, ApplyFreepassRequestBody,
         CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody, CreateSubscriptionKind,
@@ -50,7 +51,8 @@ use crate::{
     routes,
     skew_manager::{RemoteTimeProvider, SkewManager},
     types::{
-        Device, DeviceStatus, GatewayMinPerformance, GatewayType, Platform, VpnAccount, VpnApiTime,
+        AccountSigner, Device, DeviceStatus, GatewayMinPerformance, GatewayType, Platform,
+        VpnApiTime,
     },
 };
 
@@ -419,7 +421,7 @@ impl VpnApiClient {
 
     // ACCOUNT
 
-    pub async fn get_account(&self, account: &VpnAccount) -> Result<NymVpnAccountResponse> {
+    pub async fn get_account(&self, account: &dyn AccountSigner) -> Result<NymVpnAccountResponse> {
         self.get_authorized(
             &[routes::PUBLIC, routes::V1, routes::ACCOUNT, &account.id()],
             Authorization::default().account(account),
@@ -429,7 +431,10 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::GetAccount)
     }
 
-    pub async fn delete_account(&self, account: &VpnAccount) -> Result<NymVpnAccountResponse> {
+    pub async fn delete_account(
+        &self,
+        account: &dyn AccountSigner,
+    ) -> Result<NymVpnAccountResponse> {
         self.delete_authorized(
             &[routes::PUBLIC, routes::V1, routes::ACCOUNT, &account.id()],
             Authorization::default().account(account),
@@ -469,17 +474,13 @@ impl VpnApiClient {
 
     pub async fn register_account(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
+        kind: AccountKind,
         platform: Platform,
     ) -> Result<NymVpnRegisterAccountResponse> {
-        let account_addr = account.id().to_string();
-        let kind = if account.mode().is_privy() {
-            AccountKind::PrivySecp256k1
-        } else {
-            AccountKind::UserGeneratedSecp256k1
-        };
-        let pub_key = account.pub_key().to_string();
-        let signature_base64 = account.signature_base64().to_string();
+        let account_addr = account.id();
+        let pub_key = account.pub_key().to_owned();
+        let signature_base64 = account_id_signature(account)?;
         match platform {
             Platform::Apple => {
                 self.register_apple_account(&CreateAppleAccountRequestBody {
@@ -548,7 +549,7 @@ impl VpnApiClient {
 
     pub async fn get_account_summary(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
     ) -> Result<NymVpnAccountSummaryResponse> {
         self.get_authorized(
             &[
@@ -589,8 +590,8 @@ impl VpnApiClient {
 
     pub async fn link_account(
         &self,
-        account: &VpnAccount,
-        linked_account: &VpnAccount,
+        account: &dyn AccountSigner,
+        linked_account: &dyn AccountSigner,
         label: &str,
     ) -> Result<StatusOk> {
         let pubkey = linked_account.pub_key().to_string();
@@ -601,9 +602,9 @@ impl VpnApiClient {
             linked_account.pub_key()
         );
         let signature = linked_account
-            .sign(&signature_json)
-            .map_err(Box::new)
-            .map_err(VpnApiClientError::AccountError)?;
+            .sign_raw(signature_json.as_bytes())
+            .map(hex::encode)
+            .map_err(VpnApiClientError::AccountSigning)?;
 
         let request = LinkAccountRequestBody {
             pubkey,
@@ -631,7 +632,7 @@ impl VpnApiClient {
 
     pub async fn pair_account(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
         qr_pub_key: &str,
     ) -> Result<NymVpnPairingResponse> {
         let request = PairAccountRequestBody {
@@ -659,7 +660,7 @@ impl VpnApiClient {
 
     pub async fn check_pairing_account(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
         qr_pub_key: &str,
     ) -> Result<NymVpnPairingCheckResponse> {
         let request = PairingCheckRequestBody {
@@ -739,7 +740,7 @@ impl VpnApiClient {
 
     pub async fn share_secret_account(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
         own_pubkey: &str,
         enc_mnemonic: Vec<u8>,
         nonce: Vec<u8>,
@@ -771,7 +772,7 @@ impl VpnApiClient {
 
     pub async fn get_canonical_account_identity(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
     ) -> Result<NymVpnCanonicalAccountIdentityResponse> {
         self.get_authorized(
             &[
@@ -791,7 +792,7 @@ impl VpnApiClient {
 
     // DEVICES
 
-    pub async fn get_devices(&self, account: &VpnAccount) -> Result<NymVpnDevicesResponse> {
+    pub async fn get_devices(&self, account: &dyn AccountSigner) -> Result<NymVpnDevicesResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -809,7 +810,7 @@ impl VpnApiClient {
 
     pub async fn register_device(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
         device: &Device,
     ) -> Result<NymVpnDevice> {
         let body = RegisterDeviceRequestBody {
@@ -833,7 +834,10 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::RegisterDevice)
     }
 
-    pub async fn get_active_devices(&self, account: &VpnAccount) -> Result<NymVpnDevicesResponse> {
+    pub async fn get_active_devices(
+        &self,
+        account: &dyn AccountSigner,
+    ) -> Result<NymVpnDevicesResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -902,7 +906,7 @@ impl VpnApiClient {
 
     pub async fn delete_device(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
         device_identity_key: &str,
     ) -> Result<serde_json::Value> {
         // Device removal is a PATCH to `delete_me`, not an HTTP DELETE
@@ -1060,7 +1064,7 @@ impl VpnApiClient {
 
     pub async fn get_free_passes(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
     ) -> Result<NymVpnSubscriptionsResponse> {
         self.get_authorized(
             &[
@@ -1079,7 +1083,7 @@ impl VpnApiClient {
 
     pub async fn apply_freepass(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
         code: String,
     ) -> Result<NymVpnSubscription> {
         let body = ApplyFreepassRequestBody { code };
@@ -1103,14 +1107,14 @@ impl VpnApiClient {
     /// Creates the account on the API and applies the free pass to it in one request.
     pub async fn redeem_freepass(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
         code: String,
     ) -> Result<NymVpnAccountResponse> {
         let body = RedeemFreepassRequestBody {
             redemption_code: code,
-            account_addr: account.id().to_string(),
-            pub_key: account.pub_key().to_string(),
-            signature_base64: account.signature_base64().to_string(),
+            account_addr: account.id(),
+            pub_key: account.pub_key().to_owned(),
+            signature_base64: account_id_signature(account)?,
         };
 
         self.post_json_with_retry(
@@ -1127,7 +1131,7 @@ impl VpnApiClient {
 
     pub async fn get_subscriptions(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
     ) -> Result<NymVpnSubscriptionsResponse> {
         self.get_authorized(
             &[
@@ -1144,7 +1148,10 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::GetSubscriptions)
     }
 
-    pub async fn create_subscription(&self, account: &VpnAccount) -> Result<NymVpnSubscription> {
+    pub async fn create_subscription(
+        &self,
+        account: &dyn AccountSigner,
+    ) -> Result<NymVpnSubscription> {
         let body = CreateSubscriptionRequestBody {
             valid_from_utc: "todo".to_string(),
             subscription_kind: CreateSubscriptionKind::OneMonth,
@@ -1168,7 +1175,7 @@ impl VpnApiClient {
 
     pub async fn get_active_subscriptions(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
     ) -> Result<NymVpnSubscriptionResponse> {
         self.get_authorized(
             &[
@@ -1191,7 +1198,7 @@ impl VpnApiClient {
     /// never signs a granting one.
     pub async fn check_apple_intro_offer_eligibility(
         &self,
-        account: &VpnAccount,
+        account: &dyn AccountSigner,
         product_id: String,
         transaction_id: String,
     ) -> Result<AppleIntroOfferEligibilityResponse> {
@@ -1218,7 +1225,7 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::CheckAppleIntroOfferEligibility)
     }
 
-    pub async fn get_usage(&self, account: &VpnAccount) -> Result<NymVpnUsagesResponse> {
+    pub async fn get_usage(&self, account: &dyn AccountSigner) -> Result<NymVpnUsagesResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -1574,14 +1581,22 @@ impl RemoteTimeProvider for VpnApiRemoteTimeProvider {
     }
 }
 
+/// Base64-encoded signature on the account identifier, proving ownership of the account key.
+fn account_id_signature(account: &dyn AccountSigner) -> Result<String> {
+    account
+        .sign_raw(account.id().as_bytes())
+        .map(|signature| base64_url::encode(&signature))
+        .map_err(VpnApiClientError::AccountSigning)
+}
+
 #[derive(Clone, Copy, Default)]
 struct Authorization<'a> {
-    account: Option<&'a VpnAccount>,
+    account: Option<&'a dyn AccountSigner>,
     device: Option<&'a Device>,
 }
 
 impl<'a> Authorization<'a> {
-    fn account(mut self, account: &'a VpnAccount) -> Self {
+    fn account(mut self, account: &'a dyn AccountSigner) -> Self {
         self.account = Some(account);
         self
     }
@@ -1599,7 +1614,14 @@ trait AuthorizationExt {
 impl AuthorizationExt for RequestBuilder {
     fn with_authorization(mut self, auth: Authorization, remote_time: Option<VpnApiTime>) -> Self {
         if let Some(account) = auth.account {
-            self = self.bearer_auth(account.jwt(remote_time).to_string());
+            let jwt = match remote_time {
+                Some(remote_time) => Jwt::new_secp256k1_synced(account, remote_time),
+                None => Jwt::new_secp256k1(account),
+            };
+            match jwt {
+                Ok(jwt) => self = self.bearer_auth(jwt.to_string()),
+                Err(err) => tracing::error!("Failed to create account JWT: {err}"),
+            }
         }
 
         if let Some(device) = auth.device {

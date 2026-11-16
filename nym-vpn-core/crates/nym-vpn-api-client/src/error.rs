@@ -3,7 +3,7 @@
 
 use std::{collections::HashSet, error::Error};
 
-use crate::{response::NymErrorResponse, types::AccountError};
+use crate::{response::NymErrorResponse, types::AccountSignerError};
 pub use nym_http_api_client::HttpClientError;
 // Error code id to allow error catching. These are emitted by the backend and are unique.
 
@@ -188,8 +188,8 @@ pub enum VpnApiClientError {
     #[error("the url {url} is invalid")]
     InvalidUrl { url: String },
 
-    #[error("account api client error: {0}")]
-    AccountError(#[source] Box<AccountError>),
+    #[error("failed to sign with the account key")]
+    AccountSigning(#[source] AccountSignerError),
 
     /// Error that happens when device is suspended or time travelling while receiving remote time
     /// Multiple attempts to receive remote time should happen before this error is returned

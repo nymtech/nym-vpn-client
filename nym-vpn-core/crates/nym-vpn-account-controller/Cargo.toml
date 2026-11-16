@@ -29,6 +29,7 @@ nym-offline-monitor.workspace = true
 nym-qr-pairing-requests.workspace = true
 nym-sdk.workspace = true
 nym-validator-client.workspace = true
+nym-vpn-account.workspace = true
 nym-vpn-api-client.workspace = true
 nym-vpn-credential-fetcher.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }

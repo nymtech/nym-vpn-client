@@ -20,9 +20,8 @@ use nym_qr_pairing_requests::{
     NymVpnGetPairingSecretResponse, NymVpnPairingCheckResponse, NymVpnPairingResponse,
 };
 use nym_sdk::mixnet::x25519::{KeyPair, PublicKey};
-use nym_vpn_api_client::{
-    VpnApiClient, error::VpnApiClientError, response::StatusOk, types::VpnAccount,
-};
+use nym_vpn_account::VpnAccount;
+use nym_vpn_api_client::{VpnApiClient, error::VpnApiClientError, response::StatusOk};
 use nym_vpn_lib_types::{QrPairingConfirmation, QrUrl};
 use rand::Rng;
 use tokio::sync::Mutex;
@@ -589,6 +588,7 @@ mod tests {
 
     use nym_http_api_client::HttpClientError;
     use nym_qr_pairing_requests::{NymVpnPairingFinalisedResponse, SharePairSecretBody};
+    use nym_vpn_api_client::types::VpnAccountMode;
     use tokio::time::Instant;
 
     use crate::event_sender::AccountControllerEventReceiver;
@@ -847,7 +847,7 @@ mod tests {
 
     #[tokio::test]
     async fn happy_flow() {
-        let account = Arc::new(VpnAccount::generate_new().unwrap().0);
+        let account = new_account();
         let cancel_token = CancellationToken::new();
         let api_db = Arc::new(Mutex::new(ApiDb::default()));
 
@@ -935,7 +935,8 @@ mod tests {
     }
 
     fn new_account() -> Arc<VpnAccount> {
-        Arc::new(VpnAccount::generate_new().unwrap().0)
+        let mnemonic = nym_vpn_account::generate_mnemonic().unwrap();
+        Arc::new(VpnAccount::new(mnemonic, VpnAccountMode::Api).unwrap())
     }
 
     fn pub_key_from_url(url: &QrUrl) -> &str {

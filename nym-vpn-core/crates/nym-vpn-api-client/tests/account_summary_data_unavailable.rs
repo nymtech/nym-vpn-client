@@ -3,10 +3,11 @@ use std::str::FromStr;
 use bip39::Mnemonic;
 use nym_crypto::asymmetric::ed25519;
 use nym_http_api_client::{Url, UserAgent};
+use nym_vpn_account::VpnAccount;
 use nym_vpn_api_client::{
     VpnApiClient,
     response::NymVpnAccountSummaryWithDeviceResponse,
-    types::{Device, VpnAccount, VpnAccountMode},
+    types::{Device, VpnAccountMode},
 };
 use wiremock::{
     Mock, MockServer, ResponseTemplate,

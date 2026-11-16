@@ -1,0 +1,24 @@
+[package]
+name = "nym-vpn-account"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+bip39 = { workspace = true, features = ["rand", "zeroize"] }
+bs58.workspace = true
+nym-config.workspace = true
+nym-credentials-interface.workspace = true
+nym-validator-client.workspace = true
+nym-vpn-api-client.workspace = true
+thiserror.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+hex.workspace = true

@@ -8006,6 +8006,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpn-account"
+version = "2026.17.0-beta.1"
+dependencies = [
+ "bip39",
+ "bs58",
+ "nym-config",
+ "nym-credentials-interface",
+ "nym-validator-client",
+ "nym-vpn-api-client",
+ "thiserror 2.0.20",
+ "zeroize",
+]
+
+[[package]]
 name = "nym-vpn-api-client"
 version = "2026.17.0-beta.1"
 dependencies = [
@@ -8013,14 +8027,11 @@ dependencies = [
  "backon",
  "base64-url",
  "bip39",
- "bs58",
  "futures",
  "hex",
  "itertools 0.15.0",
  "nym-bridges-types",
  "nym-common 2026.17.0-beta.1",
- "nym-compact-ecash",
- "nym-config",
  "nym-contracts-common",
  "nym-credential-proxy-requests",
  "nym-crypto",
@@ -8038,7 +8049,6 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
- "zeroize",
 ]
 
 [[package]]
@@ -8119,6 +8129,7 @@ dependencies = [
  "nym-sdk",
  "nym-statistics-common",
  "nym-validator-client",
+ "nym-vpn-account",
  "nym-vpn-api-client",
  "nym-vpn-network-config",
  "serde",

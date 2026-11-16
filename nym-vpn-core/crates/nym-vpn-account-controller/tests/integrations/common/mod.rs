@@ -6,11 +6,12 @@ use std::{sync::OnceLock, time::Duration};
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
+use nym_vpn_account::VpnAccount;
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerChannels, AccountControllerClients,
     AccountControllerConfig, AccountStateReceiver, NyxdClient,
 };
-use nym_vpn_api_client::{VpnApiClient, types::VpnAccount};
+use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::{AccountControllerState, Mnemonic, StorableAccount, StoredAccountMode};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
