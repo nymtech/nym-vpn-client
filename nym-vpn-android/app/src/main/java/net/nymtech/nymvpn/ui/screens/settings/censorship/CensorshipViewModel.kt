@@ -12,6 +12,7 @@ import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import nym_vpn_lib_types.BridgeMode
+import nym_vpn_lib_types.BridgeTransport
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -38,6 +39,14 @@ class CensorshipViewModel @Inject constructor(private val vpnConfigRepository: V
 			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetStealthMode(enabled))
 		}.onFailure {
 			Timber.e(it, "Failed to update stealth mode setting")
+		}
+	}
+
+	fun onTransportPreferenceSelected(preference: BridgeTransport?) = viewModelScope.launch {
+		runCatching {
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetTransportPreference(preference))
+		}.onFailure {
+			Timber.e(it, "Failed to update transport preference setting")
 		}
 	}
 }
