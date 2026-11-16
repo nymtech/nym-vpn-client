@@ -35,6 +35,7 @@ public struct GeneratePassphraseView: View {
     @State private var didLeaveForSuccessfulPurchase = false
 #if os(iOS)
     @State private var autologinState = AutologinState()
+    @State var isCodeEntryPresented = false
 #elseif os(macOS)
     @State var autologinState = AutologinState()
 #endif
@@ -120,6 +121,12 @@ public struct GeneratePassphraseView: View {
             await purchasesManager.refreshTrialEligibility()
         }
         .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
+        .fullScreenCover(isPresented: $isCodeEntryPresented) {
+            CodeEntryView(startsWithScanner: true) { outcome in
+                isCodeEntryPresented = false
+                handleCodeEntry(outcome)
+            }
+        }
         .onChange(of: isPresentedManageSubscription) { _, presented in
             // The user may have cancelled in Apple's sheet; re-read so the copy follows.
             guard !presented else { return }
@@ -235,6 +242,11 @@ private extension GeneratePassphraseView {
         }
 #endif
         selectPlanButton
+#if os(iOS)
+        Spacer()
+            .frame(height: 12)
+        scanCodeButton
+#endif
     }
 
     var checkmarkImage: some View {
@@ -359,6 +371,21 @@ extension GeneratePassphraseView {
         path.append(SettingLink.processingAccount)
     }
 
+#if os(iOS)
+    func handleCodeEntry(_ outcome: CodeEntryOutcome) {
+        guard outcome == .freepassRedeemed else { return }
+        Task {
+            // The summary is refreshed first, so leaving isn't taken for a dismissed checkout.
+            await CodeEntryOutcomeHandler.handle(
+                outcome,
+                credentialsManager: credentialsManager,
+                sendSessionEvent: { _ in }
+            )
+            path = NavigationPath()
+        }
+    }
+
+#endif
     /// The account screen holds the log-out flow, which is how the user gets to the other account.
     func navigateToAccountAndDevices() {
         path.append(SettingLink.accountAndDevices)
