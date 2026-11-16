@@ -257,7 +257,7 @@ function AntiCensorship() {
           </div>
         </SettingsMenuCardBig>
       )}
-      {backendFlags.bridgeTransports && (
+      {backendFlags.bridgeTransports && bridgeMode !== 'off' && (
         <SettingsMenuCardBig
           header={
             <p className="text-text-primary truncate px-5 pt-4 text-base select-none">
@@ -273,6 +273,11 @@ function AntiCensorship() {
               value={toTransportChoice(transportPreference)}
               onChange={onTransportPreferenceChange}
             />
+            {bridgeMode === 'auto' && transportPreference !== null && (
+              <p className="text-status-warning text-sm">
+                {t('anti-censorship.transport-preference.auto-mode-disclaimer')}
+              </p>
+            )}
           </div>
         </SettingsMenuCardBig>
       )}
