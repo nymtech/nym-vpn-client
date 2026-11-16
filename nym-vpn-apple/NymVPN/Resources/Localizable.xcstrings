@@ -32093,6 +32093,17 @@
           }
         }
       }
+    },
+    "censorship.transport.autoModeDisclaimer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Auto only uses a bridge if the direct connection fails, so your pin has no effect unless that happens."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
