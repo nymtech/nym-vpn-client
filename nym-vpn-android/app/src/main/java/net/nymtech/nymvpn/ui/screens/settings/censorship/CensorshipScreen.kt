@@ -81,11 +81,14 @@ fun CensorshipScreen(
 			onEnable = onStealthModeEnable,
 			modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
 		)
-		TransportPreferenceSection(
-			transportPreference = transportPreference,
-			onTransportPreferenceSelected = onTransportPreferenceSelected,
-			modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-		)
+		if (bridgeMode != BridgeMode.OFF) {
+			TransportPreferenceSection(
+				bridgeMode = bridgeMode,
+				transportPreference = transportPreference,
+				onTransportPreferenceSelected = onTransportPreferenceSelected,
+				modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+			)
+		}
 	}
 }
 

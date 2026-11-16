@@ -37,10 +37,12 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.BridgeTransport
 
 @Composable
 fun TransportPreferenceSection(
+	bridgeMode: BridgeMode,
 	transportPreference: BridgeTransport?,
 	onTransportPreferenceSelected: (BridgeTransport?) -> Unit,
 	shape: Shape = RoundedCornerShape(8.dp),
@@ -80,6 +82,14 @@ fun TransportPreferenceSection(
 				color = LocalNymColors.current.warning,
 				modifier = Modifier.padding(top = 8.dp),
 			)
+			if (bridgeMode == BridgeMode.AUTO && transportPreference != null) {
+				Text(
+					text = stringResource(R.string.censorship_transport_auto_mode_disclaimer),
+					style = MaterialTheme.typography.bodyMedium,
+					color = LocalNymColors.current.warning,
+					modifier = Modifier.padding(top = 8.dp),
+				)
+			}
 		}
 	}
 }
@@ -149,6 +159,6 @@ private fun TransportPreferenceSelector(transportPreference: BridgeTransport?, o
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewTransportPreferenceSection() {
 	NymVPNTheme(Theme.default()) {
-		TransportPreferenceSection(null, {}, modifier = Modifier.fillMaxWidth())
+		TransportPreferenceSection(BridgeMode.AUTO, null, {}, modifier = Modifier.fillMaxWidth())
 	}
 }
