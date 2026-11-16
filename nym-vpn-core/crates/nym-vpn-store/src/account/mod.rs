@@ -101,13 +101,13 @@ pub struct StoredDeviceState {
 }
 
 #[async_trait::async_trait]
-pub trait DeviceStateStorage {
+pub trait AccountInformationStorage {
     type StorageError: Error + Send + Sync + 'static;
 
     /// Returns `None` when no state is stored.
-    async fn load_device_state(&self) -> Result<Option<StoredDeviceState>, Self::StorageError>;
+    async fn load_account(&self) -> Result<Option<StoredDeviceState>, Self::StorageError>;
 
-    async fn store_device_state(&self, state: StoredDeviceState) -> Result<(), Self::StorageError>;
+    async fn store_account(&self, state: StoredDeviceState) -> Result<(), Self::StorageError>;
 
-    async fn remove_device_state(&self) -> Result<(), Self::StorageError>;
+    async fn remove_account(&self) -> Result<(), Self::StorageError>;
 }

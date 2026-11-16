@@ -5,27 +5,27 @@ use std::convert::Infallible;
 
 use tokio::sync::Mutex;
 
-use super::{DeviceStateStorage, StoredDeviceState};
+use super::{AccountInformationStorage, StoredDeviceState};
 
 #[derive(Default)]
-pub struct InMemoryDeviceStateStorage {
+pub struct InMemoryAccountStorage {
     state: Mutex<Option<StoredDeviceState>>,
 }
 
 #[async_trait::async_trait]
-impl DeviceStateStorage for InMemoryDeviceStateStorage {
+impl AccountInformationStorage for InMemoryAccountStorage {
     type StorageError = Infallible;
 
-    async fn load_device_state(&self) -> Result<Option<StoredDeviceState>, Self::StorageError> {
+    async fn load_account(&self) -> Result<Option<StoredDeviceState>, Self::StorageError> {
         Ok(self.state.lock().await.clone())
     }
 
-    async fn store_device_state(&self, state: StoredDeviceState) -> Result<(), Self::StorageError> {
+    async fn store_account(&self, state: StoredDeviceState) -> Result<(), Self::StorageError> {
         *self.state.lock().await = Some(state);
         Ok(())
     }
 
-    async fn remove_device_state(&self) -> Result<(), Self::StorageError> {
+    async fn remove_account(&self) -> Result<(), Self::StorageError> {
         *self.state.lock().await = None;
         Ok(())
     }
@@ -37,7 +37,7 @@ mod tests {
     use nym_credentials_interface::KeyPairUser;
     use nym_vpn_lib_types::StoredAccountMode;
 
-    use crate::device_state::StoredAccountIdentity;
+    use crate::account::StoredAccountIdentity;
 
     use super::*;
 
@@ -56,26 +56,26 @@ mod tests {
 
     #[tokio::test]
     async fn load_defaults_to_none() {
-        let storage = InMemoryDeviceStateStorage::default();
+        let storage = InMemoryAccountStorage::default();
 
-        assert_eq!(storage.load_device_state().await.unwrap(), None);
+        assert_eq!(storage.load_account().await.unwrap(), None);
     }
 
     #[tokio::test]
     async fn store_and_load() {
-        let storage = InMemoryDeviceStateStorage::default();
+        let storage = InMemoryAccountStorage::default();
         let state = logged_in();
-        storage.store_device_state(state.clone()).await.unwrap();
+        storage.store_account(state.clone()).await.unwrap();
 
-        assert_eq!(storage.load_device_state().await.unwrap(), Some(state));
+        assert_eq!(storage.load_account().await.unwrap(), Some(state));
     }
 
     #[tokio::test]
     async fn remove_resets_to_none() {
-        let storage = InMemoryDeviceStateStorage::default();
-        storage.store_device_state(logged_in()).await.unwrap();
-        storage.remove_device_state().await.unwrap();
+        let storage = InMemoryAccountStorage::default();
+        storage.store_account(logged_in()).await.unwrap();
+        storage.remove_account().await.unwrap();
 
-        assert_eq!(storage.load_device_state().await.unwrap(), None);
+        assert_eq!(storage.load_account().await.unwrap(), None);
     }
 }

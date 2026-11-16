@@ -20,7 +20,7 @@ use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{VpnApiClient, types::Device};
 use nym_vpn_lib_types::{AccountControllerErrorStateReason, StoredAccountMode, VpnAccountSummary};
-use nym_vpn_store::device_state::StoredDeviceState;
+use nym_vpn_store::account::StoredDeviceState;
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
