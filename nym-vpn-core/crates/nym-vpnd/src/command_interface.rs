@@ -228,6 +228,31 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_transport_preference(
+        &self,
+        request: tonic::Request<proto::TransportPreferenceRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let transport_preference = request
+            .into_inner()
+            .transport
+            .map(proto::BridgeTransport::try_from)
+            .transpose()
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid transport: {e}")))?
+            .map(Into::into);
+
+        let _ = self
+            .send_and_wait(
+                VpnServiceCommand::SetTransportPreference,
+                transport_preference,
+            )
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set transport preference: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_netstack(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
         let netstack = request.into_inner();
 

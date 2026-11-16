@@ -132,6 +132,10 @@ pub enum VpnServiceCommand {
     SetEnableAdBlocking(oneshot::Sender<()>, bool),
     SetEnableConflictDetection(oneshot::Sender<()>, bool),
     SetFrontingMode(oneshot::Sender<()>, nym_vpn_lib_types::FrontingMode),
+    SetTransportPreference(
+        oneshot::Sender<()>,
+        Option<nym_vpn_lib_types::BridgeTransport>,
+    ),
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(
@@ -1165,6 +1169,11 @@ impl NymVpnService {
                 self.handle_set_fronting_mode(fronting_mode).await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetTransportPreference(tx, transport_preference) => {
+                self.handle_set_transport_preference(transport_preference)
+                    .await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetstack(tx, netstack) => {
                 self.handle_set_netstack(netstack).await;
                 let _ = tx.send(());
@@ -1575,6 +1584,16 @@ impl NymVpnService {
 
     async fn handle_set_fronting_mode(&mut self, fronting_mode: nym_vpn_lib_types::FrontingMode) {
         self.config_manager.set_fronting_mode(fronting_mode).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_transport_preference(
+        &mut self,
+        transport_preference: Option<nym_vpn_lib_types::BridgeTransport>,
+    ) {
+        self.config_manager
+            .set_transport_preference(transport_preference)
+            .await;
         self.update_tunnel_settings_with_throttle();
     }
 

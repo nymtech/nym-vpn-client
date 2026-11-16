@@ -252,6 +252,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             enable_ad_blocking: value.enable_ad_blocking,
             enable_conflict_detection: value.enable_conflict_detection,
             fronting_mode,
+            transport_preference: value.transport_preference,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,

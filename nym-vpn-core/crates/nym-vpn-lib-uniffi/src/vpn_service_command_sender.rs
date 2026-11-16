@@ -12,9 +12,9 @@ use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
-    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, NymVpnSubscription,
-    ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways,
+    BridgeTransport, DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags,
+    FrontingMode, Gateway, GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig,
+    NymVpnSubscription, ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways,
     RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, StoredAccountMode,
     SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
@@ -199,6 +199,17 @@ impl NymVpnServiceCommandSender {
     pub async fn set_fronting_mode(&self, fronting_mode: FrontingMode) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::SetFrontingMode, fronting_mode)
             .await
+    }
+
+    pub async fn set_transport_preference(
+        &self,
+        transport_preference: Option<BridgeTransport>,
+    ) -> Result<()> {
+        self.send_and_wait(
+            VpnServiceCommand::SetTransportPreference,
+            transport_preference,
+        )
+        .await
     }
 
     pub async fn set_disable_ipv6(&self, disable_ipv6: bool) -> Result<()> {

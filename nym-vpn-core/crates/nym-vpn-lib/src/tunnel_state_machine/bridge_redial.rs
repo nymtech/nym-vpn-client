@@ -119,6 +119,7 @@ pub(super) async fn connect_and_launch_bridge(
 pub(super) async fn start_bridges(
     selected_gateways: &SelectedGateways,
     bridge_fallback: bool,
+    transport_preference: Option<BridgeTransport>,
     shutdown_token: CancellationToken,
     bridge_close_tx: mpsc::UnboundedSender<()>,
     #[cfg(target_os = "linux")] fwmark: u32,
@@ -134,6 +135,11 @@ pub(super) async fn start_bridges(
             .collect()
     };
     let (quic, fallback) = (ipv4_only(quic), ipv4_only(fallback));
+    let (quic, fallback) = crate::tunnel_state_machine::transport_preference::filter_by_preference(
+        quic,
+        fallback,
+        transport_preference,
+    );
 
     tracing::info!("Establishing DVPN bridge tunnel");
 
