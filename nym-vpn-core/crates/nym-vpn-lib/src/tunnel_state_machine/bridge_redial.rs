@@ -14,7 +14,10 @@ use nym_vpn_lib_types::{BridgeAddress, BridgeTransport};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use crate::tunnel_state_machine::{Result, tunnel::SelectedGateways, tunnel::transports};
+use crate::tunnel_state_machine::{
+    Result,
+    tunnel::{SelectedGateways, transports},
+};
 
 /// Cap on waiting for a generation's forwarder to exit gracefully before aborting it.
 const GRACEFUL_EXIT_TIMEOUT: Duration = Duration::from_secs(3);

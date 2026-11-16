@@ -8,8 +8,10 @@
 //! to it - today, the bridge connection's own reconnect loop - without threading it through the
 //! tunnel command or state machine layers, neither of which this is a command for.
 
-use std::sync::{Arc, Mutex, OnceLock};
-use std::time::{Duration, SystemTime};
+use std::{
+    sync::{Arc, Mutex, OnceLock},
+    time::{Duration, SystemTime},
+};
 
 use tokio::sync::Notify;
 
