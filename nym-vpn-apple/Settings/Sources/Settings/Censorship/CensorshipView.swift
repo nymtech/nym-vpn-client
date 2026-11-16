@@ -20,9 +20,11 @@ public struct CensorshipView: View {
                 ScrollView {
                     subtitleSection()
                     quicSection()
-                    Spacer()
-                        .frame(height: 24)
-                    transportPreferenceSection()
+                    if appSettings.bridgeMode != .off {
+                        Spacer()
+                            .frame(height: 24)
+                        transportPreferenceSection()
+                    }
                     Spacer()
                         .frame(height: 24)
                     stealthApiSection()
@@ -143,6 +145,11 @@ private extension CensorshipView {
                         .nymTextStyle(.bodySmall)
                         .foregroundStyle(Color.Nym.textSecondary)
                     TransportPreferenceSelector(selection: selectionBinding)
+                    if appSettings.bridgeMode == .auto, appSettings.transportPreference != .auto {
+                        Text("censorship.transport.autoModeDisclaimer".localizedString)
+                            .nymTextStyle(.bodySmall)
+                            .foregroundStyle(Color.Nym.warning)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, NymSpacing.large)
