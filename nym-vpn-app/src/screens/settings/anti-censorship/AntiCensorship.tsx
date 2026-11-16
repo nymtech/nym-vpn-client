@@ -15,9 +15,26 @@ import {
   DomainFrontingUrl,
 } from '../../../constants';
 import { useToast } from '../../../hooks';
-import { BridgeMode } from '../../../types';
+import { BridgeMode, BridgeTransport } from '../../../types';
 
 const bridgeModes: BridgeMode[] = ['off', 'auto', 'on'];
+
+// `null` means "Auto": try QUIC first, then fall back to TLS/SSH.
+type TransportChoice = 'auto' | BridgeTransport;
+
+const transportChoices: TransportChoice[] = ['auto', 'quic', 'tls', 'ssh'];
+
+function toTransportChoice(
+  preference: BridgeTransport | null,
+): TransportChoice {
+  return preference ?? 'auto';
+}
+
+function toTransportPreference(
+  choice: TransportChoice,
+): BridgeTransport | null {
+  return choice === 'auto' ? null : choice;
+}
 
 // Segmented control: equal-width segments with a sliding thumb.
 // Headless UI RadioGroup provides role=radiogroup/radio and arrow keys.
@@ -68,8 +85,57 @@ function BridgeModeSelector({
   );
 }
 
+// Segmented control: equal-width segments with a sliding thumb.
+function TransportPreferenceSelector({
+  value,
+  onChange,
+}: {
+  value: TransportChoice;
+  onChange: (choice: TransportChoice) => void;
+}) {
+  const { t } = useTranslation('settings');
+  const index = Math.max(0, transportChoices.indexOf(value));
+
+  return (
+    <RadioGroup
+      value={value}
+      onChange={onChange}
+      aria-label={t('anti-censorship.transport-preference.label')}
+      className="bg-surface-sunken relative flex rounded-full p-1"
+      data-testid="transport-preference-radio-group"
+    >
+      <span
+        aria-hidden
+        style={{ '--i': index } as React.CSSProperties}
+        className={clsx(
+          'bg-brand-primary pointer-events-none absolute inset-y-1 start-1 w-[calc((100%-0.5rem)/4)] rounded-full shadow-sm',
+          'translate-x-[calc(var(--i)*100%)] rtl:translate-x-[calc(var(--i)*-100%)]',
+          'transition-transform duration-300 ease-out motion-reduce:transition-none',
+        )}
+      />
+      {transportChoices.map((choice) => (
+        <Radio
+          key={choice}
+          value={choice}
+          className={({ checked }) =>
+            clsx(
+              'relative z-10 flex min-h-10 flex-1 cursor-default items-center justify-center rounded-full text-sm',
+              'focus-visible:ring-brand-primary focus:outline-hidden focus-visible:ring-2',
+              checked ? 'text-brand-on-primary' : 'text-text-primary',
+            )
+          }
+          data-testid={`transport-preference-radio-group-option-${choice}`}
+        >
+          {t(`anti-censorship.transport-preference.options.${choice}.label`)}
+        </Radio>
+      ))}
+    </RadioGroup>
+  );
+}
+
 function AntiCensorship() {
-  const { bridgeMode, backendFlags, state, frontingMode } = useMainState();
+  const { bridgeMode, backendFlags, state, frontingMode, transportPreference } =
+    useMainState();
   const { add } = useToast();
 
   const { t } = useTranslation('settings');
@@ -92,6 +158,30 @@ function AntiCensorship() {
       add({
         id: `bridge-mode-${mode}`,
         title: t('anti-censorship.bridge-mode.snackbar'),
+        type: 'info',
+      });
+    }
+  };
+
+  const onTransportPreferenceChange = async (choice: TransportChoice) => {
+    const transport = toTransportPreference(choice);
+    try {
+      await invoke('set_transport_preference', { transport });
+      dispatch({ type: 'set-transport-preference', transport });
+    } catch (err: unknown) {
+      console.error('Failed to set transport preference', err);
+      add({
+        id: `transport-preference-${choice}`,
+        title: t('anti-censorship.transport-preference.error'),
+        type: 'error',
+      });
+      return;
+    }
+
+    if (state == 'connected' || state == 'connecting') {
+      add({
+        id: `transport-preference-${choice}`,
+        title: t('anti-censorship.transport-preference.snackbar'),
         type: 'info',
       });
     }
@@ -163,6 +253,25 @@ function AntiCensorship() {
               text={t('anti-censorship.bridge-mode.link')}
               url={AntiCensorshipBridgesUrl}
               color="primary"
+            />
+          </div>
+        </SettingsMenuCardBig>
+      )}
+      {backendFlags.bridgeTransports && (
+        <SettingsMenuCardBig
+          header={
+            <p className="text-text-primary truncate px-5 pt-4 text-base select-none">
+              {t('anti-censorship.transport-preference.label')}
+            </p>
+          }
+        >
+          <div className="flex flex-col gap-4">
+            <p className="text-text-secondary text-sm">
+              {t('anti-censorship.transport-preference.description')}
+            </p>
+            <TransportPreferenceSelector
+              value={toTransportChoice(transportPreference)}
+              onChange={onTransportPreferenceChange}
             />
           </div>
         </SettingsMenuCardBig>

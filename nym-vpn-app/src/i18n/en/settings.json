@@ -201,6 +201,26 @@
       "error": "Failed to change the bridge setting",
       "snackbar": "Reconnecting to apply the bridge setting."
     },
+    "transport-preference": {
+      "label": "Bridge transport",
+      "description": "Choose which transport your bridge connection uses. Auto tries QUIC first and falls back to TLS or SSH if it fails.",
+      "options": {
+        "auto": {
+          "label": "Auto"
+        },
+        "quic": {
+          "label": "QUIC"
+        },
+        "tls": {
+          "label": "TLS"
+        },
+        "ssh": {
+          "label": "SSH"
+        }
+      },
+      "error": "Failed to change the bridge transport setting",
+      "snackbar": "Reconnecting to apply the bridge transport setting."
+    },
     "stealth-api": {
       "label": "Disguise your Nym connection",
       "content": "Stay connected even if Nym's servers are blocked where you are.",
