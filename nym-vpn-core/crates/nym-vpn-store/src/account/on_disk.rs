@@ -10,7 +10,7 @@ use std::{
 
 use tokio::{fs::OpenOptions, io::AsyncWriteExt};
 
-use super::{AccountInformationStorage, StoredDeviceState};
+use super::{AccountInformationStorage, StoredAccountInformation};
 use crate::store_ciphers::{StoreCipher, StoreCipherError};
 
 #[derive(Debug, thiserror::Error)]
@@ -23,10 +23,10 @@ pub enum OnDiskAccountStorageError {
         source: std::io::Error,
     },
 
-    #[error("failed to serialize device state")]
+    #[error("failed to serialize account information")]
     Serialize(#[source] serde_json::Error),
 
-    #[error("failed to deserialize device state")]
+    #[error("failed to deserialize account information")]
     Deserialize(#[source] serde_json::Error),
 
     #[error("failed to encrypt data")]
@@ -124,7 +124,7 @@ impl OnDiskAccountStorage {
 impl AccountInformationStorage for OnDiskAccountStorage {
     type StorageError = OnDiskAccountStorageError;
 
-    async fn load_account(&self) -> Result<Option<StoredDeviceState>> {
+    async fn load_account(&self) -> Result<Option<StoredAccountInformation>> {
         match tokio::fs::read(&self.path).await {
             Ok(ciphertext) => {
                 let plaintext = self
@@ -142,8 +142,8 @@ impl AccountInformationStorage for OnDiskAccountStorage {
         }
     }
 
-    async fn store_account(&self, state: StoredDeviceState) -> Result<()> {
-        tracing::debug!("Storing device state to: {}", self.path.display());
+    async fn store_account(&self, state: StoredAccountInformation) -> Result<()> {
+        tracing::debug!("Storing account information to: {}", self.path.display());
 
         self.create_parent_dirs().await?;
 
@@ -175,8 +175,8 @@ mod tests {
     use super::*;
     use crate::{account::StoredAccountIdentity, store_ciphers::noop_cipher::NoopStoreCipher};
 
-    fn logged_in(mode: StoredAccountMode) -> StoredDeviceState {
-        StoredDeviceState {
+    fn logged_in(mode: StoredAccountMode) -> StoredAccountInformation {
+        StoredAccountInformation {
             account_identity: StoredAccountIdentity {
                 id: "juno1cma4czt2jnydvrvz3lrc9jvcmhpjxtds95s3c6".to_owned(),
                 mode: mode,

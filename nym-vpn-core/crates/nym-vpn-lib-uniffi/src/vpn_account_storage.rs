@@ -19,7 +19,7 @@ use nym_vpn_lib_types::{
     VpnAccountSummary,
 };
 use nym_vpn_store::{
-    account::{AccountInformationStorage, StoredAccountIdentity, StoredDeviceState},
+    account::{AccountInformationStorage, StoredAccountIdentity, StoredAccountInformation},
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
     mnemonic::{MnemonicStorage, StoredMnemonic},
 };
@@ -237,7 +237,7 @@ impl NymVpnAccountStorage {
 
         // First remove the files we own directly
         self.remove_account_mnemonic().await?;
-        self.remove_device_state().await?;
+        self.remove_account_information().await?;
         self.remove_device_identity().await?;
         self.remove_credential_storage().await?;
 
@@ -318,26 +318,26 @@ impl NymVpnAccountStorage {
     /// Get a summary of account usage, syncing from the VPN API first. falling back to cache otherwise
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
         // Check if we have an account
-        let Some(mut device_state) = self.storage.load_account().await? else {
+        let Some(mut account_information) = self.storage.load_account().await? else {
             return Ok(None);
         };
 
         let device = self.load_device().await?;
 
         match self
-            .get_account_summary_from_network(&device_state.account_identity, &device)
+            .get_account_summary_from_network(&account_information.account_identity, &device)
             .await
         {
             Ok(account_summary) => {
                 // Best effort, let's not fail to return it even though we have it
-                device_state.summary = Some(account_summary.clone());
-                let _ = self.storage.store_account(device_state).await;
+                account_information.summary = Some(account_summary.clone());
+                let _ = self.storage.store_account(account_information).await;
                 Ok(Some(account_summary))
             }
             Err(e) => {
                 tracing::warn!("Account summary network sync failed, trying cache: {e:?}");
                 // If we have an account but no cached summary, its absence is indeed an error
-                device_state.summary.map(Some).ok_or(e)
+                account_information.summary.map(Some).ok_or(e)
             }
         }
     }
@@ -373,7 +373,7 @@ impl NymVpnAccountStorage {
 }
 
 impl NymVpnAccountStorage {
-    /// Stores the mnemonic and the device state derived from it, creating device keys if missing.
+    /// Stores the mnemonic and the account information derived from it, creating device keys if missing.
     async fn init_account(&self, account: StorableAccount) -> Result<(), VpnError> {
         let vpn_account =
             VpnAccount::try_from(account.clone()).map_err(|err| VpnError::InvalidMnemonic {
@@ -392,7 +392,7 @@ impl NymVpnAccountStorage {
             })
             .await?;
         self.storage
-            .store_account(StoredDeviceState {
+            .store_account(StoredAccountInformation {
                 account_identity,
                 ecash_keypair,
                 summary: None,
@@ -406,17 +406,17 @@ impl NymVpnAccountStorage {
         self.storage
             .load_account()
             .await?
-            .map(|device_state| device_state.account_identity)
+            .map(|account_information| account_information.account_identity)
             .ok_or(VpnError::NoAccountStored)
     }
 
     /// Loads the stored account, which requires step-up authentication.
     async fn load_account(&self) -> Result<Option<StorableAccount>, VpnError> {
-        let Some(device_state) = self.storage.load_account().await? else {
+        let Some(account_information) = self.storage.load_account().await? else {
             return Ok(None);
         };
         Ok(self.storage.load_mnemonic().await?.map(|stored| {
-            StorableAccount::new(stored.mnemonic, device_state.account_identity.mode)
+            StorableAccount::new(stored.mnemonic, account_information.account_identity.mode)
         }))
     }
 
@@ -513,7 +513,7 @@ impl NymVpnAccountStorage {
         Ok(self.storage.remove_mnemonic().await?)
     }
 
-    async fn remove_device_state(&self) -> Result<(), VpnError> {
+    async fn remove_account_information(&self) -> Result<(), VpnError> {
         Ok(self.storage.remove_account().await?)
     }
 

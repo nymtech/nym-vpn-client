@@ -92,9 +92,9 @@ impl std::fmt::Debug for EcashSeed {
     }
 }
 
-/// Device state persisted while logged in
+/// Account information persisted while logged in
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct StoredDeviceState {
+pub struct StoredAccountInformation {
     pub account_identity: StoredAccountIdentity,
     pub ecash_keypair: KeyPairUser,
     pub summary: Option<VpnAccountSummary>,
@@ -105,9 +105,12 @@ pub trait AccountInformationStorage {
     type StorageError: Error + Send + Sync + 'static;
 
     /// Returns `None` when no state is stored.
-    async fn load_account(&self) -> Result<Option<StoredDeviceState>, Self::StorageError>;
+    async fn load_account(&self) -> Result<Option<StoredAccountInformation>, Self::StorageError>;
 
-    async fn store_account(&self, state: StoredDeviceState) -> Result<(), Self::StorageError>;
+    async fn store_account(
+        &self,
+        state: StoredAccountInformation,
+    ) -> Result<(), Self::StorageError>;
 
     async fn remove_account(&self) -> Result<(), Self::StorageError>;
 }
