@@ -6,11 +6,12 @@ use std::{path::PathBuf, sync::Arc};
 use nym_common::{ErrorExt, trace_err_chain};
 use nym_platform_metadata::new_user_agent;
 use nym_sdk::mixnet::StoragePaths;
+use nym_vpn_account::{VpnAccount, derive_ecash_keypair, generate_mnemonic};
 use nym_vpn_account_controller::{CreateDeeplinkParams, Deeplink};
 use nym_vpn_api_client::{
     VpnApiClient,
     response::NymVpnRegisterAccountResponse,
-    types::{Device, DeviceStatus, Platform, VpnAccount, VpnAccountMode},
+    types::{Device, DeviceStatus, Platform, VpnAccountMode},
 };
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
@@ -193,7 +194,7 @@ impl NymVpnAccountStorage {
     /// Generate the account mnemonic locally and store it.
     /// This is a version that can be called when the account controller is not running.
     pub async fn create_account(&self) -> Result<(), VpnError> {
-        let (_, mnemonic) = VpnAccount::generate_new().map_err(VpnError::internal)?;
+        let mnemonic = generate_mnemonic().map_err(VpnError::internal)?;
         let account = StorableAccount::new(mnemonic, StoredAccountMode::Api);
         self.init_account(account).await
     }
@@ -375,15 +376,12 @@ impl NymVpnAccountStorage {
 impl NymVpnAccountStorage {
     /// Stores the mnemonic and the account information derived from it, creating device keys if missing.
     async fn init_account(&self, account: StorableAccount) -> Result<(), VpnError> {
-        let vpn_account =
-            VpnAccount::try_from(account.clone()).map_err(|err| VpnError::InvalidMnemonic {
-                details: err.to_string(),
-            })?;
-        let ecash_keypair = vpn_account
-            .create_ecash_keypair()
-            .map_err(VpnError::internal)?;
         let account_identity = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
-            .map_err(VpnError::internal)?;
+            .map_err(|err| VpnError::InvalidMnemonic {
+            details: err.to_string(),
+        })?;
+        let ecash_keypair =
+            derive_ecash_keypair(account.mnemonic.clone()).map_err(VpnError::internal)?;
 
         self.storage.init_keys(None).await?;
         self.storage
@@ -466,7 +464,7 @@ impl NymVpnAccountStorage {
     ) -> Result<NymVpnRegisterAccountResponse, VpnError> {
         let vpn_api_client = self.create_vpn_api_client().await?;
         vpn_api_client
-            .register_account(account, platform)
+            .register_account(account, account.kind(), platform)
             .await
             .map_err(|err| VpnError::FailedAccountRegistration {
                 details: err.display_chain(),

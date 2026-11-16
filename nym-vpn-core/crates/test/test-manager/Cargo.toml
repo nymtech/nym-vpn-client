@@ -46,6 +46,7 @@ test-rpc = { workspace = true }
 tokio-util = { workspace = true, features = ["codec"] }
 nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
+nym-vpn-account.workspace = true
 nym-vpn-api-client = { workspace = true }
 nym-network-defaults = { workspace = true }
 bip39 = { workspace = true }

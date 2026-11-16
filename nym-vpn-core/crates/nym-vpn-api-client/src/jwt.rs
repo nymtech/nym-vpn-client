@@ -7,11 +7,10 @@ use nym_crypto::{
     asymmetric::ed25519,
     sha2::{Digest, Sha256},
 };
-use nym_validator_client::{DirectSecp256k1HdWallet, signing::signer::OfflineSigner};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::types::VpnApiTime;
+use crate::types::{AccountSigner, AccountSignerError, VpnApiTime};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub(crate) struct JwtHeader {
@@ -53,21 +52,23 @@ pub(crate) struct Jwt {
 }
 
 impl Jwt {
-    pub fn new_secp256k1(wallet: &DirectSecp256k1HdWallet) -> Jwt {
+    pub fn new_secp256k1(account: &dyn AccountSigner) -> Result<Jwt, AccountSignerError> {
         let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u128;
         tracing::debug!("timestamp: {}", timestamp);
-        Jwt::new_secp256k1_with_now(wallet, timestamp)
+        Jwt::new_secp256k1_with_now(account, timestamp)
     }
 
-    pub fn new_secp256k1_synced(wallet: &DirectSecp256k1HdWallet, remote_time: VpnApiTime) -> Jwt {
-        Jwt::new_secp256k1_with_now(wallet, remote_time.estimate_remote_now_unix())
+    pub fn new_secp256k1_synced(
+        account: &dyn AccountSigner,
+        remote_time: VpnApiTime,
+    ) -> Result<Jwt, AccountSignerError> {
+        Jwt::new_secp256k1_with_now(account, remote_time.estimate_remote_now_unix())
     }
 
-    pub fn new_secp256k1_with_now(wallet: &DirectSecp256k1HdWallet, now: u128) -> Jwt {
-        let account = wallet.get_accounts();
-        let address = account[0].address();
-        let public_key = account[0].public_key().to_bytes();
-
+    pub fn new_secp256k1_with_now(
+        account: &dyn AccountSigner,
+        now: u128,
+    ) -> Result<Jwt, AccountSignerError> {
         let header = JwtHeader {
             typ: "JWT".to_string(),
             alg: "ES256K".to_string(),
@@ -75,27 +76,25 @@ impl Jwt {
         let payload = JwtPayload {
             iat: now,
             exp: 30,
-            pubkey: Some(bs58::encode(&public_key).into_string()),
-            sub: address.to_string(),
+            pubkey: Some(account.pub_key().to_owned()),
+            sub: account.id(),
         };
 
         let header_base64 = base64_url::encode(&json!(header.clone()).to_string());
         let payload_base64 = base64_url::encode(&json!(payload.clone()).to_string());
         let message = format!("{header_base64}.{payload_base64}").into_bytes();
 
-        let signature = wallet.sign_raw(address, message).unwrap(); // TODO: result
-        let signature_bytes = signature.to_bytes().to_vec();
-
+        let signature_bytes = account.sign_raw(&message)?;
         let signature_base64 = base64_url::encode(&signature_bytes);
 
         let jwt = format!("{header_base64}.{payload_base64}.{signature_base64}");
 
-        Jwt {
+        Ok(Jwt {
             header,
             payload,
             signature: signature_base64,
             jwt,
-        }
+        })
     }
 
     pub fn new_ecdsa(key_pair: &ed25519::KeyPair) -> Jwt {
@@ -149,14 +148,44 @@ impl fmt::Display for Jwt {
 #[cfg(test)]
 mod tests {
     use nym_crypto::asymmetric::ed25519;
-    use nym_validator_client::DirectSecp256k1HdWallet;
+    use nym_validator_client::{
+        DirectSecp256k1HdWallet, nyxd::AccountId, signing::signer::OfflineSigner,
+    };
 
     use super::*;
 
-    fn get_secp256k1_keypair() -> DirectSecp256k1HdWallet {
+    struct WalletSigner {
+        wallet: DirectSecp256k1HdWallet,
+        id: AccountId,
+        pub_key: String,
+    }
+
+    impl AccountSigner for WalletSigner {
+        fn id(&self) -> String {
+            self.id.to_string()
+        }
+
+        fn pub_key(&self) -> &str {
+            &self.pub_key
+        }
+
+        fn sign_raw(&self, message: &[u8]) -> Result<Vec<u8>, AccountSignerError> {
+            Ok(self.wallet.sign_raw(&self.id, message)?.to_bytes().to_vec())
+        }
+    }
+
+    fn get_secp256k1_signer() -> WalletSigner {
         let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
         let mnemonic = bip39::Mnemonic::parse(mnemonic).unwrap();
-        DirectSecp256k1HdWallet::checked_from_mnemonic("n", mnemonic).unwrap()
+        let wallet = DirectSecp256k1HdWallet::checked_from_mnemonic("n", mnemonic).unwrap();
+        let accounts = wallet.get_accounts();
+        let id = accounts[0].address().clone();
+        let pub_key = bs58::encode(accounts[0].public_key().to_bytes()).into_string();
+        WalletSigner {
+            wallet,
+            id,
+            pub_key,
+        }
     }
 
     #[test]
@@ -166,8 +195,8 @@ mod tests {
         let jwt_expected_from_js_snapshot_components: Vec<&str> =
             jwt_expected_from_js_snapshot.split('.').collect();
 
-        let wallet = get_secp256k1_keypair();
-        let jwt = Jwt::new_secp256k1_with_now(&wallet, now);
+        let signer = get_secp256k1_signer();
+        let jwt = Jwt::new_secp256k1_with_now(&signer, now).unwrap();
 
         let jwt_str = jwt.to_string();
         let jwt_components: Vec<&str> = jwt_str.split('.').collect();

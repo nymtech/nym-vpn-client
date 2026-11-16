@@ -15,14 +15,11 @@ async-trait.workspace = true
 backon.workspace = true
 base64-url.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
-bs58.workspace = true
 futures.workspace = true
 hex.workspace = true
 itertools.workspace = true
 nym-bridges-types = { workspace = true, features = ["serde"] }
 nym-common.workspace = true
-nym-compact-ecash.workspace = true
-nym-config.workspace = true
 nym-contracts-common.workspace = true
 nym-credential-proxy-requests.workspace = true
 nym-crypto = { workspace = true, features = [
@@ -48,9 +45,10 @@ time = { workspace = true, features = [
 ] }
 tracing.workspace = true
 url.workspace = true
-zeroize.workspace = true
 
 [dev-dependencies]
+bs58.workspace = true
+nym-vpn-account.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
 nym-crypto = { workspace = true, features = [
     "asymmetric",

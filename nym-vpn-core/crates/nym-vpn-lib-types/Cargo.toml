@@ -20,6 +20,7 @@ nym-type-conversions = [
     "dep:nym-statistics-common",
     "dep:nym-registration-common",
     "dep:nym-validator-client",
+    "dep:nym-vpn-account",
     "dep:nym-vpn-api-client",
     "dep:nym-vpn-network-config",
 ]
@@ -50,6 +51,7 @@ nym-gateway-directory = { workspace = true, optional = true }
 nym-sdk = { workspace = true, optional = true }
 nym-statistics-common = { workspace = true, optional = true }
 nym-validator-client = { workspace = true, optional = true }
+nym-vpn-account = { workspace = true, optional = true }
 nym-vpn-api-client = { workspace = true, optional = true }
 nym-vpn-network-config = { workspace = true, optional = true }
 nym-network-defaults = { workspace = true, optional = true }

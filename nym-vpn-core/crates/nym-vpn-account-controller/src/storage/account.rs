@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{Error, Result, commands::ReturnSender};
-use nym_vpn_api_client::types::{Device, VpnAccount};
+use nym_vpn_account::{VpnAccount, derive_ecash_keypair};
+use nym_vpn_api_client::types::Device;
 use nym_vpn_lib_types::StorableAccount;
 use nym_vpn_store::{
     VpnStorage,
@@ -28,14 +29,10 @@ where
     }
 
     pub async fn store_account(&self, account: StorableAccount) -> Result<()> {
-        let vpn_account =
-            VpnAccount::try_from(account.clone()).map_err(|e| Error::InvalidMnemonic(e.into()))?;
-        let ecash_keypair = vpn_account
-            .create_ecash_keypair()
-            .map_err(|err| Error::CreateEcashKeyPair(err.into()))?;
-
         let account_identity = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
-            .map_err(|err| Error::AccountStore(Box::new(err)))?;
+            .map_err(|e| Error::InvalidMnemonic(e.into()))?;
+        let ecash_keypair = derive_ecash_keypair(account.mnemonic.clone())
+            .map_err(|err| Error::CreateEcashKeyPair(err.into()))?;
 
         self.storage
             .store_mnemonic(StoredMnemonic {

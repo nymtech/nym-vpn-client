@@ -7830,6 +7830,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpn-account"
+version = "2026.17.0-beta.1"
+dependencies = [
+ "bip39",
+ "bs58",
+ "hex",
+ "nym-config",
+ "nym-credentials-interface",
+ "nym-validator-client",
+ "nym-vpn-api-client",
+ "thiserror 2.0.21",
+ "zeroize",
+]
+
+[[package]]
 name = "nym-vpn-account-controller"
 version = "2026.17.0-beta.1"
 dependencies = [
@@ -7855,6 +7870,7 @@ dependencies = [
  "nym-qr-pairing-requests",
  "nym-sdk",
  "nym-validator-client",
+ "nym-vpn-account",
  "nym-vpn-api-client",
  "nym-vpn-credential-fetcher",
  "nym-vpn-lib-types",
@@ -7891,8 +7907,6 @@ dependencies = [
  "itertools 0.15.0",
  "nym-bridges-types",
  "nym-common 2026.17.0-beta.1",
- "nym-compact-ecash",
- "nym-config",
  "nym-contracts-common",
  "nym-credential-proxy-requests",
  "nym-crypto",
@@ -7901,6 +7915,7 @@ dependencies = [
  "nym-qr-pairing-requests",
  "nym-serde-helpers",
  "nym-validator-client",
+ "nym-vpn-account",
  "serde",
  "serde_json",
  "strum",
@@ -7912,7 +7927,6 @@ dependencies = [
  "tracing-test",
  "url",
  "wiremock",
- "zeroize",
 ]
 
 [[package]]
@@ -8078,6 +8092,7 @@ dependencies = [
  "nym-sdk",
  "nym-statistics-common",
  "nym-validator-client",
+ "nym-vpn-account",
  "nym-vpn-api-client",
  "nym-vpn-network-config",
  "serde",
@@ -8121,6 +8136,7 @@ dependencies = [
  "nym-platform-metadata",
  "nym-sdk",
  "nym-secure-enclave",
+ "nym-vpn-account",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-lib",
@@ -8204,7 +8220,7 @@ dependencies = [
  "nym-sqlcipher",
  "nym-store-cipher",
  "nym-validator-client",
- "nym-vpn-api-client",
+ "nym-vpn-account",
  "nym-vpn-lib-types",
  "rand 0.10.3",
  "rand 0.8.8",
@@ -12195,6 +12211,7 @@ dependencies = [
  "log",
  "nix 0.31.3",
  "nym-network-defaults",
+ "nym-vpn-account",
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
