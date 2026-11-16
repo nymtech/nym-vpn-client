@@ -13,7 +13,7 @@ use nym_vpn_lib_types::{StorableAccount, VpnAccountSummary};
 use std::sync::Arc;
 
 use nym_vpn_credential_fetcher::VpnApiCredentialFetcher;
-use nym_vpn_store::{device_state::StoredDeviceState, keys::wireguard::WireguardKeysDb};
+use nym_vpn_store::{account::StoredDeviceState, keys::wireguard::WireguardKeysDb};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 

@@ -14,7 +14,7 @@ use nym_vpn_api_client::{VpnApiClient, types::VpnAccount};
 use nym_vpn_lib_types::{AccountControllerState, Mnemonic, StorableAccount, StoredAccountMode};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
-    device_state::StoredDeviceState,
+    account::StoredDeviceState,
     keys::device::{DeviceKeyStore, DeviceKeys},
     mnemonic::{MnemonicStorage, StoredMnemonic, ephemeral::InMemoryMnemonicStorageError},
 };
@@ -116,7 +116,7 @@ impl ConnectivityMonitor for MockConnectivityHandle {
 pub struct MockEphemeralStorage {
     key_store: nym_vpn_store::keys::device::InMemEphemeralKeys,
     mnemonic_storage: nym_vpn_store::mnemonic::ephemeral::InMemoryMnemonicStorage,
-    device_state_storage: nym_vpn_store::device_state::ephemeral::InMemoryDeviceStateStorage,
+    account_storage: nym_vpn_store::account::ephemeral::InMemoryAccountStorage,
 }
 
 impl nym_vpn_store::VpnStorage for MockEphemeralStorage {}
@@ -168,24 +168,22 @@ impl MnemonicStorage for MockEphemeralStorage {
 }
 
 #[async_trait::async_trait]
-impl nym_vpn_store::device_state::DeviceStateStorage for MockEphemeralStorage {
+impl nym_vpn_store::account::AccountInformationStorage for MockEphemeralStorage {
     type StorageError = std::convert::Infallible;
 
-    async fn load_device_state(&self) -> Result<Option<StoredDeviceState>, Self::StorageError> {
-        self.device_state_storage.load_device_state().await
+    async fn load_account(&self) -> Result<Option<StoredDeviceState>, Self::StorageError> {
+        self.account_storage.load_account().await
     }
 
-    async fn store_device_state(
+    async fn store_account(
         &self,
         device_state: StoredDeviceState,
     ) -> Result<(), Self::StorageError> {
-        self.device_state_storage
-            .store_device_state(device_state)
-            .await
+        self.account_storage.store_account(device_state).await
     }
 
-    async fn remove_device_state(&self) -> Result<(), Self::StorageError> {
-        self.device_state_storage.remove_device_state().await
+    async fn remove_account(&self) -> Result<(), Self::StorageError> {
+        self.account_storage.remove_account().await
     }
 }
 

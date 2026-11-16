@@ -17,7 +17,7 @@ use nym_vpn_lib_types::{
     QrPairingConfirmation, QrUrl, RegisterAccountResponse, StorableAccount, StoredAccountMode,
 };
 use nym_vpn_store::{
-    device_state::{StoredAccountIdentity, StoredDeviceState},
+    account::{StoredAccountIdentity, StoredDeviceState},
     keys::wireguard::WireguardKeyStore,
 };
 

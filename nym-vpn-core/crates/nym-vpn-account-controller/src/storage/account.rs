@@ -6,7 +6,7 @@ use nym_vpn_api_client::types::{Device, VpnAccount};
 use nym_vpn_lib_types::StorableAccount;
 use nym_vpn_store::{
     VpnStorage,
-    device_state::{StoredAccountIdentity, StoredDeviceState},
+    account::{StoredAccountIdentity, StoredDeviceState},
     mnemonic::StoredMnemonic,
 };
 use tokio::sync::mpsc;
@@ -45,7 +45,7 @@ where
             .map_err(|err| Error::AccountStore(Box::new(err)))?;
 
         self.storage
-            .store_device_state(StoredDeviceState {
+            .store_account(StoredDeviceState {
                 account_identity,
                 ecash_keypair,
                 summary: None,
@@ -63,7 +63,7 @@ where
 
     pub async fn load_device_state(&self) -> Result<Option<StoredDeviceState>> {
         self.storage
-            .load_device_state()
+            .load_account()
             .await
             .map_err(|err| Error::AccountStore(Box::new(err)))
     }
@@ -111,7 +111,7 @@ where
 
     pub async fn store_device_state(&self, device_state: StoredDeviceState) -> Result<()> {
         self.storage
-            .store_device_state(device_state)
+            .store_account(device_state)
             .await
             .map_err(|err| Error::AccountSummaryStore(Box::new(err)))
     }
@@ -138,7 +138,7 @@ where
         self.remove_account().await?;
         self.remove_device_keys().await?;
         self.storage
-            .remove_device_state()
+            .remove_account()
             .await
             .map_err(|err| Error::AccountSummaryStore(Box::new(err)))?;
         Ok(())

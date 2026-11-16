@@ -19,7 +19,7 @@ use nym_vpn_lib_types::{
     VpnAccountSummary,
 };
 use nym_vpn_store::{
-    device_state::{DeviceStateStorage, StoredAccountIdentity, StoredDeviceState},
+    account::{AccountInformationStorage, StoredAccountIdentity, StoredDeviceState},
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
     mnemonic::{MnemonicStorage, StoredMnemonic},
 };
@@ -318,7 +318,7 @@ impl NymVpnAccountStorage {
     /// Get a summary of account usage, syncing from the VPN API first. falling back to cache otherwise
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
         // Check if we have an account
-        let Some(mut device_state) = self.storage.load_device_state().await? else {
+        let Some(mut device_state) = self.storage.load_account().await? else {
             return Ok(None);
         };
 
@@ -331,7 +331,7 @@ impl NymVpnAccountStorage {
             Ok(account_summary) => {
                 // Best effort, let's not fail to return it even though we have it
                 device_state.summary = Some(account_summary.clone());
-                let _ = self.storage.store_device_state(device_state).await;
+                let _ = self.storage.store_account(device_state).await;
                 Ok(Some(account_summary))
             }
             Err(e) => {
@@ -392,7 +392,7 @@ impl NymVpnAccountStorage {
             })
             .await?;
         self.storage
-            .store_device_state(StoredDeviceState {
+            .store_account(StoredDeviceState {
                 account_identity,
                 ecash_keypair,
                 summary: None,
@@ -404,7 +404,7 @@ impl NymVpnAccountStorage {
     /// Loads the account identity, which does not require step-up authentication.
     async fn load_account_identity(&self) -> Result<StoredAccountIdentity, VpnError> {
         self.storage
-            .load_device_state()
+            .load_account()
             .await?
             .map(|device_state| device_state.account_identity)
             .ok_or(VpnError::NoAccountStored)
@@ -412,7 +412,7 @@ impl NymVpnAccountStorage {
 
     /// Loads the stored account, which requires step-up authentication.
     async fn load_account(&self) -> Result<Option<StorableAccount>, VpnError> {
-        let Some(device_state) = self.storage.load_device_state().await? else {
+        let Some(device_state) = self.storage.load_account().await? else {
             return Ok(None);
         };
         Ok(self.storage.load_mnemonic().await?.map(|stored| {
@@ -514,7 +514,7 @@ impl NymVpnAccountStorage {
     }
 
     async fn remove_device_state(&self) -> Result<(), VpnError> {
-        Ok(self.storage.remove_device_state().await?)
+        Ok(self.storage.remove_account().await?)
     }
 
     async fn remove_credential_storage(&self) -> Result<(), VpnError> {
