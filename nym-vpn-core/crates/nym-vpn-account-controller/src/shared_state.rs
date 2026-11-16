@@ -13,7 +13,7 @@ use nym_vpn_lib_types::{StorableAccount, VpnAccountSummary};
 use std::sync::Arc;
 
 use nym_vpn_credential_fetcher::VpnApiCredentialFetcher;
-use nym_vpn_store::{account::StoredDeviceState, keys::wireguard::WireguardKeysDb};
+use nym_vpn_store::{account::StoredAccountInformation, keys::wireguard::WireguardKeysDb};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -47,9 +47,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// Nyxd RPC client
     pub(crate) nyxd_client: NyxdClient,
 
-    /// Current device state
+    /// Current account information
     /// Includes metadata such as account summary when available.
-    pub(crate) device_state: Option<StoredDeviceState>,
+    pub(crate) account: Option<StoredAccountInformation>,
 
     /// Registered device
     pub(crate) device: Option<Device>,
@@ -86,7 +86,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         wireguard_keys_storage: WireguardKeysDb,
         vpn_api_client: VpnApiClient,
         nyxd_client: NyxdClient,
-        device_state: Option<StoredDeviceState>,
+        account: Option<StoredAccountInformation>,
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         event_sender: AccountControllerEventSender,
@@ -101,7 +101,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             wireguard_keys_storage,
             vpn_api_client,
             nyxd_client,
-            device_state,
+            account,
             device,
             deeplinks: Deeplinks::default(),
             firewall_active: false,
@@ -148,11 +148,11 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             return Ok(());
         }
 
-        let Some(StoredDeviceState {
+        let Some(StoredAccountInformation {
             account_identity,
             ecash_keypair,
             ..
-        }) = &self.device_state
+        }) = &self.account
         else {
             return Err(Error::NoAccountStored);
         };
@@ -215,7 +215,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         })?;
 
         let ecash_keypair = self
-            .device_state
+            .account
             .as_ref()
             .map(|state| state.ecash_keypair.clone())
             .ok_or(Error::NoAccountStored)?;
@@ -284,15 +284,15 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
 
     /// Marks the cached summary as stale and persists it. No-op when no summary is cached.
     pub(crate) async fn mark_summary_as_stale(&mut self) -> Result<()> {
-        let Some(StoredDeviceState {
+        let Some(StoredAccountInformation {
             summary: Some(account_summary),
             ..
-        }) = &mut self.device_state
+        }) = &mut self.account
         else {
             return Ok(());
         };
         account_summary.stale = true;
-        self.persist_device_state().await
+        self.persist_account_information().await
     }
 
     /// Stores the account summary in memory and persists it.
@@ -300,22 +300,22 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         &mut self,
         new_account_summary: VpnAccountSummary,
     ) -> Result<()> {
-        let Some(StoredDeviceState {
+        let Some(StoredAccountInformation {
             summary: account_summary,
             ..
-        }) = &mut self.device_state
+        }) = &mut self.account
         else {
             return Err(Error::NoAccountStored);
         };
         account_summary.replace(new_account_summary);
-        self.persist_device_state().await
+        self.persist_account_information().await
     }
 
-    async fn persist_device_state(&self) -> Result<()> {
-        let device_state = self.device_state.clone().ok_or(Error::NoAccountStored)?;
+    async fn persist_account_information(&self) -> Result<()> {
+        let account = self.account.clone().ok_or(Error::NoAccountStored)?;
         let (tx, rx) = ReturnSender::new();
         self.storage_op_sender
-            .send(AccountStorageOp::StoreDeviceState(tx, device_state))
+            .send(AccountStorageOp::StoreAccountInformation(tx, account))
             .map_err(Error::internal)?;
         rx.await.map_err(Error::internal)?
     }

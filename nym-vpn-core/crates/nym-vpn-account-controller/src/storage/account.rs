@@ -6,7 +6,7 @@ use nym_vpn_api_client::types::{Device, VpnAccount};
 use nym_vpn_lib_types::StorableAccount;
 use nym_vpn_store::{
     VpnStorage,
-    account::{StoredAccountIdentity, StoredDeviceState},
+    account::{StoredAccountIdentity, StoredAccountInformation},
     mnemonic::StoredMnemonic,
 };
 use tokio::sync::mpsc;
@@ -45,7 +45,7 @@ where
             .map_err(|err| Error::AccountStore(Box::new(err)))?;
 
         self.storage
-            .store_account(StoredDeviceState {
+            .store_account(StoredAccountInformation {
                 account_identity,
                 ecash_keypair,
                 summary: None,
@@ -61,7 +61,7 @@ where
             .map_err(|err| Error::AccountStore(Box::new(err)))
     }
 
-    pub async fn load_device_state(&self) -> Result<Option<StoredDeviceState>> {
+    pub async fn load_account_information(&self) -> Result<Option<StoredAccountInformation>> {
         self.storage
             .load_account()
             .await
@@ -109,9 +109,12 @@ where
             .map_err(|err| Error::KeyStore(Box::new(err)))
     }
 
-    pub async fn store_device_state(&self, device_state: StoredDeviceState) -> Result<()> {
+    pub async fn store_account_information(
+        &self,
+        account_information: StoredAccountInformation,
+    ) -> Result<()> {
         self.storage
-            .store_account(device_state)
+            .store_account(account_information)
             .await
             .map_err(|err| Error::AccountSummaryStore(Box::new(err)))
     }
@@ -145,10 +148,10 @@ where
     }
 
     async fn load_stored_account(&self) -> Result<Option<StorableAccount>> {
-        let device_state = self.load_device_state().await?;
+        let account_information = self.load_account_information().await?;
 
-        match device_state {
-            Some(StoredDeviceState {
+        match account_information {
+            Some(StoredAccountInformation {
                 account_identity, ..
             }) => self.load_mnemonic().await.map(|stored_mnemonic| {
                 stored_mnemonic.map(|v| StorableAccount::new(v.mnemonic, account_identity.mode))
@@ -172,8 +175,8 @@ where
                 result_tx.send(self.reset_and_load_keys(seed).await)
             }
             // Summary persistence is a best-effort cache: log failures rather than surfacing them.
-            AccountStorageOp::StoreDeviceState(result_tx, device_state) => {
-                result_tx.send(self.store_device_state(device_state).await)
+            AccountStorageOp::StoreAccountInformation(result_tx, account_information) => {
+                result_tx.send(self.store_account_information(account_information).await)
             }
         }
     }
@@ -184,7 +187,7 @@ pub(crate) enum AccountStorageOp {
     StoreAccount(ReturnSender<Device, Error>, StorableAccount),
     ForgetAccount(ReturnSender<(), Error>),
     ResetKeys(ReturnSender<Device, Error>, Option<[u8; 32]>),
-    StoreDeviceState(ReturnSender<(), Error>, StoredDeviceState),
+    StoreAccountInformation(ReturnSender<(), Error>, StoredAccountInformation),
 }
 
 /// Retrieves the stored account through the storage task.

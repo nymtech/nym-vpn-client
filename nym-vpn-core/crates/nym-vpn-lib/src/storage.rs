@@ -15,7 +15,7 @@ use nym_vpn_store::store_ciphers::secure_enclave_cipher::{
 };
 use nym_vpn_store::{
     account::{
-        AccountInformationStorage, StoredDeviceState,
+        AccountInformationStorage, StoredAccountInformation,
         on_disk::{OnDiskAccountStorage, OnDiskAccountStorageError},
     },
     database_key::{DatabaseKey, DatabaseKeyStorageError, OnDiskDatabaseKeyStorage},
@@ -201,11 +201,14 @@ impl MnemonicStorage for VpnClientOnDiskStorage {
 impl AccountInformationStorage for VpnClientOnDiskStorage {
     type StorageError = OnDiskAccountStorageError;
 
-    async fn load_account(&self) -> Result<Option<StoredDeviceState>, Self::StorageError> {
+    async fn load_account(&self) -> Result<Option<StoredAccountInformation>, Self::StorageError> {
         self.account_storage.load_account().await
     }
 
-    async fn store_account(&self, state: StoredDeviceState) -> Result<(), Self::StorageError> {
+    async fn store_account(
+        &self,
+        state: StoredAccountInformation,
+    ) -> Result<(), Self::StorageError> {
         self.account_storage.store_account(state).await
     }
 

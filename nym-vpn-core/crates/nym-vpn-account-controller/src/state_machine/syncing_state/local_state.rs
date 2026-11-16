@@ -20,7 +20,7 @@ use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{VpnApiClient, types::Device};
 use nym_vpn_lib_types::{AccountControllerErrorStateReason, StoredAccountMode, VpnAccountSummary};
-use nym_vpn_store::account::StoredDeviceState;
+use nym_vpn_store::account::StoredAccountInformation;
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
@@ -67,8 +67,8 @@ impl SyncingLocalState {
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
-        match &shared_state.device_state {
-            Some(StoredDeviceState {
+        match &shared_state.account {
+            Some(StoredAccountInformation {
                 account_identity, ..
             }) if account_identity.mode == StoredAccountMode::Decentralised => {
                 return DecentralisedState::enter();
@@ -92,7 +92,7 @@ impl SyncingLocalState {
 
         // Nothing to check locally without a cached summary: go fetch one from the network.
         let Some(summary) = shared_state
-            .device_state
+            .account
             .as_ref()
             .and_then(|state| state.summary.clone())
         else {
@@ -214,7 +214,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         // (memory + disk) so a restart doesn't try to register again, without
                         // needing a full re-fetch.
                         if device_registration
-                            && let Some(mut summary) = shared_state.device_state.as_ref().and_then(|state| state.summary.clone())
+                            && let Some(mut summary) = shared_state.account.as_ref().and_then(|state| state.summary.clone())
                             && !summary.is_device_active
                         {
                             summary.is_device_active = true;
