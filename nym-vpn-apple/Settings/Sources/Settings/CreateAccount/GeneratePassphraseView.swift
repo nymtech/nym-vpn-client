@@ -152,7 +152,11 @@ public struct GeneratePassphraseView: View {
         .onDisappear {
             isAlertDisplayed = false
             isPlanAlertDisplayed = false
+#if os(iOS)
+            guard !didLeaveForSuccessfulPurchase, !isCodeEntryPresented else { return }
+#else
             guard !didLeaveForSuccessfulPurchase else { return }
+#endif
             onPurchaseFlowDismissed?()
         }
     }

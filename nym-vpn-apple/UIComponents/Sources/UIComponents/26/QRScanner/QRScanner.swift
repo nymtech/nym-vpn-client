@@ -90,7 +90,7 @@ private extension QRScanner {
                 systemImageName: "exclamationmark.triangle",
                 title: "qrScanner.cameraError.title".localizedString,
                 message: "qrScanner.cameraError.body".localizedString,
-                secondaryAction: secondaryAction
+                secondaryAction: viewModel.isValidating ? nil : secondaryAction
             )
         } else if permission == .granted {
             ZStack {

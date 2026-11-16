@@ -14,6 +14,7 @@ private struct CaptureProtectionModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
+            .accessibilityHidden(isCaptured)
             .overlay {
                 if isCaptured {
                     ZStack {

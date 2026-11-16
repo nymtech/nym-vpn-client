@@ -73,23 +73,30 @@ public final class PairingManager: ObservableObject {
 
     /// Not cancellable, since the core keeps the session.
     public func onScannedKey(_ publicKey: String) async -> Result<Void, PairingError> {
-        let result = await serialized { manager -> Result<Void, PairingError> in
+        let result = await serialized { manager -> Result<UInt32, PairingError> in
             await manager.cancelActiveSession()
             do {
                 let confirmation = try await manager.credentialsManager.scannedPairingKey(publicKey)
                 manager.state = .waitingForApproval(pin: confirmation.pinCode, sessionId: confirmation.sessionId)
-                return .success(())
+                return .success(confirmation.sessionId)
             } catch {
                 manager.state = .idle
                 await manager.credentialsManager.closePairingController()
                 return .failure(PairingError(error))
             }
         }
-        if Task.isCancelled, case .success = result {
-            await cancel()
+        switch result {
+        case let .success(sessionId):
+            guard Task.isCancelled else { return .success(()) }
+            await serialized { manager in
+                guard manager.state.activeSessionId == sessionId else { return }
+                await manager.cancelActiveSession()
+                manager.state = .idle
+            }
             return .failure(.sessionEnded)
+        case let .failure(error):
+            return .failure(error)
         }
-        return result
     }
 
     public func cancel() async {
