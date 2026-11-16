@@ -7,11 +7,12 @@ use std::sync::Arc;
 use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
+use nym_vpn_account::{VpnAccount, derive_ecash_keypair, generate_mnemonic};
 use nym_vpn_api_client::{
     VpnApiClient,
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
     response::extract_error_response,
-    types::{Device, DeviceStatus, Platform, VpnAccount},
+    types::{Device, DeviceStatus, Platform},
 };
 use nym_vpn_lib_types::{
     QrPairingConfirmation, QrUrl, RegisterAccountResponse, StorableAccount, StoredAccountMode,
@@ -58,8 +59,7 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
         .map_err(|e| Error::InvalidMnemonic(e.into()))?;
     let vpn_account =
         VpnAccount::try_from(account.clone()).map_err(|e| Error::InvalidMnemonic(e.into()))?;
-    let ecash_keypair = vpn_account
-        .create_ecash_keypair()
+    let ecash_keypair = derive_ecash_keypair(account.mnemonic.clone())
         .map_err(|err| Error::CreateEcashKeyPair(err.into()))?;
 
     // if the account is decentralised, it must exist on the chain
@@ -91,22 +91,19 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
 pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<()> {
-    let (vpn_account, mnemonic) = VpnAccount::generate_new().map_err(Error::internal)?;
-    let ecash_keypair = vpn_account
-        .create_ecash_keypair()
-        .map_err(Error::internal)?;
-    let account_identity = StoredAccountIdentity::new(
-        mnemonic.clone(),
-        StoredAccountMode::from(vpn_account.mode()),
-    )
-    .map_err(Error::internal)?;
+    let mnemonic = generate_mnemonic().map_err(Error::internal)?;
+    let mode = StoredAccountMode::Api;
+    let ecash_keypair = derive_ecash_keypair(mnemonic.clone())
+        .map_err(|err| Error::CreateEcashKeyPair(err.into()))?;
+    let account_identity =
+        StoredAccountIdentity::new(mnemonic.clone(), mode).map_err(Error::internal)?;
 
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender
         .send(AccountStorageOp::StoreAccount(
             tx,
-            StorableAccount::new(mnemonic.clone(), vpn_account.mode().into()),
+            StorableAccount::new(mnemonic, mode),
         ))
         .map_err(Error::internal)?;
     let device = rx.await.map_err(Error::internal)??;
@@ -131,7 +128,7 @@ pub(crate) async fn handle_register_account<C: ConnectivityMonitor>(
         VpnAccount::try_from(account.clone()).map_err(|e| Error::InvalidMnemonic(e.into()))?;
     let account_token = shared_state
         .vpn_api_client
-        .register_account(&vpn_account, platform)
+        .register_account(&vpn_account, vpn_account.kind(), platform)
         .await?
         .account_token;
 

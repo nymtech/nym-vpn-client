@@ -9,10 +9,8 @@
 
 use anyhow::{Context, Result};
 use bip39::Mnemonic;
-use nym_vpn_api_client::{
-    VpnApiClient,
-    types::{VpnAccount, VpnAccountMode},
-};
+use nym_vpn_account::VpnAccount;
+use nym_vpn_api_client::{VpnApiClient, types::VpnAccountMode};
 
 pub async fn delete_all_devices(mnemonic: &str) -> Result<()> {
     let network = nym_network_defaults::v2::NymNetworkDetails::new_mainnet();

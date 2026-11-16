@@ -11,7 +11,7 @@ use std::{
 
 #[cfg(target_os = "android")]
 use nym_secure_enclave::{SecureEnclave, SecureEnclaveError};
-use nym_vpn_api_client::types::{VpnAccount, VpnAccountMode};
+use nym_vpn_account::derive_ecash_keypair;
 use nym_vpn_lib_types::{Mnemonic, StoredAccountMode, VpnAccountSummary};
 use serde::Deserialize;
 use tokio::fs::File;
@@ -30,11 +30,8 @@ pub enum SecureStoreMigrationError {
     #[error("failed to instantiate device account")]
     CreateDeviceAccount(#[from] DeviceAccountError),
 
-    #[error("failed to load vpn account")]
-    LoadVpnAccount(#[source] Box<dyn Error + Send + Sync>),
-
     #[error("failed to create ecash keypair")]
-    CreateEcashKeyPair(#[source] Box<dyn Error + Send + Sync>),
+    CreateEcashKeyPair(#[source] nym_vpn_account::Error),
 
     #[error("failed to parse legacy account")]
     ParseLegacyAccount(#[source] serde_json::Error),
@@ -198,15 +195,8 @@ where
             self.read_legacy_account(plain_mnemonic_file).await?;
 
         let account_identity = StoredAccountIdentity::new(mnemonic.clone(), mode)?;
-        let vpn_account = VpnAccount::new(
-            mnemonic.clone(),
-            VpnAccountMode::from(account_identity.mode),
-        )
-        .map_err(|err| SecureStoreMigrationError::LoadVpnAccount(Box::new(err)))?;
-
-        let ecash_keypair = vpn_account
-            .create_ecash_keypair()
-            .map_err(|err| SecureStoreMigrationError::CreateEcashKeyPair(Box::new(err)))?;
+        let ecash_keypair = derive_ecash_keypair(mnemonic.clone())
+            .map_err(SecureStoreMigrationError::CreateEcashKeyPair)?;
 
         let account_information = StoredAccountInformation {
             account_identity,
@@ -326,10 +316,7 @@ mod tests {
         mode: StoredAccountMode,
     ) -> (StoredAccountIdentity, KeyPairUser) {
         let account_identity = StoredAccountIdentity::new(mnemonic.clone(), mode).unwrap();
-        let ecash_keypair = VpnAccount::new(mnemonic.clone(), VpnAccountMode::from(mode))
-            .unwrap()
-            .create_ecash_keypair()
-            .unwrap();
+        let ecash_keypair = derive_ecash_keypair(mnemonic.clone()).unwrap();
         (account_identity, ecash_keypair)
     }
 

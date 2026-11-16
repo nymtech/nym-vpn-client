@@ -1,34 +1,24 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::jwt::Jwt;
-use nym_compact_ecash::scheme::keygen::KeyPairUser;
-use nym_validator_client::{
-    DirectSecp256k1HdWallet,
-    nyxd::{AccountId, bip32::DerivationPath},
-    signing::signer::OfflineSigner as _,
-};
-
-use std::fmt;
+use std::{error::Error, fmt};
 use time::{Duration, OffsetDateTime};
-use zeroize::Zeroizing;
 
 const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 60;
 const SKEW_SECONDS_CONSIDERED_SAME: i64 = 2;
 
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    #[error("wallet error")]
-    Wallet(#[from] nym_validator_client::signing::direct_wallet::DirectSecp256k1HdWalletError),
+pub type AccountSignerError = Box<dyn Error + Send + Sync>;
 
-    #[error("no accounts in wallet")]
-    NoAccounts,
+/// Account credentials used to authenticate requests to the VPN API.
+pub trait AccountSigner: Send + Sync {
+    /// Cosmos account identifier of the account.
+    fn id(&self) -> String;
 
-    #[error("subscription expiry parse error: {0}")]
-    SubscriptionExpiryParseError(time::error::Parse),
+    /// Base58-encoded secp256k1 public key of the account.
+    fn pub_key(&self) -> &str;
 
-    #[error("traffic reset time parse error: {0}")]
-    TrafficResetTimeParseError(time::error::Parse),
+    /// Signs the message with the account's secp256k1 private key.
+    fn sign_raw(&self, message: &[u8]) -> Result<Vec<u8>, AccountSignerError>;
 }
 
 /// Defines the mode of operation of the associated account.
@@ -61,125 +51,6 @@ impl VpnAccountMode {
     pub fn is_privy(&self) -> bool {
         matches!(self, Self::Privy)
     }
-}
-
-pub struct VpnAccount {
-    /// The underlying wallet behind the account that defines
-    /// the associated private key(s).
-    wallet: DirectSecp256k1HdWallet,
-
-    /// Cosmos account identifier of the first derived account.
-    id: AccountId,
-
-    /// Base58-encoded public (secp256k1) key of the first derived account.
-    pub_key: String,
-
-    /// Mode of operation of this account
-    mode: VpnAccountMode,
-
-    /// Base64-encoded signature on the account identifier of this account.
-    // Note that it is seemingly (?) only ever used once during account creation,
-    // so lack of replay protection whilst sketchy is fine.
-    signature_base64: String,
-}
-
-impl VpnAccount {
-    pub fn new(mnemonic: bip39::Mnemonic, mode: VpnAccountMode) -> Result<Self, Error> {
-        let wallet = DirectSecp256k1HdWallet::checked_from_mnemonic("n", mnemonic)?;
-        Self::derive_from_wallet(wallet, mode)
-    }
-
-    pub fn generate_new() -> Result<(Self, bip39::Mnemonic), Error> {
-        let mnemonic = bip39::Mnemonic::generate(bip39::WordCount::Words24).unwrap();
-        let wallet = DirectSecp256k1HdWallet::checked_from_mnemonic("n", mnemonic.clone())?;
-        let account = Self::derive_from_wallet(wallet, VpnAccountMode::Api)?;
-        Ok((account, mnemonic))
-    }
-
-    fn derive_from_wallet(
-        wallet: DirectSecp256k1HdWallet,
-        mode: VpnAccountMode,
-    ) -> Result<Self, Error> {
-        let accounts = wallet.get_accounts();
-        let Some(first) = accounts.first() else {
-            return Err(Error::NoAccounts);
-        };
-        let address = first.address().clone();
-        let id = address.to_string();
-        let raw_pub_key = first.public_key();
-        let pub_key = bs58::encode(raw_pub_key.to_bytes()).into_string();
-
-        let signature = wallet.sign_raw(&address, &id)?;
-        let signature_bytes = signature.to_bytes();
-        let signature_base64 = base64_url::encode(&signature_bytes);
-
-        Ok(Self {
-            wallet,
-            id: address,
-            pub_key,
-            mode,
-            signature_base64,
-        })
-    }
-
-    pub fn id(&self) -> String {
-        self.id.to_string()
-    }
-
-    pub fn id_typed(&self) -> &AccountId {
-        &self.id
-    }
-
-    pub fn pub_key(&self) -> &str {
-        &self.pub_key
-    }
-
-    pub fn signature_base64(&self) -> &str {
-        &self.signature_base64
-    }
-
-    pub(crate) fn jwt(&self, remote_time: Option<VpnApiTime>) -> Jwt {
-        match remote_time {
-            Some(remote_time) => Jwt::new_secp256k1_synced(&self.wallet, remote_time),
-            None => Jwt::new_secp256k1(&self.wallet),
-        }
-    }
-
-    pub fn create_ecash_keypair(&self) -> Result<KeyPairUser, Error> {
-        let seed = self.ecash_keypair_seed()?;
-        Ok(KeyPairUser::new_seeded(&seed))
-    }
-
-    pub fn ecash_keypair_seed(&self) -> Result<Zeroizing<Vec<u8>>, Error> {
-        let hd_path = cosmos_derivation_path();
-        // `XPrv` zeroizes its key on drop; the copy taken here is zeroized too.
-        let extended_private_key = self
-            .wallet
-            .derive_extended_private_key_with_password(&hd_path, "")?; // No password is used
-        let private_key = Zeroizing::new(extended_private_key.to_bytes());
-
-        Ok(Zeroizing::new(private_key.to_vec()))
-    }
-
-    pub fn get_mnemonic(&self) -> Zeroizing<String> {
-        self.wallet.mnemonic_string()
-    }
-
-    pub fn mode(&self) -> VpnAccountMode {
-        self.mode
-    }
-
-    /// Signs the message with the account's private key and returns the signature as a hex-encoded string.
-    pub fn sign(&self, message: &str) -> Result<String, Error> {
-        let signature = self.wallet.sign_raw(&self.id, message.as_bytes())?;
-        Ok(hex::encode(signature.to_bytes()))
-    }
-}
-
-fn cosmos_derivation_path() -> DerivationPath {
-    nym_config::defaults::COSMOS_DERIVATION_PATH
-        .parse()
-        .unwrap()
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -282,49 +153,5 @@ impl VpnApiTimeSynced {
 
     pub fn is_not_synced(&self) -> bool {
         !self.is_synced()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::types::test_fixtures::{TEST_DEFAULT_MNEMONIC, TEST_DEFAULT_MNEMONIC_ID};
-
-    use super::*;
-
-    #[test]
-    fn create_account_from_mnemonic() {
-        let account = VpnAccount::new(
-            bip39::Mnemonic::parse(TEST_DEFAULT_MNEMONIC).unwrap(),
-            VpnAccountMode::Api,
-        )
-        .unwrap();
-        assert_eq!(account.id(), TEST_DEFAULT_MNEMONIC_ID);
-    }
-
-    #[test]
-    fn ecash_keypair_seed_is_stable() {
-        let account = VpnAccount::new(
-            bip39::Mnemonic::parse(TEST_DEFAULT_MNEMONIC).unwrap(),
-            VpnAccountMode::Api,
-        )
-        .unwrap();
-        assert_eq!(
-            hex::encode(&*account.ecash_keypair_seed().unwrap()),
-            "9bbeaa761f384aff8532cf8f8f78e9cbbebea1f37bc9461d163163cb87fd2f9e"
-        );
-    }
-
-    #[test]
-    fn create_random_account() {
-        let (_, mnemonic) = VpnAccount::generate_new().unwrap();
-        assert_eq!(mnemonic.word_count(), 24);
-    }
-
-    #[test]
-    fn derive_wallets() {
-        for word_count in [bip39::WordCount::Words12, bip39::WordCount::Words24] {
-            let wallet = DirectSecp256k1HdWallet::generate("n", word_count).unwrap();
-            VpnAccount::derive_from_wallet(wallet, VpnAccountMode::Api).unwrap();
-        }
     }
 }

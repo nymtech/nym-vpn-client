@@ -30,6 +30,7 @@ members = [
     "crates/nym-favorites",
     "crates/nym-file-updater",
     "crates/nym-qr-pairing-requests",
+    "crates/nym-vpn-account",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-credential-fetcher",
@@ -276,6 +277,7 @@ nym-routing = { path = "crates/nym-routing" }
 nym-secure-enclave = { path = "crates/nym-secure-enclave" }
 nym-statistics = { path = "crates/nym-statistics" }
 nym-statistics-api-client = { path = "crates/nym-statistics-api-client" }
+nym-vpn-account = { path = "crates/nym-vpn-account" }
 nym-vpn-account-controller = { path = "crates/nym-vpn-account-controller" }
 nym-vpn-api-client = { path = "crates/nym-vpn-api-client" }
 nym-vpn-credential-fetcher = { path = "crates/nym-vpn-credential-fetcher" }

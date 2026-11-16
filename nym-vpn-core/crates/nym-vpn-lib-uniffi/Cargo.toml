@@ -62,6 +62,7 @@ nym-diagnostic.workspace = true
 nym-vpn-lib.workspace = true
 nym-vpn-account-controller.workspace = true
 nym-vpn-store.workspace = true
+nym-vpn-account.workspace = true
 nym-vpn-api-client.workspace = true
 nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 

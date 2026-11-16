@@ -5,10 +5,8 @@ use crate::{Error, Result};
 use nym_bandwidth_controller::{AvailableTicketbooks, requests::BandwidthControllerRequestSender};
 use nym_bandwidth_fetcher::NyxdCredentialFetcher;
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_api_client::{
-    VpnApiClient,
-    types::{Device, VpnAccount},
-};
+use nym_vpn_account::VpnAccount;
+use nym_vpn_api_client::{VpnApiClient, types::Device};
 use nym_vpn_lib_types::{StorableAccount, VpnAccountSummary};
 use std::sync::Arc;
 

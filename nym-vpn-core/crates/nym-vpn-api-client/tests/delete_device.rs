@@ -5,10 +5,8 @@ use std::str::FromStr;
 
 use bip39::Mnemonic;
 use nym_http_api_client::{Url, UserAgent};
-use nym_vpn_api_client::{
-    VpnApiClient,
-    types::{VpnAccount, VpnAccountMode},
-};
+use nym_vpn_account::VpnAccount;
+use nym_vpn_api_client::{VpnApiClient, types::VpnAccountMode};
 use wiremock::{
     Match, Mock, MockServer, Request, ResponseTemplate,
     matchers::{body_json, header_exists, method, path},
