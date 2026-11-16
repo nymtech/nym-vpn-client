@@ -71,7 +71,7 @@ impl SyncingNetworkState {
         PrivateAccountControllerState,
     ) {
         let Some(account_identity) = shared_state
-            .device_state
+            .account
             .as_ref()
             .map(|state| &state.account_identity)
         else {
@@ -97,7 +97,7 @@ impl SyncingNetworkState {
 
         // Use the provided sync mode unless there is no cache
         let has_summary = shared_state
-            .device_state
+            .account
             .as_ref()
             .is_some_and(|state| state.summary.is_some());
         let sync_mode = if !has_summary {

@@ -5,22 +5,25 @@ use std::convert::Infallible;
 
 use tokio::sync::Mutex;
 
-use super::{AccountInformationStorage, StoredDeviceState};
+use super::{AccountInformationStorage, StoredAccountInformation};
 
 #[derive(Default)]
 pub struct InMemoryAccountStorage {
-    state: Mutex<Option<StoredDeviceState>>,
+    state: Mutex<Option<StoredAccountInformation>>,
 }
 
 #[async_trait::async_trait]
 impl AccountInformationStorage for InMemoryAccountStorage {
     type StorageError = Infallible;
 
-    async fn load_account(&self) -> Result<Option<StoredDeviceState>, Self::StorageError> {
+    async fn load_account(&self) -> Result<Option<StoredAccountInformation>, Self::StorageError> {
         Ok(self.state.lock().await.clone())
     }
 
-    async fn store_account(&self, state: StoredDeviceState) -> Result<(), Self::StorageError> {
+    async fn store_account(
+        &self,
+        state: StoredAccountInformation,
+    ) -> Result<(), Self::StorageError> {
         *self.state.lock().await = Some(state);
         Ok(())
     }
@@ -41,8 +44,8 @@ mod tests {
 
     use super::*;
 
-    fn logged_in() -> StoredDeviceState {
-        StoredDeviceState {
+    fn logged_in() -> StoredAccountInformation {
+        StoredAccountInformation {
             account_identity: StoredAccountIdentity {
                 id: "juno1cma4czt2jnydvrvz3lrc9jvcmhpjxtds95s3c6".to_owned(),
                 mode: StoredAccountMode::Api,

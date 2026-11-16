@@ -19,7 +19,8 @@ use tokio_util::io::SyncIoBridge;
 
 use crate::{
     account::{
-        AccountInformationStorage, DeviceAccountError, StoredAccountIdentity, StoredDeviceState,
+        AccountInformationStorage, DeviceAccountError, StoredAccountIdentity,
+        StoredAccountInformation,
     },
     mnemonic::{MnemonicStorage, StoredMnemonic},
 };
@@ -45,8 +46,8 @@ pub enum SecureStoreMigrationError {
         source: Box<dyn Error + Send + Sync>,
     },
 
-    #[error("failed to store device state")]
-    StoreDeviceState(#[source] Box<dyn Error + Send + Sync>),
+    #[error("failed to store account information")]
+    StoreAccountInformation(#[source] Box<dyn Error + Send + Sync>),
 
     #[cfg(target_os = "android")]
     #[error("failed to unlock keychain")]
@@ -207,7 +208,7 @@ where
             .create_ecash_keypair()
             .map_err(|err| SecureStoreMigrationError::CreateEcashKeyPair(Box::new(err)))?;
 
-        let device_state = StoredDeviceState {
+        let account_information = StoredAccountInformation {
             account_identity,
             ecash_keypair,
             summary: account_summary,
@@ -227,9 +228,9 @@ where
             })?;
 
         self.account_storage
-            .store_account(device_state)
+            .store_account(account_information)
             .await
-            .map_err(|err| SecureStoreMigrationError::StoreDeviceState(Box::new(err)))
+            .map_err(|err| SecureStoreMigrationError::StoreAccountInformation(Box::new(err)))
     }
 
     /// Remove plaintext files (mnemonic, summary)
@@ -369,7 +370,7 @@ mod tests {
             expected_account_keys(&stored_mnemonic.mnemonic, StoredAccountMode::Decentralised);
         assert_eq!(
             account_store.load_account().await.unwrap(),
-            Some(StoredDeviceState {
+            Some(StoredAccountInformation {
                 account_identity,
                 ecash_keypair,
                 summary: None,
@@ -434,7 +435,7 @@ mod tests {
             expected_account_keys(&stored_mnemonic.mnemonic, StoredAccountMode::Api);
         assert_matches!(
             account_store.load_account().await,
-            Ok(Some(StoredDeviceState {
+            Ok(Some(StoredAccountInformation {
                 account_identity,
                 ecash_keypair,
                 summary: Some(summary),

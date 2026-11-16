@@ -84,7 +84,7 @@ pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
     shared_state: &SharedAccountState<C>,
 ) -> Result<Option<String>> {
     Ok(shared_state
-        .device_state
+        .account
         .as_ref()
         .map(|state| state.account_identity.id.clone()))
 }
@@ -93,7 +93,7 @@ pub(crate) async fn handle_get_canonical_account_identity<C: ConnectivityMonitor
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<String>> {
     let Some(account) = shared_state
-        .device_state
+        .account
         .as_ref()
         .map(|state| &state.account_identity)
     else {
@@ -118,7 +118,7 @@ pub(crate) fn handle_get_account_mode<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<StoredAccountMode>> {
     Ok(shared_state
-        .device_state
+        .account
         .as_ref()
         .map(|state| state.account_identity.mode))
 }
@@ -189,7 +189,7 @@ pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<VpnAccountSummary>> {
     Ok(shared_state
-        .device_state
+        .account
         .as_ref()
         .and_then(|state| state.summary.clone()))
 }
@@ -282,7 +282,7 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
 
     // For `DeeplinkKind::PrivyLink`, the user must be logged-in via an API account
     let is_api_account = shared_state
-        .device_state
+        .account
         .as_ref()
         .map(|state| state.account_identity.mode == StoredAccountMode::Api)
         .unwrap_or(true);

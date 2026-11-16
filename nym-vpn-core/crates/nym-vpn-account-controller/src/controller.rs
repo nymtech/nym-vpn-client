@@ -160,8 +160,8 @@ where
         let account_storage = AccountStorage::from(storage);
 
         // Load remaining state that may fail
-        let device_state = account_storage.load_device_state().await?;
-        // todo: log out on failure to load device state?
+        let account = account_storage.load_account_information().await?;
+        // todo: log out on failure to load account information?
 
         let device_keys = account_storage.load_device_keys().await?;
         let wireguard_keys_storage =
@@ -175,7 +175,7 @@ where
             wireguard_keys_storage,
             clients.nym_vpn_api_client,
             clients.nyxd_client,
-            device_state,
+            account,
             device_keys,
             storage_op_sender,
             event_channel,
@@ -238,7 +238,7 @@ where
             .unwrap_or_else(|| "(unset)".to_string());
 
         // keep account and device identifiers off info
-        tracing::trace!("Device state: {:?}", self.shared_state.device_state);
+        tracing::trace!("Account information: {:?}", self.shared_state.account);
         tracing::trace!("Device id: {device_id}");
     }
 
