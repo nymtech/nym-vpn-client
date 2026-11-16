@@ -190,7 +190,7 @@
         },
         "auto": {
           "label": "Auto",
-          "desc": "Tries <strong>WireGuard</strong> first, then switches to a bridge (QUIC, TLS, or SSH) if it fails."
+          "desc": "Tries <strong>WireGuard</strong> first, then switches to a bridge if it fails."
         },
         "on": {
           "label": "On",
@@ -203,10 +203,10 @@
     },
     "transport-preference": {
       "label": "Bridge transport",
-      "description": "Choose which transport your bridge connection uses. Auto tries QUIC first and falls back to TLS or SSH if it fails.",
+      "description": "Choose which transport your bridge connection uses. Default tries QUIC first and falls back to TLS or SSH if it fails.",
       "options": {
         "auto": {
-          "label": "Auto"
+          "label": "Default"
         },
         "quic": {
           "label": "QUIC"
@@ -219,7 +219,8 @@
         }
       },
       "error": "Failed to change the bridge transport setting",
-      "snackbar": "Reconnecting to apply the bridge transport setting."
+      "snackbar": "Reconnecting to apply the bridge transport setting.",
+      "auto-mode-disclaimer": "Auto only uses a bridge if the direct connection fails, so your pin has no effect unless that happens."
     },
     "stealth-api": {
       "label": "Disguise your Nym connection",
