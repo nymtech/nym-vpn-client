@@ -42,6 +42,7 @@ public struct GeneratePassphraseView: View {
 
     private let isPurchaseOnly: Bool
     private let onPurchaseFlowDismissed: (() -> Void)?
+    private let onPurchaseFlowComplete: (() -> Void)?
 
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var credentialsManager: CredentialsManager
@@ -164,11 +165,13 @@ public struct GeneratePassphraseView: View {
     public init(
         path: Binding<NavigationPath>,
         displayPurchaseView: Bool = false,
-        onPurchaseFlowDismissed: (() -> Void)? = nil
+        onPurchaseFlowDismissed: (() -> Void)? = nil,
+        onPurchaseFlowComplete: (() -> Void)? = nil
     ) {
         _path = path
         isPurchaseOnly = displayPurchaseView
         self.onPurchaseFlowDismissed = onPurchaseFlowDismissed
+        self.onPurchaseFlowComplete = onPurchaseFlowComplete
         didFinishAnimatingText = displayPurchaseView
         currentStep = displayPurchaseView
             ? OnboardingSessionPolicy.progressStep(for: .iapPurchaseRequired)
@@ -379,12 +382,13 @@ extension GeneratePassphraseView {
     func handleCodeEntry(_ outcome: CodeEntryOutcome) {
         guard outcome == .freepassRedeemed else { return }
         Task {
-            // The summary is refreshed first, so leaving isn't taken for a dismissed checkout.
             await CodeEntryOutcomeHandler.handle(
                 outcome,
                 credentialsManager: credentialsManager,
                 sendSessionEvent: { _ in }
             )
+            didLeaveForSuccessfulPurchase = true
+            onPurchaseFlowComplete?()
             path = NavigationPath()
         }
     }
