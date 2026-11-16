@@ -18,8 +18,8 @@ use tokio::fs::File;
 use tokio_util::io::SyncIoBridge;
 
 use crate::{
-    device_state::{
-        DeviceAccountError, DeviceStateStorage, StoredAccountIdentity, StoredDeviceState,
+    account::{
+        AccountInformationStorage, DeviceAccountError, StoredAccountIdentity, StoredDeviceState,
     },
     mnemonic::{MnemonicStorage, StoredMnemonic},
 };
@@ -80,22 +80,22 @@ struct LegacyAccount {
     mode: StoredAccountMode,
 }
 
-pub struct SecureStoreMigrationManager<'a, MnemonicStoreType, DeviceStateStoreType> {
+pub struct SecureStoreMigrationManager<'a, MnemonicStoreType, AccountStoreType> {
     mnemonic_json_path: PathBuf,
     account_summary_json_path: PathBuf,
     mnemonic_storage: &'a MnemonicStoreType,
-    device_state_storage: &'a DeviceStateStoreType,
+    account_storage: &'a AccountStoreType,
     #[cfg(target_os = "android")]
     secure_enclave: Arc<SecureEnclave>,
     #[cfg(target_os = "android")]
     unlock_reason: String,
 }
 
-impl<'a, MnemonicStoreType, DeviceStateStoreType>
-    SecureStoreMigrationManager<'a, MnemonicStoreType, DeviceStateStoreType>
+impl<'a, MnemonicStoreType, AccountStoreType>
+    SecureStoreMigrationManager<'a, MnemonicStoreType, AccountStoreType>
 where
     MnemonicStoreType: MnemonicStorage,
-    DeviceStateStoreType: DeviceStateStorage,
+    AccountStoreType: AccountInformationStorage,
 {
     /// On Android, the keychain is unlocked before the mnemonic is encrypted, since its key requires
     /// user presence for encryption. The `unlock_reason` is shown to the user when authenticating.
@@ -103,7 +103,7 @@ where
         mnemonic_json_path: impl Into<PathBuf>,
         account_summary_json_path: impl Into<PathBuf>,
         mnemonic_storage: &'a MnemonicStoreType,
-        device_state_storage: &'a DeviceStateStoreType,
+        account_storage: &'a AccountStoreType,
         #[cfg(target_os = "android")] secure_enclave: Arc<SecureEnclave>,
         #[cfg(target_os = "android")] unlock_reason: impl Into<String>,
     ) -> Self {
@@ -111,7 +111,7 @@ where
             mnemonic_json_path: mnemonic_json_path.into(),
             account_summary_json_path: account_summary_json_path.into(),
             mnemonic_storage,
-            device_state_storage,
+            account_storage,
             #[cfg(target_os = "android")]
             secure_enclave,
             #[cfg(target_os = "android")]
@@ -226,8 +226,8 @@ where
                 source: Box::new(err),
             })?;
 
-        self.device_state_storage
-            .store_device_state(device_state)
+        self.account_storage
+            .store_account(device_state)
             .await
             .map_err(|err| SecureStoreMigrationError::StoreDeviceState(Box::new(err)))
     }
@@ -311,7 +311,7 @@ mod tests {
 
     use super::*;
     use crate::{
-        device_state::ephemeral::InMemoryDeviceStateStorage,
+        account::ephemeral::InMemoryAccountStorage,
         mnemonic::{
             ephemeral::InMemoryMnemonicStorage, on_disk::OnDiskMnemonicStorage,
             test_fixtures::stored_mnemonic_fixture,
@@ -351,13 +351,13 @@ mod tests {
             .unwrap();
 
         let mnemonic_store = InMemoryMnemonicStorage::default();
-        let device_state_store = InMemoryDeviceStateStorage::default();
+        let account_store = InMemoryAccountStorage::default();
 
         let storage = SecureStoreMigrationManager::new(
             mnemonic_json_path,
             account_summary_path,
             &mnemonic_store,
-            &device_state_store,
+            &account_store,
         );
 
         assert_matches!(storage.should_migrate().await, Ok(true));
@@ -368,7 +368,7 @@ mod tests {
         let (account_identity, ecash_keypair) =
             expected_account_keys(&stored_mnemonic.mnemonic, StoredAccountMode::Decentralised);
         assert_eq!(
-            device_state_store.load_device_state().await.unwrap(),
+            account_store.load_account().await.unwrap(),
             Some(StoredDeviceState {
                 account_identity,
                 ecash_keypair,
@@ -416,13 +416,13 @@ mod tests {
             .unwrap();
 
         let mnemonic_store = InMemoryMnemonicStorage::default();
-        let device_state_store = InMemoryDeviceStateStorage::default();
+        let account_store = InMemoryAccountStorage::default();
 
         let storage = SecureStoreMigrationManager::new(
             mnemonic_json_path,
             account_summary_path,
             &mnemonic_store,
-            &device_state_store,
+            &account_store,
         );
 
         assert_matches!(storage.should_migrate().await, Ok(true));
@@ -433,7 +433,7 @@ mod tests {
         let (expected_identity, expected_ecash_keypair) =
             expected_account_keys(&stored_mnemonic.mnemonic, StoredAccountMode::Api);
         assert_matches!(
-            device_state_store.load_device_state().await,
+            account_store.load_account().await,
             Ok(Some(StoredDeviceState {
                 account_identity,
                 ecash_keypair,
@@ -467,7 +467,7 @@ mod tests {
             .unwrap();
 
         let mnemonic_store = OnDiskMnemonicStorage::new(&mnemonic_bin_path, NoopStoreCipher);
-        let device_state_store = InMemoryDeviceStateStorage::default();
+        let account_store = InMemoryAccountStorage::default();
 
         assert_matches!(
             mnemonic_store.store_mnemonic(stored_mnemonic.clone()).await,
@@ -478,14 +478,14 @@ mod tests {
             mnemonic_json_path,
             account_summary_path,
             &mnemonic_store,
-            &device_state_store,
+            &account_store,
         );
 
         assert_matches!(storage.should_migrate().await, Ok(true));
         assert_matches!(storage.migrate().await, Ok(()));
 
         assert_matches!(mnemonic_store.load_mnemonic().await, Ok(Some(v)) if v == stored_mnemonic);
-        assert_matches!(device_state_store.load_device_state().await, Ok(None));
+        assert_matches!(account_store.load_account().await, Ok(None));
 
         assert_matches!(storage.should_migrate().await, Ok(false));
         assert_matches!(storage.migrate().await, Ok(()));

@@ -205,7 +205,7 @@ mod tests {
     #[tokio::test]
     async fn store_and_load_mnemonic() {
         let tempdir = tempfile::tempdir().unwrap();
-        let storage = storage(&tempdir.path().join("nested/mnemonic.json"));
+        let storage = storage(&tempdir.path().join("nested/mnemonic.bin"));
 
         storage
             .store_mnemonic(stored_mnemonic_fixture())
@@ -219,7 +219,7 @@ mod tests {
     #[tokio::test]
     async fn store_twice_fails() {
         let tempdir = tempfile::tempdir().unwrap();
-        let storage = storage(&tempdir.path().join("mnemonic.json"));
+        let storage = storage(&tempdir.path().join("mnemonic.bin"));
 
         storage
             .store_mnemonic(stored_mnemonic_fixture())
@@ -236,7 +236,7 @@ mod tests {
     #[tokio::test]
     async fn load_returns_none_if_file_does_not_exist() {
         let tempdir = tempfile::tempdir().unwrap();
-        let storage = storage(&tempdir.path().join("mnemonic.json"));
+        let storage = storage(&tempdir.path().join("mnemonic.bin"));
 
         assert_matches!(storage.load_mnemonic().await, Ok(None));
     }
@@ -244,7 +244,7 @@ mod tests {
     #[tokio::test]
     async fn load_fails_if_bogus_empty_file_exists() {
         let tempdir = tempfile::tempdir().unwrap();
-        let path = tempdir.path().join("mnemonic.json");
+        let path = tempdir.path().join("mnemonic.bin");
         tokio::fs::File::create(&path).await.unwrap();
 
         assert!(storage(&path).load_mnemonic().await.is_err());
@@ -253,7 +253,7 @@ mod tests {
     #[tokio::test]
     async fn remove_mnemonic() {
         let tempdir = tempfile::tempdir().unwrap();
-        let path = tempdir.path().join("mnemonic.json");
+        let path = tempdir.path().join("mnemonic.bin");
         let storage = storage(&path);
 
         storage
@@ -269,7 +269,7 @@ mod tests {
     #[tokio::test]
     async fn remove_succeeds_if_file_does_not_exist() {
         let tempdir = tempfile::tempdir().unwrap();
-        let storage = storage(&tempdir.path().join("mnemonic.json"));
+        let storage = storage(&tempdir.path().join("mnemonic.bin"));
 
         storage.remove_mnemonic().await.unwrap();
     }
@@ -278,7 +278,7 @@ mod tests {
     #[tokio::test]
     async fn stored_file_is_private() {
         let tempdir = tempfile::tempdir().unwrap();
-        let path = tempdir.path().join("mnemonic.json");
+        let path = tempdir.path().join("mnemonic.bin");
 
         storage(&path)
             .store_mnemonic(stored_mnemonic_fixture())

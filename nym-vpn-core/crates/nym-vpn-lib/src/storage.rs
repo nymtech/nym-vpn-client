@@ -14,11 +14,11 @@ use nym_vpn_store::store_ciphers::secure_enclave_cipher::{
     SecureEnclaveCipher, SecureEnclaveCipherOptions,
 };
 use nym_vpn_store::{
-    database_key::{DatabaseKey, DatabaseKeyStorageError, OnDiskDatabaseKeyStorage},
-    device_state::{
-        DeviceStateStorage, StoredDeviceState,
-        on_disk::{OnDiskDeviceStateStorage, OnDiskDeviceStateStorageError},
+    account::{
+        AccountInformationStorage, StoredDeviceState,
+        on_disk::{OnDiskAccountStorage, OnDiskAccountStorageError},
     },
+    database_key::{DatabaseKey, DatabaseKeyStorageError, OnDiskDatabaseKeyStorage},
     keys::device::{DeviceKeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeys, OnDiskKeysError},
     mnemonic::{
         MnemonicStorage, StoredMnemonic,
@@ -28,7 +28,7 @@ use nym_vpn_store::{
 };
 
 const MNEMONIC_FILE_NAME: &str = "mnemonic.bin";
-const DEVICE_STATE_FILE_NAME: &str = "device_state.bin";
+const ACCOUNT_INFO_FILE_NAME: &str = "account.bin";
 const DATABASE_KEY_FILE_NAME: &str = "encryption.key";
 
 /// Plaintext files replaced by the encrypted stores
@@ -50,7 +50,7 @@ const DEVICE_SE_KEY: &str = "device-key";
 pub struct VpnClientOnDiskStorage {
     key_store: nym_vpn_store::keys::device::OnDiskKeys,
     mnemonic_storage: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorage,
-    device_state_storage: nym_vpn_store::device_state::on_disk::OnDiskDeviceStateStorage,
+    account_storage: nym_vpn_store::account::on_disk::OnDiskAccountStorage,
     database_key: DatabaseKey,
 }
 
@@ -87,9 +87,9 @@ impl VpnClientOnDiskStorage {
             OnDiskMnemonicStorage::new(mnemonic_storage_path, mnemonic_storage_cipher);
 
         #[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]
-        let device_state_storage_cipher = NoopStoreCipher::default();
+        let account_storage_cipher = NoopStoreCipher::default();
         #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
-        let device_state_storage_cipher = SecureEnclaveCipher::new(
+        let account_storage_cipher = SecureEnclaveCipher::new(
             secure_enclave.clone(),
             SecureEnclaveCipherOptions {
                 key_alias: DEVICE_SE_KEY.to_owned(),
@@ -97,9 +97,9 @@ impl VpnClientOnDiskStorage {
             },
         );
 
-        let device_state_storage_path = base_data_directory.as_ref().join(DEVICE_STATE_FILE_NAME);
-        let device_state_storage =
-            OnDiskDeviceStateStorage::new(device_state_storage_path, device_state_storage_cipher);
+        let account_storage_path = base_data_directory.as_ref().join(ACCOUNT_INFO_FILE_NAME);
+        let account_storage =
+            OnDiskAccountStorage::new(account_storage_path, account_storage_cipher);
 
         #[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]
         let database_key_cipher = NoopStoreCipher::default();
@@ -124,7 +124,7 @@ impl VpnClientOnDiskStorage {
                 .as_ref()
                 .join(LEGACY_ACCOUNT_SUMMARY_FILE_NAME),
             &mnemonic_storage,
-            &device_state_storage,
+            &account_storage,
             #[cfg(target_os = "android")]
             secure_enclave,
             #[cfg(target_os = "android")]
@@ -138,7 +138,7 @@ impl VpnClientOnDiskStorage {
         Ok(VpnClientOnDiskStorage {
             key_store,
             mnemonic_storage,
-            device_state_storage,
+            account_storage,
             database_key,
         })
     }
@@ -198,18 +198,18 @@ impl MnemonicStorage for VpnClientOnDiskStorage {
 }
 
 #[async_trait::async_trait]
-impl DeviceStateStorage for VpnClientOnDiskStorage {
-    type StorageError = OnDiskDeviceStateStorageError;
+impl AccountInformationStorage for VpnClientOnDiskStorage {
+    type StorageError = OnDiskAccountStorageError;
 
-    async fn load_device_state(&self) -> Result<Option<StoredDeviceState>, Self::StorageError> {
-        self.device_state_storage.load_device_state().await
+    async fn load_account(&self) -> Result<Option<StoredDeviceState>, Self::StorageError> {
+        self.account_storage.load_account().await
     }
 
-    async fn store_device_state(&self, state: StoredDeviceState) -> Result<(), Self::StorageError> {
-        self.device_state_storage.store_device_state(state).await
+    async fn store_account(&self, state: StoredDeviceState) -> Result<(), Self::StorageError> {
+        self.account_storage.store_account(state).await
     }
 
-    async fn remove_device_state(&self) -> Result<(), Self::StorageError> {
-        self.device_state_storage.remove_device_state().await
+    async fn remove_account(&self) -> Result<(), Self::StorageError> {
+        self.account_storage.remove_account().await
     }
 }
