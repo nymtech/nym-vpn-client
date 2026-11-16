@@ -22,6 +22,9 @@ public struct CensorshipView: View {
                     quicSection()
                     Spacer()
                         .frame(height: 24)
+                    transportPreferenceSection()
+                    Spacer()
+                        .frame(height: 24)
                     stealthApiSection()
                 }
                 .scrollIndicators(.never)
@@ -120,6 +123,36 @@ private extension CensorshipView {
             .foregroundStyle(Color.Nym.textPrimary)
     }
 
+    // MARK: - Transport preference -
+    func transportPreferenceSection() -> some View {
+        let selectionBinding = Binding<TransportPreferenceSetting>(
+            get: { appSettings.transportPreference },
+            set: { connectionManager.setTransportPreference($0) }
+        )
+
+        return SettingsListItemCustomContent(
+            viewModel: SettingsListItemViewModel(
+                accessory: .empty,
+                title: "censorship.transport.title".localizedString,
+                position: .init(isFirst: true, isLast: true),
+                action: {}
+            ),
+            customContent: {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("censorship.transport.subtitle".localizedString)
+                        .nymTextStyle(.bodySmall)
+                        .foregroundStyle(Color.Nym.textSecondary)
+                    TransportPreferenceSelector(selection: selectionBinding)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, NymSpacing.large)
+                .padding(.bottom, 18)
+            },
+            combineAccessibilityChildren: false,
+            compactTitle: true
+        )
+    }
+
     // MARK: - Stealth API -
     func stealthApiSection() -> some View {
         let stealthBinding = Binding<Bool>(
@@ -169,6 +202,71 @@ private extension BridgeModeSetting {
             "censorship.bridge.auto.label".localizedString
         case .on:
             "general.on".localizedString
+        }
+    }
+}
+
+private extension TransportPreferenceSetting {
+    var title: String {
+        switch self {
+        case .auto:
+            "censorship.transport.auto".localizedString
+        case .quic:
+            "censorship.transport.quic".localizedString
+        case .tls:
+            "censorship.transport.tls".localizedString
+        case .ssh:
+            "censorship.transport.ssh".localizedString
+        }
+    }
+}
+
+private struct TransportPreferenceSelector: View {
+    @Binding var selection: TransportPreferenceSetting
+    @Namespace private var thumbNamespace
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(TransportPreferenceSetting.allCases, id: \.self) { transport in
+                let isSelected = transport == selection
+                Button {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.78)) {
+                        selection = transport
+                    }
+                } label: {
+                    Text(transport.title)
+                        .nymTextStyle(.bodySmall)
+                        .foregroundStyle(isSelected ? Color.Nym.primaryText : Color.Nym.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .background {
+                            if isSelected {
+                                thumb.matchedGeometryEffect(id: "thumb", in: thumbNamespace)
+                            }
+                        }
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .padding(4)
+        .background { track }
+        .sensoryFeedback(.selection, trigger: selection)
+    }
+
+    @ViewBuilder private var thumb: some View {
+        if #available(iOS 26, macOS 26, *) {
+            Color.clear.glassEffect(.regular.tint(Color.Nym.primary).interactive(), in: Capsule())
+        } else {
+            Capsule().fill(Color.Nym.primary).shadow(color: .black.opacity(0.25), radius: 4, y: 2)
+        }
+    }
+
+    @ViewBuilder private var track: some View {
+        if #available(iOS 26, macOS 26, *) {
+            Color.clear.glassEffect(.regular, in: Capsule())
+        } else {
+            Capsule().fill(Color.Nym.surfaceAlt)
         }
     }
 }

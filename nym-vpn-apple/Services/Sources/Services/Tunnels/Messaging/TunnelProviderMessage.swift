@@ -12,6 +12,7 @@ public enum TunnelProviderMessage: Codable {
     case setEntryPoint(EntryGateway)
     case setExitPoint(ExitRouter)
     case setFrontingModeEnabled(Bool)
+    case setTransportPreference(TransportPreferenceSetting)
     case setDisableIpv6(Bool)
     case setMixnetTrafficConfig(MixnetTuningConfig)
     case setGatewayIndependence(Bool)

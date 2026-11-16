@@ -3768,6 +3768,72 @@
         }
       }
     },
+    "censorship.transport.auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Auto"
+          }
+        }
+      }
+    },
+    "censorship.transport.quic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "QUIC"
+          }
+        }
+      }
+    },
+    "censorship.transport.ssh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "SSH"
+          }
+        }
+      }
+    },
+    "censorship.transport.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Pin the bridge transport, or let NymVPN pick automatically."
+          }
+        }
+      }
+    },
+    "censorship.transport.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bridge transport"
+          }
+        }
+      }
+    },
+    "censorship.transport.tls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "TLS"
+          }
+        }
+      }
+    },
     "censorship.stealhapi.link" : {
       "extractionState" : "manual",
       "localizations" : {
