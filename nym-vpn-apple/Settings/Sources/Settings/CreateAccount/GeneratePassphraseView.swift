@@ -380,7 +380,7 @@ extension GeneratePassphraseView {
 
 #if os(iOS)
     func handleCodeEntry(_ outcome: CodeEntryOutcome) {
-        guard outcome == .freepassRedeemed else { return }
+        guard outcome == .freepassRedeemed, credentialsManager.isValidCredentialImported else { return }
         Task {
             await CodeEntryOutcomeHandler.handle(
                 outcome,
