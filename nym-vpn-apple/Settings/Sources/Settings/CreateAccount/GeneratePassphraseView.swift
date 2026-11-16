@@ -43,6 +43,7 @@ public struct GeneratePassphraseView: View {
     private let isPurchaseOnly: Bool
     private let onPurchaseFlowDismissed: (() -> Void)?
     private let onPurchaseFlowComplete: (() -> Void)?
+    private let onSessionEvent: ((SessionEvent) -> Void)?
 
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var credentialsManager: CredentialsManager
@@ -166,12 +167,14 @@ public struct GeneratePassphraseView: View {
         path: Binding<NavigationPath>,
         displayPurchaseView: Bool = false,
         onPurchaseFlowDismissed: (() -> Void)? = nil,
-        onPurchaseFlowComplete: (() -> Void)? = nil
+        onPurchaseFlowComplete: (() -> Void)? = nil,
+        onSessionEvent: ((SessionEvent) -> Void)? = nil
     ) {
         _path = path
         isPurchaseOnly = displayPurchaseView
         self.onPurchaseFlowDismissed = onPurchaseFlowDismissed
         self.onPurchaseFlowComplete = onPurchaseFlowComplete
+        self.onSessionEvent = onSessionEvent
         didFinishAnimatingText = displayPurchaseView
         currentStep = displayPurchaseView
             ? OnboardingSessionPolicy.progressStep(for: .iapPurchaseRequired)
@@ -380,15 +383,26 @@ extension GeneratePassphraseView {
 
 #if os(iOS)
     func handleCodeEntry(_ outcome: CodeEntryOutcome) {
-        guard outcome == .freepassRedeemed, credentialsManager.isValidCredentialImported else { return }
+        guard outcome != .cancelled else { return }
+        let needsLogin = outcome == .pairingSignedIn || !credentialsManager.isValidCredentialImported
+        didLeaveForSuccessfulPurchase = true
+        if needsLogin {
+            // Login processing runs in the home drawer.
+            path = NavigationPath()
+        }
         Task {
             await CodeEntryOutcomeHandler.handle(
                 outcome,
                 credentialsManager: credentialsManager,
-                sendSessionEvent: { _ in }
+                sendSessionEvent: { onSessionEvent?($0) }
             )
-            didLeaveForSuccessfulPurchase = true
-            onPurchaseFlowComplete?()
+            // Login processing routes checkout itself.
+            guard !needsLogin else { return }
+            if credentialsManager.isAccountActive() {
+                onPurchaseFlowComplete?()
+            } else {
+                onPurchaseFlowDismissed?()
+            }
             path = NavigationPath()
         }
     }
