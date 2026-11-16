@@ -135,6 +135,17 @@ extension ConnectionManager {
         }
     }
 
+    public func setTransportPreference(_ preference: TransportPreferenceSetting) {
+        appSettings.transportPreference = preference
+        Task {
+#if os(iOS)
+            try? await sendAfterPersistingConfig(.setTransportPreference(preference))
+#elseif os(macOS)
+            try? await grpcManager.setTransportPreference(preference)
+#endif
+        }
+    }
+
     public func setLanBypassEnabled(_ enabled: Bool) {
         appSettings.isLanBypassEnabled = enabled
         connectionConfig.allowLan = enabled
