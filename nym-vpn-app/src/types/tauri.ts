@@ -611,6 +611,7 @@ export type VpndConfig = {
   bridgeMode: BridgeMode;
   netstack: boolean;
   frontingMode: FrontingMode;
+  transportPreference: BridgeTransport | null;
   minGatewayVpnPerformance: number | null;
   residentialExit: boolean;
   mixnetTraffic: MixnetTrafficConfig;

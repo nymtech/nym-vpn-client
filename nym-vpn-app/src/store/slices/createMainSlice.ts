@@ -11,6 +11,7 @@ import {
   AppError,
   AppState,
   BridgeMode,
+  BridgeTransport,
   CodeDependency,
   ConnectingState,
   DaemonStatus,
@@ -92,6 +93,7 @@ export type StateAction =
   | { type: 'set-backend-flags'; flags: FeatureFlags }
   | { type: 'set-bridge-mode'; mode: BridgeMode }
   | { type: 'set-fronting-mode'; mode: FrontingMode }
+  | { type: 'set-transport-preference'; transport: BridgeTransport | null }
   | { type: 'set-custom-dns-enabled'; enabled: boolean }
   | { type: 'set-custom-dns'; dns: string[] }
   | { type: 'set-default-dns'; dns: string[] }
@@ -139,6 +141,7 @@ export const initialState: AppState = {
   bridgeMode: 'off',
   allowLan: false,
   frontingMode: 'onRetry',
+  transportPreference: null,
   enableAdBlocking: false,
   enableConflictDetection: true,
   backendFlags: {
@@ -233,6 +236,7 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
           vpnMode: action.config.vpnMode,
           bridgeMode: action.config.bridgeMode,
           frontingMode: action.config.frontingMode,
+          transportPreference: action.config.transportPreference,
           ipv6Support: !action.config.disableIpv6,
           allowLan: action.config.allowLan,
           customDnsEnabled: action.config.enableCustomDns,
@@ -484,6 +488,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-fronting-mode':
         set({ frontingMode: action.mode });
+        break;
+
+      case 'set-transport-preference':
+        set({ transportPreference: action.transport });
         break;
 
       case 'set-custom-dns-enabled':
