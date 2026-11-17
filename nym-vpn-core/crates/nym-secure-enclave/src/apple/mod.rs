@@ -1,119 +1,71 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod auth;
 mod auth_error;
+mod keychain;
+mod keychain_item;
 mod local_authentication;
 mod security;
 mod zeroing_allocator;
 
 use std::{cell::RefCell, collections::HashMap, sync::Arc};
 
-use objc2::rc::Retained;
-use objc2_core_foundation::{CFAllocator, CFRetained};
-use objc2_local_authentication::LAContext;
+use objc2_core_foundation::{CFRetained, CFString};
 use objc2_security::{
     SecKey, errSecAuthFailed, errSecDataNotAvailable, errSecItemNotFound, errSecUserCanceled,
 };
-use tokio_util::task::LocalPoolHandle;
+
 use zeroize::Zeroizing;
 
 use crate::{Result, SecureEnclaveError, SecureEnclaveKey, SecureEnclaveProvider};
+use auth::AuthState;
 use auth_error::AuthErrorKind;
-use local_authentication::{authenticate, non_interactive_context};
 use security::{SecError, create_sec_key, decrypt_data, delete_sec_key, encrypt_data, get_sec_key};
-use zeroing_allocator::create_zeroing_allocator;
+
+pub use auth::LocalAuthentication;
+pub use keychain::Keychain;
+pub use keychain_item::{KeychainAccess, KeychainError, KeychainItem, KeychainResult};
 
 type KeyId = u64;
 
 thread_local! {
     /// Keys owned by the worker thread. `SecKey` cannot be sent
     /// between threads, so it never leaves the thread it was created on.
-    static WORKER_STATE: RefCell<WorkerState> = RefCell::default();
+    static KEYS: RefCell<Keys> = RefCell::default();
 }
 
-struct WorkerState {
-    keys: HashMap<KeyId, KeyEntry>,
+#[derive(Default)]
+struct Keys {
+    entries: HashMap<KeyId, KeyEntry>,
     next_key_id: KeyId,
-    auth: AuthState,
 }
 
 struct KeyEntry {
     tag: Vec<u8>,
+    access_group: Option<String>,
     key: CFRetained<SecKey>,
     /// Generation of the authentication context the key was obtained with.
     auth_generation: u64,
 }
 
-/// Authentication state of the worker thread.
-///
-/// Keys created with user presence requirement are only accessible with the context evaluated by
-/// local authentication. The context is tied to the process and cannot be shared with other
-/// processes.
-struct AuthState {
-    /// Context that keys are obtained with. When unlocked, it is the context evaluated by local
-    /// authentication. When locked, it does not allow user interaction, so that keys requiring
-    /// user presence fail instead of prompting.
-    context: Retained<LAContext>,
-    /// Incremented whenever the context changes, so that keys bound to an older context are
-    /// fetched again.
-    generation: u64,
-    /// Incremented on every `lock()`, so that an `unlock()` in flight does not install its
-    /// context after the enclave was locked.
-    lock_epoch: u64,
-}
-
-impl AuthState {
-    fn locked() -> Self {
-        Self {
-            context: non_interactive_context(),
-            generation: 0,
-            lock_epoch: 0,
-        }
-    }
-
-    fn unlock(&mut self, context: Retained<LAContext>) {
-        self.set_context(context);
-    }
-
-    fn lock(&mut self) {
-        self.lock_epoch += 1;
-        self.set_context(non_interactive_context());
-    }
-
-    fn set_context(&mut self, context: Retained<LAContext>) {
-        let old_context = std::mem::replace(&mut self.context, context);
-        unsafe { old_context.invalidate() };
-        self.generation += 1;
-    }
-}
-
-impl Default for WorkerState {
-    /// Runs once on the worker thread, before the first call into the Security framework.
-    fn default() -> Self {
-        // Set global default CFAllocator on current thread.
-        match create_zeroing_allocator() {
-            Some(allocator) => CFAllocator::set_default(Some(&allocator)),
-            None => tracing::warn!("Failed to create zeroing CFAllocator"),
-        }
-
-        Self {
-            keys: HashMap::new(),
-            next_key_id: 0,
-            auth: AuthState::locked(),
-        }
-    }
-}
-
-impl WorkerState {
-    fn insert(&mut self, tag: Vec<u8>, key: CFRetained<SecKey>) -> KeyId {
+impl Keys {
+    fn insert(
+        &mut self,
+        auth: &AuthState,
+        tag: Vec<u8>,
+        access_group: Option<String>,
+        key: CFRetained<SecKey>,
+    ) -> KeyId {
         let key_id = self.next_key_id;
         self.next_key_id += 1;
-        self.keys.insert(
+        self.entries.insert(
             key_id,
             KeyEntry {
                 tag,
+                access_group,
                 key,
-                auth_generation: self.auth.generation,
+                auth_generation: auth.generation,
             },
         );
         key_id
@@ -121,15 +73,16 @@ impl WorkerState {
 
     /// Returns the key, fetching it again if the authentication context changed since the key
     /// was obtained.
-    fn key(&mut self, key_id: KeyId) -> Result<&CFRetained<SecKey>> {
+    fn key(&mut self, auth: &AuthState, key_id: KeyId) -> Result<&CFRetained<SecKey>> {
         let entry = self
-            .keys
+            .entries
             .get_mut(&key_id)
             .ok_or_else(|| SecureEnclaveError::Other("key is released".to_owned()))?;
 
-        if entry.auth_generation != self.auth.generation {
-            entry.key = get_sec_key(&entry.tag, &self.auth.context)?;
-            entry.auth_generation = self.auth.generation;
+        if entry.auth_generation != auth.generation {
+            let access_group = entry.access_group.as_deref().map(CFString::from_str);
+            entry.key = get_sec_key(&entry.tag, access_group.as_deref(), &auth.context)?;
+            entry.auth_generation = auth.generation;
         }
 
         Ok(&entry.key)
@@ -137,15 +90,28 @@ impl WorkerState {
 }
 
 pub struct AppleSecureEnclaveProvider {
-    /// Pool with a single worker thread performing all calls into secure enclave.
-    pool: LocalPoolHandle,
+    auth: LocalAuthentication,
+    /// Keychain access group of the keys, or the default access group of the process if `None`.
+    access_group: Option<String>,
 }
 
-impl Default for AppleSecureEnclaveProvider {
-    fn default() -> Self {
+impl AppleSecureEnclaveProvider {
+    pub fn new(auth: LocalAuthentication, access_group: Option<&str>) -> Self {
         Self {
-            pool: LocalPoolHandle::new(1),
+            auth,
+            access_group: access_group.map(ToOwned::to_owned),
         }
+    }
+
+    /// Run the closure on the worker thread with the authentication state and the keys.
+    async fn run<T, F>(&self, f: F) -> Result<T>
+    where
+        F: FnOnce(&AuthState, &mut Keys) -> Result<T> + Send + 'static,
+        T: Send + 'static,
+    {
+        self.auth
+            .run(move |auth| KEYS.with_borrow_mut(|keys| f(auth, keys)))
+            .await?
     }
 }
 
@@ -155,50 +121,61 @@ impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
 
     async fn create_key(&self, alias: &str, user_presence: bool) -> Result<Self::Key> {
         let alias_bytes = alias.as_bytes().to_vec();
-        let id = run_on_worker(&self.pool, move |state| {
-            // Prevent creating more than one key with the same alias.
-            match get_sec_key(&alias_bytes, &state.auth.context).map_err(SecureEnclaveError::from) {
-                Ok(_) => Err(SecureEnclaveError::KeyAlreadyExists),
-                Err(SecureEnclaveError::KeyNotFound) => {
-                    let key = create_sec_key(&alias_bytes, user_presence, &state.auth.context)?;
-                    Ok(state.insert(alias_bytes, key))
+        let access_group = self.access_group.clone();
+        let id = self
+            .run(move |auth, keys| {
+                let cf_access_group = access_group.as_deref().map(CFString::from_str);
+                let cf_access_group = cf_access_group.as_deref();
+                // Prevent creating more than one key with the same alias.
+                match get_sec_key(&alias_bytes, cf_access_group, &auth.context)
+                    .map_err(SecureEnclaveError::from)
+                {
+                    Ok(_) => Err(SecureEnclaveError::KeyAlreadyExists),
+                    Err(SecureEnclaveError::KeyNotFound) => {
+                        let key = create_sec_key(
+                            &alias_bytes,
+                            cf_access_group,
+                            user_presence,
+                            &auth.context,
+                        )?;
+                        Ok(keys.insert(auth, alias_bytes, access_group, key))
+                    }
+                    Err(err) => Err(err),
                 }
-                Err(err) => Err(err),
-            }
-        })
-        .await?;
-        Ok(OSSecureEnclaveKey::new(id, self.pool.clone()))
+            })
+            .await?;
+        Ok(OSSecureEnclaveKey::new(id, self.auth.clone()))
     }
 
     async fn delete_key(&self, alias: &str) -> Result<()> {
         let alias_bytes = alias.as_bytes().to_vec();
-        run_on_worker(&self.pool, move |_state| Ok(delete_sec_key(&alias_bytes)?)).await
+        let access_group = self.access_group.clone();
+        self.run(move |_auth, _keys| {
+            let access_group = access_group.as_deref().map(CFString::from_str);
+            Ok(delete_sec_key(&alias_bytes, access_group.as_deref())?)
+        })
+        .await
     }
 
     async fn get_key(&self, alias: &str) -> Result<Self::Key> {
         let alias_bytes = alias.as_bytes().to_vec();
-        let id = run_on_worker(&self.pool, move |state| {
-            let key = get_sec_key(&alias_bytes, &state.auth.context)?;
-            Ok(state.insert(alias_bytes, key))
-        })
-        .await?;
-        Ok(OSSecureEnclaveKey::new(id, self.pool.clone()))
+        let access_group = self.access_group.clone();
+        let id = self
+            .run(move |auth, keys| {
+                let cf_access_group = access_group.as_deref().map(CFString::from_str);
+                let key = get_sec_key(&alias_bytes, cf_access_group.as_deref(), &auth.context)?;
+                Ok(keys.insert(auth, alias_bytes, access_group, key))
+            })
+            .await?;
+        Ok(OSSecureEnclaveKey::new(id, self.auth.clone()))
     }
 
     async fn unlock(&self, reason: &str) -> Result<()> {
-        let reason = reason.to_owned();
-        self.pool
-            .spawn_pinned(move || async move { unlock_with_local_authentication(&reason).await })
-            .await
-            .map_err(|_| SecureEnclaveError::Other("secure enclave worker panic".to_owned()))?
+        self.auth.unlock(reason).await
     }
 
     async fn lock(&self) -> Result<()> {
-        run_on_worker(&self.pool, |state| {
-            state.auth.lock();
-            Ok(())
-        })
-        .await
+        self.auth.lock().await
     }
 }
 
@@ -208,35 +185,37 @@ pub struct OSSecureEnclaveKey {
 }
 
 impl OSSecureEnclaveKey {
-    fn new(id: KeyId, pool: LocalPoolHandle) -> Self {
+    fn new(id: KeyId, auth: LocalAuthentication) -> Self {
         Self {
-            handle: Arc::new(KeyHandle { id, pool }),
+            handle: Arc::new(KeyHandle { id, auth }),
         }
+    }
+
+    async fn with_key<T, F>(&self, f: F) -> Result<T>
+    where
+        F: FnOnce(&SecKey) -> Result<T> + Send + 'static,
+        T: Send + 'static,
+    {
+        let key_id = self.handle.id;
+        self.handle
+            .auth
+            .run(move |auth| KEYS.with_borrow_mut(|keys| f(keys.key(auth, key_id)?)))
+            .await?
     }
 }
 
 #[async_trait::async_trait]
 impl SecureEnclaveKey for OSSecureEnclaveKey {
     async fn decrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
-        let key_id = self.handle.id;
         let bytes = bytes.to_vec();
-
-        run_on_worker(&self.handle.pool, move |state| {
-            let private_key = state.key(key_id)?;
-            Ok(decrypt_data(private_key, &bytes)?)
-        })
-        .await
+        self.with_key(move |key| Ok(decrypt_data(key, &bytes)?))
+            .await
     }
 
     async fn encrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
-        let key_id = self.handle.id;
         let bytes = Zeroizing::new(bytes.to_vec());
-
-        run_on_worker(&self.handle.pool, move |state| {
-            let private_key = state.key(key_id)?;
-            Ok(encrypt_data(private_key, &bytes)?)
-        })
-        .await
+        self.with_key(move |key| Ok(encrypt_data(key, &bytes)?))
+            .await
     }
 }
 
@@ -244,14 +223,14 @@ impl SecureEnclaveKey for OSSecureEnclaveKey {
 /// dropped.
 struct KeyHandle {
     id: KeyId,
-    pool: LocalPoolHandle,
+    auth: LocalAuthentication,
 }
 
 impl Drop for KeyHandle {
     fn drop(&mut self) {
         let key_id = self.id;
-        let _join_handle = self.pool.spawn_pinned(move || async move {
-            WORKER_STATE.with_borrow_mut(|state| state.keys.remove(&key_id));
+        self.auth.spawn(move |_auth| {
+            KEYS.with_borrow_mut(|keys| keys.entries.remove(&key_id));
         });
     }
 }
@@ -280,32 +259,4 @@ impl From<SecError> for SecureEnclaveError {
             }
         }
     }
-}
-
-/// Authenticate the device owner and unlock, unless the enclave was locked in the meantime. Must
-/// run on the worker thread.
-async fn unlock_with_local_authentication(reason: &str) -> Result<()> {
-    let lock_epoch = WORKER_STATE.with_borrow(|state| state.auth.lock_epoch);
-    let context = authenticate(reason).await?;
-
-    WORKER_STATE.with_borrow_mut(|state| {
-        if state.auth.lock_epoch == lock_epoch {
-            state.auth.unlock(context);
-            Ok(())
-        } else {
-            unsafe { context.invalidate() };
-            Err(SecureEnclaveError::UserCancelled)
-        }
-    })
-}
-
-/// Run the closure on the worker thread and wait for it to complete.
-async fn run_on_worker<T, F>(pool: &LocalPoolHandle, f: F) -> Result<T>
-where
-    F: FnOnce(&mut WorkerState) -> Result<T> + Send + 'static,
-    T: Send + 'static,
-{
-    pool.spawn_pinned(move || async move { WORKER_STATE.with_borrow_mut(f) })
-        .await
-        .map_err(|_| SecureEnclaveError::Other("secure enclave worker panic".to_owned()))?
 }

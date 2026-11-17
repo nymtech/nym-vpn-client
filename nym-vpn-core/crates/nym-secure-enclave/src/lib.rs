@@ -14,6 +14,10 @@ use android::AndroidKeyStoreProvider;
 pub use android::{AndroidSecureEnclaveKey, AndroidSecureEnclaveProvider};
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 use apple::AppleSecureEnclaveProvider;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+pub use apple::{
+    Keychain, KeychainAccess, KeychainError, KeychainItem, KeychainResult, LocalAuthentication,
+};
 #[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
 pub use secure_enclave::{PlatformSecureEnclaveKey, SecureEnclave};
 

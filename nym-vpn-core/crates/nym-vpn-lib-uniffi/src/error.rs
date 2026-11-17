@@ -199,8 +199,35 @@ impl From<nym_vpn_store::keys::device::OnDiskKeysError> for VpnError {
     }
 }
 
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+impl From<nym_vpn_store::keys::device::KeychainKeysError> for VpnError {
+    fn from(value: nym_vpn_store::keys::device::KeychainKeysError) -> Self {
+        Self::Storage {
+            details: value.to_string(),
+        }
+    }
+}
+
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+impl From<nym_vpn_store::account::keychain::KeychainAccountStorageError> for VpnError {
+    fn from(value: nym_vpn_store::account::keychain::KeychainAccountStorageError) -> Self {
+        Self::Storage {
+            details: value.to_string(),
+        }
+    }
+}
+
 impl From<nym_vpn_store::account::on_disk::OnDiskAccountStorageError> for VpnError {
     fn from(value: nym_vpn_store::account::on_disk::OnDiskAccountStorageError) -> Self {
+        Self::Storage {
+            details: value.to_string(),
+        }
+    }
+}
+
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+impl From<nym_vpn_store::mnemonic::keychain::KeychainMnemonicStorageError> for VpnError {
+    fn from(value: nym_vpn_store::mnemonic::keychain::KeychainMnemonicStorageError) -> Self {
         Self::Storage {
             details: value.to_string(),
         }

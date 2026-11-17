@@ -33,6 +33,14 @@ pub enum DatabaseKeyStorageError {
 
     #[error("invalid database key length: {0}")]
     InvalidKeyLength(usize),
+
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
+    #[error("database key keychain error")]
+    Keychain(#[source] nym_secure_enclave::KeychainError),
+
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
+    #[error("database key was removed from the keychain while loading it")]
+    KeychainKeyRemoved,
 }
 
 pub type Result<T, E = DatabaseKeyStorageError> = std::result::Result<T, E>;
@@ -139,6 +147,56 @@ impl OnDiskDatabaseKeyStorage {
             ctx,
             path: self.path.clone(),
             source,
+        }
+    }
+}
+
+/// Stores [`DatabaseKey`] in the keychain.
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+pub struct KeychainDatabaseKeyStorage {
+    item: nym_secure_enclave::KeychainItem,
+}
+
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+impl KeychainDatabaseKeyStorage {
+    pub fn new(item: nym_secure_enclave::KeychainItem) -> Self {
+        Self { item }
+    }
+
+    /// Loads the database key or creates and stores a new one if it does not exist yet.
+    pub async fn load_or_create(&self) -> Result<DatabaseKey> {
+        match self.load().await? {
+            Some(key) => Ok(key),
+            None => self.create().await,
+        }
+    }
+
+    async fn load(&self) -> Result<Option<DatabaseKey>> {
+        let bytes = self
+            .item
+            .get_value()
+            .await
+            .map_err(DatabaseKeyStorageError::Keychain)?;
+        bytes
+            .map(|bytes| database_key_from_bytes(&bytes))
+            .transpose()
+    }
+
+    async fn create(&self) -> Result<DatabaseKey> {
+        tracing::info!("Creating database key in the keychain");
+
+        let key = generate_database_key();
+        let added = self
+            .item
+            .add(key.as_bytes())
+            .map_err(DatabaseKeyStorageError::Keychain)?;
+        if added {
+            Ok(key)
+        } else {
+            // Another process created the key in the meantime
+            self.load()
+                .await?
+                .ok_or(DatabaseKeyStorageError::KeychainKeyRemoved)
         }
     }
 }
