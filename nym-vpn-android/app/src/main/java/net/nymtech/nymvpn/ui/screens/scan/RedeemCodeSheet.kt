@@ -12,6 +12,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.ui.common.NymModalBottomSheet
@@ -20,9 +21,10 @@ import net.nymtech.nymvpn.ui.screens.scan.components.RedeemCodeView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RedeemCodeSheet(onDismiss: () -> Unit, viewModel: RedeemCodeViewModel = hiltViewModel()) {
+fun RedeemCodeSheet(accountStored: Boolean, onDismiss: () -> Unit, viewModel: RedeemCodeViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-	val openAcceptedCode = rememberOpenAcceptedCode()
+	val hadAccount = rememberSaveable { accountStored }
+	val openAcceptedCode = rememberOpenAcceptedCode(hadAccount)
 	val loading by rememberUpdatedState(uiState.loading)
 	// A redeem in flight can't be cancelled, so the sheet stays open.
 	val sheetState = rememberModalBottomSheetState(
