@@ -189,7 +189,19 @@ def main():
     sources = gather(allow_fallback)
     print("changelog bullets → " +
           ", ".join(f"{s}:{len(v)}" for s, v in sources.items()))
-    copy = sources if no_llm else call_anthropic(sources)
+    if no_llm:
+        copy = sources
+    elif any(sources.values()):
+        copy = call_anthropic(sources)
+    else:
+        copy = {}
+    # A store whose filtered bullets are empty gets NO copy — never let the model invent copy with no
+    # source support (an iOS-less release must not yield an Apple note). This makes the empty case
+    # independent of model behaviour; the workflow's own -s guard only catches an empty file, not a
+    # hallucinated one.
+    for store, bullets in sources.items():
+        if not bullets:
+            copy[store] = []
     for store in ("android", "apple"):
         lines = [l.strip() for l in copy.get(store, []) if l.strip()]
         if dry or no_llm:
