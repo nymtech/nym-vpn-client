@@ -11,3 +11,5 @@ pub use persistence::{
     DEFAULT_PRIVATE_DEVICE_KEY_FILENAME, DEFAULT_PUBLIC_DEVICE_KEY_FILENAME, DeviceKeysPaths,
     InMemEphemeralKeys, OnDiskKeys, OnDiskKeysError,
 };
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+pub use persistence::{KeychainKeys, KeychainKeysError};

@@ -13,7 +13,7 @@ use objc2_local_authentication::{LAError, LAErrorDomain};
 use objc2_security::{
     SecAccessControl, SecAccessControlCreateFlags, SecCopyErrorMessageString, SecItemCopyMatching,
     SecItemDelete, SecKey, SecKeyAlgorithm, errSecInteractionNotAllowed, errSecSuccess,
-    kSecAttrAccessControl, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+    kSecAttrAccessControl, kSecAttrAccessGroup, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
     kSecAttrAccessibleWhenUnlockedThisDeviceOnly, kSecAttrApplicationTag, kSecAttrIsPermanent,
     kSecAttrKeySizeInBits, kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrTokenID,
     kSecAttrTokenIDSecureEnclave, kSecClass, kSecClassKey,
@@ -94,18 +94,25 @@ pub type SecResult<T, E = SecError> = std::result::Result<T, E>;
 
 /// Find the key with the given tag. The returned key uses `auth_context` to satisfy the access
 /// control of the key.
-pub fn get_sec_key(tag: &[u8], auth_context: &LAContext) -> SecResult<CFRetained<SecKey>> {
+pub fn get_sec_key(
+    tag: &[u8],
+    access_group: Option<&CFString>,
+    auth_context: &LAContext,
+) -> SecResult<CFRetained<SecKey>> {
     let tag = CFData::from_bytes(tag);
     let query = unsafe {
-        dict(&[
-            (kSecClass, kSecClassKey),
-            (kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom),
-            (kSecAttrApplicationTag, &tag),
-            (kSecReturnRef, CFBoolean::new(true)),
-            (kSecMatchLimit, kSecMatchLimitOne),
-            (kSecUseAuthenticationContext, as_cf_type(auth_context)),
-            (kSecUseDataProtectionKeychain, CFBoolean::new(true)),
-        ])
+        dict_with_access_group(
+            &[
+                (kSecClass, kSecClassKey),
+                (kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom),
+                (kSecAttrApplicationTag, &tag),
+                (kSecReturnRef, CFBoolean::new(true)),
+                (kSecMatchLimit, kSecMatchLimitOne),
+                (kSecUseAuthenticationContext, as_cf_type(auth_context)),
+                (kSecUseDataProtectionKeychain, CFBoolean::new(true)),
+            ],
+            access_group,
+        )
     };
 
     let mut result: *const CFType = std::ptr::null();
@@ -124,16 +131,19 @@ pub fn get_sec_key(tag: &[u8], auth_context: &LAContext) -> SecResult<CFRetained
     Ok(key_ref)
 }
 
-pub fn delete_sec_key(tag: &[u8]) -> SecResult<()> {
+pub fn delete_sec_key(tag: &[u8], access_group: Option<&CFString>) -> SecResult<()> {
     let tag = CFData::from_bytes(tag);
 
     let query = unsafe {
-        dict(&[
-            (kSecClass, kSecClassKey),
-            (kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom),
-            (kSecAttrApplicationTag, &tag),
-            (kSecUseDataProtectionKeychain, CFBoolean::new(true)),
-        ])
+        dict_with_access_group(
+            &[
+                (kSecClass, kSecClassKey),
+                (kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom),
+                (kSecAttrApplicationTag, &tag),
+                (kSecUseDataProtectionKeychain, CFBoolean::new(true)),
+            ],
+            access_group,
+        )
     };
 
     let status = unsafe { SecItemDelete(query.as_opaque()) };
@@ -142,6 +152,7 @@ pub fn delete_sec_key(tag: &[u8]) -> SecResult<()> {
 
 pub fn create_sec_key(
     tag: &[u8],
+    access_group: Option<&CFString>,
     user_presence: bool,
     auth_context: &LAContext,
 ) -> SecResult<CFRetained<SecKey>> {
@@ -168,11 +179,14 @@ pub fn create_sec_key(
     let tag = CFData::from_bytes(tag);
     let key_size = CFNumber::new_i32(KEY_SIZE);
     let private_attrs = unsafe {
-        dict(&[
-            (kSecAttrIsPermanent, CFBoolean::new(true)),
-            (kSecAttrApplicationTag, &tag),
-            (kSecAttrAccessControl, &acl),
-        ])
+        dict_with_access_group(
+            &[
+                (kSecAttrIsPermanent, CFBoolean::new(true)),
+                (kSecAttrApplicationTag, &tag),
+                (kSecAttrAccessControl, &acl),
+            ],
+            access_group,
+        )
     };
 
     let params = unsafe {
@@ -268,11 +282,22 @@ fn wrap_os_status(status: OsStatus) -> SecResult<()> {
 }
 
 /// `LAContext` is an Objective-C object, which is also a valid CoreFoundation object.
-unsafe fn as_cf_type(object: &LAContext) -> &CFType {
+pub unsafe fn as_cf_type(object: &LAContext) -> &CFType {
     unsafe { &*(object as *const LAContext).cast::<CFType>() }
 }
 
-fn dict(pairs: &[(&CFString, &CFType)]) -> CFRetained<CFDictionary<CFString, CFType>> {
+fn dict_with_access_group(
+    pairs: &[(&CFString, &CFType)],
+    access_group: Option<&CFString>,
+) -> CFRetained<CFDictionary<CFString, CFType>> {
+    let mut pairs = pairs.to_vec();
+    if let Some(access_group) = access_group {
+        pairs.push((unsafe { kSecAttrAccessGroup }, access_group));
+    }
+    dict(&pairs)
+}
+
+pub fn dict(pairs: &[(&CFString, &CFType)]) -> CFRetained<CFDictionary<CFString, CFType>> {
     let (keys, vals): (Vec<_>, Vec<_>) = pairs.iter().copied().unzip();
     CFDictionary::from_slices(&keys, &vals)
 }
