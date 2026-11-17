@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui.screens.scan
 
 import net.nymtech.nymvpn.manager.freepass.FreepassCode
 import net.nymtech.nymvpn.manager.pairing.PairingQrCode
+import net.nymtech.nymvpn.util.Constants
 
 // Codes the app knows how to act on, scanned or typed.
 sealed interface ScannedQrCode {
@@ -14,7 +15,7 @@ sealed interface ScannedQrCode {
 	}
 
 	companion object {
-		fun parse(contents: String): ScannedQrCode? = PairingQrCode.parsePublicKey(contents)?.let(::Pairing)
+		fun parse(contents: String): ScannedQrCode? = PairingQrCode.parsePublicKey(contents)?.takeIf { Constants.IS_PAIRING_ENABLED }?.let(::Pairing)
 			?: FreepassCode.parse(contents)?.let(::Freepass)
 	}
 }

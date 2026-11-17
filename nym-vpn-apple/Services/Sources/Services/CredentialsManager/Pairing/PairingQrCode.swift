@@ -2,6 +2,9 @@ import Foundation
 
 /// Shape check only; spec in nym-vpn-android/docs/qr-pairing-format.md.
 public enum PairingQrCode {
+    // Device pairing is hidden for this release.
+    public static let isPairingEnabled = false
+
     static let maxLength = 512
 
     private static let scheme = "https"

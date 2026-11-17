@@ -80,6 +80,7 @@ import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
@@ -328,19 +329,21 @@ fun AccountInfoScreenContent(
 		)
 		Spacer(Modifier.height(16.dp))
 		if (isMnemonicStored) {
-			OutlineStyledButton(
-				onClick = onPairDeviceClick,
-				content = {
-					Text(
-						stringResource(R.string.pair_device_button),
-						style = MaterialTheme.typography.titleMedium,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-				},
-				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
-				shape = RoundedCornerShape(12.dp),
-			)
-			Spacer(Modifier.height(16.dp))
+			if (Constants.IS_PAIRING_ENABLED) {
+				OutlineStyledButton(
+					onClick = onPairDeviceClick,
+					content = {
+						Text(
+							stringResource(R.string.pair_device_button),
+							style = MaterialTheme.typography.titleMedium,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
+						)
+					},
+					modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+					shape = RoundedCornerShape(12.dp),
+				)
+				Spacer(Modifier.height(16.dp))
+			}
 			OutlineStyledButton(
 				onClick = onLogoutClick,
 				content = {

@@ -5,7 +5,7 @@ public enum ScannedQRCode: Equatable, CustomStringConvertible {
     case freepass(code: String)
 
     public static func parse(_ contents: String) -> ScannedQRCode? {
-        if let publicKey = PairingQrCode.parsePublicKey(contents) {
+        if PairingQrCode.isPairingEnabled, let publicKey = PairingQrCode.parsePublicKey(contents) {
             return .pairing(publicKey: publicKey)
         }
         if let code = FreepassCode.parse(contents) {

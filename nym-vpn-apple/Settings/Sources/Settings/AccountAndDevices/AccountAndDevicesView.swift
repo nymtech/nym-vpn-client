@@ -51,7 +51,9 @@ import Theme
                             accountStatusSection()
                             nymAccountSection()
 #if os(iOS)
-                            pairDeviceSection()
+                            if PairingQrCode.isPairingEnabled {
+                                pairDeviceSection()
+                            }
 #endif
                             accountIdentifier()
                             accountIdText()
