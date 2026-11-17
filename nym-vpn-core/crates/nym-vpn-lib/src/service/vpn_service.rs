@@ -90,7 +90,7 @@ use crate::{
     },
     logging::LogFileRemoverHandle,
     paths::{NymConfigPaths, Paths},
-    storage::VpnClientOnDiskStorage,
+    storage::{StorageConfig, VpnClientOnDiskStorage},
     tunnel_state_machine::{
         GatewayPerformanceOptions, NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
         TunnelStateMachineArguments, dns_servers_from_hickory_config,
@@ -600,16 +600,17 @@ impl NymVpnService {
             tracing::error!("Failed to register keychain unlock right: {err}");
         }
 
-        let storage = VpnClientOnDiskStorage::new(
-            paths.network_data_dir.clone(),
-            &network_name,
-            #[cfg(any(target_os = "ios", target_os = "macos"))]
-            keychain,
-            #[cfg(target_os = "android")]
-            secure_enclave.clone(),
-        )
-        .await
-        .map_err(Error::LoadDatabaseKey)?;
+        let storage_config =
+            StorageConfig::builder().base_data_directory(paths.network_data_dir.clone());
+        #[cfg(any(target_os = "ios", target_os = "macos"))]
+        let storage_config = storage_config
+            .network_name(network_name.clone())
+            .keychain(keychain);
+        #[cfg(target_os = "android")]
+        let storage_config = storage_config.secure_enclave(secure_enclave.clone());
+        let storage = VpnClientOnDiskStorage::new(storage_config.build())
+            .await
+            .map_err(Error::LoadDatabaseKey)?;
         let database_key = storage.database_key().clone();
 
         let state_machine_shutdown_token = CancellationToken::new();

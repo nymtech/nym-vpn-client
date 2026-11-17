@@ -188,10 +188,7 @@ async fn handle_get_active_devices<C: ConnectivityMonitor>(
 pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<VpnAccountSummary>> {
-    Ok(shared_state
-        .account
-        .as_ref()
-        .and_then(|state| state.summary.clone()))
+    Ok(shared_state.summary.clone())
 }
 
 async fn handle_is_trial_eligible<C: ConnectivityMonitor>(

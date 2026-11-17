@@ -13,7 +13,7 @@ use nym_vpn_api_client::{
     response::NymVpnRegisterAccountResponse,
     types::{Device, DeviceStatus, Platform, VpnAccountMode},
 };
-use nym_vpn_lib::storage::VpnClientOnDiskStorage;
+use nym_vpn_lib::storage::{StorageConfig, VpnClientOnDiskStorage};
 use nym_vpn_lib_types::{
     AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams, ParsedAccountLinks,
     RegisterAccountResponse, StorableAccount, StoreAccountRequest, StoredAccountMode,
@@ -21,6 +21,7 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_store::{
     account::{AccountInformationStorage, StoredAccountIdentity, StoredAccountInformation},
+    account_summary::AccountSummaryStorage,
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
     mnemonic::{MnemonicStorage, StoredMnemonic},
 };
@@ -56,7 +57,12 @@ impl NymVpnAccountStorage {
             nym_secure_enclave::LocalAuthentication::new(),
             nym_vpn_lib::storage::KEYCHAIN_ACCESS_GROUP,
         );
-        let storage = VpnClientOnDiskStorage::new(&storage_path, &network_name, keychain)
+        let storage_config = StorageConfig::builder()
+            .base_data_directory(&storage_path)
+            .network_name(&network_name)
+            .keychain(keychain)
+            .build();
+        let storage = VpnClientOnDiskStorage::new(storage_config)
             .await
             .map_err(|err| VpnError::Storage {
                 details: err.to_string(),
@@ -323,7 +329,7 @@ impl NymVpnAccountStorage {
     /// Get a summary of account usage, syncing from the VPN API first. falling back to cache otherwise
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
         // Check if we have an account
-        let Some(mut account_information) = self.storage.load_account().await? else {
+        let Some(account_information) = self.storage.load_account().await? else {
             return Ok(None);
         };
 
@@ -335,14 +341,20 @@ impl NymVpnAccountStorage {
         {
             Ok(account_summary) => {
                 // Best effort, let's not fail to return it even though we have it
-                account_information.summary = Some(account_summary.clone());
-                let _ = self.storage.store_account(account_information).await;
+                let _ = self.storage.store_summary(&account_summary).await;
                 Ok(Some(account_summary))
             }
             Err(e) => {
                 tracing::warn!("Account summary network sync failed, trying cache: {e:?}");
                 // If we have an account but no cached summary, its absence is indeed an error
-                account_information.summary.map(Some).ok_or(e)
+                let cached_summary = self
+                    .storage
+                    .load_summary()
+                    .await
+                    .inspect_err(|err| tracing::warn!("Failed to load account summary: {err}"))
+                    .ok()
+                    .flatten();
+                cached_summary.map(Some).ok_or(e)
             }
         }
     }
@@ -388,6 +400,7 @@ impl NymVpnAccountStorage {
             derive_ecash_keypair(account.mnemonic.clone()).map_err(VpnError::internal)?;
 
         self.storage.init_keys(None).await?;
+        self.storage.remove_summary().await?;
         self.storage
             .store_mnemonic(StoredMnemonic {
                 mnemonic: account.mnemonic,
@@ -397,7 +410,6 @@ impl NymVpnAccountStorage {
             .store_account(StoredAccountInformation {
                 account_identity,
                 ecash_keypair,
-                summary: None,
             })
             .await?;
         Ok(())
@@ -516,7 +528,8 @@ impl NymVpnAccountStorage {
     }
 
     async fn remove_account_information(&self) -> Result<(), VpnError> {
-        Ok(self.storage.remove_account().await?)
+        self.storage.remove_account().await?;
+        Ok(self.storage.remove_summary().await?)
     }
 
     async fn remove_credential_storage(&self) -> Result<(), VpnError> {

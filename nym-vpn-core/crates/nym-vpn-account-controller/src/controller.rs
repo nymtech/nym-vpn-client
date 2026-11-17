@@ -163,6 +163,17 @@ where
         let account = account_storage.load_account_information().await?;
         // todo: log out on failure to load account information?
 
+        // The summary is a cache, so it is fetched again when it cannot be loaded.
+        let summary = match account {
+            Some(_) => account_storage
+                .load_summary()
+                .await
+                .inspect_err(|err| tracing::warn!("Failed to load account summary: {err}"))
+                .ok()
+                .flatten(),
+            None => None,
+        };
+
         let device_keys = account_storage.load_device_keys().await?;
         let wireguard_keys_storage =
             WireguardKeysDb::init(Some(config.data_dir.clone()), &config.database_key).await?;
@@ -176,6 +187,7 @@ where
             clients.nym_vpn_api_client,
             clients.nyxd_client,
             account,
+            summary,
             device_keys,
             storage_op_sender,
             event_channel,

@@ -96,10 +96,7 @@ impl SyncingNetworkState {
         let vpn_api_client = shared_state.vpn_api_client.clone();
 
         // Use the provided sync mode unless there is no cache
-        let has_summary = shared_state
-            .account
-            .as_ref()
-            .is_some_and(|state| state.summary.is_some());
+        let has_summary = shared_state.summary.is_some();
         let sync_mode = if !has_summary {
             SyncMode::Mandatory
         } else {

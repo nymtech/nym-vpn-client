@@ -323,7 +323,6 @@ nym-sdk = { git = "https://github.com/nymtech/nym", rev = "2bd629e92a58cd60f7a0a
 nym-serde-helpers = { git = "https://github.com/nymtech/nym", rev = "2bd629e92a58cd60f7a0a3fd84c56618e9efbb3b" }
 nym-sqlcipher = { git = "https://github.com/nymtech/nym", rev = "2bd629e92a58cd60f7a0a3fd84c56618e9efbb3b" }
 nym-statistics-common = { git = "https://github.com/nymtech/nym", rev = "2bd629e92a58cd60f7a0a3fd84c56618e9efbb3b" }
-nym-store-cipher = { git = "https://github.com/nymtech/nym", rev = "2bd629e92a58cd60f7a0a3fd84c56618e9efbb3b" }
 nym-topology = { git = "https://github.com/nymtech/nym", rev = "2bd629e92a58cd60f7a0a3fd84c56618e9efbb3b" }
 nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", rev = "2bd629e92a58cd60f7a0a3fd84c56618e9efbb3b" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "2bd629e92a58cd60f7a0a3fd84c56618e9efbb3b" }
@@ -364,7 +363,6 @@ nym-bridges-types = { git = "https://github.com/nymtech/nym-bridges", rev = "f80
 #nym-registration-client = { path = "../nym/nym-registration-client" }
 #nym-registration-common = { path = "../nym/common/registration" }
 #nym-sdk = { path = "../nym/sdk/rust/nym-sdk" }
-#nym-store-cipher = { path = "../nym/common/store-cipher" }
 #nym-statistics-common = { path = "../nym/common/statistics" }
 #nym-sqlcipher = { path = "../nym/common/sqlcipher" }
 #nym-topology = { path = "../nym/common/topology" }

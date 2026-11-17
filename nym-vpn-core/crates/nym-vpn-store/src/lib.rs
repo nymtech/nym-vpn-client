@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod account;
+pub mod account_summary;
 pub mod database_key;
 pub mod encrypted_file;
 pub mod keys;
@@ -10,7 +11,10 @@ pub mod secure_store_migration;
 pub mod store_ciphers;
 
 pub trait VpnStorage:
-    mnemonic::MnemonicStorage + keys::device::DeviceKeyStore + account::AccountInformationStorage
+    mnemonic::MnemonicStorage
+    + keys::device::DeviceKeyStore
+    + account::AccountInformationStorage
+    + account_summary::AccountSummaryStorage
 {
 }
 

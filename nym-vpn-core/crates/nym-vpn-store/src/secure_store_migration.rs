@@ -12,7 +12,7 @@ use std::{
 #[cfg(target_os = "android")]
 use nym_secure_enclave::{SecureEnclave, SecureEnclaveError};
 use nym_vpn_account::derive_ecash_keypair;
-use nym_vpn_lib_types::{Mnemonic, StoredAccountMode, VpnAccountSummary};
+use nym_vpn_lib_types::{Mnemonic, StoredAccountMode};
 use serde::Deserialize;
 use tokio::fs::File;
 use tokio_util::io::SyncIoBridge;
@@ -80,7 +80,6 @@ struct LegacyAccount {
 
 pub struct SecureStoreMigrationManager<'a, MnemonicStoreType, AccountStoreType> {
     mnemonic_json_path: PathBuf,
-    account_summary_json_path: PathBuf,
     mnemonic_storage: &'a MnemonicStoreType,
     account_storage: &'a AccountStoreType,
     #[cfg(target_os = "android")]
@@ -99,7 +98,6 @@ where
     /// user presence for encryption. The `unlock_reason` is shown to the user when authenticating.
     pub fn new(
         mnemonic_json_path: impl Into<PathBuf>,
-        account_summary_json_path: impl Into<PathBuf>,
         mnemonic_storage: &'a MnemonicStoreType,
         account_storage: &'a AccountStoreType,
         #[cfg(target_os = "android")] secure_enclave: Arc<SecureEnclave>,
@@ -107,7 +105,6 @@ where
     ) -> Self {
         Self {
             mnemonic_json_path: mnemonic_json_path.into(),
-            account_summary_json_path: account_summary_json_path.into(),
             mnemonic_storage,
             account_storage,
             #[cfg(target_os = "android")]
@@ -147,7 +144,7 @@ where
             })?;
         }
 
-        self.remove_plain_files().await;
+        self.remove_plain_mnemonic().await;
         Ok(())
     }
 
@@ -189,8 +186,6 @@ where
 
     /// Move mnemonic from plain file to encrypted store
     async fn migrate_mnemonic(&self, plain_mnemonic_file: File) -> Result<()> {
-        let account_summary: Option<VpnAccountSummary> = self.read_account_summary().await;
-
         let LegacyAccount { mnemonic, mode } =
             self.read_legacy_account(plain_mnemonic_file).await?;
 
@@ -201,7 +196,6 @@ where
         let account_information = StoredAccountInformation {
             account_identity,
             ecash_keypair,
-            summary: account_summary,
         };
 
         // Android needs authorization for encryption
@@ -223,10 +217,8 @@ where
             .map_err(|err| SecureStoreMigrationError::StoreAccountInformation(Box::new(err)))
     }
 
-    /// Remove plaintext files (mnemonic, summary)
-    async fn remove_plain_files(&self) {
+    async fn remove_plain_mnemonic(&self) {
         remove_file_if_exists(&self.mnemonic_json_path).await;
-        remove_file_if_exists(&self.account_summary_json_path).await;
     }
 
     /// Parse legacy account from plaintext mnemonic file
@@ -247,36 +239,6 @@ where
                     SecureStoreMigrationError::ParseLegacyAccount(err)
                 }
             })
-    }
-
-    async fn read_account_summary(&self) -> Option<VpnAccountSummary> {
-        let f = tokio::fs::File::open(&self.account_summary_json_path)
-            .await
-            .map(Some)
-            .or_else(|err| {
-                if err.kind() == IoErrorKind::NotFound {
-                    Ok(None)
-                } else {
-                    Err(err)
-                }
-            })
-            .inspect_err(|err| {
-                tracing::warn!(
-                    "Failed to read account_summary at {}: {}",
-                    self.account_summary_json_path.display(),
-                    err
-                )
-            })
-            .ok()??;
-
-        let reader: SyncIoBridge<File> = SyncIoBridge::new(f);
-
-        tokio::task::spawn_blocking(move || serde_json::from_reader(reader))
-            .await
-            .inspect_err(|err| tracing::warn!("Failed to join account summary task: {err}"))
-            .ok()?
-            .inspect_err(|err| tracing::warn!("Failed to read account summary: {err}"))
-            .ok()
     }
 }
 
@@ -321,10 +283,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_migration_without_summary() {
+    async fn test_migration() {
         let storage_dir = tempfile::TempDir::new().unwrap();
         let mnemonic_json_path = storage_dir.path().join("mnemonic.json");
-        let account_summary_path = storage_dir.path().join("account-summary.json");
 
         let stored_mnemonic = stored_mnemonic_fixture();
         let json = serde_json::json!({
@@ -341,12 +302,8 @@ mod tests {
         let mnemonic_store = InMemoryMnemonicStorage::default();
         let account_store = InMemoryAccountStorage::default();
 
-        let storage = SecureStoreMigrationManager::new(
-            mnemonic_json_path,
-            account_summary_path,
-            &mnemonic_store,
-            &account_store,
-        );
+        let storage =
+            SecureStoreMigrationManager::new(mnemonic_json_path, &mnemonic_store, &account_store);
 
         assert_matches!(storage.should_migrate().await, Ok(true));
         assert_matches!(storage.migrate().await, Ok(()));
@@ -360,78 +317,8 @@ mod tests {
             Some(StoredAccountInformation {
                 account_identity,
                 ecash_keypair,
-                summary: None,
             })
         );
-    }
-
-    #[tokio::test]
-    async fn test_migration_with_summary() {
-        let storage_dir = tempfile::TempDir::new().unwrap();
-        let mnemonic_json_path = storage_dir.path().join("mnemonic.json");
-        let account_summary_path = storage_dir.path().join("account-summary.json");
-
-        let stored_mnemonic = stored_mnemonic_fixture();
-        let json = serde_json::json!({
-            "name": "default",
-            "mnemonic": stored_mnemonic.mnemonic.to_string(),
-            "mode": "api",
-            "nonce": 0,
-        });
-        tokio::fs::write(&mnemonic_json_path, json.to_string())
-            .await
-            .unwrap();
-
-        let json = serde_json::json!({
-            "traffic_used_gb": 12,
-            "traffic_limit_gb": 100,
-            "traffic_reset_time": "2026-11-01T00:00:00Z",
-            "fair_usage_data_unavailable": false,
-            "account_addr": "n1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu",
-            "canonical_account_addr": null,
-            "auth_methods": [],
-            "account_mode": "api",
-            "subscription": null,
-            "is_subscription_stacked": false,
-            "account_status": "Active",
-            "remaining_devices": 4,
-            "is_device_active": true,
-            "stale": false,
-            "last_synced_utc": "2026-10-22T12:00:00Z",
-        });
-        tokio::fs::write(&account_summary_path, json.to_string())
-            .await
-            .unwrap();
-
-        let mnemonic_store = InMemoryMnemonicStorage::default();
-        let account_store = InMemoryAccountStorage::default();
-
-        let storage = SecureStoreMigrationManager::new(
-            mnemonic_json_path,
-            account_summary_path,
-            &mnemonic_store,
-            &account_store,
-        );
-
-        assert_matches!(storage.should_migrate().await, Ok(true));
-        assert_matches!(storage.migrate().await, Ok(()));
-
-        assert_matches!(mnemonic_store.load_mnemonic().await, Ok(Some(v)) if v == stored_mnemonic);
-
-        let (expected_identity, expected_ecash_keypair) =
-            expected_account_keys(&stored_mnemonic.mnemonic, StoredAccountMode::Api);
-        assert_matches!(
-            account_store.load_account().await,
-            Ok(Some(StoredAccountInformation {
-                account_identity,
-                ecash_keypair,
-                summary: Some(summary),
-            })) if account_identity == expected_identity
-                && ecash_keypair == expected_ecash_keypair
-                && summary.account_addr == "n1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu"
-                && summary.traffic_used_gb == 12
-                && summary.remaining_devices == 4
-        )
     }
 
     #[tokio::test]
@@ -440,7 +327,6 @@ mod tests {
         let storage_dir = tempfile::TempDir::new().unwrap();
         let mnemonic_json_path = storage_dir.path().join("mnemonic.json");
         let mnemonic_bin_path = storage_dir.path().join("mnemonic.bin");
-        let account_summary_path = storage_dir.path().join("account-summary.json");
 
         let stored_mnemonic = stored_mnemonic_fixture();
         let json = serde_json::json!({
@@ -462,12 +348,8 @@ mod tests {
             Ok(())
         );
 
-        let storage = SecureStoreMigrationManager::new(
-            mnemonic_json_path,
-            account_summary_path,
-            &mnemonic_store,
-            &account_store,
-        );
+        let storage =
+            SecureStoreMigrationManager::new(mnemonic_json_path, &mnemonic_store, &account_store);
 
         assert_matches!(storage.should_migrate().await, Ok(true));
         assert_matches!(storage.migrate().await, Ok(()));

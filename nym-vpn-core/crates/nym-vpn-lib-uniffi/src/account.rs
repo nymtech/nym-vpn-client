@@ -22,7 +22,7 @@ use nym_vpn_account_controller::{
     AccountStateReceiver, NyxdClient,
 };
 use nym_vpn_api_client::types::Platform;
-use nym_vpn_lib::storage::VpnClientOnDiskStorage;
+use nym_vpn_lib::storage::{StorageConfig, VpnClientOnDiskStorage};
 use nym_vpn_lib_types::{
     AccountControllerState, AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
     NymVpnSubscription, QrPairingConfirmation, QrUrl, RegisterAccountRequest,
@@ -63,7 +63,12 @@ impl NymAccountController {
             nym_secure_enclave::LocalAuthentication::new(),
             nym_vpn_lib::storage::KEYCHAIN_ACCESS_GROUP,
         );
-        let storage = VpnClientOnDiskStorage::new(&storage_path, &network_name, keychain)
+        let storage_config = StorageConfig::builder()
+            .base_data_directory(&storage_path)
+            .network_name(&network_name)
+            .keychain(keychain)
+            .build();
+        let storage = VpnClientOnDiskStorage::new(storage_config)
             .await
             .map_err(VpnError::internal)?;
         let database_key = storage.database_key().clone();
