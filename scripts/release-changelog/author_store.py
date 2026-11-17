@@ -43,6 +43,18 @@ STORE_SOURCES = {
     "apple":   ["nym-vpn-apple/CHANGELOG.md", "nym-vpn-core/CHANGELOG.md"],
 }
 
+# Store copy ships to two MOBILE stores only. NymVPN's macOS and desktop apps have NO store (direct
+# download / in-app updater), so a macOS/Linux/Windows-only changelog entry must never reach store
+# copy — and the `nym-vpn-apple` + `nym-vpn-core` changelogs carry plenty of them. Scope each store's
+# bullets to the platform it actually ships on; untagged entries are cross-platform and kept.
+STORE_PLATFORMS = {
+    "android": {"android"},
+    "apple":   {"ios", "ipados"},   # the iOS App Store + TestFlight; macOS has no store
+}
+PLATFORM_TOKENS = {
+    "ios", "ipados", "macos", "android", "linux", "windows", "tvos", "watchos", "desktop",
+}
+
 SYSTEM = """You write app-store "What's new" release notes for the NymVPN apps, from the \
 developer changelog entries of the changes going into this release.
 
@@ -51,11 +63,14 @@ Rules:
 ones as app-store copy — not to copy them. Drop anything internal (engine refactors, deps, CI, \
 build, test).
 - Rank by user impact: new features first, then notable fixes, then minor improvements.
-- Plain, benefit-oriented language. No developer wording, no PR links, no "[Android]" prefixes, \
-no markdown, no bullet characters.
+- Plain, benefit-oriented language. No developer wording, no PR links, no platform prefixes like \
+"[Android]" or "macOS:", no markdown, no bullet characters.
+- Each list is for that store ONLY: android = Google Play (Android); apple = the iOS App Store and \
+TestFlight (iOS). NymVPN's macOS and desktop apps have NO store, so for apple DROP anything specific \
+to macOS or the desktop even when it isn't tagged; likewise never put another platform's items in a list.
 - Android (Google Play): keep very tight — aim <= 320 characters total, about 5 short lines — it \
 must survive ~60% translation expansion under the 500-char limit.
-- Apple (App Store): more room (about 7 lines max), still concise.
+- Apple (iOS App Store / TestFlight): more room (about 7 lines max), still concise.
 - Return ONLY JSON, no prose or code fences: {"android": ["line", ...], "apple": ["line", ...]}"""
 
 
@@ -106,9 +121,31 @@ def unreleased_bullets(path, allow_fallback):
     return fb
 
 
+def _platform_tag(bullet):
+    """Platforms a changelog bullet is scoped to, or an empty set for a cross-platform entry.
+
+    Recognises a leading bracket tag (`[macOS]`, `[Linux, macOS]`) or an inline `Platform:` prefix
+    (`macOS: ...`). A leading word that isn't a known platform (e.g. `Note:`) is not a tag, so the
+    bullet counts as cross-platform."""
+    b = bullet.lstrip()
+    m = re.match(r"\[([^\]]+)\]", b)
+    if m:
+        return {t.strip().lower() for t in m.group(1).split(",")} & PLATFORM_TOKENS
+    m = re.match(r"([A-Za-z]+):\s", b)
+    if m and m.group(1).lower() in PLATFORM_TOKENS:
+        return {m.group(1).lower()}
+    return set()
+
+
 def gather(allow_fallback):
-    return {store: sorted({b for p in paths for b in unreleased_bullets(p, allow_fallback)})
-            for store, paths in STORE_SOURCES.items()}
+    # Keep cross-platform entries (no tag) and those that ship on this store's platform; drop entries
+    # scoped only to platforms this store doesn't ship (e.g. macOS/Linux/Windows out of Apple).
+    out = {}
+    for store, paths in STORE_SOURCES.items():
+        ships = STORE_PLATFORMS[store]
+        bullets = {b for p in paths for b in unreleased_bullets(p, allow_fallback)}
+        out[store] = sorted(b for b in bullets if not _platform_tag(b) or _platform_tag(b) & ships)
+    return out
 
 
 def call_anthropic(sources):
