@@ -6,7 +6,7 @@
 	<string name="disconnect">Desconectar</string>
 	<string name="state_connected">Conectado</string>
 	<string name="state_disconnected">Desconectado</string>
-	<string name="state_initializing">Iniciando cliente...</string>
+	<string name="state_initializing">Inicializando seu app</string>
 	<string name="state_establishing">Estabelecendo conexão</string>
 	<string name="state_disconnecting">Desconectando</string>
 	<string name="state_reconnecting">Reconectando…</string>
@@ -23,6 +23,7 @@
 	<string name="error_reason_same_entry_and_exit_gateway">A entrada e a saída não podem ser no mesmo servidor. Escolha uma entrada ou saída diferente e conecte-se novamente.</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">Não há nenhum servidor disponível para você escolher. Escolha outro local ou tente novamente daqui a alguns minutos.</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">Não há nenhum servidor de saída disponível para você escolher. Escolha um local diferente ou tente novamente daqui a alguns minutos.</string>
+	<string name="error_reason_entry_gateway_has_no_bridge">Este servidor não oferece uma ponte. Escolha outro servidor ou defina “Conexão aprimorada” como Automático ou Desligado.</string>
 	<string name="error_reason_invalid_entry_gateway_identity">O servidor de entrada que você escolheu não está disponível. Escolha um servidor de entrada diferente e conecte-se novamente.</string>
 	<string name="error_reason_invalid_exit_gateway_identity">O servidor de saída que você escolheu não está disponível com suas configurações atuais. Escolha um servidor de saída ou de entrada diferente e conecte-se novamente.</string>
 	<string name="error_reason_invalid_entry_gateway_country">Não há servidores disponíveis nesse local. Escolha um local diferente e conecte-se novamente.</string>
@@ -37,6 +38,6 @@
 	<string name="error_reason_max_devices_reached">Você atingiu o limite de dispositivos. Remova um dispositivo no nym.com ou saia de outra conta e, em seguida, reconecte-se.</string>
 	<string name="error_reason_device_logged_out">Este dispositivo foi desconectado. Faça login novamente para se reconectar.</string>
 	<string name="error_reason_needs_device_location">O roteamento automático não está disponível; não foi possível determinar a localização do dispositivo.</string>
-	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
+	<string name="error_reason_connection_attempts_exceeded">Não foi possível conectar após várias tentativas. Tente outro local ou tente novamente daqui a alguns minutos.</string>
 	<string name="error_reason_internal">Algo deu errado. Tente de novo. Se o problema persistir, entre em contato com o suporte e inclua seus logs.</string>
 </resources>

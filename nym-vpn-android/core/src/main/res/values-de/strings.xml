@@ -6,7 +6,7 @@
 	<string name="disconnect">Trennen</string>
 	<string name="state_connected">Verbunden</string>
 	<string name="state_disconnected">Getrennt</string>
-	<string name="state_initializing">Initializing client...</string>
+	<string name="state_initializing">Deine App wird initialisiert</string>
 	<string name="state_establishing">Verbindung wird hergestellt</string>
 	<string name="state_disconnecting">Trennen</string>
 	<string name="state_reconnecting">Wiederverbindung wird hergestellt…</string>
@@ -23,6 +23,7 @@
 	<string name="error_reason_same_entry_and_exit_gateway">Einstiegs- und Ausstiegsserver dürfen nicht identisch sein. Wähle einen anderen Einstiegs- oder Ausstiegsserver und stelle dann die Verbindung erneut her.</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">Es steht kein Server zur Auswahl. Wähle einen anderen Standort aus oder versuche es in ein paar Minuten erneut.</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">Es steht kein Exit-Server zur Auswahl. Wähle einen anderen Standort aus oder versuche es in ein paar Minuten erneut.</string>
+	<string name="error_reason_entry_gateway_has_no_bridge">Dieser Server bietet keine Bridge an. Wähle einen anderen Server oder stelle „Erweiterte Verbindung“ auf „Auto“ oder „Aus“.</string>
 	<string name="error_reason_invalid_entry_gateway_identity">Der von dir gewählte Einstiegsserver ist nicht verfügbar. Wähle einen anderen Einstiegsserver und stelle dann erneut eine Verbindung her.</string>
 	<string name="error_reason_invalid_exit_gateway_identity">Der von dir gewählte Ausgangsserver ist mit deinen aktuellen Einstellungen nicht verfügbar. Wähle einen anderen Ausgangs- oder Eingangsserver und stelle dann erneut eine Verbindung her.</string>
 	<string name="error_reason_invalid_entry_gateway_country">An diesem Standort sind keine Server verfügbar. Wähle einen anderen Standort aus und stelle dann erneut eine Verbindung her.</string>
@@ -37,6 +38,6 @@
 	<string name="error_reason_max_devices_reached">Du hast dein Geräte-Limit erreicht. Entferne ein Gerät auf nym.com oder melde dich an einer anderen Stelle ab und stelle dann die Verbindung erneut her.</string>
 	<string name="error_reason_device_logged_out">Dieses Gerät wurde abgemeldet. Melde dich erneut an, um die Verbindung wiederherzustellen.</string>
 	<string name="error_reason_needs_device_location">Automatisches Routing ist nicht verfügbar; der Standort des Geräts konnte nicht ermittelt werden.</string>
-	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
+	<string name="error_reason_connection_attempts_exceeded">Nach mehreren Versuchen keine Verbindung möglich. Wähle einen anderen Standort oder versuche es in ein paar Minuten erneut.</string>
 	<string name="error_reason_internal">Es ist ein Fehler aufgetreten. Versuche es erneut. Sollte das Problem weiterhin bestehen, wende dich an den Support und füge deine Protokolle bei.</string>
 </resources>

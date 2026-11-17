@@ -6,7 +6,7 @@
 	<string name="disconnect">Disconnetti</string>
 	<string name="state_connected">Connesso</string>
 	<string name="state_disconnected">Disconnesso</string>
-	<string name="state_initializing">Initializing client...</string>
+	<string name="state_initializing">Inizializzazione della tua app</string>
 	<string name="state_establishing">In connessione</string>
 	<string name="state_disconnecting">Disconnessione</string>
 	<string name="state_reconnecting">Riconnessione in corso…</string>
@@ -23,6 +23,7 @@
 	<string name="error_reason_same_entry_and_exit_gateway">L’ingresso e l’uscita non possono essere sullo stesso server. Scegli un ingresso o un’uscita diversi, poi riconnettiti.</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">Non ci sono server disponibili tra cui scegliere. Scegli un’altra località o riprova tra qualche minuto.</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">Non ci sono server di uscita disponibili tra cui scegliere. Scegli una posizione diversa o riprova tra qualche minuto.</string>
+	<string name="error_reason_entry_gateway_has_no_bridge">Questo server non offre un bridge. Scegli un altro server oppure imposta «Connessione avanzata» su «Auto» o «Disattivo».</string>
 	<string name="error_reason_invalid_entry_gateway_identity">Il server di accesso che hai scelto non è disponibile. Scegli un altro server di accesso, poi riconnettiti.</string>
 	<string name="error_reason_invalid_exit_gateway_identity">Il server di uscita che hai scelto non è disponibile con le tue impostazioni attuali. Scegli un altro server di uscita o di ingresso, poi riconnettiti.</string>
 	<string name="error_reason_invalid_entry_gateway_country">Non ci sono server di accesso disponibili in quella posizione. Scegli una posizione diversa, poi riconnettiti.</string>
@@ -37,6 +38,6 @@
 	<string name="error_reason_max_devices_reached">Hai raggiunto il limite di dispositivi. Rimuovi un dispositivo su nym.com o esci da un’altra sessione, poi riconnettiti.</string>
 	<string name="error_reason_device_logged_out">Questo dispositivo è stato disconnesso. Accedi di nuovo per ricollegarti.</string>
 	<string name="error_reason_needs_device_location">L\'instradamento automatico non è disponibile; impossibile determinare la posizione del dispositivo.</string>
-	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
+	<string name="error_reason_connection_attempts_exceeded">Impossibile connettersi dopo diversi tentativi. Prova un\'altra posizione o riprova tra qualche minuto.</string>
 	<string name="error_reason_internal">Si è verificato un errore. Riprova. Se il problema persiste, contatta l’assistenza e allega i tuoi log.</string>
 </resources>

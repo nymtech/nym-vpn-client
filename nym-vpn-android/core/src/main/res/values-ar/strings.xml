@@ -6,7 +6,7 @@
 	<string name="disconnect">ألغاء الاتصال</string>
 	<string name="state_connected">متصل</string>
 	<string name="state_disconnected">انفصال</string>
-	<string name="state_initializing">Initializing client...</string>
+	<string name="state_initializing">جارٍ تهيئة تطبيقك</string>
 	<string name="state_establishing">جارِ إنشاء الاتصال</string>
 	<string name="state_disconnecting">جاري فصل الاتصال</string>
 	<string name="state_reconnecting">إعادة الاتصال…</string>
@@ -23,6 +23,7 @@
 	<string name="error_reason_same_entry_and_exit_gateway">لا يمكن أن يكون الخادم نفسه نقطة الدخول والخروج. اختر نقطة دخول أو خروج مختلفة، ثم أعد الاتصال.</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">لا يوجد خادم متاح للاختيار. اختر موقعًا آخر، أو حاول مرة أخرى بعد بضع دقائق.</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">لا يوجد خادم خروج متاح للاختيار. اختر موقعًا مختلفًا، أو حاول مرة أخرى بعد بضع دقائق.</string>
+	<string name="error_reason_entry_gateway_has_no_bridge">هذا الخادم لا يوفّر جسرًا. اختر خادمًا آخر أو اضبط «الاتصال المُحسَّن» على «تلقائي» أو «إيقاف».</string>
 	<string name="error_reason_invalid_entry_gateway_identity">خادم الدخول الذي اخترته غير متاح. اختر خادم دخول آخر، ثم أعد الاتصال.</string>
 	<string name="error_reason_invalid_exit_gateway_identity">خادم الخروج الذي اخترته غير متاح مع إعداداتك الحالية. اختر خادم خروج أو دخول مختلفًا، ثم أعد الاتصال.</string>
 	<string name="error_reason_invalid_entry_gateway_country">لا توجد خوادم متاحة في هذا الموقع. اختر موقعًا آخر، ثم أعد الاتصال.</string>
@@ -37,6 +38,6 @@
 	<string name="error_reason_max_devices_reached">لقد وصلت إلى الحد الأقصى لعدد الأجهزة. قم بإزالة جهاز من nym.com أو قم بتسجيل الخروج من أي مكان آخر، ثم أعد الاتصال.</string>
 	<string name="error_reason_device_logged_out">تم تسجيل الخروج من هذا الجهاز. قم بتسجيل الدخول مرة أخرى لإعادة الاتصال.</string>
 	<string name="error_reason_needs_device_location">التوجيه التلقائي غير متاح؛ تعذر تحديد موقع الجهاز.</string>
-	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
+	<string name="error_reason_connection_attempts_exceeded">تعذّر الاتصال بعد عدة محاولات. جرّب موقعًا آخر، أو حاول مرة أخرى بعد بضع دقائق.</string>
 	<string name="error_reason_internal">حدث خطأ ما. حاول مرة أخرى. إذا استمرت المشكلة، فاتصل بالدعم وأرفق سجلاتك.</string>
 </resources>

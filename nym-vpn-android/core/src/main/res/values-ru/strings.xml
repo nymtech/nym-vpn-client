@@ -6,7 +6,7 @@
 	<string name="disconnect">Отключиться</string>
 	<string name="state_connected">Подключено</string>
 	<string name="state_disconnected">Отключено</string>
-	<string name="state_initializing">Инициализация клиента...</string>
+	<string name="state_initializing">Инициализация вашего приложения</string>
 	<string name="state_establishing">Настройка соединения</string>
 	<string name="state_disconnecting">Отключение</string>
 	<string name="state_reconnecting">Переподключаемся…</string>
@@ -23,6 +23,7 @@
 	<string name="error_reason_same_entry_and_exit_gateway">Входной и выходной серверы не могут быть одними и теми же. Выбери другой входной или выходной сервер, а затем подключись заново.</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">Серверов для подключения нет. Выбери другое местоположение или попробуй ещё раз через несколько минут.</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">Нет доступных выходных серверов для выбора. Выбери другое местоположение или попробуй снова через несколько минут.</string>
+	<string name="error_reason_entry_gateway_has_no_bridge">Этот сервер не предоставляет мост. Выберите другой сервер или установите для «Улучшенного подключения» значение «Авто» или «Выкл.».</string>
 	<string name="error_reason_invalid_entry_gateway_identity">Выбранный тобой входной сервер недоступен. Выбери другой входной сервер, а затем подключись заново.</string>
 	<string name="error_reason_invalid_exit_gateway_identity">Выбранный тобой выходной сервер недоступен с твоими текущими настройками. Выбери другой выходной или входной сервер, а затем подключись заново.</string>
 	<string name="error_reason_invalid_entry_gateway_country">В этом регионе нет доступных серверов. Выбери другой регион, а затем подключись заново.</string>

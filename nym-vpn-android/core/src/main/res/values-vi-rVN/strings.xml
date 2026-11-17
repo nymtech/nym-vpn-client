@@ -6,7 +6,7 @@
 	<string name="disconnect">Ngắt kết nối</string>
 	<string name="state_connected">Đã kết nối</string>
 	<string name="state_disconnected">Đã ngắt kết nối</string>
-	<string name="state_initializing">Đang khởi tạo máy khách…</string>
+	<string name="state_initializing">Đang khởi tạo ứng dụng</string>
 	<string name="state_establishing">Đang thiết lập kết nối</string>
 	<string name="state_disconnecting">Đang ngắt kết nối</string>
 	<string name="state_reconnecting">Đang kết nối lại…</string>
@@ -23,6 +23,7 @@
 	<string name="error_reason_same_entry_and_exit_gateway">Máy chủ vào và ra không thể là cùng một máy chủ. Hãy chọn một máy chủ vào hoặc ra khác, sau đó kết nối lại.</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">Không có máy chủ nào có sẵn để bạn lựa chọn. Vui lòng chọn một vị trí khác hoặc thử lại sau vài phút.</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">Không có máy chủ đầu ra nào để bạn lựa chọn. Hãy chọn một vị trí khác hoặc thử lại sau vài phút.</string>
+	<string name="error_reason_entry_gateway_has_no_bridge">Máy chủ này không cung cấp cầu nối. Hãy chọn máy chủ khác hoặc đặt “Kết nối nâng cao” thành Tự động hoặc Tắt.</string>
 	<string name="error_reason_invalid_entry_gateway_identity">Máy chủ đầu vào bạn đã chọn hiện không khả dụng. Vui lòng chọn một máy chủ đầu vào khác, sau đó kết nối lại.</string>
 	<string name="error_reason_invalid_exit_gateway_identity">Máy chủ thoát mà bạn đã chọn không khả dụng với cài đặt hiện tại của bạn. Hãy chọn một máy chủ thoát hoặc máy chủ vào khác, sau đó kết nối lại.</string>
 	<string name="error_reason_invalid_entry_gateway_country">Không có máy chủ nào khả dụng tại vị trí đó. Vui lòng chọn một vị trí khác, sau đó kết nối lại.</string>
@@ -37,6 +38,6 @@
 	<string name="error_reason_max_devices_reached">Bạn đã đạt đến giới hạn thiết bị. Hãy xóa một thiết bị trên nym.com hoặc đăng xuất khỏi các phiên bản khác, sau đó kết nối lại.</string>
 	<string name="error_reason_device_logged_out">Thiết bị này đã đăng xuất. Vui lòng đăng nhập lại để kết nối lại.</string>
 	<string name="error_reason_needs_device_location">Tính năng định tuyến tự động không khả dụng; không thể xác định vị trí thiết bị.</string>
-	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
+	<string name="error_reason_connection_attempts_exceeded">Không thể kết nối sau vài lần thử. Hãy thử một vị trí khác, hoặc thử lại sau vài phút.</string>
 	<string name="error_reason_internal">Đã xảy ra sự cố. Hãy thử lại. Nếu sự cố vẫn tiếp diễn, hãy liên hệ với bộ phận hỗ trợ và gửi kèm theo nhật ký của bạn.</string>
 </resources>

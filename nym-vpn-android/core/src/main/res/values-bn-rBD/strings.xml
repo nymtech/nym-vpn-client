@@ -6,7 +6,7 @@
 	<string name="disconnect">সংযোগ বিচ্ছিন্ন</string>
 	<string name="state_connected">সংযুক্ত</string>
 	<string name="state_disconnected">সংযোগ বিচ্ছিন্ন হয়েছে</string>
-	<string name="state_initializing">Initializing your app</string>
+	<string name="state_initializing">আপনার অ্যাপ চালু করা হচ্ছে</string>
 	<string name="state_establishing">সংযোগ স্থাপন</string>
 	<string name="state_disconnecting">সংযোগ বিচ্ছিন্ন করা হচ্ছে</string>
 	<string name="state_reconnecting">পুনঃসংযোগ হচ্ছে…</string>
@@ -23,6 +23,7 @@
 	<string name="error_reason_same_entry_and_exit_gateway">প্রবেশ এবং প্রস্থান একই সার্ভার হতে পারে না। অন্য কোনো প্রবেশ বা প্রস্থান বেছে নিন, তারপর আবার সংযোগ করুন।</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">আপনার নির্বাচনের জন্য কোনো এন্ট্রি সার্ভার উপলব্ধ নেই। অন্য কোনো অবস্থান নির্বাচন করুন, অথবা কয়েক মিনিটের মধ্যে আবার চেষ্টা করুন।</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">আপনার নির্বাচনের জন্য কোনো এক্সিট সার্ভার উপলব্ধ নেই। অন্য কোনো অবস্থান নির্বাচন করুন, অথবা কয়েক মিনিটের মধ্যে আবার চেষ্টা করুন।</string>
+	<string name="error_reason_entry_gateway_has_no_bridge">এই সার্ভার ব্রিজ দেয় না। অন্য সার্ভার বেছে নিন অথবা “উন্নত সংযোগ” অটো বা বন্ধ-এ সেট করুন।</string>
 	<string name="error_reason_invalid_entry_gateway_identity">আপনি যে এন্ট্রি সার্ভারটি বেছে নিয়েছেন তা উপলব্ধ নেই। অন্য একটি এন্ট্রি সার্ভার নির্বাচন করুন, তারপর আবার সংযোগ করুন।</string>
 	<string name="error_reason_invalid_exit_gateway_identity">আপনি যে এক্সিট সার্ভারটি বেছে নিয়েছেন তা আপনার বর্তমান সেটিংস দিয়ে উপলব্ধ নয়। অন্য কোনো এক্সিট বা এন্ট্রি সার্ভার নির্বাচন করুন, তারপর আবার সংযোগ করুন।</string>
 	<string name="error_reason_invalid_entry_gateway_country">সেই অবস্থানে কোনো এন্ট্রি সার্ভার উপলব্ধ নেই। অন্য কোনো অবস্থান নির্বাচন করুন, তারপর আবার সংযোগ করুন।</string>
@@ -37,6 +38,6 @@
 	<string name="error_reason_max_devices_reached">আপনি আপনার ডিভাইস সীমা অতিক্রম করেছেন। nym.com থেকে একটি ডিভাইস সরিয়ে ফেলুন বা অন্য কোথাও লগ আউট করুন, তারপর পুনরায় সংযোগ করুন।</string>
 	<string name="error_reason_device_logged_out">এই ডিভাইসটি লগ আউট হয়েছে। পুনরায় সংযোগ করতে আবার লগ ইন করুন।</string>
 	<string name="error_reason_needs_device_location">স্বয়ংক্রিয় রাউটিং অনুপলব্ধ; ডিভাইসের অবস্থান নির্ধারণ করা যায়নি।</string>
-	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
+	<string name="error_reason_connection_attempts_exceeded">কয়েকবার চেষ্টা করেও সংযোগ করা যায়নি। অন্য কোনো লোকেশন চেষ্টা করুন, অথবা কয়েক মিনিট পর আবার চেষ্টা করুন।</string>
 	<string name="error_reason_internal">কিছু একটা ভুল হয়েছে। আবার চেষ্টা করুন। যদি সমস্যাটি অব্যাহত থাকে, সাপোর্টের সাথে যোগাযোগ করুন এবং আপনার লগগুলি সংযুক্ত করুন।</string>
 </resources>
