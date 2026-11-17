@@ -18,7 +18,6 @@ use nym_crypto::{
 };
 use nym_qr_pairing_requests::{
     NymVpnGetPairingSecretResponse, NymVpnPairingCheckResponse, NymVpnPairingResponse,
-    PairingParams,
 };
 use nym_sdk::mixnet::x25519::{KeyPair, PublicKey};
 use nym_vpn_account::VpnAccount;
@@ -248,7 +247,6 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
     ) -> QrPairingProcessHandle {
         let initial_instant = tokio::time::Instant::now();
         let mut interval = tokio::time::interval(RETRY_INTERVAL);
-        let pairing_params = PairingParams { pairing_token };
         let cancel_token = self.cancel_token.clone();
 
         tokio::spawn(async move {
@@ -269,7 +267,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                         let Some(response) = self
                             .unless_cancelled(
                                 self.vpn_api_client
-                                    .try_to_get_secret_account(&remote_qr_pub_key.to_string(), &pairing_params),
+                                    .try_to_get_secret_account(&remote_qr_pub_key.to_string(), &pairing_token),
                             )
                             .await
                         else {
@@ -343,7 +341,7 @@ pub trait PairingApiClient: Clone {
     async fn try_to_get_secret_account(
         &self,
         remote_qr_pub_key: &str,
-        pairing_params: &PairingParams,
+        pairing_token: &str,
     ) -> Result<NymVpnGetPairingSecretResponse, VpnApiClientError>;
     async fn share_secret_account(
         &self,
@@ -386,20 +384,20 @@ impl PairingApiClient for VpnApiClient {
     async fn try_to_get_secret_account(
         &self,
         remote_qr_pub_key: &str,
-        pairing_params: &PairingParams,
+        pairing_token: &str,
     ) -> Result<NymVpnGetPairingSecretResponse, VpnApiClientError> {
-        self.try_to_get_secret_account(remote_qr_pub_key, pairing_params)
+        self.try_to_get_secret_account(remote_qr_pub_key, pairing_token)
             .await
     }
 
     async fn share_secret_account(
         &self,
         account: &VpnAccount,
-        remote_qr_pub_key: &str,
+        own_pubkey: &str,
         enc_mnemonic: Vec<u8>,
         nonce: Vec<u8>,
     ) -> Result<StatusOk, VpnApiClientError> {
-        self.share_secret_account(account, remote_qr_pub_key, enc_mnemonic, nonce)
+        self.share_secret_account(account, own_pubkey, enc_mnemonic, nonce)
             .await
     }
 }
@@ -773,7 +771,7 @@ mod tests {
         async fn try_to_get_secret_account(
             &self,
             remote_qr_pub_key: &str,
-            pairing_params: &PairingParams,
+            pairing_token: &str,
         ) -> Result<NymVpnGetPairingSecretResponse, VpnApiClientError> {
             let mut db = self.api_db.lock().await;
             if db.hang_requests {
@@ -793,7 +791,7 @@ mod tests {
                 }
                 PairingState::InProgress(_) => None,
                 PairingState::SharedSecret { token, secret_body } => {
-                    if pairing_params.pairing_token != *token {
+                    if pairing_token != token {
                         return Err(VpnApiClientError::GetPairingSecretAccount(api_error(
                             "401: provided token is not correct",
                         )));
@@ -834,6 +832,7 @@ mod tests {
             process.state = PairingState::SharedSecret {
                 token,
                 secret_body: SharePairSecretBody {
+                    own_pubkey: qr_pub_key.to_string(),
                     enc_mnemonic,
                     nonce,
                     account_id,
