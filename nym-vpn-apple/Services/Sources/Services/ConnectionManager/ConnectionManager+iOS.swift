@@ -1,6 +1,7 @@
 #if os(iOS)
 import Combine
 import NetworkExtension
+import os
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
@@ -13,6 +14,11 @@ import TunnelStatus
 
 // MARK: - Setup -
 extension ConnectionManager {
+    static let configLogger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "NymVPN",
+        category: "ConnectionManager.config"
+    )
+
     func setupTunnelManagerObservers() {
         tunnelsManager.$isLoaded
             .receive(on: DispatchQueue.main)
@@ -182,9 +188,18 @@ extension ConnectionManager {
     func fetchConnectionConfig() async {}
 
     /// Rewrites the persisted tunnel config only if one exists; before the first connect there is nothing to update.
+    /// On failure the previous value stays in place until the next successful save (every connect saves).
     func persistConfigIfPresent() {
-        guard MixnetConfigStorage.exists(), let config = try? generateConfig() else { return }
-        MixnetConfigStorage.save(config)
+        guard MixnetConfigStorage.exists() else { return }
+        do {
+            if !MixnetConfigStorage.save(try generateConfig()) {
+                Self.configLogger.error("Failed to persist tunnel config after error-reporting change")
+            }
+        } catch {
+            Self.configLogger.error(
+                "Failed to generate tunnel config after error-reporting change: \(error.localizedDescription, privacy: .public)"
+            )
+        }
     }
 
     @MainActor
