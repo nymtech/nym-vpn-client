@@ -4,23 +4,35 @@
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
 
-pub(crate) const PAIRING_TOKEN: &str = "pairing_token";
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PairAccountRequestBody {
     pub account_id: String,
     pub pubkey: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PairingCheckRequestBody {
+    pub account_id: String,
+    pub pubkey: String,
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TryToPairRequestBody {
-    pub pubkey: String,
+    pub own_pubkey: String,
+    pub remote_pubkey: String,
     pub pin_code: String,
     pub token: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TryToGetSecretRequestBody {
+    pub remote_pubkey: String,
+    pub pairing_token: String,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Zeroize)]
 pub struct SharePairSecretBody {
+    pub own_pubkey: String,
     pub account_id: String,
     #[serde(with = "nym_serde_helpers::base64")]
     pub enc_mnemonic: Vec<u8>,
@@ -51,15 +63,4 @@ pub struct NymVpnPairingCheckResponse {
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnGetPairingSecretResponse {
     pub inner: Option<SharePairSecretBody>,
-}
-
-#[derive(Clone, Default, Serialize, Deserialize, Debug, Eq, PartialEq)]
-pub struct PairingParams {
-    pub pairing_token: String,
-}
-
-impl PairingParams {
-    pub fn to_param(&self) -> Vec<(String, String)> {
-        vec![(PAIRING_TOKEN.to_string(), self.pairing_token.clone())]
-    }
 }
