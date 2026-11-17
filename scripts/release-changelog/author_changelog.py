@@ -246,15 +246,26 @@ def author_entry(component, title, description, diff):
     s, e = text.find("{"), text.rfind("}")
     if s < 0 or e < 0:
         raise LLMUnavailable(f"[{component}] could not parse JSON from model")
-    return json.loads(text[s:e + 1])
+    try:
+        return json.loads(text[s:e + 1])
+    except json.JSONDecodeError as exc:
+        # braces present but the span isn't valid JSON (e.g. `{"added": [}`) — still a model
+        # failure, so route it through the soft-fail path rather than crashing the job.
+        raise LLMUnavailable(f"[{component}] could not parse JSON from model") from exc
 
 
 # ----------------------------------------------------------------------------- routing + upsert
 
 # Paths that never warrant a changelog entry on their own: store metadata (fastlane) and localization
 # resources (translations). Routing ignores them, and a PR touching nothing else is not authored.
-# The default/English source stays relevant — only translated locale dirs are excluded.
-LOCALE_RE = re.compile(r"/res/values-[A-Za-z]|\.lproj/|/i18n/(?!en/)[^/]+/")
+# The default/English source stays relevant — only translated locale dirs are excluded. We match a
+# locale qualifier specifically, so non-locale Android qualifiers (`values-night`, `values-land`,
+# `values-sw600dp`) and the English source (`values/`, `en.lproj`, `Base.lproj`) stay relevant.
+LOCALE_RE = re.compile(
+    r"/res/values-[a-z]{2,3}(?:-r[A-Z]{2})?/"   # Android locale, e.g. values-de/ , values-pt-rBR/
+    r"|/(?!en\.|Base\.)[\w-]+\.lproj/"           # iOS translated .lproj (keep en.lproj / Base.lproj)
+    r"|/i18n/(?!en/)[^/]+/"                       # web i18n translated locale dir
+)
 
 
 def changelog_relevant(path):
