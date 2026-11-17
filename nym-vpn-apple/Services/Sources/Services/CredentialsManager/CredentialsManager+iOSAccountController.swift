@@ -16,6 +16,9 @@ extension CredentialsManager {
             accountControllerShutdown = nil
             Task { await shutdown() }
         }
+        if pairingController != nil {
+            Task { await closePairingController() }
+        }
     }
 
     func shutdownControllersAndWait() async {
@@ -23,6 +26,7 @@ extension CredentialsManager {
             accountControllerShutdown = nil
             await shutdown()
         }
+        await closePairingController()
     }
 
     var isTunnelActive: Bool {
@@ -34,6 +38,10 @@ extension CredentialsManager {
             throw VPNErrorReason.accountStoreBusy
         }
         try Task.checkCancellation()
+
+        if let pairingController {
+            return try await body(pairingController)
+        }
 
         let env = try resolvedRegistrationEnvironment()
         let dataDir = try PathManager.dataFolderURL().path()

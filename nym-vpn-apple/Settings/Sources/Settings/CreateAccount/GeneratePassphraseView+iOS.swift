@@ -29,6 +29,13 @@ extension GeneratePassphraseView {
         }
     }
 
+    var scanCodeButton: some View {
+        GenericButton(title: "welcome.scanQrCode".localizedString, style: .primaryBorderOnly)
+            .onTapGesture { openCodeEntry() }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { openCodeEntry() }
+    }
+
     /// Shown instead of the plan picker when the Apple ID's subscription belongs to another Nym account.
     func appleIdSubscriptionGateView(expirationDate: Date, willAutoRenew: Bool) -> some View {
         let bodyKey = willAutoRenew
@@ -146,6 +153,11 @@ extension GeneratePassphraseView {
         Task {
             await purchasePlanAction(with: plan)
         }
+    }
+
+    func openCodeEntry() {
+        ImpactGenerator.shared.softImpact()
+        isCodeEntryPresented = true
     }
 
     func selectPlanAction() {

@@ -32,12 +32,14 @@ code as well.
 ## Test vectors
 
 `app/src/test/resources/pairing/qr-pairing-vectors.json` lists inputs and the expected key (`null` = reject). Android
-runs them in `PairingQrCodeTest`; iOS should run the same file.
+runs them in `PairingQrCodeTest`; iOS reads the same file in `PairingQrCodeTests`
+(`nym-vpn-apple/Services/Tests/CredentialsManagerTests`).
 
 ## Showing the code
 
 - Draw it black on white with a quiet zone, error correction M.
-- Block screenshots and screen recording while it's visible.
+- Block screenshots and screen recording while it's visible. iOS can't block screenshots, so it hides the code while
+  the screen is recorded or mirrored.
 - The code isn't secret on its own: pairing completes only after both screens show the same PIN, the user confirms it
   on the signed-in device, and passes the device's own lock screen check.
 - The core reports expiry with a `TimedOut` pairing event. Apps count down from 5 minutes as a hint only.

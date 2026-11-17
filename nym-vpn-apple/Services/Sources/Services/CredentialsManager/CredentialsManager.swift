@@ -50,8 +50,10 @@ import PathManager
     var registrationCapturedEnvString: String?
     private var accountRegistrationTask: Task<Void, Error>?
     var accountControllerShutdown: (() async -> Void)?
-    /// Receives the account controller events, such as QR pairing results. Nothing consumes them yet.
+    /// Receives the account controller events, such as QR pairing results.
     let accountControllerEventListener = AccountControllerEventListener()
+    /// Holds a pairing session; other account calls reuse it meanwhile.
+    var pairingController: NymAccountController?
     private(set) var isLoggingOut = false
     var hasPreparedRegisteredAccountThisSession = false
 #endif
