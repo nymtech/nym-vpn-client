@@ -13,6 +13,9 @@ object Constants {
 	const val AUTO_START_INIT_WAIT_MS = 15_000L
 	const val AUTO_START_STUCK_STATE_TIMEOUT_MS = 45_000L
 
+	// Device pairing is hidden for this release.
+	const val IS_PAIRING_ENABLED = false
+
 	const val BASE_LOG_FILE_NAME = "nym_vpn_logs"
 
 	// testing stuff
