@@ -6,7 +6,7 @@
 	<string name="five_hop_mixnet">Mixnet</string>
 	<string name="connect">Bağlan</string>
 	<string name="disconnect">Bağlantıyı kes</string>
-	<string name="init_client">İstemci başlatılıyor…...</string>
+	<string name="init_client">Uygulamanız başlatılıyor</string>
 	<string name="establishing_connection">Bağlantı kuruluyor</string>
 	<string name="display_theme">Panel teması</string>
 	<string name="light_theme">Açık tema</string>
@@ -72,7 +72,7 @@
 	<string name="mnemonic_example">örneğin: smoke, artifact, velvet, skull, pop, palace, tortoise, damage, rough…</string>
 	<string name="dynamic">Dinamik</string>
 	<string name="system_wallpaper">Sistem duvar kağıdı teması</string>
-	<string name="initializing">Starting NymVPN</string>
+	<string name="initializing">NymVPN başlatılıyor</string>
 	<string name="stop">Durdur</string>
 	<string name="app_restart_required">Uygulamayı yeniden başlatmak gereklidir</string>
 	<string name="max_devices_reached_title">Hesabınız için izin verilen maksimum cihaz sayısına ulaştınız</string>
@@ -157,10 +157,11 @@
 	<string name="error_tun_device">VPN ağ arabirimi kurulamadı. Yeniden bağlanın. Sorun devam ederse, uygulamayı veya cihazınızı yeniden başlatın ya da destek ekibiyle iletişime geçin.</string>
 	<string name="error_tunnel_provider">Bu cihazda VPN başlatılamadı. Yeniden bağlanın ve istenirse VPN bağlantısına izin verin. Sorun devam ederse destek ekibiyle iletişime geçin.</string>
 	<string name="error_active_plan">Etkin bir aboneliğiniz yok. Bir plan satın alın veya yenileyin, ardından hesabınızı yenileyin ve yeniden bağlanın.</string>
-	<string name="error_bandwidth_entry">Giriş sunucusu bağlantınızı tamamlayamadı. Tekrar deneyin veya Sansür Karşıtı ayarlarından QUIC\'i etkinleştirin.</string>
+	<string name="error_bandwidth_entry">Giriş sunucusu bağlantınızı tamamlamadı. Tekrar deneyin veya Sansür Karşıtı ayarlarında “Trafiğinizi gizleyin” seçeneğini açın.</string>
 	<string name="error_bandwidth_exit">Çıkış sunucusu bağlantınızı tamamlayamadı. Farklı bir çıkış konumu seçin ve tekrar deneyin.</string>
 	<string name="error_gateway_unavailable_entry">Seçebileceğiniz hiçbir sunucu mevcut değil. Başka bir konum seçin veya birkaç dakika sonra tekrar deneyin.</string>
 	<string name="error_gateway_unavailable_exit">Seçiminiz için kullanılabilir çıkış sunucusu yok. Farklı bir konum seçin veya birkaç dakika sonra tekrar deneyin.</string>
+	<string name="error_entry_gateway_has_no_bridge">Bu sunucu köprü sunmuyor. Başka bir sunucu seçin veya “Trafiğinizi gizleyin” seçeneğini Otomatik veya Kapalı olarak ayarlayın.</string>
 	<string name="error_invalid_entry_gateway_identity">Seçtiğiniz giriş sunucusu kullanılamıyor. Farklı bir giriş sunucusu seçin, ardından tekrar bağlanın.</string>
 	<string name="error_invalid_exit_gateway_identity">Seçtiğiniz çıkış sunucusu mevcut ayarlarınızla kullanılamıyor. Farklı bir çıkış veya giriş sunucusu seçin, ardından tekrar bağlanın.</string>
 	<string name="error_needs_device_location">Otomatik yönlendirme şu anda kullanılamıyor. Daha sonra tekrar deneyin veya kendi sunucularınızı seçin.</string>
@@ -168,7 +169,7 @@
 	<string name="error_expired_subscription_title">Aboneliğiniz sona erdi</string>
 	<string name="error_expired_subscription_description">Otomatik ödeme yöntemi kabul edilmedi</string>
 	<string name="error_expired_subscription_button">Şimdi yenile</string>
-	<string name="renewal_reminder_description">Renew now to stay protected without interruption.</string>
+	<string name="renewal_reminder_description">Kesintisiz koruma sağlamak için şimdi yenileme işlemini gerçekleştirin.</string>
 	<string name="error_no_subscription_title">Aktif abonelik yok</string>
 	<string name="error_no_subscription_description">NymVPN\'i kullanmaya başlamak için bir plan seçin</string>
 	<string name="error_no_subscription_button">Plan seçin</string>
@@ -189,10 +190,10 @@
 	<string name="one_click_nym_entry_node">Giriş sunucusu</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Korunmuyor</string>
-	<string name="connection_status_fast_mode">dVPN protection</string>
+	<string name="connection_status_fast_mode">dVPN koruması</string>
 	<string name="connection_status_anonymous">Mixnet koruması</string>
-	<string name="connection_status_bridge">Connected via %1$s bridge</string>
-	<string name="connection_status_direct">Connected directly</string>
+	<string name="connection_status_bridge">%1$s köprüsü üzerinden bağlandı</string>
+	<string name="connection_status_direct">Doğrudan bağlı</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Otomatik</string>
 	<string name="gateway_random">Rastgele sunucu</string>
@@ -217,15 +218,16 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Hoş geldiniz!</string>
 	<string name="auth_welcome_description">Dünyanın en gizli VPN\'i</string>
-	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_login_button">Hesabıma giriş yap</string>
+	<string name="auth_welcome_scan_button">QR kodunu tara</string>
 	<string name="auth_sign_up_title">Kaydolun</string>
 	<string name="auth_sign_up_account_button">Anonim hesap</string>
 	<string name="auth_sign_up_social_button">Sosyal medya hesabı ile kaydolun *</string>
-	<string name="auth_sign_up_info">*May not be anonymous.</string>
+	<string name="auth_sign_up_info">*Anonim olmayabilir.</string>
 	<string name="auth_log_in_title">Giriş yap</string>
 	<string name="auth_log_in_passphrase_button">24 kelime ile giriş yapın</string>
 	<string name="auth_log_in_social_button">Sosyal medya hesaplarıyla giriş yapın *</string>
-	<string name="auth_log_in_info">*Account must be connected before NymVPN login.</string>
+	<string name="auth_log_in_info">*NymVPN\'e giriş yapmadan önce hesabın bağlanması gerekir.</string>
 	<string name="auth_passphrase_login_button">Giriş yap</string>
 	<string name="auth_passphrase_input_placeholder">24 kelimelik kurtarma ifadesi</string>
 	<!-- Settings Screen -->
@@ -253,7 +255,7 @@
 	<string name="settings_shortcuts_title">Uygulama kısayolları</string>
 	<string name="settings_logs_title">Günlükler ve veri</string>
 	<string name="settings_legal_title">Yasal</string>
-	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
+	<string name="settings_geo_exclusion_title">Coğrafi kısıtlama</string>
 	<string name="settings_geo_exclusion_description">Belirli IP aralıkları doğrudan bağlanır</string>
 	<string name="settings_profiles_title">Bağlantı profilleri</string>
 	<string name="settings_profiles_description">Bağlanmanıza yardımcı olalım</string>
@@ -261,7 +263,7 @@
 	<string name="shortcut_title">İşlemi onaylayın</string>
 	<string name="shortcut_subtitle_stop">VPN bağlantısını kesmek için kilidi açın</string>
 	<string name="shortcut_subtitle_start_mixnet">Mixnet’i başlatmak için kilidi açın</string>
-	<string name="shortcut_subtitle_start_wg">Unlock to start dVPN</string>
+	<string name="shortcut_subtitle_start_wg">dVPN\'i başlatmak için kilidi açın</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">En iyi bağlantı için</string>
 	<string name="battery_opt_descr">Daha kararlı VPN bağlantıları için NymVPN’in pil optimizasyonlarını devre dışı bırakın.</string>
@@ -280,18 +282,34 @@
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Devam et</string>
 	<string name="welcome_title">NymVPN\'i geliştirmemize yardımcı olun</string>
-	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
+	<string name="welcome_description">Hangi anonim verileri paylaşmak istediğinizi seçin. \nKişisel bilgi içermez.</string>
+	<!-- Telemetry opt-in (onboarding + settings) -->
+	<string name="optin_connection_title">Bağlantı kaliteniz</string>
+	<string name="optin_connection_subtitle">Ağ bağlantısını iyileştirmeye yardımcı olur</string>
+	<string name="optin_monitoring_title">Uygulama hataları &amp; çökmeleri</string>
+	<string name="optin_monitoring_subtitle">Uygulama performansını iyileştirmeye yardımcı olur</string>
+	<string name="optin_privacy_link_text">Gizlilik Beyanımızı okuyun</string>
+	<string name="optin_info_title">Paylaşılanlar</string>
+	<string name="optin_info_accessibility">Paylaşılanlar: %1$s</string>
+	<string name="optin_info_got_it">Anladım</string>
+	<string name="optin_info_never_label">Asla paylaşılmaz:</string>
+	<string name="optin_connection_shares">Bağlantı süresi ve hata kodları\nOturum tarihi ve süresi\nMod (dVPN / Mixnet) ve çıkış sunucusu\nİşletim sistemi, cihaz türü, uygulama sürümü\nAnonim bir kimlik (hesabınıza bağlı değildir)</string>
+	<string name="optin_connection_never">IP adresiniz, gezinme veya trafik içerikleri.</string>
+	<string name="optin_connection_handling">VPN tüneli üzerinden Nym\'e gönderilir. Üçüncü taraf yok.</string>
+	<string name="optin_monitoring_shares">Çökmeler ve hata mesajları\nDonmalar, takılmalar, yavaş performans\nNerede meydana geldiği (yığın izleri)\nİşletim sistemi, cihaz türü, uygulama sürümü</string>
+	<string name="optin_monitoring_never">kişisel bilgiler, gezinme veya trafik içeriği.</string>
+	<string name="optin_monitoring_handling">Üçüncü taraf bir hizmet olan Sentry tarafından işlenir. Nym, IP adresinizi asla görmez.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">NymVPN\'e Hoş Geldiniz</string>
 	<string name="onboarding_welcome_description">\nadresine özel erişiminiz: **sınırları olmayan bir internet.**</string>
 	<string name="onboarding_modes_title_dvpn">Sizin VPN\'iniz</string>
 	<string name="onboarding_modes_description_dvpn">Tüm web faaliyetleriniz için gizlilik \n**Merkeziyetsiz** 2-atlamalı ağ \nWireGuard’ın **AmneziaWG** çatalı</string>
-	<string name="onboarding_modes_title_mixnet">Your Mixnet</string>
+	<string name="onboarding_modes_title_mixnet">Mixnet\'iniz</string>
 	<string name="onboarding_modes_description_mixnet">İnternette gezinmenin en **anonim** yolu **gürültü** içeren \n5-atlamalı **mixnet** \ntrafik kalıplarınızı özelleştirin.</string>
 	<string name="onboarding_modes_tagline_dvpn">Kimsenin sizi ele veremeyeceği şekilde tasarlanmış bir ağ.</string>
 	<string name="onboarding_modes_tagline_mixnet">Meta veri parmak izlerinin korunması.</string>
 	<string name="onboarding_around_title">Nym ile her yere ulaşabilirsiniz</string>
-	<string name="onboarding_around_description">WireGuard’ı **AmneziaWG** ile gizleyin \n**QUIC** ile güvenlik duvarlarını aşın \n**Stealth Connect** ile VPN engellemelerini aşın \n**Post-kuantum** güvenlik</string>
+	<string name="onboarding_around_description">WireGuard\'ı **AmneziaWG** ile gizleyin \nUyarlanabilir **sansür karşıtı köprüler** \n**VPN engellemesini** önleyin \n**Kuantum sonrası** güvenlik</string>
 	<string name="onboarding_plan_title">Hangi plan size uygun?</string>
 	<string name="onboarding_plan_community_favorite">NYM TOPLULUĞUNUN FAVORİSİ</string>
 	<string name="onboarding_plan_year_plan_prefix">1 yıllık plan &amp; </string>
@@ -303,7 +321,7 @@
 	<string name="onboarding_plan_one_month">1 ay</string>
 	<string name="onboarding_plan_try_suffix">, herhangi bir taahhüt yok.</string>
 	<!-- Select Plan screen -->
-	<string name="select_plan_title">Choose your plan</string>
+	<string name="select_plan_title">Planınızı seçin</string>
 	<string name="select_plan_line_1">Tüm özellikler dahil</string>
 	<string name="select_plan_line_2">Reklam içermez</string>
 	<string name="select_plan_line_3">İstediğiniz zaman iptal edin</string>
@@ -338,7 +356,7 @@
 	<string name="details_anti_censorship">Sansür Karşıtı</string>
 	<string name="details_quic_protocol">QUIC protokol</string>
 	<string name="details_standard_protocol">Standart protokol</string>
-	<string name="details_enable_quic_start">Enable “QUIC protocol”</string>
+	<string name="details_enable_quic_start">“Trafiğinizi gizleyin” seçeneğini Otomatik veya Açık olarak ayarlayın</string>
 	<string name="details_enable_quic_end">“QUIC protokolünü” Sansür Karşıtı Ayarlar’dan etkinleştirin</string>
 	<string name="details_overall_performance">Genel performans</string>
 	<string name="details_server_load">Sunucunun mevcut yük durumu</string>
@@ -359,20 +377,21 @@
 	<string name="details_more_details_end">Nym Network Explorer\'ı inceleyin</string>
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
-	<string name="censorship_description">Bağlantı sorunları yaşıyorsanız veya bulunduğunuz lokasyonda NymVPN engeli ile karşılaşıyorsanız, bu özellikleri etkinleştirin.</string>
-	<string name="censorship_learn_more_link_text">Learn more</string>
-	<string name="censorship_quic_title">Enhanced connection</string>
-	<string name="censorship_bridge_changes_apply">Changes will apply after reconnect</string>
+	<string name="censorship_description">Kısıtlayıcı ağlarda ve VPN engellemesine karşı bağlantınızı güçlendirin.</string>
+	<string name="censorship_learn_more_link_text">Daha fazla bilgi edinin</string>
+	<string name="censorship_quic_title">Trafiğinizi gizleyin</string>
+	<string name="censorship_quic_description">Köprüler, VPN trafiğini tespit edip engelleyen ağları aşmanıza yardımcı olur. **dVPN** modu, **WireGuard**\'ın tespit edilmesini zorlaştırmak için varsayılan olarak AmneziaWG kullanır.</string>
+	<string name="censorship_bridge_changes_apply">Değişikliklerin uygulanması için yeniden bağlanmak gerekir.</string>
 	<string name="censorship_bridge_off_title">Kapalı</string>
-	<string name="censorship_bridge_off_description">Connect directly without a bridge.</string>
+	<string name="censorship_bridge_off_description">Köprü olmadan doğrudan bağlanır. En hızlısı, ancak engellenmesi en kolay olanı.</string>
 	<string name="censorship_bridge_auto_title">Otomatik</string>
-	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
+	<string name="censorship_bridge_auto_description">Önce **WireGuard**\'ı dener, başarısız olursa bir köprüye (QUIC, TLS veya SSH) geçer.</string>
 	<string name="censorship_bridge_on_title">Açık</string>
-	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
-	<string name="censorship_stealth_title">Stealth API (Gizlilik odaklı API) bağlantısı</string>
-	<string name="censorship_stealth_description">Bu özellik, VPN bağlantınız engellendiğinde alternatif alan adları kullanarak erişim sağlar. Modu \"Her zaman açık\" veya \"Bağlantı hatasında etkinleştir\" olarak ayarlayabilirsiniz.</string>
+	<string name="censorship_bridge_on_description">Her zaman köprü kullanır. Yalnızca köprü sunan sunucular giriş sunucunuz olabilir.</string>
+	<string name="censorship_stealth_title">Nym bağlantınızı gizleyin</string>
+	<string name="censorship_stealth_description">Bulunduğunuz yerde Nym sunucuları engellense bile bağlı kalın.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
+	<string name="quic_gateway_filter_info_msg">Yalnızca dVPN konumları ve köprü sunan sunucular gösteriliyor. Tüm sunucuları görmek için “Trafiğinizi gizleyin” seçeneğini Kapalı veya Otomatik olarak ayarlayın.</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">Devam ederek NymVPN’in şart ve koşullarını kabul etmiş sayılırsınız  </string>
 	<string name="account_welcome_privacy_middle">ve</string>
@@ -381,12 +400,12 @@
 	<string name="account_subscription_description">Google Play hesabınıza bağlı aktif bir abonelik bulundu. Kayıt işlemini atlayın ve doğrudan NymVPN’i kullanmaya başlayın. Sadece 24 kelimelik kurtarma ifadenizi hazır bulundurun.</string>
 	<string name="account_subscription_button">Nym kurtarma ifadenizle giriş yapın</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_title_1">Kriptografik anahtar çiftleri oluşturuluyor...</string>
-	<string name="account_generating_title_2">Anonim kimliğiniz oluşturuluyor...</string>
-	<string name="account_generating_title_3">Kimlik bilgilerinizi yerel olarak güvence altına alınıyor…</string>
+	<string name="account_generating_title_1">Kriptografik anahtarlar oluşturuluyor</string>
+	<string name="account_generating_title_2">Anonim kimliğiniz oluşturuluyor</string>
+	<string name="account_generating_title_3">Erişim kimlik bilgileriniz cihazınızda güvence altına alınıyor</string>
 	<string name="account_generating_description_1">Anahtarlarınızı sadece cihazınızda oluşturun ve cihazdan hiç dışarı çıkarmayın.</string>
 	<string name="account_generating_description_2">Anonim ağ giriş bilgileri oluşturuluyor</string>
-	<string name="account_generating_description_3">Kimlik bilgilerinizi cihaz anahtarınızla şifreliyoruz. Yalnızca siz bunların kilidini açabilirsiniz.</string>
+	<string name="account_generating_description_3">Erişim kimlik bilgileri cihaz anahtarınızla şifreleniyor</string>
 	<string name="account_generating_error">Hesabınızın kurulumu tamamlanamadı. Lütfen tekrar deneyin. Sorun devam ederse destek ekibiyle iletişime geçin.</string>
 	<string name="account_generating_deeplink_title">Giriş yapılıyor...</string>
 	<string name="account_generating_deeplink_description">Lütfen hesabınızı doğrularken bekleyin</string>
@@ -419,8 +438,8 @@
 	<string name="device_auth_use_screen_lock">Ekran kilidi kullan</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Hesap kurtarma ifadeniz</string>
-	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your account passphrase:</string>
+	<string name="passphrase_description">🔒Hesap parolası ifadeniz: Hesabınıza herhangi bir cihazdan erişmenizi sağlayan 24 kelime.</string>
+	<string name="passphrase_description_first">🔒Hesap parolası ifadeniz:</string>
 	<string name="passphrase_description_last">Hesabınıza herhangi bir cihazdan erişmenizi sağlayan 24 kelime.</string>
 	<string name="passphrase_show">Kurtarma ifademi göster</string>
 	<string name="passphrase_hide">Şifremi gizle</string>
@@ -430,7 +449,7 @@
 	<string name="passphrase_never">Bunları, Nym Destek ekibi de dahil olmak üzere, hiç kimseyle paylaşmayın.</string>
 	<string name="passphrase_saved">Bu 24 kelimeyi güvenli bir şekilde kaydettim ve asla kimseyle paylaşmayacağım.</string>
 	<string name="passphrase_info_title">Kurtarma ifadesi nedir?</string>
-	<string name="passphrase_info_description">It\'s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it – there\'s no backup, reset, or recovery.\n\n ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
+	<string name="passphrase_info_description">Bu, cihazınızda oluşturulan ve güvenli oturum açma bilgisi olarak işlev gören 24 kelimelik benzersiz bir dizidir. Bu diziye yalnızca siz erişebilirsiniz – yedekleme, sıfırlama veya kurtarma seçeneği yoktur.\n\n ⚠️ Güvenli bir yerde saklayın: Bu kurtarma ifadesi, hesabınıza erişmenin tek yoludur.</string>
 	<string name="passphrase_info_privacy_removed">Gizliliğinizi korumak amacıyla kaldırılan bilgiler:</string>
 	<string name="passphrase_info_stored_accounts">Merkezi olarak saklanan hesaplar</string>
 	<string name="passphrase_info_personal_logins">Kişisel verilere dayalı girişler</string>
@@ -498,6 +517,7 @@
 	<string name="logs_saved">Kayıtlar, indirilenler klasörüne kaydedildi</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Her uygulama için ayrı ayrı, NymVPN üzerinden mi yoksa doğrudan mı bağlanacağınızı seçin.</string>
+	<string name="split_tunneling_dns_warning">Hariç tutulan uygulamalar, DNS sorguları dahil, internete doğrudan bağlanır.</string>
 	<string name="split_tunneling_search_apps_hint">Uygulama ara</string>
 	<string name="split_tunneling_apps">Uygulamalar</string>
 	<string name="split_tunneling_direct">Doğrudan</string>
@@ -551,7 +571,7 @@
 	<string name="mixnet_tuning_traffic_off_high">Yüksek\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Dengeli\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Orta\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ Timing protection is currently turned off and could affect your privacy.</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Zamanlama koruması şu anda devre dışıdır ve gizliliğinizi etkileyebilir.</string>
 	<string name="mixnet_tuning_delays_title">Paket karıştırma</string>
 	<string name="mixnet_tuning_delays_description">Paketlerinizin karışma düzeyini değiştirmek için zamanlama gecikmelerini ayarlayabilirsiniz.</string>
 	<string name="mixnet_tuning_delays_low">Düşük\n0 ms</string>
@@ -589,9 +609,9 @@
 	<string name="node_families_connect_button">Yine de bağlan</string>
 	<string name="node_families_error_message">Bu giriş ve çıkış sunucuları tamamen bağımsız değildir. Farklı sunucular seçin veya yine de bağlanın.</string>
 	<!-- Geo Exclusion -->
-	<string name="geo_exclusion_enable_title">Enable Geo-exclusion</string>
+	<string name="geo_exclusion_enable_title">Coğrafi hariç tutmayı etkinleştir</string>
 	<string name="geo_exclusion_description">Seçilen bölgelerdeki trafiği VPN tüneli dışından yönlendirir, böylece yerel uygulamalar tam hızda çalışır. Diğer tüm trafik korunmaya devam eder.</string>
-	<string name="geo_exclusion_beta_text">China only. More regions coming.</string>
+	<string name="geo_exclusion_beta_text">Şu anda sadece Çin. Yakında başka bölgeler de eklenecek.</string>
 	<string name="geo_exclusion_traffic_bypass_text">Hariç tutulan bölgelere yapılan bağlantılar VPN üzerinden geçmez</string>
 	<string name="geo_exclusion_server_title">Sunucu</string>
 	<string name="geo_exclusion_sock55_title">SOCKS5 bağlantı noktası</string>
@@ -612,7 +632,7 @@
 	<string name="setup_instructions_step_socks_host">SOCKS Sunucusu</string>
 	<string name="setup_instructions_step_socks_port">, Bağlantı Noktası</string>
 	<string name="setup_instructions_step_socks_suffix">, SOCKS v5\'i seçin.</string>
-	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">\"Proxy DNS when using SOCKS v5\" seçeneğini seçin (DNS sızıntılarını önler).</string>
 	<string name="setup_instructions_description">Firefox veya SOCKS5 yapılandırmalarına izin veren tarayıcılarda.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">Uygulama simgesi</string>
@@ -643,13 +663,13 @@
 	<string name="delete_account_title">Hesabınızı silin</string>
 	<string name="delete_account_headline">Bu işlemle NymVPN hesabınız kapatılacaktır. Bu işlemi geri alamazsınız.</string>
 	<string name="delete_account_deleted_title">Bu telefondan silindi</string>
-	<string name="delete_account_deleted_1">Şifreniz</string>
+	<string name="delete_account_deleted_1">Kurtarma ifadeniz</string>
 	<string name="delete_account_deleted_2">Hesap ve cihaz anahtarlarınız</string>
 	<string name="delete_account_deleted_3">VPN anahtarlarınız ve kaydedilmiş kimlik bilgileriniz</string>
 	<string name="delete_account_deleted_4">Hesap ayarlarınız</string>
 	<string name="delete_account_at_nym_title">Nym\'de</string>
 	<string name="delete_account_at_nym_1">Hesabınız kapatılmıştır. Artık hiçbir cihazdan giriş yapamazsınız.</string>
-	<string name="delete_account_kept_title">Saklandı ve neden</string>
+	<string name="delete_account_kept_title">Saklananlar ve nedenleri</string>
 	<string name="delete_account_kept_1_headline">Ödeme ve muhasebe kayıtları.</string>
 	<string name="delete_account_kept_1_descr">İsviçre yasaları, Nym’in muhasebe kayıtlarını 10 yıl süreyle saklamasını zorunlu kılmaktadır. Stripe ise kartlı ödeme kayıtlarını en az 5 yıl süreyle saklamaktadır.</string>
 	<string name="delete_account_kept_2_headline">Google Play satın alma kayıtları.</string>
@@ -658,25 +678,74 @@
 	<string name="delete_account_kept_3_descr">Bunlar hesabınızla hiçbir zaman ilişkilendirilmedi. Hata raporları yaklaşık 90 gün boyunca saklanır.</string>
 	<string name="delete_account_kept_4_headline">Destek talepleri.</string>
 	<string name="delete_account_kept_4_descr">Bunların silinmesini istiyorsanız, legal@nym.com adresine e-posta gönderin.</string>
-	<string name="delete_account_kept_5_headline">Kendinizin kaydettiği parola ifadelerinin kopyaları,</string>
+	<string name="delete_account_kept_5_headline">Kendi kaydettiğiniz kurtarma ifadesi kopyaları,</string>
 	<string name="delete_account_kept_5_descr">bir şifre yöneticisinde ya da kağıt üzerinde. Silmek size kalmış.</string>
 	<string name="delete_account_kept_6_headline">Zincir üzerinde tutulan tokenlar orada kalır.</string>
-	<string name="delete_account_kept_6_descr">NymVPN hesabınızı silmek blok zincirini etkilemez. Bu şifre, NYM veya diğer token’ları da içeriyorsa, bir kopyasını saklayın.</string>
-	<string name="delete_account_keep_button">Hesabımı sakla</string>
+	<string name="delete_account_kept_6_descr">NymVPN hesabınızı silmek blok zincirini etkilemez. Bu kurtarma ifadesi NYM veya başka token’lar da içeriyorsa bir kopyasını saklayın.</string>
+	<string name="delete_account_keep_button">Hesabımı koru</string>
 	<string name="delete_account_auth_subtitle">Herhangi bir şey silinmeden önce bir kez daha onay verirsiniz.</string>
 	<string name="delete_account_play_title">Öncelikle Google Play aboneliğinizi iptal edin</string>
-	<string name="delete_account_play_descr_1">Hesabınızı silmek, hesabınızı iptal etmez; ayrıca sildikten sonra buradan oturum açarak hesabınızı iptal edemezsiniz. Google Play’de hesabınızı iptal edene kadar Google sizden ücret almaya devam eder.</string>
+	<string name="delete_account_play_descr_1">Hesabınızı silmek aboneliğinizi iptal etmez ve sildikten sonra buradan oturum açıp iptal edemezsiniz. Aboneliğinizi Google Play’de iptal edene kadar Google sizden ücret almaya devam eder.</string>
 	<string name="delete_account_play_descr_2">İptal işlemi tamamlandıktan sonra, hesabınızı silmek için tekrar buraya gelin.</string>
 	<string name="delete_account_play_button">Google Play aboneliklerini aç</string>
 	<string name="delete_account_dialog_title">Hesabınızı şimdi silmek ister misiniz?</string>
-	<string name="delete_account_dialog_description">Hesabınız tüm cihazlarda kapatılacak ve şifreniz ile anahtarlarınız bu telefondan silinecektir. Bu işlemi geri alamazsınız.</string>
-	<string name="delete_account_dialog_progress_title">… hesabınızı silme</string>
+	<string name="delete_account_dialog_description">Hesabınız tüm cihazlarda kapatılacak ve kurtarma ifadeniz ile anahtarlarınız bu telefondan silinecektir. Bu işlemi geri alamazsınız.</string>
+	<string name="delete_account_dialog_progress_title">Hesabınız siliniyor…</string>
 	<string name="delete_account_dialog_progress_descr">Bu işlem VPN bağlantısını keser.</string>
 	<string name="delete_account_confirm_title">Hesabınız silindi</string>
-	<string name="delete_account_confirm_descr_1">Hesabınız kapatıldı ve şifreniz ile anahtarlarınız bu telefondan silindi.</string>
+	<string name="delete_account_confirm_descr_1">Hesabınız kapatıldı ve kurtarma ifadeniz ile anahtarlarınız bu telefondan silindi.</string>
 	<string name="delete_account_confirm_descr_2">Destek biletlerinizin de silinmesini istiyorsanız, legal@nym.com adresine e-posta gönderin.</string>
-	<string name="delete_account_error_title">Hesabınızı silemedim</string>
+	<string name="delete_account_error_title">Hesabınız silinemedi</string>
 	<string name="delete_account_error_descr">Hiçbir şey silinmedi. İnternet bağlantınızı kontrol edin ve tekrar deneyin.</string>
-	<string name="delete_account_time_title">Kalan zamanını kaybedersin</string>
+	<string name="delete_account_time_title">Kalan sürenizi kaybedersiniz</string>
 	<string name="delete_account_time_descr">NymVPN erişiminiz %1$s tarihine kadar geçerlidir ve yenilenmez. Hesabınızı silmeniz durumunda erişiminiz bugün sona erer.</string>
+	<string name="pair_device_title">Cihaz eşleştirin</string>
+	<string name="pair_device_button">Yeni cihaz eşleştir</string>
+	<string name="pair_device_auth_subtitle">Hesabınızla başka bir cihazda oturum açmak için kimliğinizi doğrulayın</string>
+	<string name="pair_device_starting">Eşleştirme kodu oluşturuluyor…</string>
+	<string name="pair_device_instructions">Diğer cihazınızda NymVPN\'i açın, “QR kodunu tara”ya dokunun ve kamerayı bu koda doğrultun.</string>
+	<string name="pair_device_qr_description">Eşleştirme QR kodu</string>
+	<string name="pair_device_expires_in">Kodun süresi %1$s içinde doluyor</string>
+	<string name="pair_device_new_code">Yeni kod al</string>
+	<string name="pair_device_confirm_title">Kodlar eşleşiyor mu?</string>
+	<string name="pair_device_confirm_body">Yalnızca diğer cihazınız tam olarak bu kodu gösteriyorsa devam edin. O cihazda hesabınızla oturum açılacak.</string>
+	<string name="pair_device_codes_match">Kodlar eşleşiyor</string>
+	<string name="pair_device_codes_dont_match">Kodlar eşleşmiyor</string>
+	<string name="pair_device_sharing">Diğer cihazınızda oturum açılıyor…</string>
+	<string name="pair_device_done_title">Cihaz eşleştirildi</string>
+	<string name="pair_device_done_body">Diğer cihazınızda artık hesabınızla oturum açık.</string>
+	<string name="pair_device_done">Tamamlandı</string>
+	<string name="pairing_pin_description">Eşleştirme kodu %1$s</string>
+	<string name="pairing_sign_in_nav_title">Başka bir cihazla oturum açın</string>
+	<string name="pairing_sign_in_title">Diğer cihazınızda onaylayın</string>
+	<string name="pairing_sign_in_body">Diğer cihazınızda bu kodun göründüğünü kontrol edin, ardından orada onaylayın.</string>
+	<string name="pairing_signing_in">Oturum açılıyor…</string>
+	<string name="pairing_cancel">Iptal et</string>
+	<string name="pairing_back">Geri</string>
+	<string name="pairing_try_again">Tekrar dene</string>
+	<string name="pairing_expired">Eşleştirme tamamlanmadan kodun süresi doldu.</string>
+	<string name="pairing_ended">Eşleştirme iptal edildi.</string>
+	<string name="pairing_failed">Eşleştirme başarısız oldu. Lütfen tekrar deneyin.</string>
+	<string name="pairing_failed_offline">İnternet bağlantısı yok. Bağlantınızı kontrol edip tekrar deneyin.</string>
+	<string name="pairing_failed_not_signed_in">Bu cihazda oturum açılmamış, bu yüzden paylaşılacak bir hesap yok.</string>
+	<string name="pairing_error_already_signed_in">Bu cihazda zaten oturum açık. Başka bir hesapla eşleştirmek için önce çıkış yapın.</string>
+	<string name="pairing_error_offline">İnternet bağlantısı yok. Yeniden deneniyor…</string>
+	<string name="pairing_error_scan_server">NymVPN\'e ulaşılamadı veya kodun süresi doldu. Yeniden deneniyor…</string>
+	<string name="pairing_error_scan_generic">Eşleştirme başlatılamadı. Yeniden deneniyor…</string>
+	<string name="settings_redeem_code_title">Kod kullan</string>
+	<string name="redeem_code_title">Kod kullan</string>
+	<string name="redeem_code_description">Ücretsiz kullanım hakkı kodunuzu girin veya size gönderilen bağlantıyı yapıştırın.</string>
+	<string name="redeem_code_label">Kod</string>
+	<string name="redeem_code_placeholder">Kod veya bağlantı</string>
+	<string name="redeem_code_submit">Kullan</string>
+	<string name="redeem_code_checking">Kod kontrol ediliyor…</string>
+	<string name="redeem_code_invalid">Bu geçerli bir NymVPN kodu değil</string>
+	<string name="redeem_code_enter_instead">Bunun yerine kodu girin</string>
+	<string name="freepass_error_invalid">Bu kod geçerli değil. Kontrol edip tekrar deneyin.</string>
+	<string name="freepass_error_already_redeemed">Bu kod zaten kullanılmış.</string>
+	<string name="freepass_error_rate_limited">Çok fazla deneme yapıldı. Bir dakika sonra tekrar deneyin.</string>
+	<string name="freepass_error_offline">Çevrimdışısınız. İnternete bağlanıp tekrar deneyin.</string>
+	<string name="freepass_error_generic">Kod kullanılamadı. Tekrar deneyin.</string>
+	<string name="freepass_error_subscription_active">Ücretsiz kullanım hakkı eklemek için mevcut aboneliğinizin otomatik yenilemesini kapatın. Kodunuz geçerliliğini korur.</string>
+	<string name="freepass_activated">Ücretsiz kullanım hakkı etkinleştirildi</string>
 </resources>

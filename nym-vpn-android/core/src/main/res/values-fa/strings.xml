@@ -6,7 +6,7 @@
 	<string name="disconnect">قطع اتصال</string>
 	<string name="state_connected">متصل</string>
 	<string name="state_disconnected">اتصال قطع شده</string>
-	<string name="state_initializing">درحال راه‌اندازی کلاینت...</string>
+	<string name="state_initializing">در حال راه‌اندازی برنامه شما</string>
 	<string name="state_establishing">در حال برقراری اتصال</string>
 	<string name="state_disconnecting">در حال قطع اتصال</string>
 	<string name="state_reconnecting">در حال برقراری مجدد اتصال…</string>
@@ -23,6 +23,7 @@
 	<string name="error_reason_same_entry_and_exit_gateway">ورود و خروج نمی‌توانند روی یک سرور یکسان باشند. یک نقطهٔ ورود یا خروج متفاوت انتخاب کنید، سپس دوباره وصل شوید.</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">هیچ سرور ورودی برای انتخاب شما در دسترس نیست. مکان دیگری را انتخاب کنید یا چند دقیقه بعد دوباره تلاش کنید.</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">هیچ سرور خروجی برای انتخاب شما در دسترس نیست.   مکان دیگری را انتخاب کنید یا چند دقیقه صبر کرده و دوباره امتحان کنید.</string>
+	<string name="error_reason_entry_gateway_has_no_bridge">این سرور پل ارائه نمی‌دهد. سرور دیگری انتخاب کنید یا «اتصال بهبودیافته» را روی «خودکار» یا «خاموش» بگذارید.</string>
 	<string name="error_reason_invalid_entry_gateway_identity">سرور ورودی انتخابی شما در دسترس نیست. یک سرور ورودی دیگر انتخاب کنید، سپس دوباره وصل شوید.</string>
 	<string name="error_reason_invalid_exit_gateway_identity">سرور خروجی که انتخاب کرده‌اید با تنظیمات فعلی شما در دسترس نیست. یک سرور خروجی یا ورودی دیگر انتخاب کنید، سپس دوباره وصل شوید.</string>
 	<string name="error_reason_invalid_entry_gateway_country">هیچ سرور ورودی در آن مکان موجود نیست. مکان دیگری را انتخاب کنید، سپس دوباره وصل شوید.</string>
@@ -37,6 +38,6 @@
 	<string name="error_reason_max_devices_reached">شما به محدودیت دستگاه رسیده‌اید. یک دستگاه را در nym.com حذف کنید یا در جای دیگری از سیستم خارج شوید، سپس دوباره وصل شوید.</string>
 	<string name="error_reason_device_logged_out">این دستگاه از حساب خارج شده است. برای اتصال مجدد دوباره وارد شوید.</string>
 	<string name="error_reason_needs_device_location"> مسیریابی خودکار در دسترس نیست؛ مکان دستگاه قابل تشخیص نبود.</string>
-	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
+	<string name="error_reason_connection_attempts_exceeded">پس از چند بار تلاش، اتصال برقرار نشد. مکان دیگری را امتحان کنید یا چند دقیقه دیگر دوباره تلاش کنید.</string>
 	<string name="error_reason_internal">اشتباهی رخ داده است. دوباره تلاش کنید. اگر مشکل ادامه داشت، با پشتیبانی تماس بگیرید و لاگ‌های خود را ضمیمه کنید.</string>
 </resources>

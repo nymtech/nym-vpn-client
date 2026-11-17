@@ -6,7 +6,7 @@
 	<string name="disconnect">断开</string>
 	<string name="state_connected">已连接</string>
 	<string name="state_disconnected">未连接</string>
-	<string name="state_initializing">正在初始化客户端……</string>
+	<string name="state_initializing">正在初始化您的应用</string>
 	<string name="state_establishing">正在建立连接</string>
 	<string name="state_disconnecting">正在断开连接</string>
 	<string name="state_reconnecting">正在重新连接……</string>
@@ -23,6 +23,7 @@
 	<string name="error_reason_same_entry_and_exit_gateway">入口和出口服务器不能相同。请选择不同的入口或出口服务器，然后重新连接。</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">目前没有可供选择的入口服务器。请选择其他位置，或几分钟后重试。</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">目前没有可供选择的出口服务器。请选择其他位置，或几分钟后重试。</string>
+	<string name="error_reason_entry_gateway_has_no_bridge">此服务器不支持网桥。请选择其他服务器，或将“增强连接”设置为“自动”或“关闭”。</string>
 	<string name="error_reason_invalid_entry_gateway_identity">您选择的入口服务器不可用。请选择其他入口服务器，然后重新连接。</string>
 	<string name="error_reason_invalid_exit_gateway_identity">您选择的出口服务器在当前设置下不可用。请选择另一个出口或入口服务器，然后重新连接。</string>
 	<string name="error_reason_invalid_entry_gateway_country">该位置没有可用的服务器。请选择其他位置，然后重新连接。</string>
@@ -37,6 +38,6 @@
 	<string name="error_reason_max_devices_reached">您已达到设备数量上限。请在 nym.com 上移除一台设备，或在其他设备上注销，然后重新连接。</string>
 	<string name="error_reason_device_logged_out">该设备已注销。请重新登录以重新连接。</string>
 	<string name="error_reason_needs_device_location">自动路由不可用；无法确定设备位置。</string>
-	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
+	<string name="error_reason_connection_attempts_exceeded">多次尝试后仍无法连接。请尝试其他位置，或几分钟后重试。</string>
 	<string name="error_reason_internal">出现错误。请重试。如果问题仍然存在，请联系支持团队并附上您的日志。</string>
 </resources>

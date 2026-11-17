@@ -6,7 +6,7 @@
 	<string name="disconnect">斷開連接</string>
 	<string name="state_connected">已連接</string>
 	<string name="state_disconnected">已斷開</string>
-	<string name="state_initializing">Initializing your app</string>
+	<string name="state_initializing">正在初始化您的應用程式</string>
 	<string name="state_establishing">正在建立連接</string>
 	<string name="state_disconnecting">正在斷開連接</string>
 	<string name="state_reconnecting">正在重新連線……</string>
@@ -23,6 +23,7 @@
 	<string name="error_reason_same_entry_and_exit_gateway">入口和出口不能是同一台伺服器。請選擇不同的入口或出口，然後重新連線。</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">目前沒有可供您選擇的入口伺服器。請選擇其他位置，或稍後幾分鐘再試一次。</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">目前沒有可供您選擇的退出伺服器。請選擇其他地點，或稍後幾分鐘再試一次。</string>
+	<string name="error_reason_entry_gateway_has_no_bridge">此伺服器不提供橋接器。請選擇其他伺服器，或將「增強連線」設為「自動」或「關閉」。</string>
 	<string name="error_reason_invalid_entry_gateway_identity">您選擇的入口伺服器目前無法使用。請選擇另一台入口伺服器，然後重新連線。</string>
 	<string name="error_reason_invalid_exit_gateway_identity">您選擇的出口伺服器在目前的設定下無法使用。請選擇另一台出口或入口伺服器，然後重新連線。</string>
 	<string name="error_reason_invalid_entry_gateway_country">該位置沒有可用的入口伺服器。請選擇其他位置，然後重新連線。</string>
@@ -37,6 +38,6 @@
 	<string name="error_reason_max_devices_reached">您已達到裝置上限。請至 nym.com 移除一臺裝置，或在其他地方登出，然後重新連線。</string>
 	<string name="error_reason_device_logged_out">此裝置已登出。請重新登入以重新連線。</string>
 	<string name="error_reason_needs_device_location">無法進行自動路由；無法確定裝置位置。</string>
-	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
+	<string name="error_reason_connection_attempts_exceeded">多次嘗試後仍無法連線。請試試其他位置，或幾分鐘後再試一次。</string>
 	<string name="error_reason_internal">發生了錯誤。請重新嘗試。若問題仍未解決，請聯絡技術支援並附上您的日誌。</string>
 </resources>
