@@ -1,5 +1,3 @@
-Require Touch ID or your password for account actions on macOS, for stronger protection.
-Split tunneling on macOS now explains that excluded apps' DNS lookups still go through NymVPN.
 Clearer handling when your Apple ID subscription belongs to another NymVPN account.
-Auto connects faster when the entry server has no bridge, with a clear message if Enhanced connection can't be used.
+Auto connects faster when the entry server has no bridge, with a clear message if Disguise your traffic bridges can't be used.
 Private keys are now wiped from memory right after use, and kept out of logs and crash reports.
