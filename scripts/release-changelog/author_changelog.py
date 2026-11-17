@@ -43,6 +43,7 @@ import os
 import re
 import subprocess
 import sys
+import urllib.error
 import urllib.request
 
 REPO = os.environ.get("REPO", "nymtech/nym-vpn-client")
@@ -207,7 +208,15 @@ def is_blank_text(text):
 
 # ----------------------------------------------------------------------------- anthropic
 
+class LLMUnavailable(Exception):
+    """The model/API couldn't be reached or gave no usable output — transient and NON-blocking. The
+    job warns and exits 0 so a drafting hiccup (401, rate-limit, API down, unparseable output) never
+    fails an unrelated PR's CI. A changelog suggestion is a convenience, not a merge gate."""
+
+
 def call_anthropic(system, user, max_tokens=1500):
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        raise LLMUnavailable("ANTHROPIC_API_KEY is not set")
     body = {"model": MODEL, "max_tokens": max_tokens, "system": system,
             "messages": [{"role": "user", "content": user}]}
     headers = {"x-api-key": os.environ["ANTHROPIC_API_KEY"],
@@ -217,8 +226,11 @@ def call_anthropic(system, user, max_tokens=1500):
         headers["anthropic-workspace-id"] = ws
     req = urllib.request.Request("https://api.anthropic.com/v1/messages",
                                  data=json.dumps(body).encode("utf-8"), headers=headers)
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        data = json.load(resp)
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            data = json.load(resp)
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
+        raise LLMUnavailable(f"Anthropic API call failed: {e}") from e
     return "".join(b.get("text", "") for b in data["content"]).strip()
 
 
@@ -233,11 +245,45 @@ def author_entry(component, title, description, diff):
     text = call_anthropic(system, user, max_tokens=1200)
     s, e = text.find("{"), text.rfind("}")
     if s < 0 or e < 0:
-        sys.exit(f"[{component}] could not parse JSON from model:\n{text}")
-    return json.loads(text[s:e + 1])
+        raise LLMUnavailable(f"[{component}] could not parse JSON from model")
+    try:
+        buckets = json.loads(text[s:e + 1])
+    except json.JSONDecodeError as exc:
+        # braces present but the span isn't valid JSON (e.g. `{"added": [}`) — still a model
+        # failure, so route it through the soft-fail path rather than crashing the job.
+        raise LLMUnavailable(f"[{component}] could not parse JSON from model") from exc
+    # Structurally-valid JSON can still be the wrong SHAPE (a bare list, or `{"added": [null]}`).
+    # entry_lines()/upsert() call .strip() on each item, so a non-str item would crash with an
+    # AttributeError the soft-fail handler never sees. Require a mapping of list-of-str, and treat
+    # anything else as a model failure.
+    if not isinstance(buckets, dict):
+        raise LLMUnavailable(f"[{component}] model returned {type(buckets).__name__}, not an object")
+    for heading in HEADINGS:
+        items = buckets.get(heading.lower())
+        if items is not None and not (isinstance(items, list) and all(isinstance(i, str) for i in items)):
+            raise LLMUnavailable(f"[{component}] invalid '{heading.lower()}' bucket from model")
+    return buckets
 
 
 # ----------------------------------------------------------------------------- routing + upsert
+
+# Paths that never warrant a changelog entry on their own: store metadata (fastlane) and localization
+# resources (translations). Routing ignores them, and a PR touching nothing else is not authored.
+# The default/English source stays relevant — only translated locale dirs are excluded. We match a
+# locale qualifier specifically, so non-locale Android qualifiers (`values-night`, `values-land`,
+# `values-sw600dp`) and the English source (`values/`, `en.lproj`, `Base.lproj`) stay relevant.
+LOCALE_RE = re.compile(
+    r"/res/values-[a-z]{2,3}(?:-r[A-Z]{2})?/"   # Android locale, e.g. values-de/ , values-pt-rBR/
+    r"|/(?!en\.|Base\.)[\w-]+\.lproj/"           # iOS translated .lproj (keep en.lproj / Base.lproj)
+    r"|/i18n/(?!en/)[a-z]{2,3}(?:[-_][A-Za-z0-9]+)*/"   # web i18n locale dir (de/, zh-TW/); keeps resources/
+)
+
+
+def changelog_relevant(path):
+    if "/fastlane/" in path or path.startswith("fastlane/"):
+        return False
+    return not LOCALE_RE.search(path)
+
 
 def route(files):
     hits = {c for c, cfg in COMPONENTS.items()
@@ -537,6 +583,13 @@ def main():
         elif ms_version(ms) != target:
             reason = f"milestone {ms!r} is not release {target} (base {pr['base']})"
 
+    # Content gate: fastlane (store metadata) and localization (translation) files never warrant a
+    # changelog entry on their own. A qualifying PR that touches nothing else isn't changelog-worthy —
+    # treat it like a disqualified PR so a prior suggestion is retracted if the PR became l10n-only.
+    relevant = [f for f in pr["files"] if changelog_relevant(f)]
+    if not reason and not skip and not relevant:
+        reason = "only touches fastlane / localization files — nothing changelog-relevant"
+
     if skip:
         # Transient: between cutting release N and opening milestone N+1 there is no "next" release to
         # resolve. That is not a disqualification — leave any existing suggestion/entry untouched (D5).
@@ -575,7 +628,7 @@ def main():
         return
     print(f"PR #{number} milestone={ms!r} base={pr['base']} — authoring")
 
-    comps = route(pr["files"])
+    comps = route(relevant)
     print(f"routes to: {', '.join(sorted(comps))}")
 
     # --- release-close gate: refuse to author into a release that is already stamped (the final
@@ -673,4 +726,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except LLMUnavailable as e:
+        # A drafting hiccup (API down, 401, rate-limit, unparseable output) must never fail an
+        # unrelated PR's CI — a changelog suggestion is a convenience, not a merge gate. Warn, exit 0.
+        print(f"::warning::changelog drafting skipped — {e}. Non-blocking; add the entry manually "
+              f"if the change is user-facing.")
+        sys.exit(0)
