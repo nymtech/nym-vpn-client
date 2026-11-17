@@ -4,7 +4,7 @@
 use crate::{Error, Result, commands::ReturnSender};
 use nym_vpn_account::{VpnAccount, derive_ecash_keypair};
 use nym_vpn_api_client::types::Device;
-use nym_vpn_lib_types::StorableAccount;
+use nym_vpn_lib_types::{StorableAccount, VpnAccountSummary};
 use nym_vpn_store::{
     VpnStorage,
     account::{StoredAccountIdentity, StoredAccountInformation},
@@ -34,6 +34,8 @@ where
         let ecash_keypair = derive_ecash_keypair(account.mnemonic.clone())
             .map_err(|err| Error::CreateEcashKeyPair(err.into()))?;
 
+        self.remove_summary().await?;
+
         self.storage
             .store_mnemonic(StoredMnemonic {
                 mnemonic: account.mnemonic,
@@ -45,7 +47,6 @@ where
             .store_account(StoredAccountInformation {
                 account_identity,
                 ecash_keypair,
-                summary: None,
             })
             .await
             .map_err(|err| Error::AccountStore(Box::new(err)))
@@ -106,12 +107,23 @@ where
             .map_err(|err| Error::KeyStore(Box::new(err)))
     }
 
-    pub async fn store_account_information(
-        &self,
-        account_information: StoredAccountInformation,
-    ) -> Result<()> {
+    pub async fn load_summary(&self) -> Result<Option<VpnAccountSummary>> {
         self.storage
-            .store_account(account_information)
+            .load_summary()
+            .await
+            .map_err(|err| Error::AccountSummaryStore(Box::new(err)))
+    }
+
+    pub async fn store_summary(&self, summary: &VpnAccountSummary) -> Result<()> {
+        self.storage
+            .store_summary(summary)
+            .await
+            .map_err(|err| Error::AccountSummaryStore(Box::new(err)))
+    }
+
+    pub async fn remove_summary(&self) -> Result<()> {
+        self.storage
+            .remove_summary()
             .await
             .map_err(|err| Error::AccountSummaryStore(Box::new(err)))
     }
@@ -140,8 +152,8 @@ where
         self.storage
             .remove_account()
             .await
-            .map_err(|err| Error::AccountSummaryStore(Box::new(err)))?;
-        Ok(())
+            .map_err(|err| Error::AccountStore(Box::new(err)))?;
+        self.remove_summary().await
     }
 
     async fn load_stored_account(&self) -> Result<Option<StorableAccount>> {
@@ -171,9 +183,8 @@ where
             AccountStorageOp::ResetKeys(result_tx, seed) => {
                 result_tx.send(self.reset_and_load_keys(seed).await)
             }
-            // Summary persistence is a best-effort cache: log failures rather than surfacing them.
-            AccountStorageOp::StoreAccountInformation(result_tx, account_information) => {
-                result_tx.send(self.store_account_information(account_information).await)
+            AccountStorageOp::StoreAccountSummary(result_tx, summary) => {
+                result_tx.send(self.store_summary(&summary).await)
             }
         }
     }
@@ -184,7 +195,7 @@ pub(crate) enum AccountStorageOp {
     StoreAccount(ReturnSender<Device, Error>, StorableAccount),
     ForgetAccount(ReturnSender<(), Error>),
     ResetKeys(ReturnSender<Device, Error>, Option<[u8; 32]>),
-    StoreAccountInformation(ReturnSender<(), Error>, StoredAccountInformation),
+    StoreAccountSummary(ReturnSender<(), Error>, VpnAccountSummary),
 }
 
 /// Retrieves the stored account through the storage task.

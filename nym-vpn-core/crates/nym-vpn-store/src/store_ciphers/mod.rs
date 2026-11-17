@@ -1,7 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-pub mod aes_gcm_cipher;
+pub mod database_key_cipher;
 pub mod noop_cipher;
 #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
 pub mod secure_enclave_cipher;
@@ -21,6 +21,15 @@ pub enum StoreCipherError {
 
     #[error("User cancelled")]
     UserCancelled,
+
+    #[error("failed to encrypt data")]
+    Encrypt,
+
+    #[error("failed to decrypt data")]
+    Decrypt,
+
+    #[error("invalid encrypted data")]
+    InvalidData,
 
     #[error("key store error")]
     KeyStore(#[source] Arc<dyn std::error::Error + Send + Sync>),

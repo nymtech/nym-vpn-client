@@ -12,7 +12,9 @@ use nym_vpn_account_controller::{
     AccountControllerConfig, AccountStateReceiver, NyxdClient,
 };
 use nym_vpn_api_client::VpnApiClient;
-use nym_vpn_lib_types::{AccountControllerState, Mnemonic, StorableAccount, StoredAccountMode};
+use nym_vpn_lib_types::{
+    AccountControllerState, Mnemonic, StorableAccount, StoredAccountMode, VpnAccountSummary,
+};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     account::StoredAccountInformation,
@@ -118,6 +120,7 @@ pub struct MockEphemeralStorage {
     key_store: nym_vpn_store::keys::device::InMemEphemeralKeys,
     mnemonic_storage: nym_vpn_store::mnemonic::ephemeral::InMemoryMnemonicStorage,
     account_storage: nym_vpn_store::account::ephemeral::InMemoryAccountStorage,
+    summary_storage: nym_vpn_store::account_summary::ephemeral::InMemoryAccountSummaryStorage,
 }
 
 impl nym_vpn_store::VpnStorage for MockEphemeralStorage {}
@@ -187,6 +190,23 @@ impl nym_vpn_store::account::AccountInformationStorage for MockEphemeralStorage 
 
     async fn remove_account(&self) -> Result<(), Self::StorageError> {
         self.account_storage.remove_account().await
+    }
+}
+
+#[async_trait::async_trait]
+impl nym_vpn_store::account_summary::AccountSummaryStorage for MockEphemeralStorage {
+    type StorageError = std::convert::Infallible;
+
+    async fn load_summary(&self) -> Result<Option<VpnAccountSummary>, Self::StorageError> {
+        self.summary_storage.load_summary().await
+    }
+
+    async fn store_summary(&self, summary: &VpnAccountSummary) -> Result<(), Self::StorageError> {
+        self.summary_storage.store_summary(summary).await
+    }
+
+    async fn remove_summary(&self) -> Result<(), Self::StorageError> {
+        self.summary_storage.remove_summary().await
     }
 }
 

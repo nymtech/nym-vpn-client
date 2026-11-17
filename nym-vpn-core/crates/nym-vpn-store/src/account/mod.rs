@@ -9,7 +9,7 @@ use nym_validator_client::{
     DirectSecp256k1HdWallet,
     signing::{direct_wallet::DirectSecp256k1HdWalletError, signer::OfflineSigner},
 };
-use nym_vpn_lib_types::{StoredAccountMode, VpnAccountSummary};
+use nym_vpn_lib_types::StoredAccountMode;
 use serde::{Deserialize, Serialize};
 use zeroize::ZeroizeOnDrop;
 
@@ -99,7 +99,6 @@ impl std::fmt::Debug for EcashSeed {
 pub struct StoredAccountInformation {
     pub account_identity: StoredAccountIdentity,
     pub ecash_keypair: KeyPairUser,
-    pub summary: Option<VpnAccountSummary>,
 }
 
 #[async_trait::async_trait]

@@ -91,11 +91,7 @@ impl SyncingLocalState {
         };
 
         // Nothing to check locally without a cached summary: go fetch one from the network.
-        let Some(summary) = shared_state
-            .account
-            .as_ref()
-            .and_then(|state| state.summary.clone())
-        else {
+        let Some(summary) = shared_state.summary.clone() else {
             return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await;
         };
 
@@ -214,7 +210,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         // (memory + disk) so a restart doesn't try to register again, without
                         // needing a full re-fetch.
                         if device_registration
-                            && let Some(mut summary) = shared_state.account.as_ref().and_then(|state| state.summary.clone())
+                            && let Some(mut summary) = shared_state.summary.clone()
                             && !summary.is_device_active
                         {
                             summary.is_device_active = true;

@@ -52,7 +52,6 @@ mod tests {
                 pub_key: "".to_owned(),
                 signature_base64: "".to_owned(),
             },
-            summary: None,
             ecash_keypair: KeyPairUser::new(),
         }
     }
