@@ -48,7 +48,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>We need access to the camera in order to scan credential QR code.</string>
+	<string>The camera is only used to scan QR codes. Images stay on this device and are never saved.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>We use Face ID to unlock secure information.</string>
 	<key>UIApplicationSceneManifest</key>

@@ -1,5 +1,6 @@
 import SwiftUI
 import CredentialsManager
+import Settings
 import UIComponents
 
 struct AuthFlowView: View {
@@ -19,6 +20,9 @@ struct AuthFlowView: View {
     @State private var signInRootHeight: CGFloat = 0
     @State private var passphraseHeight: CGFloat = 0
     @State private var measurementPassphraseViewModel: PassphraseSignInViewModel
+#if os(iOS)
+    @State private var codeEntryStartsWithScanner: Bool?
+#endif
 
     init(
         credentialsManager: CredentialsManager,
@@ -44,13 +48,44 @@ struct AuthFlowView: View {
         .frame(height: cardHeight)
         .animation(.easeInOut, value: step)
         .clipped()
+#if os(iOS)
+        .fullScreenCover(isPresented: isCodeEntryPresented) {
+            CodeEntryView(startsWithScanner: codeEntryStartsWithScanner ?? false) { outcome in
+                codeEntryStartsWithScanner = nil
+                Task {
+                    await CodeEntryOutcomeHandler.handle(
+                        outcome,
+                        credentialsManager: credentialsManager,
+                        sendSessionEvent: { sessionCoordinator.handle(.session($0)) }
+                    )
+                }
+            }
+        }
+#endif
     }
 }
 
 private extension AuthFlowView {
+    var scanAction: (() -> Void)? {
+#if os(iOS)
+        { codeEntryStartsWithScanner = QRScanner.isSupported }
+#else
+        nil
+#endif
+    }
+
+#if os(iOS)
+    var isCodeEntryPresented: Binding<Bool> {
+        Binding(
+            get: { codeEntryStartsWithScanner != nil },
+            set: { if !$0 { codeEntryStartsWithScanner = nil } }
+        )
+    }
+#endif
+
     var measurementLayer: some View {
         ZStack {
-            WelcomeView(onSignInTapped: {}, onSignUpTapped: {})
+            WelcomeView(onSignInTapped: {}, onSignUpTapped: {}, onScanTapped: scanAction)
                 .trackHeight { welcomeRootHeight = $0 }
             SignUpRootContent(
                 privyLoadingTarget: nil,
@@ -85,7 +120,8 @@ private extension AuthFlowView {
             WelcomeView(
                 minHeight: sharedRootHeight,
                 onSignInTapped: { step = .signIn },
-                onSignUpTapped: { step = .signUp }
+                onSignUpTapped: { step = .signUp },
+                onScanTapped: scanAction
             )
             .fixedSize(horizontal: false, vertical: true)
             .trackHeight { cardHeight = $0 }

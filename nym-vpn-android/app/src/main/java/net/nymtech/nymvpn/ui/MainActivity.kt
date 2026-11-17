@@ -349,7 +349,9 @@ class MainActivity : AppCompatActivity() {
 
 								composable<Route.DeletedAccount> { DeletedScreen() }
 
-								composable<Route.QrScan> { QrScanScreen(fromWelcome = it.toRoute<Route.QrScan>().fromWelcome) }
+								composable<Route.QrScan> {
+									QrScanScreen(fromWelcome = it.toRoute<Route.QrScan>().fromWelcome, accountStored = appState.managerState.isMnemonicStored)
+								}
 
 								composable<Route.PairingSignIn> { PairingSignInScreen() }
 
