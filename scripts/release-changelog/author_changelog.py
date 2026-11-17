@@ -247,11 +247,22 @@ def author_entry(component, title, description, diff):
     if s < 0 or e < 0:
         raise LLMUnavailable(f"[{component}] could not parse JSON from model")
     try:
-        return json.loads(text[s:e + 1])
+        buckets = json.loads(text[s:e + 1])
     except json.JSONDecodeError as exc:
         # braces present but the span isn't valid JSON (e.g. `{"added": [}`) — still a model
         # failure, so route it through the soft-fail path rather than crashing the job.
         raise LLMUnavailable(f"[{component}] could not parse JSON from model") from exc
+    # Structurally-valid JSON can still be the wrong SHAPE (a bare list, or `{"added": [null]}`).
+    # entry_lines()/upsert() call .strip() on each item, so a non-str item would crash with an
+    # AttributeError the soft-fail handler never sees. Require a mapping of list-of-str, and treat
+    # anything else as a model failure.
+    if not isinstance(buckets, dict):
+        raise LLMUnavailable(f"[{component}] model returned {type(buckets).__name__}, not an object")
+    for heading in HEADINGS:
+        items = buckets.get(heading.lower())
+        if items is not None and not (isinstance(items, list) and all(isinstance(i, str) for i in items)):
+            raise LLMUnavailable(f"[{component}] invalid '{heading.lower()}' bucket from model")
+    return buckets
 
 
 # ----------------------------------------------------------------------------- routing + upsert
@@ -264,7 +275,7 @@ def author_entry(component, title, description, diff):
 LOCALE_RE = re.compile(
     r"/res/values-[a-z]{2,3}(?:-r[A-Z]{2})?/"   # Android locale, e.g. values-de/ , values-pt-rBR/
     r"|/(?!en\.|Base\.)[\w-]+\.lproj/"           # iOS translated .lproj (keep en.lproj / Base.lproj)
-    r"|/i18n/(?!en/)[^/]+/"                       # web i18n translated locale dir
+    r"|/i18n/(?!en/)[a-z]{2,3}(?:[-_][A-Za-z0-9]+)*/"   # web i18n locale dir (de/, zh-TW/); keeps resources/
 )
 
 
