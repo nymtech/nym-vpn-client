@@ -43,6 +43,7 @@ import os
 import re
 import subprocess
 import sys
+import urllib.error
 import urllib.request
 
 REPO = os.environ.get("REPO", "nymtech/nym-vpn-client")
@@ -207,7 +208,15 @@ def is_blank_text(text):
 
 # ----------------------------------------------------------------------------- anthropic
 
+class LLMUnavailable(Exception):
+    """The model/API couldn't be reached or gave no usable output — transient and NON-blocking. The
+    job warns and exits 0 so a drafting hiccup (401, rate-limit, API down, unparseable output) never
+    fails an unrelated PR's CI. A changelog suggestion is a convenience, not a merge gate."""
+
+
 def call_anthropic(system, user, max_tokens=1500):
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        raise LLMUnavailable("ANTHROPIC_API_KEY is not set")
     body = {"model": MODEL, "max_tokens": max_tokens, "system": system,
             "messages": [{"role": "user", "content": user}]}
     headers = {"x-api-key": os.environ["ANTHROPIC_API_KEY"],
@@ -217,8 +226,11 @@ def call_anthropic(system, user, max_tokens=1500):
         headers["anthropic-workspace-id"] = ws
     req = urllib.request.Request("https://api.anthropic.com/v1/messages",
                                  data=json.dumps(body).encode("utf-8"), headers=headers)
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        data = json.load(resp)
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            data = json.load(resp)
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
+        raise LLMUnavailable(f"Anthropic API call failed: {e}") from e
     return "".join(b.get("text", "") for b in data["content"]).strip()
 
 
@@ -233,11 +245,23 @@ def author_entry(component, title, description, diff):
     text = call_anthropic(system, user, max_tokens=1200)
     s, e = text.find("{"), text.rfind("}")
     if s < 0 or e < 0:
-        sys.exit(f"[{component}] could not parse JSON from model:\n{text}")
+        raise LLMUnavailable(f"[{component}] could not parse JSON from model")
     return json.loads(text[s:e + 1])
 
 
 # ----------------------------------------------------------------------------- routing + upsert
+
+# Paths that never warrant a changelog entry on their own: store metadata (fastlane) and localization
+# resources (translations). Routing ignores them, and a PR touching nothing else is not authored.
+# The default/English source stays relevant — only translated locale dirs are excluded.
+LOCALE_RE = re.compile(r"/res/values-[A-Za-z]|\.lproj/|/i18n/(?!en/)[^/]+/")
+
+
+def changelog_relevant(path):
+    if "/fastlane/" in path or path.startswith("fastlane/"):
+        return False
+    return not LOCALE_RE.search(path)
+
 
 def route(files):
     hits = {c for c, cfg in COMPONENTS.items()
@@ -537,6 +561,13 @@ def main():
         elif ms_version(ms) != target:
             reason = f"milestone {ms!r} is not release {target} (base {pr['base']})"
 
+    # Content gate: fastlane (store metadata) and localization (translation) files never warrant a
+    # changelog entry on their own. A qualifying PR that touches nothing else isn't changelog-worthy —
+    # treat it like a disqualified PR so a prior suggestion is retracted if the PR became l10n-only.
+    relevant = [f for f in pr["files"] if changelog_relevant(f)]
+    if not reason and not skip and not relevant:
+        reason = "only touches fastlane / localization files — nothing changelog-relevant"
+
     if skip:
         # Transient: between cutting release N and opening milestone N+1 there is no "next" release to
         # resolve. That is not a disqualification — leave any existing suggestion/entry untouched (D5).
@@ -575,7 +606,7 @@ def main():
         return
     print(f"PR #{number} milestone={ms!r} base={pr['base']} — authoring")
 
-    comps = route(pr["files"])
+    comps = route(relevant)
     print(f"routes to: {', '.join(sorted(comps))}")
 
     # --- release-close gate: refuse to author into a release that is already stamped (the final
@@ -673,4 +704,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except LLMUnavailable as e:
+        # A drafting hiccup (API down, 401, rate-limit, unparseable output) must never fail an
+        # unrelated PR's CI — a changelog suggestion is a convenience, not a merge gate. Warn, exit 0.
+        print(f"::warning::changelog drafting skipped — {e}. Non-blocking; add the entry manually "
+              f"if the change is user-facing.")
+        sys.exit(0)
