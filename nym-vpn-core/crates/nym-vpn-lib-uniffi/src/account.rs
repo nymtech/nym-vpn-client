@@ -57,9 +57,13 @@ impl NymAccountController {
         event_listener: Arc<dyn TunnelStatusListener>,
     ) -> Result<Self, VpnError> {
         // Storage setup
-        let storage_path = data_dir.join(network_env.network_name());
-        let secure_enclave = Arc::new(nym_secure_enclave::SecureEnclave::new());
-        let storage = VpnClientOnDiskStorage::new(&storage_path, secure_enclave)
+        let network_name = network_env.network_name();
+        let storage_path = data_dir.join(&network_name);
+        let keychain = nym_secure_enclave::Keychain::new(
+            nym_secure_enclave::LocalAuthentication::new(),
+            nym_vpn_lib::storage::KEYCHAIN_ACCESS_GROUP,
+        );
+        let storage = VpnClientOnDiskStorage::new(&storage_path, &network_name, keychain)
             .await
             .map_err(VpnError::internal)?;
         let database_key = storage.database_key().clone();

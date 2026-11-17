@@ -50,9 +50,13 @@ impl NymVpnAccountStorage {
         environment: Arc<NymEnvironment>,
     ) -> Result<Self, VpnError> {
         // todo: ensure account controller is not running?
-        let storage_path = data_dir.join(environment.network_name());
-        let secure_enclave = Arc::new(nym_secure_enclave::SecureEnclave::new());
-        let storage = VpnClientOnDiskStorage::new(&storage_path, secure_enclave)
+        let network_name = environment.network_name();
+        let storage_path = data_dir.join(&network_name);
+        let keychain = nym_secure_enclave::Keychain::new(
+            nym_secure_enclave::LocalAuthentication::new(),
+            nym_vpn_lib::storage::KEYCHAIN_ACCESS_GROUP,
+        );
+        let storage = VpnClientOnDiskStorage::new(&storage_path, &network_name, keychain)
             .await
             .map_err(|err| VpnError::Storage {
                 details: err.to_string(),

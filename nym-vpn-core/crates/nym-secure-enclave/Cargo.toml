@@ -54,5 +54,8 @@ objc2-security = { workspace = true, features = [
     "SecKey",
 ] }
 
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+
 [lints]
 workspace = true

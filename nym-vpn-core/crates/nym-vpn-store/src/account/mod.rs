@@ -14,6 +14,8 @@ use serde::{Deserialize, Serialize};
 use zeroize::ZeroizeOnDrop;
 
 pub mod ephemeral;
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+pub mod keychain;
 pub mod on_disk;
 
 #[derive(Debug, thiserror::Error)]

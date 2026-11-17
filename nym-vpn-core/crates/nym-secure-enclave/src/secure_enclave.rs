@@ -6,10 +6,10 @@ use std::sync::Arc;
 
 use futures_util::TryFutureExt;
 
-#[cfg(any(target_os = "macos", target_os = "ios"))]
-use super::AppleSecureEnclaveProvider;
 #[cfg(target_os = "android")]
 use super::{AndroidKeyStoreProvider, AndroidSecureEnclaveProvider};
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+use super::{AppleSecureEnclaveProvider, LocalAuthentication};
 use super::{Result, SecureEnclaveError, SecureEnclaveProvider};
 
 #[cfg(target_os = "android")]
@@ -25,14 +25,19 @@ pub struct SecureEnclave {
 }
 
 impl SecureEnclave {
+    /// On Apple platforms, keys requiring user presence are used with the authentication of
+    /// `auth`, and are stored in `keychain_access_group`, or in the default access group of the
+    /// process if `None`.
     pub fn new(
         #[cfg(target_os = "android")] provider: Arc<dyn AndroidSecureEnclaveProvider>,
+        #[cfg(any(target_os = "macos", target_os = "ios"))] auth: LocalAuthentication,
+        #[cfg(any(target_os = "macos", target_os = "ios"))] keychain_access_group: Option<&str>,
     ) -> Self {
         Self {
             #[cfg(target_os = "android")]
             inner: AndroidKeyStoreProvider::new(provider),
             #[cfg(any(target_os = "macos", target_os = "ios"))]
-            inner: AppleSecureEnclaveProvider::default(),
+            inner: AppleSecureEnclaveProvider::new(auth, keychain_access_group),
         }
     }
 

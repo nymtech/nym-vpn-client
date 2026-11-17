@@ -578,10 +578,21 @@ impl NymVpnService {
             .await
             .map_err(Error::PathsSetup)?;
 
-        #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+        #[cfg(any(target_os = "ios", target_os = "macos"))]
+        let local_auth = nym_secure_enclave::LocalAuthentication::new();
+        #[cfg(any(target_os = "ios", target_os = "macos"))]
+        let keychain = nym_secure_enclave::Keychain::new(
+            local_auth.clone(),
+            crate::storage::KEYCHAIN_ACCESS_GROUP,
+        );
+        #[cfg(any(target_os = "ios", target_os = "android"))]
         let secure_enclave = Arc::new(nym_secure_enclave::SecureEnclave::new(
             #[cfg(target_os = "android")]
             parameters.secure_enclave_provider,
+            #[cfg(target_os = "ios")]
+            local_auth,
+            #[cfg(target_os = "ios")]
+            crate::storage::KEYCHAIN_ACCESS_GROUP,
         ));
 
         #[cfg(target_os = "macos")]
@@ -591,7 +602,10 @@ impl NymVpnService {
 
         let storage = VpnClientOnDiskStorage::new(
             paths.network_data_dir.clone(),
-            #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+            &network_name,
+            #[cfg(any(target_os = "ios", target_os = "macos"))]
+            keychain,
+            #[cfg(target_os = "android")]
             secure_enclave.clone(),
         )
         .await

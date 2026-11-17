@@ -7,6 +7,8 @@ use nym_vpn_lib_types::Mnemonic;
 use serde::{Deserialize, Serialize};
 
 pub mod ephemeral;
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+pub mod keychain;
 pub mod on_disk;
 
 #[async_trait::async_trait]
