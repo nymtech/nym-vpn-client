@@ -113,7 +113,7 @@ extension PacketTunnelProvider {
 
     /// `initLogger` is one-shot per process: if the extension is reused for another start,
     /// the first call's settings stay in effect.
-    func configureLogger(isErrorReportingEnabled: Bool) {
+    private func configureLogger(isErrorReportingEnabled: Bool) {
         let logFilePath = LogFileManager.logFileURL(logFileType: .library)?.path()
         // Extracted from ConfigurationManager.shared.debugLevel
         let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"

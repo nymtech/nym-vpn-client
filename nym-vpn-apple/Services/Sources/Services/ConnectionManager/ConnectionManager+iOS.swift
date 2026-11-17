@@ -31,6 +31,19 @@ extension ConnectionManager {
                 }
             }
             .store(in: &cancellables)
+
+        // The tunnel reads the error-reporting opt-in from the persisted config whenever it starts,
+        // including on-demand restarts, so rewrite the config when the setting changes.
+        appSettings.$isErrorReportingOnPublisher
+            .dropFirst()
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.persistConfigIfPresent()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func configureTunnelStatusObserver(tunnel: Tunnel) {
@@ -167,6 +180,12 @@ extension ConnectionManager {
     }
 
     func fetchConnectionConfig() async {}
+
+    /// Rewrites the persisted tunnel config only if one exists; before the first connect there is nothing to update.
+    func persistConfigIfPresent() {
+        guard MixnetConfigStorage.exists(), let config = try? generateConfig() else { return }
+        MixnetConfigStorage.save(config)
+    }
 
     @MainActor
     func sendAfterPersistingConfig(_ message: TunnelProviderMessage) async throws {

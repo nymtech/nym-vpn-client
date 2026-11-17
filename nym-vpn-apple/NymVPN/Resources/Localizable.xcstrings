@@ -32628,7 +32628,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Stays on this device. You choose when to send it to support."
+            "value" : "Otherwise it stays on this device. You choose when to send it to support. Changes apply the next time you connect."
           }
         }
       }
@@ -32639,7 +32639,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Nothing automatically. Stored on this device\nMore detail on what the app is doing\nAdded to error reports only if \"Your app errors & crashes\" is on"
+            "value" : "More detail on what the app is doing\nAdded to error reports only if \"Your app errors & crashes\" is on"
           }
         }
       }
@@ -32672,7 +32672,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your connection diagnostics"
+            "value" : "Your troubleshooting detail"
           }
         }
       }

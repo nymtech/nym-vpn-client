@@ -1,8 +1,9 @@
 import SwiftUI
 import AppSettings
-import ConfigurationManager
 import ImpactGenerator
-#if os(macOS)
+#if os(iOS)
+import ConfigurationManager
+#elseif os(macOS)
 import GRPCManager
 #endif
 import Theme
