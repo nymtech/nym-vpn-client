@@ -46,8 +46,10 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     pub(crate) nyxd_client: NyxdClient,
 
     /// Current account information
-    /// Includes metadata such as account summary when available.
     pub(crate) account: Option<StoredAccountInformation>,
+
+    /// Cached account summary of the current account
+    pub(crate) summary: Option<VpnAccountSummary>,
 
     /// Registered device
     pub(crate) device: Option<Device>,
@@ -85,6 +87,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         vpn_api_client: VpnApiClient,
         nyxd_client: NyxdClient,
         account: Option<StoredAccountInformation>,
+        summary: Option<VpnAccountSummary>,
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         event_sender: AccountControllerEventSender,
@@ -100,6 +103,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             vpn_api_client,
             nyxd_client,
             account,
+            summary,
             device,
             deeplinks: Deeplinks::default(),
             firewall_active: false,
@@ -282,38 +286,27 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
 
     /// Marks the cached summary as stale and persists it. No-op when no summary is cached.
     pub(crate) async fn mark_summary_as_stale(&mut self) -> Result<()> {
-        let Some(StoredAccountInformation {
-            summary: Some(account_summary),
-            ..
-        }) = &mut self.account
-        else {
+        let Some(summary) = &mut self.summary else {
             return Ok(());
         };
-        account_summary.stale = true;
-        self.persist_account_information().await
+        summary.stale = true;
+        let summary = summary.clone();
+        self.persist_summary(summary).await
     }
 
     /// Stores the account summary in memory and persists it.
-    pub(crate) async fn store_summary(
-        &mut self,
-        new_account_summary: VpnAccountSummary,
-    ) -> Result<()> {
-        let Some(StoredAccountInformation {
-            summary: account_summary,
-            ..
-        }) = &mut self.account
-        else {
+    pub(crate) async fn store_summary(&mut self, summary: VpnAccountSummary) -> Result<()> {
+        if self.account.is_none() {
             return Err(Error::NoAccountStored);
-        };
-        account_summary.replace(new_account_summary);
-        self.persist_account_information().await
+        }
+        self.summary = Some(summary.clone());
+        self.persist_summary(summary).await
     }
 
-    async fn persist_account_information(&self) -> Result<()> {
-        let account = self.account.clone().ok_or(Error::NoAccountStored)?;
+    async fn persist_summary(&self, summary: VpnAccountSummary) -> Result<()> {
         let (tx, rx) = ReturnSender::new();
         self.storage_op_sender
-            .send(AccountStorageOp::StoreAccountInformation(tx, account))
+            .send(AccountStorageOp::StoreAccountSummary(tx, summary))
             .map_err(Error::internal)?;
         rx.await.map_err(Error::internal)?
     }

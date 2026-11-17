@@ -80,8 +80,8 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state.account = Some(StoredAccountInformation {
         account_identity,
         ecash_keypair,
-        summary: None,
     });
+    shared_state.summary = None;
     shared_state.device = Some(device);
 
     tracing::debug!("Account stored!");
@@ -111,8 +111,8 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
     shared_state.account = Some(StoredAccountInformation {
         account_identity,
         ecash_keypair,
-        summary: None,
     });
+    shared_state.summary = None;
     shared_state.device = Some(device);
     tracing::debug!("Account created and stored");
 
@@ -248,6 +248,7 @@ async fn clear_local_account_data<C: ConnectivityMonitor>(
     // Once we have removed or reset all storage, we need to reset the account state
     shared_state.device = None;
     shared_state.account = None;
+    shared_state.summary = None;
     shared_state.nyxd_client.disconnect();
 
     if let Err(err) = remove_files_result {

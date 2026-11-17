@@ -7675,20 +7675,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nym-store-cipher"
-version = "2.0.1"
-source = "git+https://github.com/nymtech/nym?rev=2bd629e92a58cd60f7a0a3fd84c56618e9efbb3b#2bd629e92a58cd60f7a0a3fd84c56618e9efbb3b"
-dependencies = [
- "aes-gcm 0.11.1",
- "argon2",
- "hybrid-array",
- "rand 0.10.3",
- "serde",
- "thiserror 2.0.21",
- "zeroize",
-]
-
-[[package]]
 name = "nym-task"
 version = "2.0.1"
 source = "git+https://github.com/nymtech/nym?rev=2bd629e92a58cd60f7a0a3fd84c56618e9efbb3b#2bd629e92a58cd60f7a0a3fd84c56618e9efbb3b"
@@ -8068,6 +8054,7 @@ dependencies = [
  "tracing-subscriber",
  "tracing-test",
  "tun",
+ "typed-builder",
  "url",
  "urlencoding",
  "vergen-gitcl",
@@ -8206,6 +8193,7 @@ dependencies = [
 name = "nym-vpn-store"
 version = "2026.17.0-beta.1"
 dependencies = [
+ "aes-gcm 0.11.1",
  "anyhow",
  "async-trait",
  "base64-url",
@@ -8218,7 +8206,6 @@ dependencies = [
  "nym-pemstore",
  "nym-secure-enclave",
  "nym-sqlcipher",
- "nym-store-cipher",
  "nym-validator-client",
  "nym-vpn-account",
  "nym-vpn-lib-types",
@@ -8899,7 +8886,6 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aab41826031698d6ffcd9cff78ef56ef998e39dc7e5067cdfebe373842d4723b"
 dependencies = [
- "getrandom 0.4.3",
  "phc",
 ]
 
@@ -9098,7 +9084,6 @@ checksum = "44dc769b75f93afdddd8c7fa12d685292ddeff1e66f7f0f3a234cf1818afe892"
 dependencies = [
  "base64ct",
  "ctutils",
- "getrandom 0.4.3",
 ]
 
 [[package]]

@@ -217,6 +217,16 @@ impl From<nym_vpn_store::account::keychain::KeychainAccountStorageError> for Vpn
     }
 }
 
+impl From<nym_vpn_store::account_summary::on_disk::OnDiskAccountSummaryStorageError> for VpnError {
+    fn from(
+        value: nym_vpn_store::account_summary::on_disk::OnDiskAccountSummaryStorageError,
+    ) -> Self {
+        Self::Storage {
+            details: value.to_string(),
+        }
+    }
+}
+
 impl From<nym_vpn_store::account::on_disk::OnDiskAccountStorageError> for VpnError {
     fn from(value: nym_vpn_store::account::on_disk::OnDiskAccountStorageError) -> Self {
         Self::Storage {
