@@ -8,15 +8,18 @@ public struct WelcomeView: View {
     private let minHeight: CGFloat
     private let onSignInTapped: () -> Void
     private let onSignUpTapped: () -> Void
+    private let onScanTapped: (() -> Void)?
 
     public init(
         minHeight: CGFloat = 0,
         onSignInTapped: @escaping () -> Void,
-        onSignUpTapped: @escaping () -> Void
+        onSignUpTapped: @escaping () -> Void,
+        onScanTapped: (() -> Void)? = nil
     ) {
         self.minHeight = minHeight
         self.onSignInTapped = onSignInTapped
         self.onSignUpTapped = onSignUpTapped
+        self.onScanTapped = onScanTapped
     }
 
     public var body: some View {
@@ -65,9 +68,26 @@ private extension WelcomeView {
                 ImpactGenerator.shared.softImpact()
                 onSignUpTapped()
             }
-            NymButton("welcome.signIn".localizedString, style: .primary) {
+            NymButton(
+                "welcome.signIn".localizedString,
+                style: .secondary,
+                foregroundColor: .Nym.textPrimary,
+                borderColor: .Nym.textPrimary
+            ) {
                 ImpactGenerator.shared.softImpact()
                 onSignInTapped()
+            }
+            if let onScanTapped {
+                NymButton(
+                    "welcome.scanQrCode".localizedString,
+                    style: .secondary,
+                    foregroundColor: .Nym.textPrimary,
+                    borderColor: .Nym.textPrimary,
+                    trailingSystemImage: "qrcode.viewfinder"
+                ) {
+                    ImpactGenerator.shared.softImpact()
+                    onScanTapped()
+                }
             }
         }
     }

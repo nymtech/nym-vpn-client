@@ -3500,6 +3500,17 @@
         }
       }
     },
+    "captureProtection.hidden" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hidden while the screen is recorded or shared."
+          }
+        }
+      }
+    },
     "censorship.bridge.off" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9821,6 +9832,94 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "提交 GitHub 问题"
+          }
+        }
+      }
+    },
+    "freepass.activated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free pass activated"
+          }
+        }
+      }
+    },
+    "freepass.error.alreadyRedeemed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This code has already been used."
+          }
+        }
+      }
+    },
+    "freepass.error.generic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The code couldn't be redeemed. Try again."
+          }
+        }
+      }
+    },
+    "freepass.error.invalid" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This code isn't valid. Check it and try again."
+          }
+        }
+      }
+    },
+    "freepass.error.offline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're offline. Connect to the internet and try again."
+          }
+        }
+      }
+    },
+    "freepass.error.rateLimited" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many attempts. Try again in a minute."
+          }
+        }
+      }
+    },
+    "freepass.error.subscriptionActive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off auto-renew for your current subscription to add a free pass. Your code stays valid."
+          }
+        }
+      }
+    },
+    "freepass.error.vpnConnected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect from NymVPN to redeem a code, then try again."
           }
         }
       }
@@ -20379,6 +20478,336 @@
         }
       }
     },
+    "pairDevice.authReason" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm it's you to sign in another device with your account"
+          }
+        }
+      }
+    },
+    "pairDevice.button" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair new device"
+          }
+        }
+      }
+    },
+    "pairDevice.codesDontMatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codes don't match"
+          }
+        }
+      }
+    },
+    "pairDevice.codesMatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codes match"
+          }
+        }
+      }
+    },
+    "pairDevice.confirm.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only continue if your other device shows exactly this code. It will be signed in to your account."
+          }
+        }
+      }
+    },
+    "pairDevice.confirm.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do the codes match?"
+          }
+        }
+      }
+    },
+    "pairDevice.done.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your other device is now signed in to your account."
+          }
+        }
+      }
+    },
+    "pairDevice.done.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device paired"
+          }
+        }
+      }
+    },
+    "pairDevice.expiresIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code expires in %@"
+          }
+        }
+      }
+    },
+    "pairDevice.instructions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On your other device, open NymVPN, tap Scan QR code and point the camera at this code."
+          }
+        }
+      }
+    },
+    "pairDevice.newCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get a new code"
+          }
+        }
+      }
+    },
+    "pairDevice.qrAccessibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing QR code"
+          }
+        }
+      }
+    },
+    "pairDevice.sharing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signing in your other device…"
+          }
+        }
+      }
+    },
+    "pairDevice.starting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Creating a pairing code…"
+          }
+        }
+      }
+    },
+    "pairDevice.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair a device"
+          }
+        }
+      }
+    },
+    "pairing.ended" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing was cancelled."
+          }
+        }
+      }
+    },
+    "pairing.error.alreadySignedIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device is already signed in. Log out first to pair it with another account."
+          }
+        }
+      }
+    },
+    "pairing.error.genericRetrying" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing couldn't start. Retrying…"
+          }
+        }
+      }
+    },
+    "pairing.error.offlineRetrying" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection. Retrying…"
+          }
+        }
+      }
+    },
+    "pairing.error.serverRetrying" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't reach NymVPN, or the code has expired. Retrying…"
+          }
+        }
+      }
+    },
+    "pairing.error.vpnConnected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect from NymVPN to pair a device, then try again."
+          }
+        }
+      }
+    },
+    "pairing.expired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The code expired before pairing finished."
+          }
+        }
+      }
+    },
+    "pairing.failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing failed. Please try again."
+          }
+        }
+      }
+    },
+    "pairing.failed.notSignedIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device isn't signed in, so there's no account to share."
+          }
+        }
+      }
+    },
+    "pairing.failed.offline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection. Check your connection and try again."
+          }
+        }
+      }
+    },
+    "pairing.pin.accessibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing code %@"
+          }
+        }
+      }
+    },
+    "pairing.signIn.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check that your other device shows this code, then confirm it there."
+          }
+        }
+      }
+    },
+    "pairing.signIn.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm on your other device"
+          }
+        }
+      }
+    },
+    "pairing.signingIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signing in…"
+          }
+        }
+      }
+    },
+    "pairing.tryAgain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        }
+      }
+    },
     "passohrase.loseSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22869,6 +23298,160 @@
         }
       }
     },
+    "qrScanner.cameraError.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The camera couldn't be started. Close any other app that may be using it and try again."
+          }
+        }
+      }
+    },
+    "qrScanner.cameraError.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera unavailable"
+          }
+        }
+      }
+    },
+    "qrScanner.checking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking code…"
+          }
+        }
+      }
+    },
+    "qrScanner.close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close scanner"
+          }
+        }
+      }
+    },
+    "qrScanner.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Point your camera at a NymVPN QR code"
+          }
+        }
+      }
+    },
+    "qrScanner.invalid" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This isn't a NymVPN QR code"
+          }
+        }
+      }
+    },
+    "qrScanner.openSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "qrScanner.permission.allow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow camera"
+          }
+        }
+      }
+    },
+    "qrScanner.permission.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The camera is only used to scan a QR code. Images are processed on this device and are never saved or sent anywhere."
+          }
+        }
+      }
+    },
+    "qrScanner.permission.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow camera access"
+          }
+        }
+      }
+    },
+    "qrScanner.permissionDenied.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To scan a QR code, turn on camera access for NymVPN in Settings."
+          }
+        }
+      }
+    },
+    "qrScanner.permissionDenied.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera access is off"
+          }
+        }
+      }
+    },
+    "qrScanner.torchOff" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off flashlight"
+          }
+        }
+      }
+    },
+    "qrScanner.torchOn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on flashlight"
+          }
+        }
+      }
+    },
     "quit.closeWindow" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23370,6 +23953,94 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "退出将停止所有任务并从菜单栏中删除 NymVPN"
+          }
+        }
+      }
+    },
+    "redeemCode.checking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking code…"
+          }
+        }
+      }
+    },
+    "redeemCode.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your free pass code, or paste the link you were sent."
+          }
+        }
+      }
+    },
+    "redeemCode.enterInstead" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter code instead"
+          }
+        }
+      }
+    },
+    "redeemCode.invalid" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This isn't a valid NymVPN code"
+          }
+        }
+      }
+    },
+    "redeemCode.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code"
+          }
+        }
+      }
+    },
+    "redeemCode.placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code or link"
+          }
+        }
+      }
+    },
+    "redeemCode.submit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redeem"
+          }
+        }
+      }
+    },
+    "redeemCode.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redeem a code"
           }
         }
       }
@@ -27668,6 +28339,17 @@
         }
       }
     },
+    "settings.redeemCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redeem a code"
+          }
+        }
+      }
+    },
     "settings.splitTunnel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -29957,6 +30639,17 @@
         }
       }
     },
+    "welcome.scanQrCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan QR code"
+          }
+        }
+      }
+    },
     "welcome.sentry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32024,6 +32717,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "What's shared: %@"
+          }
+        }
+      }
+    },
+    "pairDevice.authError" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't confirm it's you. Try again."
           }
         }
       }

@@ -2,6 +2,7 @@ import UIComponents
 
 public enum AppSettingsSectionKind: SettingsSectionKind {
     case account
+    case redeemCode
     case connection
     case theme
     case logs
