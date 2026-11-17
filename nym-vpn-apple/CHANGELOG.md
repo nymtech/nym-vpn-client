@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS: Redeem a free pass by scanning or typing a code, from Welcome, the plan screen or Settings (https://github.com/nymtech/nym-vpn-client/pull/7122)
 - iOS: Reusable QR scanner in UIComponents for on-device scanning (https://github.com/nymtech/nym-vpn-client/pull/7122)
 
+### Fixed
+
+- _pending changelog_
+
 ## [2026.16.0] - TBD
 
 ### Added
