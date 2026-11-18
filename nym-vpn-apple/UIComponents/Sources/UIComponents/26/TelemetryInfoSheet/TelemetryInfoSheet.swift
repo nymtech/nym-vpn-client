@@ -10,7 +10,8 @@ public struct TelemetryInfoContent: Identifiable {
     public let title: String
     public let bullets: [String]
     public let neverLabel: String
-    public let never: String
+    /// `nil` hides the "Never:" block.
+    public let never: String?
     public let handling: String
     public let gotItTitle: String
     public let privacyLinkTitle: String
@@ -21,7 +22,7 @@ public struct TelemetryInfoContent: Identifiable {
         title: String,
         bullets: [String],
         neverLabel: String,
-        never: String,
+        never: String?,
         handling: String,
         gotItTitle: String,
         privacyLinkTitle: String,
@@ -43,7 +44,7 @@ public struct TelemetryInfoContent: Identifiable {
     public static func telemetry(
         id: String,
         sharesKey: String,
-        neverKey: String,
+        neverKey: String?,
         handlingKey: String
     ) -> TelemetryInfoContent {
         TelemetryInfoContent(
@@ -51,7 +52,7 @@ public struct TelemetryInfoContent: Identifiable {
             title: "welcomeOptIns.info.title".localizedString,
             bullets: sharesKey.localizedString.components(separatedBy: "\n"),
             neverLabel: "welcomeOptIns.info.neverLabel".localizedString,
-            never: neverKey.localizedString,
+            never: neverKey?.localizedString,
             handling: handlingKey.localizedString,
             gotItTitle: "welcomeOptIns.info.gotIt".localizedString,
             privacyLinkTitle: "welcomeOptIns.privacyLink".localizedString,
@@ -98,14 +99,16 @@ public struct TelemetryInfoSheet: View {
 
             Divider()
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(content.neverLabel)
-                    .nymTextStyle(.bodySmall)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.Nym.textPrimary)
-                Text(content.never)
-                    .nymTextStyle(.bodySmall)
-                    .foregroundStyle(Color.Nym.textSecondary)
+            if let never = content.never {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(content.neverLabel)
+                        .nymTextStyle(.bodySmall)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.Nym.textPrimary)
+                    Text(never)
+                        .nymTextStyle(.bodySmall)
+                        .foregroundStyle(Color.Nym.textSecondary)
+                }
             }
 
             Text(content.handling)
