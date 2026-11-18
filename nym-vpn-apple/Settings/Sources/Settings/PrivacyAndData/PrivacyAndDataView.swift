@@ -1,7 +1,9 @@
 import SwiftUI
 import AppSettings
 import ImpactGenerator
-#if os(macOS)
+#if os(iOS)
+import ConfigurationManager
+#elseif os(macOS)
 import GRPCManager
 #endif
 import Theme
@@ -68,17 +70,7 @@ private extension PrivacyAndDataView {
     @ViewBuilder
     func logsSection() -> some View {
 #if os(iOS)
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: $appSettings.isDebugLogsOn
-                ),
-                title: "settings.privacyAndData.enableDebugLogs".localizedString,
-                systemImageName: "ladybug",
-                position: SettingsListItemPosition(isFirst: true, isLast: true),
-                action: {}
-            )
-        )
+        diagnosticsSection()
         Spacer()
             .frame(height: 24)
 #endif
@@ -94,6 +86,32 @@ private extension PrivacyAndDataView {
             )
         )
     }
+
+#if os(iOS)
+    func diagnosticsSection() -> some View {
+        // TestFlight builds always log at debug level, so show the toggle locked on.
+        let isTestFlight = ConfigurationManager.shared.isTestFlight
+        return TelemetryOptInCard(
+            icon: "stethoscope",
+            title: "welcomeOptIns.diagnostics.title".localizedString,
+            subtitle: isTestFlight
+                ? "welcomeOptIns.diagnostics.testFlight".localizedString
+                : "welcomeOptIns.diagnostics.subtitle".localizedString,
+            isOn: isTestFlight ? .constant(true) : $appSettings.isDebugLogsOn,
+            isDisabled: isTestFlight,
+            onInfo: { infoContent = diagnosticsInfo() }
+        )
+    }
+
+    func diagnosticsInfo() -> TelemetryInfoContent {
+        .telemetry(
+            id: "diagnostics",
+            sharesKey: "welcomeOptIns.diagnostics.shares",
+            neverKey: nil,
+            handlingKey: "welcomeOptIns.diagnostics.handling"
+        )
+    }
+#endif
 
     func diagnosticToolSection() -> some View {
         SettingsListItem(

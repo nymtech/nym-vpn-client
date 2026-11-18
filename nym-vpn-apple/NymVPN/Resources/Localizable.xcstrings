@@ -32622,6 +32622,61 @@
         }
       }
     },
+    "welcomeOptIns.diagnostics.handling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Otherwise it stays on this device. You choose when to send it to support. Changes apply the next time you connect."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.shares" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "More detail on what the app is doing\nAdded to error reports only if \"Your app errors & crashes\" is on"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Helps us fix connection problems"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.testFlight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Always on in TestFlight builds."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your troubleshooting detail"
+          }
+        }
+      }
+    },
     "welcomeOptIns.monitoring.title" : {
       "extractionState" : "manual",
       "localizations" : {
