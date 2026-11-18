@@ -69,14 +69,6 @@ pub struct StorageConfig {
     secure_enclave: Arc<SecureEnclave>,
 }
 
-/// Stores holding secrets, which are kept differently on each platform.
-struct PlatformStores {
-    mnemonic_storage: PlatformMnemonicStorage,
-    account_storage: PlatformAccountStorage,
-    key_store: PlatformDeviceKeys,
-    database_key: DatabaseKey,
-}
-
 pub struct VpnClientOnDiskStorage {
     key_store: PlatformDeviceKeys,
     mnemonic_storage: PlatformMnemonicStorage,
@@ -88,12 +80,10 @@ pub struct VpnClientOnDiskStorage {
 impl VpnClientOnDiskStorage {
     /// Creates the storage, loading the database key or creating it on first use.
     pub async fn new(config: StorageConfig) -> Result<Self, DatabaseKeyStorageError> {
-        let PlatformStores {
-            mnemonic_storage,
-            account_storage,
-            key_store,
-            database_key,
-        } = platform::create_stores(&config).await?;
+        let database_key = platform::database_key(&config).await?;
+        let mnemonic_storage = platform::mnemonic_storage(&config);
+        let account_storage = platform::account_storage(&config);
+        let key_store = platform::device_keys(&config, &database_key);
         let base_data_directory = &config.base_data_directory;
 
         let summary_storage = OnDiskAccountSummaryStorage::new(

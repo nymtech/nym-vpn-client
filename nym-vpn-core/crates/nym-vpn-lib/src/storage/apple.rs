@@ -1,14 +1,14 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_secure_enclave::KeychainAccess;
+use nym_secure_enclave::{KeychainAccess, KeychainItem};
 use nym_vpn_store::{
-    database_key::{DatabaseKeyStorageError, keychain::KeychainDatabaseKeyStorage},
+    database_key::{DatabaseKey, DatabaseKeyStorageError, keychain::KeychainDatabaseKeyStorage},
     keys::device::DeviceKeysPaths,
     secure_store_migration::SecureStoreMigrationManager,
 };
 
-use super::{LEGACY_MNEMONIC_FILE_NAME, PlatformStores, StorageConfig};
+use super::{LEGACY_MNEMONIC_FILE_NAME, StorageConfig};
 
 pub type PlatformMnemonicStorage = nym_vpn_store::mnemonic::keychain::KeychainMnemonicStorage;
 pub type PlatformAccountStorage = nym_vpn_store::account::keychain::KeychainAccountStorage;
@@ -34,35 +34,40 @@ const MNEMONIC_KEYCHAIN_SERVICE: &str = "net.nymtech.vpn.mnemonic";
 const ACCOUNT_INFO_KEYCHAIN_SERVICE: &str = "net.nymtech.vpn.account-info";
 const DEVICE_KEYS_KEYCHAIN_SERVICE: &str = "net.nymtech.vpn.device-keys";
 
-/// Stores secrets in the keychain, moving plaintext device keys found on disk there.
-pub async fn create_stores(
-    config: &StorageConfig,
-) -> Result<PlatformStores, DatabaseKeyStorageError> {
-    let item = |service, access| config.keychain.item(service, &config.network_name, access);
+fn item(config: &StorageConfig, service: &str, access: KeychainAccess) -> KeychainItem {
+    config.keychain.item(service, &config.network_name, access)
+}
 
-    let database_key = KeychainDatabaseKeyStorage::new(item(
+pub async fn database_key(config: &StorageConfig) -> Result<DatabaseKey, DatabaseKeyStorageError> {
+    KeychainDatabaseKeyStorage::new(item(
+        config,
         DATABASE_KEY_KEYCHAIN_SERVICE,
         KeychainAccess::AfterFirstUnlock,
     ))
     .load_or_create()
-    .await?;
+    .await
+}
 
-    Ok(PlatformStores {
-        mnemonic_storage: PlatformMnemonicStorage::new(item(
-            MNEMONIC_KEYCHAIN_SERVICE,
-            MNEMONIC_ACCESS,
-        )),
-        account_storage: PlatformAccountStorage::new(item(
-            ACCOUNT_INFO_KEYCHAIN_SERVICE,
-            KeychainAccess::AfterFirstUnlock,
-        )),
-        key_store: PlatformDeviceKeys::new(item(
-            DEVICE_KEYS_KEYCHAIN_SERVICE,
-            KeychainAccess::AfterFirstUnlock,
-        ))
-        .with_plaintext_migration(DeviceKeysPaths::new(&config.base_data_directory)),
-        database_key,
-    })
+pub fn mnemonic_storage(config: &StorageConfig) -> PlatformMnemonicStorage {
+    PlatformMnemonicStorage::new(item(config, MNEMONIC_KEYCHAIN_SERVICE, MNEMONIC_ACCESS))
+}
+
+pub fn account_storage(config: &StorageConfig) -> PlatformAccountStorage {
+    PlatformAccountStorage::new(item(
+        config,
+        ACCOUNT_INFO_KEYCHAIN_SERVICE,
+        KeychainAccess::AfterFirstUnlock,
+    ))
+}
+
+/// Moves plaintext device keys found on disk to the keychain.
+pub fn device_keys(config: &StorageConfig, _database_key: &DatabaseKey) -> PlatformDeviceKeys {
+    PlatformDeviceKeys::new(item(
+        config,
+        DEVICE_KEYS_KEYCHAIN_SERVICE,
+        KeychainAccess::AfterFirstUnlock,
+    ))
+    .with_plaintext_migration(DeviceKeysPaths::new(&config.base_data_directory))
 }
 
 pub fn migration_manager<'a>(
