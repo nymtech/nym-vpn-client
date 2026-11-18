@@ -33,7 +33,9 @@ pub use apple::{
     target_os = "ios",
     target_os = "windows"
 ))]
-pub use secure_enclave::{PlatformSecureEnclaveKey, SecureEnclave};
+pub use secure_enclave::{
+    PlatformSecureEnclaveKey, SecureEnclave, SecureEnclaveConfig, SecureEnclaveConfigBuilder,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[cfg_attr(target_os = "android", derive(uniffi::Error))]

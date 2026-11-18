@@ -585,15 +585,17 @@ impl NymVpnService {
             local_auth.clone(),
             crate::storage::KEYCHAIN_ACCESS_GROUP,
         );
-        #[cfg(any(target_os = "ios", target_os = "android"))]
-        let secure_enclave = Arc::new(nym_secure_enclave::SecureEnclave::new(
+        #[cfg(any(target_os = "ios", target_os = "android", target_os = "windows"))]
+        let secure_enclave = {
+            let builder = nym_secure_enclave::SecureEnclave::builder();
             #[cfg(target_os = "android")]
-            parameters.secure_enclave_provider,
+            let builder = builder.provider(parameters.secure_enclave_provider);
             #[cfg(target_os = "ios")]
-            local_auth,
-            #[cfg(target_os = "ios")]
-            crate::storage::KEYCHAIN_ACCESS_GROUP,
-        ));
+            let builder = builder
+                .auth(local_auth)
+                .keychain_access_group(crate::storage::KEYCHAIN_ACCESS_GROUP);
+            Arc::new(builder.build())
+        };
 
         #[cfg(target_os = "macos")]
         if let Err(err) = AuthorizationService::register_unlock_right() {
@@ -606,11 +608,8 @@ impl NymVpnService {
         let storage_config = storage_config
             .network_name(network_name.clone())
             .keychain(keychain);
-        #[cfg(target_os = "android")]
+        #[cfg(any(target_os = "android", target_os = "windows"))]
         let storage_config = storage_config.secure_enclave(secure_enclave.clone());
-        #[cfg(target_os = "windows")]
-        let storage_config =
-            storage_config.secure_enclave(Arc::new(nym_secure_enclave::SecureEnclave::new()));
         let storage = VpnClientOnDiskStorage::new(storage_config.build())
             .await
             .map_err(Error::LoadDatabaseKey)?;

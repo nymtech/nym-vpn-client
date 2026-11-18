@@ -5,6 +5,7 @@ use aes_gcm::{
     Aes256Gcm, Nonce,
     aead::{Aead, KeyInit},
 };
+use std::sync::Mutex;
 use windows::{
     Win32::{
         Foundation::{NTE_BAD_KEYSET, NTE_EXISTS, NTE_NOT_FOUND},
@@ -18,9 +19,14 @@ use windows::{
     },
     core::HSTRING,
 };
+
 use zeroize::Zeroizing;
 
+use super::KeyCipher;
 use crate::{Result, SecureEnclaveError};
+
+/// Marks data encrypted with a key wrapped by the TPM.
+pub const TPM_TAG: u8 = 1;
 
 const RSA_KEY_BITS: u32 = 2048;
 const AES_KEY_LEN: usize = 32;
@@ -216,6 +222,39 @@ impl Drop for Key {
         if !self.handle.is_invalid() {
             let _ = unsafe { NCryptFreeObject(self.handle.into()) };
         }
+    }
+}
+
+/// Encrypts data with the TPM key. Operations on the key are serialized.
+pub struct TpmCipher(Mutex<Key>);
+
+impl From<Key> for TpmCipher {
+    fn from(key: Key) -> Self {
+        Self(Mutex::new(key))
+    }
+}
+
+impl TpmCipher {
+    fn with_key<T>(&self, f: impl FnOnce(&Key) -> Result<T>) -> Result<T> {
+        let key = self
+            .0
+            .lock()
+            .map_err(|_| SecureEnclaveError::Other("TPM key lock is poisoned".to_owned()))?;
+        f(&key)
+    }
+}
+
+impl KeyCipher for TpmCipher {
+    fn tag(&self) -> u8 {
+        TPM_TAG
+    }
+
+    fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
+        self.with_key(|key| key.encrypt(data))
+    }
+
+    fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
+        self.with_key(|key| key.decrypt(data))
     }
 }
 

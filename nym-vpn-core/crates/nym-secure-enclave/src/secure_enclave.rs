@@ -5,6 +5,7 @@
 use std::sync::Arc;
 
 use futures_util::TryFutureExt;
+use typed_builder::TypedBuilder;
 
 #[cfg(target_os = "windows")]
 use super::WindowsSecureEnclaveProvider;
@@ -28,30 +29,42 @@ pub struct SecureEnclave {
     inner: PlatformProvider,
 }
 
-#[cfg(target_os = "windows")]
-impl Default for SecureEnclave {
-    fn default() -> Self {
-        Self::new()
+/// Configuration of [`SecureEnclave`], built with [`SecureEnclave::builder`].
+#[derive(TypedBuilder)]
+#[builder(build_method(into = SecureEnclave))]
+pub struct SecureEnclaveConfig {
+    /// Keystore implemented by the app.
+    #[cfg(target_os = "android")]
+    provider: Arc<dyn AndroidSecureEnclaveProvider>,
+
+    /// Authentication used with keys requiring user presence.
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    auth: LocalAuthentication,
+
+    /// Keychain access group of the keys, or the default access group of the process if `None`.
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    #[builder(default)]
+    keychain_access_group: Option<&'static str>,
+}
+
+impl From<SecureEnclaveConfig> for SecureEnclave {
+    fn from(
+        #[cfg_attr(target_os = "windows", expect(unused_variables))] config: SecureEnclaveConfig,
+    ) -> Self {
+        Self {
+            #[cfg(target_os = "android")]
+            inner: AndroidKeyStoreProvider::new(config.provider),
+            #[cfg(any(target_os = "macos", target_os = "ios"))]
+            inner: AppleSecureEnclaveProvider::new(config.auth, config.keychain_access_group),
+            #[cfg(target_os = "windows")]
+            inner: WindowsSecureEnclaveProvider,
+        }
     }
 }
 
 impl SecureEnclave {
-    /// On Apple platforms, keys requiring user presence are used with the authentication of
-    /// `auth`, and are stored in `keychain_access_group`, or in the default access group of the
-    /// process if `None`.
-    pub fn new(
-        #[cfg(target_os = "android")] provider: Arc<dyn AndroidSecureEnclaveProvider>,
-        #[cfg(any(target_os = "macos", target_os = "ios"))] auth: LocalAuthentication,
-        #[cfg(any(target_os = "macos", target_os = "ios"))] keychain_access_group: Option<&str>,
-    ) -> Self {
-        Self {
-            #[cfg(target_os = "android")]
-            inner: AndroidKeyStoreProvider::new(provider),
-            #[cfg(any(target_os = "macos", target_os = "ios"))]
-            inner: AppleSecureEnclaveProvider::new(auth, keychain_access_group),
-            #[cfg(target_os = "windows")]
-            inner: WindowsSecureEnclaveProvider,
-        }
+    pub fn builder() -> SecureEnclaveConfigBuilder {
+        SecureEnclaveConfig::builder()
     }
 
     #[tracing::instrument(skip(self))]

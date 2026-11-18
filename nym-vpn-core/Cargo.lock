@@ -7232,6 +7232,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+ "typed-builder",
  "uniffi",
  "windows 0.62.2",
  "zeroize",

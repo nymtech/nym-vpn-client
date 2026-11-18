@@ -12,10 +12,41 @@ use windows::{
 };
 use zeroize::Zeroize;
 
+use super::KeyCipher;
 use crate::{Result, SecureEnclaveError};
 
+/// Marks data encrypted with DPAPI.
+pub const DPAPI_TAG: u8 = 2;
+
+/// Encrypts data with DPAPI for the current user, using the `entropy` given on creation.
+pub struct DpapiCipher {
+    entropy: Vec<u8>,
+}
+
+impl DpapiCipher {
+    pub fn new(entropy: &[u8]) -> Self {
+        Self {
+            entropy: entropy.to_owned(),
+        }
+    }
+}
+
+impl KeyCipher for DpapiCipher {
+    fn tag(&self) -> u8 {
+        DPAPI_TAG
+    }
+
+    fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
+        protect(data, &self.entropy)
+    }
+
+    fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
+        unprotect(data, &self.entropy)
+    }
+}
+
 /// Encrypts the data with DPAPI for the current user. The `entropy` is required for decryption.
-pub fn protect(data: &[u8], entropy: &[u8]) -> Result<Vec<u8>> {
+fn protect(data: &[u8], entropy: &[u8]) -> Result<Vec<u8>> {
     let input = blob(data)?;
     let entropy = blob(entropy)?;
     let mut output = CRYPT_INTEGER_BLOB::default();
@@ -36,7 +67,7 @@ pub fn protect(data: &[u8], entropy: &[u8]) -> Result<Vec<u8>> {
     Ok(take_output(output))
 }
 
-pub fn unprotect(data: &[u8], entropy: &[u8]) -> Result<Vec<u8>> {
+fn unprotect(data: &[u8], entropy: &[u8]) -> Result<Vec<u8>> {
     let input = blob(data)?;
     let entropy = blob(entropy)?;
     let mut output = CRYPT_INTEGER_BLOB::default();
