@@ -44,6 +44,7 @@ dir="${file%[\\/]*}"
 
 sign "$file"
 
+# Remove once Tauri signs nsExec.dll: https://github.com/tauri-apps/tauri/pull/16572
 if [[ "${file##*[\\/]}" == "System.dll" && "${dir##*[\\/]}" == "x86-unicode" ]]; then
 	sign "$dir/nsExec.dll"
 fi
