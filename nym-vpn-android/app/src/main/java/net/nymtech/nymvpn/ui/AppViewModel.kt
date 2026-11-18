@@ -340,6 +340,17 @@ constructor(
 		}
 	}
 
+	suspend fun handlePaymentReturn(callbackUrl: String?) = withContext(Dispatchers.IO) {
+		callbackUrl?.let { handleDeepLinkAuth(it) }
+		dismissAutologin()
+		runCatching {
+			backendManager.refreshAccount()
+			Timber.tag(TAG).d("PaymentReturnAccountRefreshSuccess")
+		}.onFailure {
+			Timber.tag(TAG).e(it, "PaymentReturnAccountRefreshFailed")
+		}
+	}
+
 	suspend fun handleDeepLinkAuth(url: String): Boolean = withContext(Dispatchers.IO) {
 		runCatching {
 			Timber.tag(TAG).i("DeepLinkAuth started.")
