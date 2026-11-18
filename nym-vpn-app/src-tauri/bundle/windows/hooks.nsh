@@ -66,26 +66,6 @@ Var VpndVersionMinor
 !insertmacro VPND_UNINSTALL ""
 !insertmacro VPND_UNINSTALL "un."
 
-; Same file list for install, cleanup and uninstall
-!macro VPND_FILES op
-  !insertmacro ${op} "nym-vpnd.exe"
-  !insertmacro ${op} "nym-socks5-proxy.exe"
-  !insertmacro ${op} "libwg.dll"
-  !insertmacro ${op} "wintun.dll"
-  !insertmacro ${op} "winfw.dll"
-  !insertmacro ${op} "nymvpn-split-tunnel.sys"
-  !insertmacro ${op} "nymvpn-split-tunnel.inf"
-  !insertmacro ${op} "nymvpn-split-tunnel.cat"
-!macroend
-
-!macro VPND_FILE_COPY name
-  File "${RESPREFIX}\${name}"
-!macroend
-
-!macro VPND_FILE_DELETE name
-  Delete "$INSTDIR\${name}"
-!macroend
-
 ; Clear the command line arguments of a .lnk shortcut, no-op if it doesn't exist
 ;
 ; Shortcuts created by installers up to 2026.10 pass `-l -Ldebug`. `-l` is not
@@ -153,20 +133,6 @@ Var VpndVersionMinor
 !macroend
 
 !macro NSIS_HOOK_POSTINSTALL
-  ; ARM64 builds place the NSIS script one directory level deeper than x64
-  ; (target/<triple>/release/nsis/arm64/ vs target/release/nsis/x86-64/),
-  ; so the relative path to src-tauri/ differs by one level.
-  !if "${ARCH}" == "arm64"
-    !define RESPREFIX "..\..\..\..\.."
-  !else
-    !define RESPREFIX "..\..\..\.."
-  !endif
-
-  ; Copy vpnd, socks5-proxy, libs and split-tunnel driver artifacts
-  !insertmacro VPND_FILES VPND_FILE_COPY
-
-  !undef RESPREFIX
-
   ; Install NymVPN service, abort early if something goes wrong
   vpnd-install:
     nsExec::ExecToLog '"$INSTDIR\nym-vpnd.exe" install-service'
@@ -203,10 +169,8 @@ Var VpndVersionMinor
   ; As on install, the template checks for a running app only after this hook
   !insertmacro CheckIfAppIsRunning "$INSTDIR\${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
 
-  ; Must run before the template's non-recursive `RMDir "$INSTDIR"`
   StrCpy $VpndDir $INSTDIR
   Call un.VpndUninstall
-  !insertmacro VPND_FILES VPND_FILE_DELETE
 !macroend
 
 !macro NSIS_HOOK_POSTUNINSTALL

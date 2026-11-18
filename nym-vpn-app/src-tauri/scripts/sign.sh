@@ -39,15 +39,6 @@ function sign {
 	fi
 }
 
-exe=$1
-
-# If we are signing the Tauri app, then also sign these executables.
-if [[ "$exe" == *NymVPN.exe ]]; then
-	for additional in "nym-vpnd.exe" "nym-socks5-proxy.exe" "libwg.dll" "winfw.dll"; do
-		sign "$additional"
-	done
-fi
-
-sign "$exe"
+sign "$1"
 
 exit 0
