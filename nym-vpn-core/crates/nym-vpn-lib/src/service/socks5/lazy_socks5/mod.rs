@@ -422,7 +422,7 @@ mod tests {
             bandwidth_command_tx: BandwidthControllerRequestSender::new(
                 tokio::sync::mpsc::unbounded_channel().0,
             ),
-            database_key: DatabaseKey::new([0x42; nym_sqlcipher::KEY_LEN]),
+            database_key: DatabaseKey::from_bytes(&[0x42; nym_sqlcipher::KEY_LEN]),
         }
     }
 

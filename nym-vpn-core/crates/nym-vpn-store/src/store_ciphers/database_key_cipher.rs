@@ -62,7 +62,7 @@ mod tests {
     use super::*;
 
     fn cipher(key: u8) -> DatabaseKeyCipher {
-        DatabaseKeyCipher::new(&DatabaseKey::new([key; nym_sqlcipher::KEY_LEN]))
+        DatabaseKeyCipher::new(&DatabaseKey::from_bytes(&[key; nym_sqlcipher::KEY_LEN]))
     }
 
     #[tokio::test]

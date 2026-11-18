@@ -5,7 +5,6 @@ use std::path::PathBuf;
 
 use nym_pemstore::{KeySecret, RawKey};
 pub use nym_sqlcipher::DatabaseKey;
-use zeroize::Zeroizing;
 
 use crate::store_ciphers::StoreCipherError;
 
@@ -45,19 +44,17 @@ pub type Result<T, E = DatabaseKeyStorageError> = std::result::Result<T, E>;
 
 /// Generates a random key for encrypting SQLite databases with SQLCipher.
 pub fn generate_database_key() -> DatabaseKey {
-    let mut key = Zeroizing::new([0u8; nym_sqlcipher::KEY_LEN]);
-    rand::fill(&mut key[..]);
-    DatabaseKey::new(*key)
+    DatabaseKey::from_fn(|key| rand::fill(&mut key[..]))
 }
 
 /// Secret encrypting private key PEM files, using the database key directly as a raw key.
 pub fn key_secret(database_key: &DatabaseKey) -> KeySecret {
-    RawKey::new(*database_key.as_bytes()).into()
+    RawKey::from_bytes(database_key.as_bytes()).into()
 }
 
 fn database_key_from_bytes(bytes: &[u8]) -> Result<DatabaseKey> {
     let key: &nym_sqlcipher::Key = bytes
         .try_into()
         .map_err(|_| DatabaseKeyStorageError::InvalidKeyLength(bytes.len()))?;
-    Ok(DatabaseKey::new(*key))
+    Ok(DatabaseKey::from_bytes(key))
 }
