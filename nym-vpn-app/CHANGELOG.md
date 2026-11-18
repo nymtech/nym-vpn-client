@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- _pending changelog_
+- [Windows] Sign bundled libwg.dll, winfw.dll and uninstall.exe. Fixes issues with Windows 11 Smart App Control (https://github.com/nymtech/nym-vpn-client/pull/7154)
 
 ## [2026.16.0] - TBD
 

@@ -66,10 +66,6 @@ Var VpndVersionMinor
 !insertmacro VPND_UNINSTALL ""
 !insertmacro VPND_UNINSTALL "un."
 
-; nym-vpnd is a console binary, so ExecWait would open a console window.
-; nsExec runs it hidden and pushes the exit code, or "error"/"timeout" if it
-; could not run, hence the string comparisons against 0 below.
-
 ; Same file list for install, cleanup and uninstall
 !macro VPND_FILES op
   !insertmacro ${op} "nym-vpnd.exe"
