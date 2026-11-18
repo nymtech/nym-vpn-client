@@ -1,0 +1,71 @@
+name: cd-retrieval-store
+
+# Writes the nym-vpn-client code shard to the public retrieval store that the Nym
+# docs MCP route searches (nym repository: documentation/MCP-STORE.md). The
+# indexer lives in .github/indexer.
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      allow_shrink:
+        description: Let the shard lose more than 20% of its rows in this run (an intended removal)
+        type: boolean
+        default: false
+
+# Two runs on one shard must not overlap: the second fails with "another run
+# changed it while this one was embedding". This queues a new run behind the one
+# in progress, and a newer pending run replaces an older pending one.
+concurrency:
+  group: retrieval-store
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  write:
+    # Only develop writes: a run from another branch would put unmerged code in
+    # the public index. The repository variable turns writes on once the store
+    # and its secret exist. A job-level `if` can read variables, not secrets.
+    if: github.ref == 'refs/heads/develop' && vars.RETRIEVAL_STORE_ENABLED == '1'
+    runs-on: arc-linux-latest
+    # A hang anywhere (the embedding service, the store) frees the slot after this.
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: .github/indexer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      # The pnpm version comes from packageManager in package.json.
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install the indexer
+        run: pnpm install --frozen-lockfile
+      # A re-run of an older develop run would write older code over newer code.
+      # Write only when this commit is still develop's head: a newer push has its
+      # own run, queued or done.
+      - name: Check that this commit is develop's head
+        id: head
+        run: |
+          head=$(git ls-remote origin refs/heads/develop | cut -f1)
+          if [ -z "$head" ]; then
+            echo "::error::could not read the head of develop"
+            exit 1
+          fi
+          if [ "$head" != "$GITHUB_SHA" ]; then
+            echo "::notice::develop is at $head, not $GITHUB_SHA, so this run does not write the store."
+            echo "stale=1" >> "$GITHUB_OUTPUT"
+          fi
+      # Each secret is set only on the step that uses it, not on the job, so it is
+      # not in the environment of the install or the third-party actions.
+      - name: Write the store
+        if: steps.head.outputs.stale != '1'
+        run: node index.mts
+        env:
+          RETRIEVAL_STORE_WRITE_URL: ${{ secrets.RETRIEVAL_STORE_WRITE_URL }}
+          VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+          ALLOW_SHRINK: ${{ inputs.allow_shrink && '1' || '' }}
