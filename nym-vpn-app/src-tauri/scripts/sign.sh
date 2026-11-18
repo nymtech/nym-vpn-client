@@ -43,6 +43,7 @@ function sign {
 file="$1"
 dir="${file%[\\/]*}"
 
+# makensis passes the uninstaller as a .tmp file, which CodeSignTool refuses to sign.
 if [[ "$file" == *.tmp ]]; then
 	signable="${file%.tmp}.exe"
 	cp -f "$file" "$signable" || exit 1
