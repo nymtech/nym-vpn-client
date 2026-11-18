@@ -44,12 +44,14 @@ Var VpndVersionMinor
       ${If} $VpndVersionMajor == 1
       ${AndIf} $VpndVersionMinor < 14
         DetailPrint "vpnd version is pre 1.14, using --uninstall flag"
-        ExecWait '"$VpndDir\nym-vpnd.exe" --uninstall' $9
+        nsExec::ExecToLog '"$VpndDir\nym-vpnd.exe" --uninstall'
+        Pop $9
       ${Else}
         DetailPrint "Waiting 30 seconds for the vpnd service to stop and uninstall"
-        ExecWait '"$VpndDir\nym-vpnd.exe" uninstall-service' $9
+        nsExec::ExecToLog '"$VpndDir\nym-vpnd.exe" uninstall-service'
+        Pop $9
       ${EndIf}
-    ${If} $9 <> 0
+    ${If} $9 != 0
       ; if vpnd fails to uninstall all we can do is to notify the user
       ; !DO NOT ABORT HERE! this will lock forever the user with a broken uninstaller!
       ; preventing user to install/uninstall/update
@@ -63,6 +65,10 @@ Var VpndVersionMinor
 !insertmacro VPND_GET_VERSION_FULL "un."
 !insertmacro VPND_UNINSTALL ""
 !insertmacro VPND_UNINSTALL "un."
+
+; nym-vpnd is a console binary, so ExecWait would open a console window.
+; nsExec runs it hidden and pushes the exit code, or "error"/"timeout" if it
+; could not run, hence the string comparisons against 0 below.
 
 ; Same file list for install, cleanup and uninstall
 !macro VPND_FILES op
@@ -167,8 +173,9 @@ Var VpndVersionMinor
 
   ; Install NymVPN service, abort early if something goes wrong
   vpnd-install:
-    ExecWait '"$INSTDIR\nym-vpnd.exe" install-service' $3
-  ${If} $3 <> 0
+    nsExec::ExecToLog '"$INSTDIR\nym-vpnd.exe" install-service'
+    Pop $3
+  ${If} $3 != 0
     DetailPrint "'nym-vpnd.exe install-service' failed: $3"
     MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "An error occurred while installing NymVPN service [$3]" /SD IDABORT IDRETRY vpnd-install
       ; The template has already registered the uninstaller, which needs
@@ -180,8 +187,9 @@ Var VpndVersionMinor
 
   ; Start NymVPN service, notify user if something goes wrong
   vpnd-start:
-    ExecWait '"$INSTDIR\nym-vpnd.exe" start-service' $3
-  ${If} $3 <> 0
+    nsExec::ExecToLog '"$INSTDIR\nym-vpnd.exe" start-service'
+    Pop $3
+  ${If} $3 != 0
     ; if vpnd fails to start we notify the user and continue as this
     ; can been solved later on
     DetailPrint "'nym-vpnd.exe start-service' failed: $3"
