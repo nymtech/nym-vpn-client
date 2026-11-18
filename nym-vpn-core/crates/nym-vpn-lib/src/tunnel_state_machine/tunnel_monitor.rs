@@ -57,7 +57,7 @@ use nym_vpn_lib_types::{
     GatewayLightInfo, MixnetConnectionData, NymAddress, TunnelConnectionData, TunnelType,
     WireguardConnectionData, WireguardNode,
 };
-use nym_vpn_store::database_key::key_passphrase;
+use nym_vpn_store::database_key::key_secret;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use super::route_handler::{RouteHandler, RoutingConfig};
@@ -544,7 +544,7 @@ impl TunnelMonitor {
                     .clone(),
             )
             .database_key(Some(self.tunnel_parameters.database_key.clone()))
-            .key_passphrase(Some(key_passphrase(&self.tunnel_parameters.database_key)))
+            .key_secret(Some(key_secret(&self.tunnel_parameters.database_key)))
             .mixnet_client_config(mixnet_client_config)
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .mode(mode)
