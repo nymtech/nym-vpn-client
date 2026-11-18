@@ -104,5 +104,11 @@ jobs:
           if [ -n "$EXISTING_PR" ]; then
             echo "PR already exists: $EXISTING_PR"
           else
-            gh pr create --title '${{ env.PR_TITLE }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "agentpietrucha"
+            gh pr create \
+              --title '${{ env.PR_TITLE }}' \
+              --body '${{ env.PR_BODY }}' \
+              --base develop \
+              --reviewer "agentpietrucha" \
+              --milestone "no-milestone" \
+              --label "no-ticket"
           fi

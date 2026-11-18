@@ -110,7 +110,13 @@ jobs:
           git push --force origin ${{ env.GIT_BRANCH }}
           existing=$(gh pr list --head "${{ env.GIT_BRANCH }}" --json number --jq 'length')
           if [[ "$existing" == "0" ]]; then
-            gh pr create --title '${{ env.COMMIT_MSG }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "agentpietrucha"
+            gh pr create \
+              --title '${{ env.COMMIT_MSG }}' \
+              --body '${{ env.PR_BODY }}' \
+              --base develop \
+              --reviewer "agentpietrucha" \
+              --milestone "no-milestone" \
+              --label "no-ticket"
           else
             echo "PR already exists for branch ${{ env.GIT_BRANCH }}, skipping"
           fi
