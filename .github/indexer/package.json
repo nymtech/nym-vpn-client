@@ -2,7 +2,7 @@
   "name": "nym-vpn-client-indexer",
   "private": true,
   "type": "module",
-  "description": "Writes the nym-vpn-client code shard to the public retrieval store",
+  "description": "Writes the nym-vpn-client code and docs shards to the public retrieval store",
   "packageManager": "pnpm@11.1.2",
   "engines": {
     "node": "^22.18 || >=23.6"
@@ -13,7 +13,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@nymproject/retrieval-indexer": "github:nymtech/retrieval-indexer#v0.1.3",
+    "@nymproject/retrieval-indexer": "github:nymtech/retrieval-indexer#v0.2.1",
     "pg": "^8.23.1"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 name: cd-retrieval-store
 
-# Writes the nym-vpn-client code shard to the public retrieval store that the Nym
+# Writes the nym-vpn-client code and docs shards to the public retrieval store that the Nym
 # docs MCP route searches (nym repository: documentation/MCP-STORE.md). The
 # indexer lives in .github/indexer.
 on:
