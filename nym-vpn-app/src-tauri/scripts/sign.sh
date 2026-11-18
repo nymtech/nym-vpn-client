@@ -1,7 +1,10 @@
 #!/bin/bash
 #
-# This assumes the cwd is src-tauri/.
+# Tauri also invokes this from the NSIS output directory to sign the
+# uninstaller, so always run relative to src-tauri/.
 #
+
+cd "$(dirname "$0")/.." || exit 1
 
 code_sign_tool="./CodeSignTool.sh"
 
@@ -20,13 +23,15 @@ function sign {
 
 	echo "Code signing $exe"
 
+	local name="${exe##*[\\/]}"
+
 	if ! "$code_sign_tool" \
 		sign \
 		-username "$SSL_COM_USERNAME" \
 		-password "$SSL_COM_PASSWORD" \
 		-credential_id "$SSL_COM_CREDENTIAL_ID" \
 		-totp_secret "$SSL_COM_TOTP_SECRET" \
-		-program_name "${exe%.*}" \
+		-program_name "${name%.*}" \
 		-input_file_path "$exe" \
 		-override; then
 			echo "Failed to sign $exe" >&2
@@ -34,15 +39,14 @@ function sign {
 	fi
 }
 
-exe=$1
+file="$1"
+dir="${file%[\\/]*}"
 
-# If we are signing the Tauri app, then also sign these executables.
-if [[ "$exe" == *NymVPN.exe ]]; then
-	for additonal in "nym-vpnd.exe" "nym-socks5-proxy.exe"; do
-		sign "$additonal"
-	done
+sign "$file"
+
+# Remove once Tauri signs nsExec.dll: https://github.com/tauri-apps/tauri/pull/16572
+if [[ "${file##*[\\/]}" == "System.dll" && "${dir##*[\\/]}" == "x86-unicode" ]]; then
+	sign "$dir/nsExec.dll"
 fi
-
-sign "$exe"
 
 exit 0
