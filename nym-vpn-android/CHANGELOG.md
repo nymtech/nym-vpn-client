@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.16.0] - 2026-11-18
+
 ### Added
 - Redeem a free pass by scanning or typing a code, from Welcome or Settings (https://github.com/nymtech/nym-vpn-client/pull/7085)
 - `qrscanner` module for on-device QR scanning (https://github.com/nymtech/nym-vpn-client/pull/7085)
