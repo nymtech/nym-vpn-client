@@ -36,7 +36,7 @@ mod tests {
         let opts = SqliteConnectOptions::new()
             .filename(tempdir.path().join("provider.sqlite"))
             .create_if_missing(true);
-        let key = nym_sqlcipher::DatabaseKey::new([0x42; nym_sqlcipher::KEY_LEN]);
+        let key = nym_sqlcipher::DatabaseKey::from_bytes(&[0x42; nym_sqlcipher::KEY_LEN]);
         let mut conn = nym_sqlcipher::apply_key(opts, Some(&key))
             .await
             .unwrap()
