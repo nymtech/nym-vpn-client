@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_store::{
-    database_key::{DatabaseKeyStorageError, on_disk::OnDiskDatabaseKeyStorage},
+    database_key::{DatabaseKey, DatabaseKeyStorageError, on_disk::OnDiskDatabaseKeyStorage},
     keys::device::DeviceKeysPaths,
     secure_store_migration::SecureStoreMigrationManager,
     store_ciphers::noop_cipher::NoopStoreCipher,
 };
 
-use super::{LEGACY_MNEMONIC_FILE_NAME, PlatformStores, StorageConfig};
+use super::{LEGACY_MNEMONIC_FILE_NAME, StorageConfig};
 
 pub type PlatformMnemonicStorage = nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorage;
 pub type PlatformAccountStorage = nym_vpn_store::account::on_disk::OnDiskAccountStorage;
@@ -18,34 +18,35 @@ const MNEMONIC_FILE_NAME: &str = "mnemonic.bin";
 const ACCOUNT_INFO_FILE_NAME: &str = "account.bin";
 const DATABASE_KEY_FILE_NAME: &str = "encryption.key";
 
-/// Stores secrets in files without encryption, relying on file permissions.
-pub async fn create_stores(
-    config: &StorageConfig,
-) -> Result<PlatformStores, DatabaseKeyStorageError> {
-    let base_data_directory = &config.base_data_directory;
-
-    let database_key = OnDiskDatabaseKeyStorage::new(
-        base_data_directory.join(DATABASE_KEY_FILE_NAME),
+/// Loads the database key from a file without encryption, relying on file permissions.
+pub async fn database_key(config: &StorageConfig) -> Result<DatabaseKey, DatabaseKeyStorageError> {
+    OnDiskDatabaseKeyStorage::new(
+        config.base_data_directory.join(DATABASE_KEY_FILE_NAME),
         NoopStoreCipher,
     )
     .load_or_create()
-    .await?;
+    .await
+}
 
-    Ok(PlatformStores {
-        mnemonic_storage: PlatformMnemonicStorage::new(
-            base_data_directory.join(MNEMONIC_FILE_NAME),
-            NoopStoreCipher,
-        ),
-        account_storage: PlatformAccountStorage::new(
-            base_data_directory.join(ACCOUNT_INFO_FILE_NAME),
-            NoopStoreCipher,
-        ),
-        key_store: PlatformDeviceKeys::new(
-            DeviceKeysPaths::new(base_data_directory),
-            &database_key,
-        ),
+pub fn mnemonic_storage(config: &StorageConfig) -> PlatformMnemonicStorage {
+    PlatformMnemonicStorage::new(
+        config.base_data_directory.join(MNEMONIC_FILE_NAME),
+        NoopStoreCipher,
+    )
+}
+
+pub fn account_storage(config: &StorageConfig) -> PlatformAccountStorage {
+    PlatformAccountStorage::new(
+        config.base_data_directory.join(ACCOUNT_INFO_FILE_NAME),
+        NoopStoreCipher,
+    )
+}
+
+pub fn device_keys(config: &StorageConfig, database_key: &DatabaseKey) -> PlatformDeviceKeys {
+    PlatformDeviceKeys::new(
+        DeviceKeysPaths::new(&config.base_data_directory),
         database_key,
-    })
+    )
 }
 
 pub fn migration_manager<'a>(
