@@ -7229,6 +7229,7 @@ dependencies = [
 name = "nym-secure-enclave"
 version = "2026.17.0-beta.1"
 dependencies = [
+ "aes-gcm 0.11.1",
  "async-trait",
  "block2",
  "futures-util",
@@ -7238,11 +7239,13 @@ dependencies = [
  "objc2-foundation",
  "objc2-local-authentication",
  "objc2-security",
+ "rand 0.10.3",
  "thiserror 2.0.21",
  "tokio",
  "tokio-util",
  "tracing",
  "uniffi",
+ "windows 0.62.2",
  "zeroize",
 ]
 

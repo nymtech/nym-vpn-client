@@ -5,23 +5,37 @@
 mod android;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 mod apple;
-#[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]
+#[cfg(not(any(
+    target_os = "ios",
+    target_os = "macos",
+    target_os = "android",
+    target_os = "windows"
+)))]
 mod other;
+#[cfg(target_os = "windows")]
+mod windows;
 
+#[cfg(target_os = "windows")]
+use self::windows as platform;
 #[cfg(target_os = "android")]
 use android as platform;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 use apple as platform;
-#[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]
+#[cfg(not(any(
+    target_os = "ios",
+    target_os = "macos",
+    target_os = "android",
+    target_os = "windows"
+)))]
 use other as platform;
 
 use std::path::PathBuf;
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "windows"))]
 use std::sync::Arc;
 
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 use nym_secure_enclave::Keychain;
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "windows"))]
 use nym_secure_enclave::SecureEnclave;
 use nym_vpn_lib_types::VpnAccountSummary;
 use nym_vpn_store::{
@@ -50,7 +64,7 @@ const LEGACY_ACCOUNT_SUMMARY_FILE_NAME: &str = "account_summary.json";
 /// Configuration of [`VpnClientOnDiskStorage`].
 ///
 /// Secrets are stored per `network_name` in `keychain` on Apple platforms, in files encrypted with
-/// keys held by `secure_enclave` on Android, and in plain files elsewhere.
+/// keys held by `secure_enclave` on Android and Windows, and in plain files elsewhere.
 #[derive(TypedBuilder)]
 pub struct StorageConfig {
     /// Directory of the network the storage belongs to.
@@ -65,7 +79,7 @@ pub struct StorageConfig {
     #[cfg(any(target_os = "ios", target_os = "macos"))]
     keychain: Keychain,
 
-    #[cfg(target_os = "android")]
+    #[cfg(any(target_os = "android", target_os = "windows"))]
     secure_enclave: Arc<SecureEnclave>,
 }
 
