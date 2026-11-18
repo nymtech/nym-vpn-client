@@ -235,12 +235,12 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override suspend fun removeMnemonic() {
 		serviceConnectionManager.withApi { it.removeMnemonic() }
-		refreshIdentityState()
+		if (!refreshIdentityState()) clearIdentityState()
 	}
 
 	override suspend fun deleteAccount() {
 		serviceConnectionManager.withApi { it.deleteAccount() }
-		refreshIdentityState()
+		if (!refreshIdentityState()) clearIdentityState()
 	}
 
 	override suspend fun isMnemonicStored(): Boolean = serviceConnectionManager.withApi { it.isMnemonicStored() }
@@ -377,7 +377,7 @@ class ServiceBackedBackendManager @Inject constructor(
 		.filter { !it.passThroughVpn }
 		.map { it.packageName }
 
-	private suspend fun refreshIdentityState() {
+	private suspend fun refreshIdentityState(): Boolean {
 		val updateData = runCatching {
 			serviceConnectionManager.withApi { api ->
 				val stored = api.isMnemonicStored()
@@ -387,12 +387,14 @@ class ServiceBackedBackendManager @Inject constructor(
 
 				listOf(stored, devId, accId, state)
 			}
-		}.getOrNull()
+		}.onFailure {
+			Timber.tag(TAG).w(it, "IdentityRefreshFailed")
+		}.getOrNull() ?: return false
 
-		val mnemonicStored = updateData?.get(0) as? Boolean ?: false
-		val deviceId = updateData?.get(1) as? String
-		val accountId = updateData?.get(2) as? String
-		val accountState = updateData?.get(3) as? AccountControllerState
+		val mnemonicStored = updateData[0] as? Boolean ?: false
+		val deviceId = updateData[1] as? String
+		val accountId = updateData[2] as? String
+		val accountState = updateData[3] as? AccountControllerState
 
 		_state.update {
 			it.copy(
@@ -402,6 +404,11 @@ class ServiceBackedBackendManager @Inject constructor(
 				accountState = accountState ?: it.accountState,
 			)
 		}
+		return true
+	}
+
+	private fun clearIdentityState() {
+		_state.update { it.copy(isMnemonicStored = false, deviceId = null, accountId = null) }
 	}
 }
 
