@@ -20,9 +20,9 @@ import { assertNoSilentDrops, assertRootsYieldChunks, collectSourceFiles } from 
 
 const REPO = 'nym-vpn-client';
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-// nym-vpn-windows is C++, which the package does not chunk (C-family code is on
-// its accepted-drop list), so as a root it would yield no chunks and fail the gate.
-const ROOTS = ['nym-vpn-core', 'nym-vpn-app', 'nym-vpn-android', 'nym-vpn-apple'];
+// wireguard holds the Nym-maintained Go netstack and forwarders (libwg).
+// nym-vpn-windows is C++, which the package does not chunk, so it would add no chunks.
+const ROOTS = ['nym-vpn-core', 'nym-vpn-app', 'nym-vpn-android', 'nym-vpn-apple', 'wireguard'];
 // The model the MCP route embeds code queries with; one model per modality.
 const CODE_MODEL = 'voyage-code-3';
 // A run that would delete more than this share of the shard is refused, so a
