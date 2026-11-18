@@ -4,7 +4,6 @@
 pub mod account;
 pub mod account_summary;
 pub mod database_key;
-pub mod encrypted_file;
 pub mod keys;
 pub mod mnemonic;
 pub mod secure_store_migration;
