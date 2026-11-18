@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_store::{
-    database_key::{DatabaseKeyStorageError, OnDiskDatabaseKeyStorage},
+    database_key::{DatabaseKeyStorageError, on_disk::OnDiskDatabaseKeyStorage},
     keys::device::DeviceKeysPaths,
     secure_store_migration::SecureStoreMigrationManager,
     store_ciphers::noop_cipher::NoopStoreCipher,

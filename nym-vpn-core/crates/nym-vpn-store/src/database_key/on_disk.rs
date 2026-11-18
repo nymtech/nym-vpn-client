@@ -8,61 +8,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use nym_pemstore::Passphrase;
-pub use nym_sqlcipher::DatabaseKey;
 use tokio::{fs::OpenOptions, io::AsyncWriteExt};
 use zeroize::Zeroizing;
 
-use crate::store_ciphers::{StoreCipher, StoreCipherError};
-
-#[derive(Debug, thiserror::Error)]
-pub enum DatabaseKeyStorageError {
-    #[error("failed to {ctx}: {path}")]
-    Io {
-        ctx: &'static str,
-        path: PathBuf,
-        #[source]
-        source: std::io::Error,
-    },
-
-    #[error("failed to encrypt database key")]
-    Encrypt(#[source] StoreCipherError),
-
-    #[error("failed to decrypt database key")]
-    Decrypt(#[source] StoreCipherError),
-
-    #[error("invalid database key length: {0}")]
-    InvalidKeyLength(usize),
-
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
-    #[error("database key keychain error")]
-    Keychain(#[source] nym_secure_enclave::KeychainError),
-
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
-    #[error("database key was removed from the keychain while loading it")]
-    KeychainKeyRemoved,
-}
-
-pub type Result<T, E = DatabaseKeyStorageError> = std::result::Result<T, E>;
-
-/// Generates a random key for encrypting SQLite databases with SQLCipher.
-pub fn generate_database_key() -> DatabaseKey {
-    let mut key = Zeroizing::new([0u8; nym_sqlcipher::KEY_LEN]);
-    rand::fill(&mut key[..]);
-    DatabaseKey::new(*key)
-}
-
-/// Derives the passphrase encrypting private key PEM files from the database key.
-pub fn key_passphrase(database_key: &DatabaseKey) -> Passphrase {
-    Passphrase::new(hex::encode(database_key.as_bytes()))
-}
-
-fn database_key_from_bytes(bytes: &[u8]) -> Result<DatabaseKey> {
-    let key: &nym_sqlcipher::Key = bytes
-        .try_into()
-        .map_err(|_| DatabaseKeyStorageError::InvalidKeyLength(bytes.len()))?;
-    Ok(DatabaseKey::new(*key))
-}
+use super::{
+    DatabaseKey, DatabaseKeyStorageError, Result, database_key_from_bytes, generate_database_key,
+};
+use crate::store_ciphers::StoreCipher;
 
 /// Stores [`DatabaseKey`] on disk, encrypted with the given cipher.
 pub struct OnDiskDatabaseKeyStorage {
@@ -147,56 +99,6 @@ impl OnDiskDatabaseKeyStorage {
             ctx,
             path: self.path.clone(),
             source,
-        }
-    }
-}
-
-/// Stores [`DatabaseKey`] in the keychain.
-#[cfg(any(target_os = "ios", target_os = "macos"))]
-pub struct KeychainDatabaseKeyStorage {
-    item: nym_secure_enclave::KeychainItem,
-}
-
-#[cfg(any(target_os = "ios", target_os = "macos"))]
-impl KeychainDatabaseKeyStorage {
-    pub fn new(item: nym_secure_enclave::KeychainItem) -> Self {
-        Self { item }
-    }
-
-    /// Loads the database key or creates and stores a new one if it does not exist yet.
-    pub async fn load_or_create(&self) -> Result<DatabaseKey> {
-        match self.load().await? {
-            Some(key) => Ok(key),
-            None => self.create().await,
-        }
-    }
-
-    async fn load(&self) -> Result<Option<DatabaseKey>> {
-        let bytes = self
-            .item
-            .get_value()
-            .await
-            .map_err(DatabaseKeyStorageError::Keychain)?;
-        bytes
-            .map(|bytes| database_key_from_bytes(&bytes))
-            .transpose()
-    }
-
-    async fn create(&self) -> Result<DatabaseKey> {
-        tracing::info!("Creating database key in the keychain");
-
-        let key = generate_database_key();
-        let added = self
-            .item
-            .add(key.as_bytes())
-            .map_err(DatabaseKeyStorageError::Keychain)?;
-        if added {
-            Ok(key)
-        } else {
-            // Another process created the key in the meantime
-            self.load()
-                .await?
-                .ok_or(DatabaseKeyStorageError::KeychainKeyRemoved)
         }
     }
 }
