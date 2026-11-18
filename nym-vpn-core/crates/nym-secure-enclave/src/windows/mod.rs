@@ -4,12 +4,11 @@
 mod dpapi;
 mod tpm;
 
-use crate::{Result, SecureEnclaveError, SecureEnclaveKey, SecureEnclaveProvider};
+use std::sync::Arc;
 
-/// Marks data encrypted with a key wrapped by the TPM.
-const TPM_TAG: u8 = 1;
-/// Marks data encrypted with DPAPI.
-const DPAPI_TAG: u8 = 2;
+use crate::{Result, SecureEnclaveError, SecureEnclaveKey, SecureEnclaveProvider};
+use dpapi::DpapiCipher;
+use tpm::TpmCipher;
 
 /// Stores keys in the TPM, falling back to DPAPI when the machine has no usable TPM.
 ///
@@ -30,8 +29,8 @@ impl SecureEnclaveProvider for WindowsSecureEnclaveProvider {
         } else {
             let alias = alias.to_owned();
             run_blocking(move || {
-                let backend = create_backend(&alias)?;
-                Ok(WindowsSecureEnclaveKey { alias, backend })
+                let tpm_key = create_tpm_key(&alias)?;
+                Ok(WindowsSecureEnclaveKey::new(&alias, tpm_key))
             })
             .await
         }
@@ -49,14 +48,14 @@ impl SecureEnclaveProvider for WindowsSecureEnclaveProvider {
     async fn get_key(&self, alias: &str) -> Result<Self::Key> {
         let alias = alias.to_owned();
         run_blocking(move || {
-            let backend = match tpm::Provider::open() {
-                Ok(provider) => provider.open_key(&alias).map(|_| Backend::Tpm)?,
+            let tpm_key = match tpm::Provider::open() {
+                Ok(provider) => Some(provider.open_key(&alias)?),
                 Err(err) => {
                     tracing::warn!("TPM is unavailable, using DPAPI: {err}");
-                    Backend::Dpapi
+                    None
                 }
             };
-            Ok(WindowsSecureEnclaveKey { alias, backend })
+            Ok(WindowsSecureEnclaveKey::new(&alias, tpm_key))
         })
         .await
     }
@@ -70,32 +69,45 @@ impl SecureEnclaveProvider for WindowsSecureEnclaveProvider {
     }
 }
 
-#[derive(Clone, Copy)]
-enum Backend {
-    Tpm,
-    Dpapi,
+/// Encrypts and decrypts data with a key held by one of the backends.
+trait KeyCipher: Send + Sync {
+    /// Marks the data encrypted by this cipher.
+    fn tag(&self) -> u8;
+
+    fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
+
+    fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
 }
 
-/// Encrypts with the backend the key was created with, and decrypts with the backend that
-/// encrypted the data.
+/// Encrypts with the TPM key, or with DPAPI when the machine has no usable TPM, and decrypts
+/// with the backend that encrypted the data.
 pub struct WindowsSecureEnclaveKey {
-    alias: String,
-    backend: Backend,
+    cipher: Arc<dyn KeyCipher>,
+    /// Decrypts data encrypted with DPAPI before the TPM key was created.
+    dpapi: Arc<DpapiCipher>,
+}
+
+impl WindowsSecureEnclaveKey {
+    /// The `alias` is the DPAPI entropy, binding the data to the key.
+    fn new(alias: &str, tpm_key: Option<tpm::Key>) -> Self {
+        let dpapi = Arc::new(DpapiCipher::new(alias.as_bytes()));
+        let cipher: Arc<dyn KeyCipher> = match tpm_key {
+            Some(tpm_key) => Arc::new(TpmCipher::from(tpm_key)),
+            None => dpapi.clone(),
+        };
+        Self { cipher, dpapi }
+    }
 }
 
 #[async_trait::async_trait]
 impl SecureEnclaveKey for WindowsSecureEnclaveKey {
     async fn encrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
-        let alias = self.alias.clone();
-        let backend = self.backend;
+        let cipher = self.cipher.clone();
         let bytes = bytes.to_owned();
         run_blocking(move || {
-            let (tag, ciphertext) = match backend {
-                Backend::Tpm => (TPM_TAG, open_tpm_key(&alias)?.encrypt(&bytes)?),
-                Backend::Dpapi => (DPAPI_TAG, dpapi::protect(&bytes, alias.as_bytes())?),
-            };
+            let ciphertext = cipher.encrypt(&bytes)?;
             let mut output = Vec::with_capacity(1 + ciphertext.len());
-            output.push(tag);
+            output.push(cipher.tag());
             output.extend_from_slice(&ciphertext);
             Ok(output)
         })
@@ -103,11 +115,12 @@ impl SecureEnclaveKey for WindowsSecureEnclaveKey {
     }
 
     async fn decrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
-        let alias = self.alias.clone();
+        let cipher = self.cipher.clone();
+        let dpapi = self.dpapi.clone();
         let bytes = bytes.to_owned();
         run_blocking(move || match bytes.split_first() {
-            Some((&TPM_TAG, data)) => open_tpm_key(&alias)?.decrypt(data),
-            Some((&DPAPI_TAG, data)) => dpapi::unprotect(data, alias.as_bytes()),
+            Some((&tag, data)) if tag == cipher.tag() => cipher.decrypt(data),
+            Some((&tag, data)) if tag == dpapi.tag() => dpapi.decrypt(data),
             _ => Err(SecureEnclaveError::Other(
                 "unknown encrypted data format".to_owned(),
             )),
@@ -116,28 +129,23 @@ impl SecureEnclaveKey for WindowsSecureEnclaveKey {
     }
 }
 
-/// Creates the key in the TPM, or falls back to DPAPI if the TPM cannot be used.
-fn create_backend(alias: &str) -> Result<Backend> {
+/// Creates the key in the TPM. Returns `None` if the TPM cannot be used, so that DPAPI is used
+/// instead.
+fn create_tpm_key(alias: &str) -> Result<Option<tpm::Key>> {
     match tpm::Provider::open() {
         Ok(provider) => match provider.create_key(alias) {
-            Ok(_) => Ok(Backend::Tpm),
+            Ok(key) => Ok(Some(key)),
             Err(SecureEnclaveError::KeyAlreadyExists) => Err(SecureEnclaveError::KeyAlreadyExists),
             Err(err) => {
                 tracing::warn!("Failed to create TPM key, using DPAPI: {err}");
-                Ok(Backend::Dpapi)
+                Ok(None)
             }
         },
         Err(err) => {
             tracing::warn!("TPM is unavailable, using DPAPI: {err}");
-            Ok(Backend::Dpapi)
+            Ok(None)
         }
     }
-}
-
-fn open_tpm_key(alias: &str) -> Result<tpm::Key> {
-    tpm::Provider::open()
-        .map_err(|err| SecureEnclaveError::Other(format!("failed to open TPM: {err}")))?
-        .open_key(alias)
 }
 
 async fn run_blocking<T, F>(f: F) -> Result<T>
@@ -160,11 +168,12 @@ mod tests {
 
     #[test]
     fn dpapi_round_trips() {
-        let encrypted = dpapi::protect(b"secret", b"entropy").unwrap();
+        let cipher = DpapiCipher::new(b"entropy");
+        let encrypted = cipher.encrypt(b"secret").unwrap();
 
         assert_ne!(encrypted, b"secret");
-        assert_eq!(dpapi::unprotect(&encrypted, b"entropy").unwrap(), b"secret");
-        assert!(dpapi::unprotect(&encrypted, b"other").is_err());
+        assert_eq!(cipher.decrypt(&encrypted).unwrap(), b"secret");
+        assert!(DpapiCipher::new(b"other").decrypt(&encrypted).is_err());
     }
 
     #[tokio::test]
@@ -185,6 +194,41 @@ mod tests {
         provider.delete_key(&alias).await.unwrap();
 
         assert_eq!(decrypted, data);
+    }
+
+    #[tokio::test]
+    async fn encrypts_with_tpm_when_available() {
+        let provider = WindowsSecureEnclaveProvider;
+        let alias = test_alias();
+        let expected_tag = if tpm::Provider::open().is_ok() {
+            tpm::TPM_TAG
+        } else {
+            dpapi::DPAPI_TAG
+        };
+
+        let key = provider.create_key(&alias, false).await.unwrap();
+        let encrypted = key.encrypt(b"secret").await.unwrap();
+        provider.delete_key(&alias).await.unwrap();
+
+        assert_eq!(encrypted[0], expected_tag);
+    }
+
+    #[tokio::test]
+    async fn decrypts_data_encrypted_with_dpapi() {
+        let provider = WindowsSecureEnclaveProvider;
+        let alias = test_alias();
+        let mut encrypted = vec![dpapi::DPAPI_TAG];
+        encrypted.extend(
+            DpapiCipher::new(alias.as_bytes())
+                .encrypt(b"secret")
+                .unwrap(),
+        );
+
+        let key = provider.create_key(&alias, false).await.unwrap();
+        let decrypted = key.decrypt(&encrypted).await;
+        provider.delete_key(&alias).await.unwrap();
+
+        assert_eq!(decrypted.unwrap(), b"secret");
     }
 
     #[tokio::test]
