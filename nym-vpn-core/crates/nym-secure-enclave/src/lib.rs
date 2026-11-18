@@ -5,11 +5,14 @@
 mod android;
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 mod apple;
+#[cfg(target_os = "linux")]
+mod linux;
 #[cfg(any(
     target_os = "android",
     target_os = "macos",
     target_os = "ios",
-    target_os = "windows"
+    target_os = "windows",
+    target_os = "linux"
 ))]
 mod secure_enclave;
 #[cfg(target_os = "windows")]
@@ -27,11 +30,14 @@ use apple::AppleSecureEnclaveProvider;
 pub use apple::{
     Keychain, KeychainAccess, KeychainError, KeychainItem, KeychainResult, LocalAuthentication,
 };
+#[cfg(target_os = "linux")]
+use linux::LinuxSecureEnclaveProvider;
 #[cfg(any(
     target_os = "android",
     target_os = "macos",
     target_os = "ios",
-    target_os = "windows"
+    target_os = "windows",
+    target_os = "linux"
 ))]
 pub use secure_enclave::{
     PlatformSecureEnclaveKey, SecureEnclave, SecureEnclaveConfig, SecureEnclaveConfigBuilder,

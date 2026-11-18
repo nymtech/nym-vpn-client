@@ -43,7 +43,7 @@ nym-validator-client.workspace = true
 nym-credentials-interface.workspace = true
 nym-vpn-account.workspace = true
 
-[target.'cfg(any(target_os = "android", target_os = "ios", target_os = "macos", target_os = "windows"))'.dependencies]
+[target.'cfg(any(target_os = "android", target_os = "ios", target_os = "macos", target_os = "windows", target_os = "linux"))'.dependencies]
 nym-secure-enclave.workspace = true
 
 # SQLCipher crypto: Apple platforms use CommonCrypto, Linux links the system OpenSSL, other

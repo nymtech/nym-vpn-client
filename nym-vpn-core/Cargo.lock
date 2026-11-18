@@ -7219,6 +7219,7 @@ version = "2026.17.0-beta.1"
 dependencies = [
  "aes-gcm 0.11.1",
  "async-trait",
+ "base64 0.22.1",
  "block2",
  "futures-util",
  "libc",
@@ -7228,6 +7229,8 @@ dependencies = [
  "objc2-local-authentication",
  "objc2-security",
  "rand 0.10.3",
+ "serde",
+ "serde_json",
  "thiserror 2.0.21",
  "tokio",
  "tokio-util",
