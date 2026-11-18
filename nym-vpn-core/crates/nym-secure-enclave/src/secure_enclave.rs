@@ -7,6 +7,8 @@ use std::sync::Arc;
 use futures_util::TryFutureExt;
 use typed_builder::TypedBuilder;
 
+#[cfg(target_os = "linux")]
+use super::LinuxSecureEnclaveProvider;
 #[cfg(target_os = "windows")]
 use super::WindowsSecureEnclaveProvider;
 #[cfg(target_os = "android")]
@@ -21,6 +23,8 @@ type PlatformProvider = AndroidKeyStoreProvider;
 type PlatformProvider = AppleSecureEnclaveProvider;
 #[cfg(target_os = "windows")]
 type PlatformProvider = WindowsSecureEnclaveProvider;
+#[cfg(target_os = "linux")]
+type PlatformProvider = LinuxSecureEnclaveProvider;
 
 /// Key type returned by [`SecureEnclave`] on the current platform.
 pub type PlatformSecureEnclaveKey = <PlatformProvider as SecureEnclaveProvider>::Key;
@@ -49,7 +53,11 @@ pub struct SecureEnclaveConfig {
 
 impl From<SecureEnclaveConfig> for SecureEnclave {
     fn from(
-        #[cfg_attr(target_os = "windows", expect(unused_variables))] config: SecureEnclaveConfig,
+        #[cfg_attr(
+            any(target_os = "windows", target_os = "linux"),
+            expect(unused_variables)
+        )]
+        config: SecureEnclaveConfig,
     ) -> Self {
         Self {
             #[cfg(target_os = "android")]
@@ -58,6 +66,8 @@ impl From<SecureEnclaveConfig> for SecureEnclave {
             inner: AppleSecureEnclaveProvider::new(config.auth, config.keychain_access_group),
             #[cfg(target_os = "windows")]
             inner: WindowsSecureEnclaveProvider,
+            #[cfg(target_os = "linux")]
+            inner: LinuxSecureEnclaveProvider,
         }
     }
 }

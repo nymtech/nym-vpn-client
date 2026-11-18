@@ -585,7 +585,12 @@ impl NymVpnService {
             local_auth.clone(),
             crate::storage::KEYCHAIN_ACCESS_GROUP,
         );
-        #[cfg(any(target_os = "ios", target_os = "android", target_os = "windows"))]
+        #[cfg(any(
+            target_os = "ios",
+            target_os = "android",
+            target_os = "windows",
+            target_os = "linux"
+        ))]
         let secure_enclave = {
             let builder = nym_secure_enclave::SecureEnclave::builder();
             #[cfg(target_os = "android")]
@@ -608,7 +613,7 @@ impl NymVpnService {
         let storage_config = storage_config
             .network_name(network_name.clone())
             .keychain(keychain);
-        #[cfg(any(target_os = "android", target_os = "windows"))]
+        #[cfg(any(target_os = "android", target_os = "windows", target_os = "linux"))]
         let storage_config = storage_config.secure_enclave(secure_enclave.clone());
         let storage = VpnClientOnDiskStorage::new(storage_config.build())
             .await

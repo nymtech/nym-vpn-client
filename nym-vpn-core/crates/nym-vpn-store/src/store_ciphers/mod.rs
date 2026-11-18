@@ -7,7 +7,8 @@ pub mod noop_cipher;
     target_os = "ios",
     target_os = "macos",
     target_os = "android",
-    target_os = "windows"
+    target_os = "windows",
+    target_os = "linux"
 ))]
 pub mod secure_enclave_cipher;
 
