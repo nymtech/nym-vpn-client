@@ -3,7 +3,7 @@
 
 use nym_secure_enclave::KeychainAccess;
 use nym_vpn_store::{
-    database_key::{DatabaseKeyStorageError, KeychainDatabaseKeyStorage},
+    database_key::{DatabaseKeyStorageError, keychain::KeychainDatabaseKeyStorage},
     keys::device::DeviceKeysPaths,
     secure_store_migration::SecureStoreMigrationManager,
 };
