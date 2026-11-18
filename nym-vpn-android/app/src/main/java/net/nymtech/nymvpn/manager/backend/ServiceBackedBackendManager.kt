@@ -313,12 +313,11 @@ class ServiceBackedBackendManager @Inject constructor(
 	}
 
 	override suspend fun storeDeeplinkAccount(url: String) {
-		runCatching {
+		try {
 			serviceConnectionManager.withApi { it.storeDeeplinkAccount(url = url) }
-		}.onFailure {
-			Timber.tag(TAG).e(it, "Failed to store deeplink account")
+		} finally {
+			refreshIdentityState()
 		}
-		refreshIdentityState()
 	}
 
 	override suspend fun refreshStoredAccount() {
