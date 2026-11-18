@@ -33,6 +33,9 @@ The required files are:
 
 - the daemon binary `nym-vpnd.exe` and socks5 proxy `nym-socks5-proxy.exe`.
 - its dlls `libwg.dll`, `winfw.dll`, `wintun.dll`
+- the split tunnel driver `nymvpn-split-tunnel.sys`, `.inf` and `.cat`
+
+The list lives in `src-tauri/bundle.windows.conf.json`.
 
 Depending on which version of vpnd you are targeting,\
 refer to the vpn-core [readme](nym-vpn-client/nym-vpn-core/README.md#windows)
@@ -42,5 +45,5 @@ Alternatively, you can download them from any GH or internal release artifacts.
 Once you are set up, run:
 
 ```shell
-npm run tauri build -- --bundles nsis
+npm run tauri build -- --bundles nsis --config src-tauri/bundle.windows.conf.json
 ```
