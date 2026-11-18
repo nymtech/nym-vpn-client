@@ -24,6 +24,7 @@ function sign {
 	echo "Code signing $exe"
 
 	local name="${exe##*[\\/]}"
+	local program_name="${2:-${name%.*}}"
 
 	if ! "$code_sign_tool" \
 		sign \
@@ -31,7 +32,7 @@ function sign {
 		-password "$SSL_COM_PASSWORD" \
 		-credential_id "$SSL_COM_CREDENTIAL_ID" \
 		-totp_secret "$SSL_COM_TOTP_SECRET" \
-		-program_name "${name%.*}" \
+		-program_name "$program_name" \
 		-input_file_path "$exe" \
 		-override; then
 			echo "Failed to sign $exe" >&2
@@ -42,7 +43,14 @@ function sign {
 file="$1"
 dir="${file%[\\/]*}"
 
-sign "$file"
+if [[ "$file" == *.tmp ]]; then
+	signable="${file%.tmp}.exe"
+	cp -f "$file" "$signable" || exit 1
+	sign "$signable" uninstall
+	mv -f "$signable" "$file" || exit 1
+else
+	sign "$file"
+fi
 
 # Remove once Tauri signs nsExec.dll: https://github.com/tauri-apps/tauri/pull/16572
 if [[ "${file##*[\\/]}" == "System.dll" && "${dir##*[\\/]}" == "x86-unicode" ]]; then
