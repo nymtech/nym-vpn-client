@@ -53,8 +53,5 @@ pub fn key_secret(database_key: &DatabaseKey) -> KeySecret {
 }
 
 fn database_key_from_bytes(bytes: &[u8]) -> Result<DatabaseKey> {
-    let key: &nym_sqlcipher::Key = bytes
-        .try_into()
-        .map_err(|_| DatabaseKeyStorageError::InvalidKeyLength(bytes.len()))?;
-    Ok(DatabaseKey::from_bytes(key))
+    DatabaseKey::try_from(bytes).map_err(|err| DatabaseKeyStorageError::InvalidKeyLength(err.len))
 }

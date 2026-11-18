@@ -244,7 +244,10 @@ mod tests {
     const DATABASE_KEY: [u8; nym_sqlcipher::KEY_LEN] = [0x42; nym_sqlcipher::KEY_LEN];
 
     fn on_disk_keys(dir: &Path) -> OnDiskKeys {
-        OnDiskKeys::new(DeviceKeysPaths::new(dir), &DatabaseKey::from_bytes(&DATABASE_KEY))
+        OnDiskKeys::new(
+            DeviceKeysPaths::new(dir),
+            &DatabaseKey::from_bytes(&DATABASE_KEY),
+        )
     }
 
     fn public_key(keys: &DeviceKeys) -> String {
