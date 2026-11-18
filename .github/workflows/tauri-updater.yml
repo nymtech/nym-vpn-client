@@ -49,6 +49,10 @@ on:
         required: true
         default: ""
 
+env:
+  GIT_USER: NYM CI
+  GIT_EMAIL: ci@nymtech.net
+
 jobs:
   update-metadata:
     runs-on: arc-linux-latest
@@ -94,8 +98,8 @@ jobs:
             - channel: `${{ inputs.channel }}`
             - version: `${{ inputs.version }}`
         run: |
-          git config --global user.name "NYM_bot"
-          git config --global user.email "_@_"
+          git config --global user.name "${{ env.GIT_USER }}"
+          git config --global user.email "${{ env.GIT_EMAIL }}"
           git switch -C ${{ env.GIT_BRANCH }}
           git add .pkg/tauri-updater
           git commit -m "${{ env.COMMIT_MSG }}"
