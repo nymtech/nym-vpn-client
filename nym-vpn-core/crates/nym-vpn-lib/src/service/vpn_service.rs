@@ -608,6 +608,9 @@ impl NymVpnService {
             .keychain(keychain);
         #[cfg(target_os = "android")]
         let storage_config = storage_config.secure_enclave(secure_enclave.clone());
+        #[cfg(target_os = "windows")]
+        let storage_config =
+            storage_config.secure_enclave(Arc::new(nym_secure_enclave::SecureEnclave::new()));
         let storage = VpnClientOnDiskStorage::new(storage_config.build())
             .await
             .map_err(Error::LoadDatabaseKey)?;

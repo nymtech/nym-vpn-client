@@ -5,9 +5,18 @@
 mod android;
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 mod apple;
-#[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
+#[cfg(any(
+    target_os = "android",
+    target_os = "macos",
+    target_os = "ios",
+    target_os = "windows"
+))]
 mod secure_enclave;
+#[cfg(target_os = "windows")]
+mod windows;
 
+#[cfg(target_os = "windows")]
+use self::windows::WindowsSecureEnclaveProvider;
 #[cfg(target_os = "android")]
 use android::AndroidKeyStoreProvider;
 #[cfg(target_os = "android")]
@@ -18,7 +27,12 @@ use apple::AppleSecureEnclaveProvider;
 pub use apple::{
     Keychain, KeychainAccess, KeychainError, KeychainItem, KeychainResult, LocalAuthentication,
 };
-#[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
+#[cfg(any(
+    target_os = "android",
+    target_os = "macos",
+    target_os = "ios",
+    target_os = "windows"
+))]
 pub use secure_enclave::{PlatformSecureEnclaveKey, SecureEnclave};
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]

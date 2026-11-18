@@ -54,6 +54,14 @@ objc2-security = { workspace = true, features = [
     "SecKey",
 ] }
 
+[target.'cfg(target_os = "windows")'.dependencies]
+aes-gcm = { workspace = true, features = ["zeroize"] }
+rand.workspace = true
+windows = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Security_Cryptography",
+] }
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt"] }
 

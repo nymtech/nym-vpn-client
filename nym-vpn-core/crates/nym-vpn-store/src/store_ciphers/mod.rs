@@ -3,7 +3,12 @@
 
 pub mod database_key_cipher;
 pub mod noop_cipher;
-#[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+#[cfg(any(
+    target_os = "ios",
+    target_os = "macos",
+    target_os = "android",
+    target_os = "windows"
+))]
 pub mod secure_enclave_cipher;
 
 use std::sync::Arc;
