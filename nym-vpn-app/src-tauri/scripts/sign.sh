@@ -39,6 +39,13 @@ function sign {
 	fi
 }
 
-sign "$1"
+file="$1"
+dir="${file%[\\/]*}"
+
+sign "$file"
+
+if [[ "${file##*[\\/]}" == "System.dll" && "${dir##*[\\/]}" == "x86-unicode" ]]; then
+	sign "$dir/nsExec.dll"
+fi
 
 exit 0
