@@ -3,7 +3,7 @@
 
 use std::path::PathBuf;
 
-use nym_pemstore::Passphrase;
+use nym_pemstore::{KeySecret, RawKey};
 pub use nym_sqlcipher::DatabaseKey;
 use zeroize::Zeroizing;
 
@@ -50,9 +50,9 @@ pub fn generate_database_key() -> DatabaseKey {
     DatabaseKey::new(*key)
 }
 
-/// Derives the passphrase encrypting private key PEM files from the database key.
-pub fn key_passphrase(database_key: &DatabaseKey) -> Passphrase {
-    Passphrase::new(hex::encode(database_key.as_bytes()))
+/// Secret encrypting private key PEM files, using the database key directly as a raw key.
+pub fn key_secret(database_key: &DatabaseKey) -> KeySecret {
+    RawKey::new(*database_key.as_bytes()).into()
 }
 
 fn database_key_from_bytes(bytes: &[u8]) -> Result<DatabaseKey> {

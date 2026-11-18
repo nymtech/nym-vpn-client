@@ -4,11 +4,11 @@
 use std::path::{Path, PathBuf};
 
 use nym_crypto::asymmetric::ed25519;
-use nym_pemstore::{KeyPairPath, Passphrase, traits::PemStorableKeyPair};
+use nym_pemstore::{KeyPairPath, KeySecret, traits::PemStorableKeyPair};
 use rand::SeedableRng;
 
 use crate::{
-    database_key::{DatabaseKey, key_passphrase},
+    database_key::{DatabaseKey, key_secret},
     keys::device::{DeviceKeyStore, DeviceKeys},
 };
 
@@ -47,7 +47,7 @@ pub enum OnDiskKeysError {
 /// Stores device keys in PEM files, with the private key encrypted with the database key.
 pub struct OnDiskKeys {
     paths: DeviceKeysPaths,
-    passphrase: Passphrase,
+    secret: KeySecret,
 }
 
 pub struct DeviceKeysPaths {
@@ -88,7 +88,7 @@ impl OnDiskKeys {
     pub fn new(paths: DeviceKeysPaths, database_key: &DatabaseKey) -> Self {
         OnDiskKeys {
             paths,
-            passphrase: key_passphrase(database_key),
+            secret: key_secret(database_key),
         }
     }
 
@@ -135,7 +135,7 @@ impl OnDiskKeys {
         paths: KeyPairPath,
         name: impl Into<String>,
     ) -> Result<T, OnDiskKeysError> {
-        nym_pemstore::load_keypair_with(&paths, Some(&self.passphrase)).map_err(|error| {
+        nym_pemstore::load_keypair_with(&paths, Some(&self.secret)).map_err(|error| {
             OnDiskKeysError::UnableToLoadKeys {
                 paths,
                 name: name.into(),
@@ -150,7 +150,7 @@ impl OnDiskKeys {
         paths: KeyPairPath,
         name: impl Into<String>,
     ) -> Result<(), OnDiskKeysError> {
-        nym_pemstore::store_keypair_with(keypair, &paths, Some(&self.passphrase)).map_err(|error| {
+        nym_pemstore::store_keypair_with(keypair, &paths, Some(&self.secret)).map_err(|error| {
             OnDiskKeysError::UnableToStoreKeys {
                 paths,
                 name: name.into(),
