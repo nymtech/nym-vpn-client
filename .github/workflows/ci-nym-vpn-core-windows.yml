@@ -74,6 +74,11 @@ jobs:
           winget list GnuWin32.Make || winget install --disable-interactivity --accept-source-agreements --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
+      - name: Install Strawberry Perl
+        run: |
+          winget list StrawberryPerl.StrawberryPerl || winget install --disable-interactivity --accept-source-agreements --id StrawberryPerl.StrawberryPerl
+          echo "C:\Strawberry\perl\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
+
       - name: Install cargo-get
         uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
