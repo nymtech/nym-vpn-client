@@ -28295,6 +28295,39 @@
         }
       }
     },
+    "settings.privacyAndData.runDiagnostics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Run diagnostics tool"
+          }
+        }
+      }
+    },
+    "settings.privacyAndData.viewLogs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "View your logs"
+          }
+        }
+      }
+    },
+    "settings.privacyAndData.viewLogs.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Stored locally unless sent"
+          }
+        }
+      }
+    },
     "settings.profiles.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32672,7 +32705,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your troubleshooting detail"
+            "value" : "Your debug details"
           }
         }
       }
