@@ -161,6 +161,18 @@ After installing Rust, install the following Rust targets and dependencies to en
     cargo install cargo-get
     ```
 
+8. Install Strawberry Perl, which is required to build the vendored OpenSSL used by SQLCipher:
+
+    ```
+    winget install -e --id=StrawberryPerl.StrawberryPerl
+    ```
+
+    The Perl shipped with msys2 or Git for Windows does not work with the MSVC toolchain. Make sure Strawberry Perl comes first in `PATH`:
+
+    ```cmd
+    where perl
+    ```
+
 ## Code formatting
 
 We use some of nightly features of rustfmt to format the codebase. Please install the nightly rust with rustfmt:
