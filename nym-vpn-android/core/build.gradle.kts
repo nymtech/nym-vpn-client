@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
 	alias(libs.plugins.android.library)
 	alias(libs.plugins.kotlinxSerialization)
@@ -117,6 +119,15 @@ dependencies {
 val envNdkProvider = providers.environmentVariable("ANDROID_NDK_HOME")
 val propNdkProvider = providers.gradleProperty("android.ndkDirectory")
 val sdkDirProvider = androidComponents.sdkComponents.sdkDirectory
+val vpnApiUrlOverrideProvider = providers.environmentVariable("NYM_VPN_API_URL_OVERRIDE")
+	.orElse(
+		providers.fileContents(rootProject.layout.projectDirectory.file("local.properties"))
+			.asText
+			.map { text ->
+				Properties().apply { load(text.reader()) }
+					.getProperty("nym.vpnApiUrlOverride", "")
+			},
+	)
 val releaseVariants = setOf(Constants.RELEASE, Constants.PRERELEASE, Constants.NIGHTLY, Constants.PLAYTEST)
 val isReleaseBuild = gradle.startParameter.taskRequests
 	.flatMap { it.args }
@@ -136,6 +147,7 @@ tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
 	val localSdkDir = sdkDirProvider
 	val localReleaseBuild = releaseBuildProvider
 	val localSkipBuild = skipBuildProvider
+	val localVpnApiUrlOverride = vpnApiUrlOverrideProvider
 	val coreDirPath = layout.projectDirectory.dir("../../nym-vpn-core").asFile.absolutePath
 
 	onlyIf { !localSkipBuild.get() }
@@ -161,6 +173,10 @@ tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
 		environment("RELEASE", localReleaseBuild.get().toString())
 		environment("ANDROID_NDK_HOME", ndkHome.absolutePath)
 		environment("NDK_TOOLCHAIN_DIR", ndkToolchain.absolutePath)
+		localVpnApiUrlOverride.orNull?.takeIf { it.isNotBlank() }?.let {
+			logger.warn("Building with NYM_VPN_API_URL_OVERRIDE=$it")
+			environment("NYM_VPN_API_URL_OVERRIDE", it)
+		}
 	}
 }
 
