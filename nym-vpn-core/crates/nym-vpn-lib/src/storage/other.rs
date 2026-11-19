@@ -34,11 +34,14 @@ pub fn mnemonic_storage(config: &StorageConfig) -> PlatformMnemonicStorage {
     )
 }
 
-pub fn account_storage(config: &StorageConfig) -> PlatformAccountStorage {
-    PlatformAccountStorage::new(
+pub fn account_storage(
+    config: &StorageConfig,
+    _master_key: &MasterKey,
+) -> Result<PlatformAccountStorage, MasterKeyStorageError> {
+    Ok(PlatformAccountStorage::new(
         config.base_data_directory.join(ACCOUNT_INFO_FILE_NAME),
         NoopStoreCipher,
-    )
+    ))
 }
 
 pub fn device_keys(config: &StorageConfig, key_secret: KeySecret) -> PlatformDeviceKeys {

@@ -55,12 +55,15 @@ pub fn mnemonic_storage(config: &StorageConfig) -> PlatformMnemonicStorage {
     ))
 }
 
-pub fn account_storage(config: &StorageConfig) -> PlatformAccountStorage {
-    PlatformAccountStorage::new(keychain_item(
+pub fn account_storage(
+    config: &StorageConfig,
+    _master_key: &MasterKey,
+) -> Result<PlatformAccountStorage, MasterKeyStorageError> {
+    Ok(PlatformAccountStorage::new(keychain_item(
         config,
         ACCOUNT_INFO_KEYCHAIN_SERVICE,
         KeychainAccess::AfterFirstUnlock,
-    ))
+    )))
 }
 
 /// Moves plaintext device keys found on disk to the keychain.

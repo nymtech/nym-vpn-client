@@ -51,7 +51,7 @@ use nym_vpn_store::{
         on_disk::{OnDiskAccountSummaryStorage, OnDiskAccountSummaryStorageError},
     },
     keys::device::{DeviceKeyStore, DeviceKeys},
-    master_key::{MasterKeyStorageError, StorageKeys},
+    master_key::{MasterKeyStorageError, StorageKeys, StoreFile},
     mnemonic::{MnemonicStorage, StoredMnemonic},
     secure_store_migration::SecureStoreMigrationManager,
 };
@@ -102,10 +102,10 @@ impl VpnClientOnDiskStorage {
     pub async fn new(config: StorageConfig) -> Result<Self, MasterKeyStorageError> {
         let master_key = platform::master_key(&config).await?;
         let storage_keys = master_key.derive_storage_keys()?;
-        let summary_cipher = master_key.derive_store_cipher()?;
+        let summary_cipher = master_key.derive_store_cipher(StoreFile::AccountSummary)?;
+        let account_storage = platform::account_storage(&config, &master_key)?;
         drop(master_key);
         let mnemonic_storage = platform::mnemonic_storage(&config);
-        let account_storage = platform::account_storage(&config);
         let key_store = platform::device_keys(&config, storage_keys.key_secret.clone());
         let base_data_directory = &config.base_data_directory;
 
