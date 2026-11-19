@@ -1,0 +1,7 @@
+“Hoş Geldiniz” veya “Ayarlar” bölümünden bir kodu tarayarak veya yazarak ücretsiz geçiş hakkınızı kullanın.
+
+Giriş sunucusunda köprü bulunmadığında sistem artık otomatik olarak doğrudan bağlanıyor; Gelişmiş bağlantı için köprü gerektiğinde ise açık bir hata mesajı görüntüleniyor.
+
+Hesabınızı daha iyi korumak amacıyla oturum açma bağlantıları günlük kayıtlarından çıkarılır.
+
+Özel anahtarlar artık kullanıldıktan sonra bellekten siliniyor.

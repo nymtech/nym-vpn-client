@@ -1,0 +1,13 @@
+Canjea un pase gratuito escaneando o introduciendo un código desde «Bienvenida», la pantalla del plan o «Ajustes».
+
+Ahora la opción «Auto» se conecta directamente cuando el servidor de entrada no tiene puente, y muestra un error claro cuando la conexión «Enhanced» necesita uno.
+
+Si tu suscripción de Apple ID pertenece a otra cuenta NymVPN, ahora la pantalla del plan te lo explica y te lleva a los ajustes de suscripción de Apple.
+
+El registro de depuración ahora se llama «Detalles de resolución de problemas» en «Datos, privacidad y registros», y viene acompañado de una ficha informativa que explica para qué sirve.
+
+Ahora, los informes de errores de conexión se ajustan a tu configuración de «Errores y fallos de tu app».
+
+Los enlaces de inicio de sesión no aparecen en los registros para proteger mejor tu cuenta.
+
+Ahora las claves privadas se borran de la memoria después de usarlas.

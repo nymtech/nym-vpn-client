@@ -1,0 +1,13 @@
+Tukarkan tiket gratis dengan memindai atau mengetikkan kode, baik dari halaman Selamat Datang, layar paket, maupun Pengaturan.
+
+Fitur Auto kini terhubung secara langsung jika server masuk tidak memiliki jembatan, dengan pesan kesalahan yang jelas jika koneksi Enhanced memerlukan jembatan.
+
+Jika langganan Apple ID Anda terdaftar di akun NymVPN lain, layar paket kini memberikan penjelasan mengenai hal tersebut dan membuka pengaturan langganan Apple.
+
+Pencatatan debug kini disebut "Rincian pemecahan masalah Anda" di bagian Data, privasi, & log, disertai lembar informasi yang menjelaskan fungsinya.
+
+Pelaporan kesalahan koneksi kini mengikuti pengaturan "Kesalahan & kegagalan aplikasi Anda".
+
+Tautan masuk tidak dicatat dalam log demi melindungi akun Anda dengan lebih baik.
+
+Kunci pribadi kini dihapus dari memori setelah digunakan.

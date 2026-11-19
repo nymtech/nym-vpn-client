@@ -1,0 +1,7 @@
+Pour obtenir un pass gratuit, scanne ou saisis un code depuis la rubrique « Bienvenue » ou « Paramètres ».
+
+La connexion « Auto » s'établit désormais directement lorsque le serveur d'entrée ne dispose pas de pont, et un message d'erreur clair s'affiche lorsque la connexion « Enhanced » en nécessite un.
+
+Les liens de connexion ne sont pas enregistrés dans les journaux afin de mieux protéger ton compte.
+
+Les clés privées sont désormais effacées de la mémoire après utilisation.

@@ -1,0 +1,7 @@
+Redeem a free pass by scanning or typing a code, from Welcome, the plan screen or Settings.
+Auto now connects directly when the entry server has no bridge, with a clear error when Enhanced connection needs one.
+If your Apple ID subscription belongs to another NymVPN account, the plan screen now explains it and opens Apple's subscription settings.
+Debug logging is now "Your troubleshooting detail" in Data, privacy & logs, with an info sheet explaining what it does.
+Connection error reporting now follows your "Your app errors & crashes" setting.
+Login links are kept out of logs to better protect your account.
+Private keys are now wiped from memory after use.
