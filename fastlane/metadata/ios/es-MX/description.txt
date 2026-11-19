@@ -6,7 +6,7 @@ Pruébalo gratis durante 7 días, sin compromiso. Paga con criptomonedas, tarjet
 
 Privacidad por diseño
 
-La mayoría de las VPN dicen «sin logs» como política — pueden registrar, solo prometen no hacerlo. Las VPN gratuitas te rastrean para vender tus datos. La arquitectura de NymVPN hace imposible mantener registros de tráfico significativos: ningún servidor ve quién eres Y qué haces. Ni siquiera Nym puede conectar tu identidad con tu actividad.
+La mayoría de las VPN dicen "sin logs" como política — pueden registrar, solo prometen no hacerlo. Las VPN gratuitas te rastrean para vender tus datos. La arquitectura de NymVPN hace imposible mantener registros de tráfico significativos: ningún servidor ve quién eres Y qué haces. Ni siquiera Nym puede conectar tu identidad con tu actividad.
 
 Dos modos VPN, una aplicación
 
@@ -43,7 +43,7 @@ Lo que puedes hacer con NymVPN
 
 • Navegar de forma anónima sin dejar rastro
 • Cifrar tu tráfico en redes wifi públicas de aeropuertos, cafeterías y hoteles
-• Saltarte la censura de internet en regiones restrictivas
+• Evadir la censura de internet en regiones restrictivas
 • Proteger comunicaciones sensibles para periodismo, activismo e investigación
 • Impedir que tu proveedor perfile tu navegación con fines publicitarios
 • Bloquear sitios maliciosos, rastreadores y anuncios
@@ -60,7 +60,7 @@ Lo que no hacemos
 
 • No te pedimos tu email ni tu nombre
 • No podemos rastrear qué sitios visitas
-• No podemos vender, compartir ni alquilar tus datos
+• No podemos vender, compartir ni rentar tus datos
 
 Empieza ahora
 
