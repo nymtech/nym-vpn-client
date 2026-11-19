@@ -272,6 +272,14 @@
 	<string name="settings_power_managment_title">Power management</string>
 	<string name="settings_shortcuts_title">App shortcuts</string>
 	<string name="settings_logs_title">Logs &amp; data</string>
+	<string name="settings_section_account">Account</string>
+	<string name="settings_section_protection">Protection</string>
+	<string name="settings_section_connection">Connection</string>
+	<string name="settings_section_routing">Routing</string>
+	<string name="settings_section_mixnet">Mixnet</string>
+	<string name="settings_section_app">App</string>
+	<string name="settings_section_help_data">Help and data</string>
+	<string name="settings_search_placeholder">Search settings</string>
 	<string name="settings_legal_title">Legal</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Specific IP ranges connect directly</string>
