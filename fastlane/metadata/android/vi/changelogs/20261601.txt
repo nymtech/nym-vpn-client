@@ -1,0 +1,7 @@
+Quét hoặc nhập mã để đổi lấy vé miễn phí từ mục “Chào mừng” hoặc “Cài đặt”.
+
+Chế độ Tự động hiện sẽ kết nối trực tiếp khi máy chủ đầu vào không có cầu nối, đồng thời hiển thị thông báo lỗi rõ ràng khi chế độ Kết nối nâng cao yêu cầu phải có cầu nối.
+
+Các liên kết đăng nhập không được ghi vào nhật ký để bảo vệ tài khoản của bạn tốt hơn.
+
+Các khóa riêng tư hiện đã được xóa khỏi bộ nhớ sau khi sử dụng.

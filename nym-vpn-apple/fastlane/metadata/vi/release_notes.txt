@@ -1,0 +1,13 @@
+Quét hoặc nhập mã để đổi lấy vé miễn phí từ mục “Chào mừng”, màn hình gói dịch vụ hoặc mục “Cài đặt”.
+
+Chế độ Tự động hiện sẽ kết nối trực tiếp khi máy chủ đầu vào không có cầu nối, đồng thời hiển thị thông báo lỗi rõ ràng khi chế độ Kết nối nâng cao yêu cầu phải có cầu nối.
+
+Nếu gói đăng ký Apple ID của bạn thuộc về một tài khoản NymVPN khác, màn hình gói đăng ký hiện sẽ giải thích điều này và mở cài đặt đăng ký của Apple.
+
+Tính năng ghi nhật ký gỡ lỗi hiện được gọi là “Chi tiết khắc phục sự cố của bạn” trong phần Dữ liệu, quyền riêng tư và nhật ký, kèm theo một tờ thông tin giải thích chức năng của tính năng này.
+
+Việc báo cáo lỗi kết nối hiện tuân theo cài đặt “Lỗi và sự cố của ứng dụng” của bạn.
+
+Các liên kết đăng nhập không được ghi vào nhật ký để bảo vệ tài khoản của bạn tốt hơn.
+
+Các khóa riêng tư hiện đã được xóa khỏi bộ nhớ sau khi sử dụng.

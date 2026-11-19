@@ -1,0 +1,13 @@
+Löse einen Gratis-Pass ein, indem du einen Code scannst oder eingibst – entweder auf der Startseite, im Plan-Bildschirm oder in den Einstellungen.
+
+„Auto“ stellt nun direkt eine Verbindung her, wenn der Einstiegsserver keine Bridge hat, und gibt eine eindeutige Fehlermeldung aus, wenn für die erweiterte Verbindung eine Bridge erforderlich ist.
+
+Wenn dein Apple-ID-Abonnement zu einem anderen NymVPN-Konto gehört, wird das jetzt auf dem Tarifbildschirm erklärt und es werden die Abonnement-Einstellungen von Apple geöffnet.
+
+Die Debug-Protokollierung heißt jetzt „Deine Details zur Fehlerbehebung“ unter „Daten, Datenschutz & Protokolle“ und enthält ein Infoblatt, in dem erklärt wird, wozu sie dient.
+
+Die Meldung von Verbindungsfehlern richtet sich nun nach deiner Einstellung unter „Fehler und Abstürze deiner App“.
+
+Anmeldelinks werden aus den Protokollen ausgeblendet, um dein Konto besser zu schützen.
+
+Private Schlüssel werden nun nach der Verwendung aus dem Speicher gelöscht.

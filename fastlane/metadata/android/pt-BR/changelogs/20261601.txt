@@ -1,0 +1,7 @@
+Resgate um passe grátis escaneando ou digitando um código, na página “Bem-vindo” ou em “Configurações”.
+
+Agora, a conexão automática é estabelecida diretamente quando o servidor de entrada não tem ponte, com uma mensagem de erro clara quando a conexão aprimorada precisa de uma.
+
+Os links de login não aparecem nos registros para proteger melhor sua conta.
+
+Agora, as chaves privadas são apagadas da memória depois de usadas.

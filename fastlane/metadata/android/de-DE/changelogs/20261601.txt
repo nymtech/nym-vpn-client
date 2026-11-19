@@ -1,0 +1,7 @@
+Löse einen Gratis-Pass ein, indem du einen Code scannst oder eingibst – entweder unter „Willkommen“ oder in den „Einstellungen“.
+
+„Auto“ stellt nun direkt eine Verbindung her, wenn der Einstiegsserver keine Bridge hat, und gibt eine eindeutige Fehlermeldung aus, wenn für die erweiterte Verbindung eine Bridge erforderlich ist.
+
+Anmeldelinks werden aus den Protokollen ausgeblendet, um dein Konto besser zu schützen.
+
+Private Schlüssel werden nun nach der Verwendung aus dem Speicher gelöscht.

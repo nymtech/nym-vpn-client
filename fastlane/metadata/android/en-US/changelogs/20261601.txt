@@ -1,0 +1,7 @@
+Redeem a free pass by scanning or typing a code, from Welcome or Settings.
+
+Auto now connects directly when the entry server has no bridge, with a clear error when Enhanced connection needs one.
+
+Login links are kept out of logs to better protect your account.
+
+Private keys are now wiped from memory after use.

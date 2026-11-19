@@ -1,0 +1,13 @@
+Pour obtenir un pass gratuit, scanne ou saisis un code depuis l'écran « Bienvenue », l'écran « Abonnement » ou les « Paramètres ».
+
+La connexion « Auto » s'établit désormais directement lorsque le serveur d'entrée ne dispose pas de pont, et un message d'erreur clair s'affiche lorsque la connexion « Enhanced » en nécessite un.
+
+Si ton abonnement Apple ID est associé à un autre compte NymVPN, l'écran du forfait te l'explique désormais et t'amène aux réglages d'abonnement d'Apple.
+
+La journalisation de débogage s'appelle désormais « Tes détails de dépannage » dans la section « Données, confidentialité et journaux », avec une fiche d'information qui explique à quoi ça sert.
+
+Les rapports d'erreurs de connexion respectent désormais ton paramètre « Erreurs et plantages de ton application ».
+
+Les liens de connexion ne sont pas enregistrés dans les journaux afin de mieux protéger ton compte.
+
+Les clés privées sont désormais effacées de la mémoire après utilisation.

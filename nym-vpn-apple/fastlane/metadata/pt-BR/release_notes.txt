@@ -1,0 +1,13 @@
+Resgate um passe grátis escaneando ou digitando um código, na tela “Bem-vindo”, na tela do plano ou em “Configurações”.
+
+Agora, a conexão automática é estabelecida diretamente quando o servidor de entrada não tem ponte, com uma mensagem de erro clara quando a conexão aprimorada precisa de uma.
+
+Se a sua assinatura do Apple ID pertencer a outra conta NymVPN, a tela do plano agora explica isso e abre as configurações de assinatura da Apple.
+
+O registro de depuração agora aparece como “Seus detalhes de solução de problemas” em Dados, privacidade e registros, com uma ficha informativa explicando como funciona.
+
+Os relatórios de erros de conexão agora seguem a sua configuração “Erros e falhas do seu aplicativo”.
+
+Os links de login não aparecem nos registros para proteger melhor sua conta.
+
+Agora, as chaves privadas são apagadas da memória depois de usadas.

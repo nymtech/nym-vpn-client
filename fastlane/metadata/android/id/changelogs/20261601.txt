@@ -1,0 +1,7 @@
+Tukarkan tiket gratis dengan memindai atau mengetikkan kode, dari menu Selamat Datang atau Pengaturan.
+
+Fitur Auto kini terhubung secara langsung jika server entri tidak memiliki jembatan, dengan pesan kesalahan yang jelas jika koneksi Enhanced memerlukan jembatan.
+
+Tautan masuk tidak dicatat dalam log demi melindungi akun Anda dengan lebih baik.
+
+Kunci pribadi kini dihapus dari memori setelah digunakan.

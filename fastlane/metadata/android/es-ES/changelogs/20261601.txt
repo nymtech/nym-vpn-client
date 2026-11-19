@@ -1,0 +1,7 @@
+Canjea un pase gratuito escaneando o introduciendo un código, desde «Bienvenida» o «Ajustes».
+
+Ahora, la conexión automática se establece directamente cuando el servidor de entrada no tiene puente, y aparece un error claro cuando la conexión mejorada necesita uno.
+
+Los enlaces de inicio de sesión no aparecen en los registros para proteger mejor tu cuenta.
+
+Ahora las claves privadas se borran de la memoria después de usarlas.

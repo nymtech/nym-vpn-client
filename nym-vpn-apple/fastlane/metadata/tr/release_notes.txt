@@ -1,0 +1,13 @@
+“Hoş Geldiniz” sayfasından, plan ekranından veya Ayarlar’dan bir kodu tarayarak ya da girerek ücretsiz geçiş hakkınızı kullanın.
+
+Giriş sunucusunda köprü bulunmadığında sistem artık otomatik olarak doğrudan bağlanıyor; Gelişmiş bağlantı için köprü gerektiğinde ise açık bir hata mesajı görüntüleniyor.
+
+Apple ID aboneliğiniz başka bir NymVPN hesabına aitse, plan ekranında artık bu durum açıklanıyor ve Apple’ın abonelik ayarları açılıyor.
+
+Hata ayıklama günlüğü artık “Veri, gizlilik ve günlükler” bölümünde “Sorun giderme ayrıntılarınız” olarak yer almaktadır ve bu özelliğin ne işe yaradığını açıklayan bir bilgi sayfası da bulunmaktadır.
+
+Bağlantı hatalarının raporlanması artık “Uygulamanızdaki hatalar ve çökmeler” ayarınıza göre gerçekleştiriliyor.
+
+Hesabınızı daha iyi korumak amacıyla oturum açma bağlantıları günlük kayıtlarından çıkarılır.
+
+Özel anahtarlar artık kullanıldıktan sonra bellekten siliniyor.

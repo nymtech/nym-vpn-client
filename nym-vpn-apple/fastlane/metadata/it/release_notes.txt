@@ -1,0 +1,13 @@
+Riscatta un pass gratuito scansionando o digitando un codice dalla schermata “Benvenuto”, dalla schermata del piano o dalle Impostazioni.
+
+Ora la connessione automatica si avvia direttamente quando il server di ingresso non ha un bridge, mentre viene visualizzato un chiaro messaggio di errore quando la connessione avanzata ne richiede uno.
+
+Se l'abbonamento associato al tuo ID Apple appartiene a un altro account NymVPN, la schermata del piano ora lo spiega e apre le impostazioni degli abbonamenti di Apple.
+
+La registrazione dei messaggi di debug ora si chiama "Dettagli sulla risoluzione dei problemi" nella sezione Dati, privacy e registri, con una scheda informativa che spiega a cosa serve.
+
+La segnalazione degli errori di connessione ora segue l'impostazione "Errori e arresti anomali della tua app".
+
+I link di accesso non vengono registrati nei log per proteggere meglio il tuo account.
+
+Le chiavi private vengono ora cancellate dalla memoria dopo l'uso.
