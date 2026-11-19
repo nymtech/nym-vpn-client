@@ -1502,7 +1502,7 @@ impl NymVpnService {
             }
             #[cfg(any(target_os = "ios", target_os = "android"))]
             VpnServiceCommand::LockKeychain(tx, ()) => {
-                let _ = tx.send(self.secure_enclave.lock().await);
+                let _ = tx.send(self.handle_lock_keychain().await);
             }
             #[cfg(target_os = "macos")]
             VpnServiceCommand::Authorize(tx, (token, client)) => {
@@ -2751,6 +2751,11 @@ impl NymVpnService {
                 .send(secure_enclave.unlock(&reason).await)
                 .ok();
         });
+    }
+
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    async fn handle_lock_keychain(&self) -> Result<(), nym_secure_enclave::SecureEnclaveError> {
+        self.secure_enclave.lock().await
     }
 
     fn handle_run_diagnostic(
