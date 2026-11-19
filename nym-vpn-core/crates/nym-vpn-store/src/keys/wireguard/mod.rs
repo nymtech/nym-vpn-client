@@ -7,7 +7,7 @@ mod persistence;
 
 use std::path::{Path, PathBuf};
 
-use crate::database_key::DatabaseKey;
+use crate::master_key::DatabaseKey;
 
 pub use key_store::WireguardKeyStore;
 pub(crate) use keys::RawWireguardKeys;

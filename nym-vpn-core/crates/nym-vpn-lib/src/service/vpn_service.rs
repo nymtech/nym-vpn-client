@@ -19,7 +19,7 @@ use nym_bandwidth_controller::{
 };
 use nym_diagnostic::DiagnosticHandler;
 use nym_sdk::mixnet::StoragePaths;
-use nym_sqlcipher::DatabaseKey;
+use nym_vpn_store::master_key::StorageKeys;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
@@ -372,8 +372,8 @@ pub struct NymVpnService {
     // Paths
     paths: NymConfigPaths,
 
-    // Key encrypting the on-disk databases
-    database_key: DatabaseKey,
+    // Keys encrypting the on-disk databases and private keys
+    storage_keys: StorageKeys,
 
     // The network environment
     network_tx: watch::Sender<Box<Network>>,
@@ -617,8 +617,9 @@ impl NymVpnService {
         let storage_config = storage_config.secure_enclave(secure_enclave.clone());
         let storage = VpnClientOnDiskStorage::new(storage_config.build())
             .await
-            .map_err(Error::LoadDatabaseKey)?;
-        let database_key = storage.database_key().clone();
+            .map_err(Error::LoadMasterKey)?;
+        let storage_keys = storage.storage_keys().clone();
+        let database_key = &storage_keys.database_key;
 
         let state_machine_shutdown_token = CancellationToken::new();
         let services_shutdown_token = CancellationToken::new();
@@ -748,7 +749,7 @@ impl NymVpnService {
             statistics_controller_config,
             stats_api_client,
             paths.network_data_dir.clone(),
-            &database_key,
+            database_key,
             services_shutdown_token.child_token(),
         )
         .await;
@@ -890,7 +891,7 @@ impl NymVpnService {
             command_receiver,
             event_sender,
             nym_config,
-            database_key: database_key.clone(),
+            storage_keys: storage_keys.clone(),
             tunnel_settings,
             tunnel_constants,
             account_command_tx: account_command_tx.clone(),
@@ -920,7 +921,7 @@ impl NymVpnService {
 
         Ok(Self {
             paths,
-            database_key,
+            storage_keys,
             network_tx,
             user_agent: parameters.user_agent,
             vpn_command_rx,
@@ -2155,7 +2156,7 @@ impl NymVpnService {
                 network_details,
                 vpn_exit_gateway_identity, // Exclude VPN exit gateway during random selection
                 bandwidth_command_tx: self.bandwidth_command_tx.clone(),
-                database_key: self.database_key.clone(),
+                storage_keys: self.storage_keys.clone(),
             })
             .await?;
 
@@ -2789,7 +2790,7 @@ impl NymVpnService {
         let report = Box::pin(DiagnosticHandler::register(
             network,
             params,
-            Some(self.database_key.clone()),
+            Some(self.storage_keys.database_key.clone()),
         ))
         .await;
         match serde_json::to_string_pretty(&report) {

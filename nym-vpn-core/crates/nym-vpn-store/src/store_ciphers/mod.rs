@@ -1,7 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-pub mod database_key_cipher;
+pub mod aes_gcm_cipher;
 pub mod noop_cipher;
 #[cfg(any(
     target_os = "ios",

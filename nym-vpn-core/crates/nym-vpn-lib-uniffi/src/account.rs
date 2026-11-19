@@ -71,7 +71,7 @@ impl NymAccountController {
         let storage = VpnClientOnDiskStorage::new(storage_config)
             .await
             .map_err(VpnError::internal)?;
-        let database_key = storage.database_key().clone();
+        let database_key = storage.storage_keys().database_key.clone();
         let sdk_storage_paths = nym_sdk::mixnet::StoragePaths::new_from_dir(&storage_path)
             .map_err(|err| VpnError::InternalError {
                 details: err.to_string(),

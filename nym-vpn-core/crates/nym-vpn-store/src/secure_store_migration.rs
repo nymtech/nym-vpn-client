@@ -16,6 +16,7 @@ use nym_vpn_lib_types::{Mnemonic, StoredAccountMode};
 use serde::Deserialize;
 use tokio::fs::File;
 use tokio_util::io::SyncIoBridge;
+use typed_builder::TypedBuilder;
 
 use crate::{
     account::{
@@ -78,13 +79,25 @@ struct LegacyAccount {
     mode: StoredAccountMode,
 }
 
+/// Moves the account from the plain mnemonic JSON file to the secure stores.
+///
+/// On Android, the keychain is unlocked before the mnemonic is encrypted, since its key requires
+/// user presence for encryption.
+#[derive(TypedBuilder)]
 pub struct SecureStoreMigrationManager<'a, MnemonicStoreType, AccountStoreType> {
+    #[builder(setter(into))]
     mnemonic_json_path: PathBuf,
+
     mnemonic_storage: &'a MnemonicStoreType,
+
     account_storage: &'a AccountStoreType,
+
     #[cfg(target_os = "android")]
     secure_enclave: Arc<SecureEnclave>,
+
+    /// Shown to the user when authenticating to unlock the keychain.
     #[cfg(target_os = "android")]
+    #[builder(setter(into))]
     unlock_reason: String,
 }
 
@@ -94,26 +107,6 @@ where
     MnemonicStoreType: MnemonicStorage,
     AccountStoreType: AccountInformationStorage,
 {
-    /// On Android, the keychain is unlocked before the mnemonic is encrypted, since its key requires
-    /// user presence for encryption. The `unlock_reason` is shown to the user when authenticating.
-    pub fn new(
-        mnemonic_json_path: impl Into<PathBuf>,
-        mnemonic_storage: &'a MnemonicStoreType,
-        account_storage: &'a AccountStoreType,
-        #[cfg(target_os = "android")] secure_enclave: Arc<SecureEnclave>,
-        #[cfg(target_os = "android")] unlock_reason: impl Into<String>,
-    ) -> Self {
-        Self {
-            mnemonic_json_path: mnemonic_json_path.into(),
-            mnemonic_storage,
-            account_storage,
-            #[cfg(target_os = "android")]
-            secure_enclave,
-            #[cfg(target_os = "android")]
-            unlock_reason: unlock_reason.into(),
-        }
-    }
-
     pub async fn should_migrate(&self) -> Result<bool> {
         tokio::fs::try_exists(&self.mnemonic_json_path)
             .await
@@ -302,8 +295,11 @@ mod tests {
         let mnemonic_store = InMemoryMnemonicStorage::default();
         let account_store = InMemoryAccountStorage::default();
 
-        let storage =
-            SecureStoreMigrationManager::new(mnemonic_json_path, &mnemonic_store, &account_store);
+        let storage = SecureStoreMigrationManager::builder()
+            .mnemonic_json_path(mnemonic_json_path)
+            .mnemonic_storage(&mnemonic_store)
+            .account_storage(&account_store)
+            .build();
 
         assert_matches!(storage.should_migrate().await, Ok(true));
         assert_matches!(storage.migrate().await, Ok(()));
@@ -348,8 +344,11 @@ mod tests {
             Ok(())
         );
 
-        let storage =
-            SecureStoreMigrationManager::new(mnemonic_json_path, &mnemonic_store, &account_store);
+        let storage = SecureStoreMigrationManager::builder()
+            .mnemonic_json_path(mnemonic_json_path)
+            .mnemonic_storage(&mnemonic_store)
+            .account_storage(&account_store)
+            .build();
 
         assert_matches!(storage.should_migrate().await, Ok(true));
         assert_matches!(storage.migrate().await, Ok(()));

@@ -1,34 +1,33 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use super::{Result, StoreCipher, StoreCipherError};
 use aes_gcm::{
-    Aes256Gcm, Nonce,
+    Aes256Gcm, Key, Nonce,
     aead::{Aead, KeyInit},
 };
-use nym_sqlcipher::DatabaseKey;
-
-use super::{Result, StoreCipher, StoreCipherError};
 
 const VERSION: u8 = 1;
 const NONCE_LEN: usize = 12;
+pub const KEY_LEN: usize = 32;
 
-/// Encrypts data with AES-256-GCM, using the database key as the cipher key.
+/// Encrypts data with AES-256-GCM.
 ///
 /// The output is the format version, followed by a random nonce and the ciphertext.
-pub struct DatabaseKeyCipher {
+pub struct AesGcmStoreCipher {
     cipher: Aes256Gcm,
 }
 
-impl DatabaseKeyCipher {
-    pub fn new(database_key: &DatabaseKey) -> Self {
+impl AesGcmStoreCipher {
+    pub fn new(key: &[u8; KEY_LEN]) -> Self {
         Self {
-            cipher: Aes256Gcm::new(database_key.as_bytes().into()),
+            cipher: Aes256Gcm::new(<&Key<Aes256Gcm>>::from(key)),
         }
     }
 }
 
 #[async_trait::async_trait]
-impl StoreCipher for DatabaseKeyCipher {
+impl StoreCipher for AesGcmStoreCipher {
     async fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
         let nonce: [u8; NONCE_LEN] = rand::random();
         let ciphertext = self
@@ -61,8 +60,8 @@ impl StoreCipher for DatabaseKeyCipher {
 mod tests {
     use super::*;
 
-    fn cipher(key: u8) -> DatabaseKeyCipher {
-        DatabaseKeyCipher::new(&DatabaseKey::from_bytes(&[key; nym_sqlcipher::KEY_LEN]))
+    fn cipher(key: u8) -> AesGcmStoreCipher {
+        AesGcmStoreCipher::new(&[key; KEY_LEN])
     }
 
     #[tokio::test]

@@ -11,18 +11,16 @@ use std::{
 use tokio::{fs::OpenOptions, io::AsyncWriteExt};
 use zeroize::Zeroizing;
 
-use super::{
-    DatabaseKey, DatabaseKeyStorageError, Result, database_key_from_bytes, generate_database_key,
-};
+use super::{MasterKey, MasterKeyStorageError, Result};
 use crate::store_ciphers::StoreCipher;
 
-/// Stores [`DatabaseKey`] on disk, encrypted with the given cipher.
-pub struct OnDiskDatabaseKeyStorage {
+/// Stores [`MasterKey`] on disk, encrypted with the given cipher.
+pub struct OnDiskMasterKeyStorage {
     path: PathBuf,
     cipher: Box<dyn StoreCipher>,
 }
 
-impl OnDiskDatabaseKeyStorage {
+impl OnDiskMasterKeyStorage {
     pub fn new(path: impl AsRef<Path>, cipher: impl StoreCipher + 'static) -> Self {
         Self {
             path: path.as_ref().to_path_buf(),
@@ -30,15 +28,15 @@ impl OnDiskDatabaseKeyStorage {
         }
     }
 
-    /// Loads the database key or creates and stores a new one if it does not exist yet.
-    pub async fn load_or_create(&self) -> Result<DatabaseKey> {
+    /// Loads the master key or creates and stores a new one if it does not exist yet.
+    pub async fn load_or_create(&self) -> Result<MasterKey> {
         match self.load().await? {
             Some(key) => Ok(key),
             None => self.create().await,
         }
     }
 
-    async fn load(&self) -> Result<Option<DatabaseKey>> {
+    async fn load(&self) -> Result<Option<MasterKey>> {
         match tokio::fs::read(&self.path).await {
             Ok(ciphertext) => {
                 let plaintext = self
@@ -46,23 +44,23 @@ impl OnDiskDatabaseKeyStorage {
                     .decrypt(&ciphertext)
                     .await
                     .map(Zeroizing::new)
-                    .map_err(DatabaseKeyStorageError::Decrypt)?;
-                database_key_from_bytes(&plaintext).map(Some)
+                    .map_err(MasterKeyStorageError::Decrypt)?;
+                MasterKey::try_from(&plaintext[..]).map(Some)
             }
             Err(err) if err.kind() == IoErrorKind::NotFound => Ok(None),
             Err(err) => Err(self.io_error("read file", err)),
         }
     }
 
-    async fn create(&self) -> Result<DatabaseKey> {
-        tracing::info!("Creating database key: {}", self.path.display());
+    async fn create(&self) -> Result<MasterKey> {
+        tracing::info!("Creating master key: {}", self.path.display());
 
-        let key = generate_database_key();
+        let key = MasterKey::generate(&mut rand::rng());
         let ciphertext = self
             .cipher
             .encrypt(key.as_bytes())
             .await
-            .map_err(DatabaseKeyStorageError::Encrypt)?;
+            .map_err(MasterKeyStorageError::Encrypt)?;
 
         match self.write_new_file(&ciphertext).await {
             Ok(()) => Ok(key),
@@ -94,8 +92,8 @@ impl OnDiskDatabaseKeyStorage {
         file.sync_all().await
     }
 
-    fn io_error(&self, ctx: &'static str, source: std::io::Error) -> DatabaseKeyStorageError {
-        DatabaseKeyStorageError::Io {
+    fn io_error(&self, ctx: &'static str, source: std::io::Error) -> MasterKeyStorageError {
+        MasterKeyStorageError::Io {
             ctx,
             path: self.path.clone(),
             source,
@@ -115,11 +113,11 @@ mod tests {
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("nested/encryption.key");
 
-        let created = OnDiskDatabaseKeyStorage::new(&path, NoopStoreCipher)
+        let created = OnDiskMasterKeyStorage::new(&path, NoopStoreCipher)
             .load_or_create()
             .await
             .unwrap();
-        let loaded = OnDiskDatabaseKeyStorage::new(&path, NoopStoreCipher)
+        let loaded = OnDiskMasterKeyStorage::new(&path, NoopStoreCipher)
             .load_or_create()
             .await
             .unwrap();
@@ -133,10 +131,10 @@ mod tests {
         let path = tempdir.path().join("encryption.key");
         tokio::fs::write(&path, b"short").await.unwrap();
 
-        let result = OnDiskDatabaseKeyStorage::new(&path, NoopStoreCipher)
+        let result = OnDiskMasterKeyStorage::new(&path, NoopStoreCipher)
             .load_or_create()
             .await;
 
-        assert_matches!(result, Err(DatabaseKeyStorageError::InvalidKeyLength(5)));
+        assert_matches!(result, Err(MasterKeyStorageError::InvalidKeyLength(5)));
     }
 }
