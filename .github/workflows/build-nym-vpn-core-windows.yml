@@ -42,6 +42,7 @@ jobs:
       STDRIVER_PATH: nym-vpn-windows/split-tunnel-driver/signed/${{ matrix.cpu_arch }}
       WINTUN_DIST_DIR: wintun-dist
       UPLOAD_DIR_WINDOWS: core_artifacts_windows_${{ matrix.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
+      DEBUG_SYMBOLS_DIR_WINDOWS: core_debug_symbols_windows_${{ matrix.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
 
     if: github.actor != 'dependabot[bot]'
     needs: [build-wireguard-go-windows, build-winfw-windows]
@@ -137,6 +138,9 @@ jobs:
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
+          $sysroot = rustc --print sysroot
+          $rustflags = "--remap-path-prefix=$env:USERPROFILE=", "--remap-path-prefix=$env:GITHUB_WORKSPACE=", "--remap-path-prefix=$sysroot="
+          $env:CARGO_ENCODED_RUSTFLAGS = $rustflags -join [char]0x1f
           cargo build --locked --release${{ matrix.cpu_arch == 'ARM64' && ' --target aarch64-pc-windows-msvc' || '' }}
 
       - name: Get rust version used for build
@@ -168,5 +172,25 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_WINDOWS }}
           path: ${{ env.UPLOAD_DIR_WINDOWS }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Collect debug symbols
+        shell: bash
+        env:
+          SRC_BINARY: nym-vpn-core/target/${{ matrix.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc/' || '' }}release
+        run: |
+          set -euo pipefail
+          rm -rf ${{ env.DEBUG_SYMBOLS_DIR_WINDOWS }} || true
+          mkdir ${{ env.DEBUG_SYMBOLS_DIR_WINDOWS }}
+          for name in nym_vpnc nym_vpnd nym_socks5_proxy nym_diagnostic; do
+            cp -vp "$SRC_BINARY/$name.pdb" ${{ env.DEBUG_SYMBOLS_DIR_WINDOWS }}
+          done
+
+      - name: Upload debug symbols
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ env.DEBUG_SYMBOLS_DIR_WINDOWS }}
+          path: ${{ env.DEBUG_SYMBOLS_DIR_WINDOWS }}
           if-no-files-found: error
           retention-days: 1

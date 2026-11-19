@@ -101,6 +101,7 @@ env:
   BUILD_FORMAT: ${{ inputs.build_format || 'apk' }}
   BUILD_FLAVOR: ${{ inputs.build_flavor || 'fdroid' }}
   UPLOAD_DIR_ANDROID: android_artifacts_${{ inputs.build_flavor || 'fdroid' }}
+  DEBUG_SYMBOLS_DIR_ANDROID: core_debug_symbols_android
   SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
   SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
   SCCACHE_REDIS_EXPIRATION: 86400
@@ -386,5 +387,28 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ steps.output-path.outputs.artifact_path }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Collect debug symbols
+        if: ${{ env.BUILD_FLAVOR == 'play' }}
+        working-directory: ${{ github.workspace }}
+        env:
+          ARTIFACT_PATH: ${{ steps.output-path.outputs.artifact_path }}
+        run: |
+          set -euo pipefail
+          symbols_prefix=BUNDLE-METADATA/com.android.tools.build.debugsymbols
+          bundle_dir="$(mktemp -d)"
+          unzip -q "$ARTIFACT_PATH" "$symbols_prefix/*/*.so.dbg" -d "$bundle_dir"
+          rm -rf "$DEBUG_SYMBOLS_DIR_ANDROID"
+          mv "$bundle_dir/$symbols_prefix" "$DEBUG_SYMBOLS_DIR_ANDROID"
+          find "$DEBUG_SYMBOLS_DIR_ANDROID" -type f
+
+      - name: Upload debug symbols
+        if: ${{ env.BUILD_FLAVOR == 'play' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ env.DEBUG_SYMBOLS_DIR_ANDROID }}
+          path: ${{ github.workspace }}/${{ env.DEBUG_SYMBOLS_DIR_ANDROID }}
           if-no-files-found: error
           retention-days: 1
