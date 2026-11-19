@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Split tunneling settings explain that excluded apps' DNS lookups still go through NymVPN (https://github.com/nymtech/nym-vpn-client/pull/7105)
+
+### Fixed
+
+- Show a specific error when Enhanced connection is On and the entry server has no bridge, and say the connection is reconnecting when the setting changes (https://github.com/nymtech/nym-vpn-client/pull/6973)
+- [Windows] Sign bundled libwg.dll, winfw.dll and uninstall.exe. Fixes issue with Windows 11 Smart App Control (https://github.com/nymtech/nym-vpn-client/pull/7154, https://github.com/nymtech/nym-vpn-client/pull/7164)
+- [Windows] Hide console window during system service registration invoked by installer (https://github.com/nymtech/nym-vpn-client/pull/7154)
+
 ## [2026.16.1] - 2026-11-18
 
 ### Fixed
