@@ -157,7 +157,7 @@ pub(crate) async fn handle_redeem_freepass<C: ConnectivityMonitor>(
 pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<()> {
-    tracing::info!("REMOVING ACCOUNT AND ALL ASSOCIATED DATA");
+    tracing::info!("Removing account and all associated data");
 
     // Tunnel state is checked before sending the command here. We're in Disconnected state
 
@@ -173,7 +173,7 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
 pub(crate) async fn handle_delete_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<()> {
-    tracing::info!("DELETING ACCOUNT AND ALL ASSOCIATED DATA");
+    tracing::info!("Deleting account and all associated data");
 
     // Tunnel state is checked before sending the command here. We're in Disconnected state
 
