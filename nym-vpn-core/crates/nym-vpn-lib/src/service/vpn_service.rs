@@ -602,11 +602,6 @@ impl NymVpnService {
             Arc::new(builder.build())
         };
 
-        #[cfg(target_os = "macos")]
-        if let Err(err) = AuthorizationService::register_unlock_right() {
-            tracing::error!("Failed to register keychain unlock right: {err}");
-        }
-
         let storage_config =
             StorageConfig::builder().base_data_directory(paths.network_data_dir.clone());
         #[cfg(any(target_os = "ios", target_os = "macos"))]
