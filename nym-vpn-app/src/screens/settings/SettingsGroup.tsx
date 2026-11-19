@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { ReactNode } from 'react';
 import { Description, Label, Radio, RadioGroup } from '@headlessui/react';
 
-type Setting = {
+export type Setting = {
   title: string;
   titleTrailing?: ReactNode;
   leadingIcon?: string;
