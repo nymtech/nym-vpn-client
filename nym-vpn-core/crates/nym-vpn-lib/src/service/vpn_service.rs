@@ -2292,10 +2292,9 @@ impl NymVpnService {
             ));
         }
 
-        let data_dir = self.paths.network_data_dir.clone();
         tracing::info!(
-            "REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
-            data_dir.display()
+            "Removing all account and device data in: {}",
+            self.paths.network_data_dir.display()
         );
 
         let _ = self
@@ -2318,10 +2317,9 @@ impl NymVpnService {
             ));
         }
 
-        let data_dir = self.paths.network_data_dir.clone();
         tracing::info!(
-            "DELETING ACCOUNT AND REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
-            data_dir.display()
+            "Deleting account and removing all account and device data in: {}",
+            self.paths.network_data_dir.display()
         );
 
         self.account_command_tx.delete_account().await?;
