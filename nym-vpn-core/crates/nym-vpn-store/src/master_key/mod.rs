@@ -21,7 +21,23 @@ pub const MASTER_KEY_LEN: usize = 32;
 
 const DATABASE_KEY_LABEL: &[u8] = b"net.nymtech.vpn.database-key.v1";
 const KEY_SECRET_LABEL: &[u8] = b"net.nymtech.vpn.pem-key-secret.v1";
-const STORE_CIPHER_LABEL: &[u8] = b"net.nymtech.vpn.store-cipher-key.v1";
+
+/// File encrypted with its own key derived from the [`MasterKey`], so that one file's ciphertext
+/// can't be swapped in for another's.
+#[derive(Debug, Clone, Copy)]
+pub enum StoreFile {
+    AccountSummary,
+    AccountInfo,
+}
+
+impl StoreFile {
+    fn label(self) -> &'static [u8] {
+        match self {
+            StoreFile::AccountSummary => b"net.nymtech.vpn.account-summary-key.v1",
+            StoreFile::AccountInfo => b"net.nymtech.vpn.account-info-key.v1",
+        }
+    }
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum MasterKeyStorageError {
@@ -83,11 +99,9 @@ impl MasterKey {
         })
     }
 
-    /// Derives the cipher encrypting store files.
-    pub fn derive_store_cipher(&self) -> Result<AesGcmStoreCipher> {
-        Ok(AesGcmStoreCipher::new(
-            &*self.derive_key(STORE_CIPHER_LABEL)?,
-        ))
+    /// Derives the cipher encrypting the given store file.
+    pub fn derive_store_cipher(&self, file: StoreFile) -> Result<AesGcmStoreCipher> {
+        Ok(AesGcmStoreCipher::new(&*self.derive_key(file.label())?))
     }
 
     fn derive_key(&self, label: &[u8]) -> Result<Zeroizing<[u8; MASTER_KEY_LEN]>> {
@@ -134,6 +148,7 @@ pub struct StorageKeys {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::store_ciphers::StoreCipher;
 
     #[test]
     fn derives_distinct_keys() {
@@ -146,5 +161,29 @@ mod tests {
             second.database_key.as_bytes()
         );
         assert_ne!(first.database_key.as_bytes(), master_key.as_bytes());
+    }
+
+    #[tokio::test]
+    async fn store_files_use_distinct_keys() {
+        let master_key = MasterKey::generate(&mut rand::rng());
+        let summary = master_key
+            .derive_store_cipher(StoreFile::AccountSummary)
+            .unwrap();
+        let account = master_key
+            .derive_store_cipher(StoreFile::AccountInfo)
+            .unwrap();
+
+        let encrypted = summary.encrypt(b"data").await.unwrap();
+
+        assert!(account.decrypt(&encrypted).await.is_err());
+        assert_eq!(
+            master_key
+                .derive_store_cipher(StoreFile::AccountSummary)
+                .unwrap()
+                .decrypt(&encrypted)
+                .await
+                .unwrap(),
+            b"data"
+        );
     }
 }

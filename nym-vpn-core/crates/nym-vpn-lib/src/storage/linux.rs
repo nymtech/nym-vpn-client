@@ -3,7 +3,9 @@
 
 use nym_vpn_store::{
     keys::device::DeviceKeysPaths,
-    master_key::{KeySecret, MasterKey, MasterKeyStorageError, on_disk::OnDiskMasterKeyStorage},
+    master_key::{
+        KeySecret, MasterKey, MasterKeyStorageError, StoreFile, on_disk::OnDiskMasterKeyStorage,
+    },
     store_ciphers::secure_enclave_cipher::{SecureEnclaveCipher, SecureEnclaveCipherOptions},
 };
 
@@ -20,7 +22,7 @@ const MASTER_KEY_FILE_NAME: &str = "master.key";
 /// Name of the systemd credentials, authenticated on decryption.
 const DEVICE_SE_KEY: &str = "net.nymtech.vpn.device-key";
 
-/// Cipher for all files, backed by `systemd-creds`, or storing them unencrypted if unavailable.
+/// Cipher for the master key and mnemonic, backed by `systemd-creds`, or storing them unencrypted if unavailable.
 fn device_cipher(config: &StorageConfig) -> SecureEnclaveCipher {
     SecureEnclaveCipher::new(
         config.secure_enclave.clone(),
@@ -48,11 +50,14 @@ pub fn mnemonic_storage(config: &StorageConfig) -> PlatformMnemonicStorage {
     )
 }
 
-pub fn account_storage(config: &StorageConfig) -> PlatformAccountStorage {
-    PlatformAccountStorage::new(
+pub fn account_storage(
+    config: &StorageConfig,
+    master_key: &MasterKey,
+) -> Result<PlatformAccountStorage, MasterKeyStorageError> {
+    Ok(PlatformAccountStorage::new(
         config.base_data_directory.join(ACCOUNT_INFO_FILE_NAME),
-        device_cipher(config),
-    )
+        master_key.derive_store_cipher(StoreFile::AccountInfo)?,
+    ))
 }
 
 pub fn device_keys(config: &StorageConfig, key_secret: KeySecret) -> PlatformDeviceKeys {
