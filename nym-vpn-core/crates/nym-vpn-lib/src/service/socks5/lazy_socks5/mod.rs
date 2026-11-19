@@ -11,8 +11,8 @@ use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_gateway_directory::GatewayCacheHandle;
 use nym_network_defaults::v2::NymNetworkDetails;
 use nym_sdk::mixnet::Socks5MixnetClient;
-use nym_sqlcipher::DatabaseKey;
 use nym_vpn_lib_types::{TunnelConnectionData, TunnelState, TunnelType};
+use nym_vpn_store::master_key::StorageKeys;
 use std::{
     net::SocketAddr,
     path::PathBuf,
@@ -59,8 +59,8 @@ pub struct LazySocks5Config {
     pub vpn_exit_gateway_identity: Option<String>,
     /// Bandwidth controller handle, used as the mixnet client's ticket provider.
     pub bandwidth_command_tx: BandwidthControllerRequestSender,
-    /// Key encrypting the mixnet client databases and private keys
-    pub database_key: DatabaseKey,
+    /// Keys encrypting the mixnet client databases and private keys
+    pub storage_keys: StorageKeys,
 }
 
 /// Errors from the LazySocks5
@@ -404,6 +404,7 @@ impl LazySocks5Handle {
 mod tests {
     use super::*;
     use nym_vpn_lib_types::TunnelState;
+    use nym_vpn_store::master_key::MasterKey;
     use std::time::Duration;
 
     /// Helper to create a minimal test configuration
@@ -422,7 +423,9 @@ mod tests {
             bandwidth_command_tx: BandwidthControllerRequestSender::new(
                 tokio::sync::mpsc::unbounded_channel().0,
             ),
-            database_key: DatabaseKey::from_bytes(&[0x42; nym_sqlcipher::KEY_LEN]),
+            storage_keys: MasterKey::generate(&mut rand::rng())
+                .derive_storage_keys()
+                .unwrap(),
         }
     }
 

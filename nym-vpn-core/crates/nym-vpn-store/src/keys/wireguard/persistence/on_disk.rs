@@ -13,11 +13,11 @@ use sqlx::{
 use time::OffsetDateTime;
 
 use crate::{
-    database_key::DatabaseKey,
     keys::wireguard::{
         RawWireguardKeys, WireguardKeyStore, WireguardKeys,
         persistence::{is_expired, random_keys, random_timestamp_from},
     },
+    master_key::DatabaseKey,
 };
 
 #[derive(Debug, Clone)]

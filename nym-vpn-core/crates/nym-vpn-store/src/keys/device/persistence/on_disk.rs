@@ -7,10 +7,7 @@ use nym_crypto::asymmetric::ed25519;
 use nym_pemstore::{KeyPairPath, KeySecret, traits::PemStorableKeyPair};
 use rand::SeedableRng;
 
-use crate::{
-    database_key::{DatabaseKey, key_secret},
-    keys::device::{DeviceKeyStore, DeviceKeys},
-};
+use crate::keys::device::{DeviceKeyStore, DeviceKeys};
 
 pub const DEFAULT_PRIVATE_DEVICE_KEY_FILENAME: &str = "private_device.pem";
 pub const DEFAULT_PUBLIC_DEVICE_KEY_FILENAME: &str = "public_device.pem";
@@ -85,11 +82,8 @@ impl DeviceKeysPaths {
 }
 
 impl OnDiskKeys {
-    pub fn new(paths: DeviceKeysPaths, database_key: &DatabaseKey) -> Self {
-        OnDiskKeys {
-            paths,
-            secret: key_secret(database_key),
-        }
+    pub fn new(paths: DeviceKeysPaths, secret: KeySecret) -> Self {
+        OnDiskKeys { paths, secret }
     }
 
     fn load_device_keypair(&self) -> Result<Option<ed25519::KeyPair>, OnDiskKeysError> {
@@ -239,14 +233,14 @@ impl DeviceKeyStore for OnDiskKeys {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use nym_pemstore::RawKey;
 
-    const DATABASE_KEY: [u8; nym_sqlcipher::KEY_LEN] = [0x42; nym_sqlcipher::KEY_LEN];
+    use super::*;
 
     fn on_disk_keys(dir: &Path) -> OnDiskKeys {
         OnDiskKeys::new(
             DeviceKeysPaths::new(dir),
-            &DatabaseKey::from_bytes(&DATABASE_KEY),
+            KeySecret::from(RawKey::from_bytes(&[0x42; 32])),
         )
     }
 

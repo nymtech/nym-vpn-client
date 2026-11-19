@@ -3,12 +3,11 @@
 
 use nym_secure_enclave::{KeychainAccess, KeychainItem};
 use nym_vpn_store::{
-    database_key::{DatabaseKey, DatabaseKeyStorageError, keychain::KeychainDatabaseKeyStorage},
     keys::device::DeviceKeysPaths,
-    secure_store_migration::SecureStoreMigrationManager,
+    master_key::{KeySecret, MasterKey, MasterKeyStorageError, keychain::KeychainMasterKeyStorage},
 };
 
-use super::{LEGACY_MNEMONIC_FILE_NAME, StorageConfig};
+use super::StorageConfig;
 
 pub type PlatformMnemonicStorage = nym_vpn_store::mnemonic::keychain::KeychainMnemonicStorage;
 pub type PlatformAccountStorage = nym_vpn_store::account::keychain::KeychainAccountStorage;
@@ -29,19 +28,19 @@ const MNEMONIC_ACCESS: KeychainAccess = KeychainAccess::UserPresence;
 const MNEMONIC_ACCESS: KeychainAccess = KeychainAccess::AfterFirstUnlock;
 
 /// Keychain services of the items, each stored per network.
-const DATABASE_KEY_KEYCHAIN_SERVICE: &str = "net.nymtech.vpn.database-key";
+const MASTER_KEY_KEYCHAIN_SERVICE: &str = "net.nymtech.vpn.master-key";
 const MNEMONIC_KEYCHAIN_SERVICE: &str = "net.nymtech.vpn.mnemonic";
 const ACCOUNT_INFO_KEYCHAIN_SERVICE: &str = "net.nymtech.vpn.account-info";
 const DEVICE_KEYS_KEYCHAIN_SERVICE: &str = "net.nymtech.vpn.device-keys";
 
-fn item(config: &StorageConfig, service: &str, access: KeychainAccess) -> KeychainItem {
+fn keychain_item(config: &StorageConfig, service: &str, access: KeychainAccess) -> KeychainItem {
     config.keychain.item(service, &config.network_name, access)
 }
 
-pub async fn database_key(config: &StorageConfig) -> Result<DatabaseKey, DatabaseKeyStorageError> {
-    KeychainDatabaseKeyStorage::new(item(
+pub async fn master_key(config: &StorageConfig) -> Result<MasterKey, MasterKeyStorageError> {
+    KeychainMasterKeyStorage::new(keychain_item(
         config,
-        DATABASE_KEY_KEYCHAIN_SERVICE,
+        MASTER_KEY_KEYCHAIN_SERVICE,
         KeychainAccess::AfterFirstUnlock,
     ))
     .load_or_create()
@@ -49,11 +48,15 @@ pub async fn database_key(config: &StorageConfig) -> Result<DatabaseKey, Databas
 }
 
 pub fn mnemonic_storage(config: &StorageConfig) -> PlatformMnemonicStorage {
-    PlatformMnemonicStorage::new(item(config, MNEMONIC_KEYCHAIN_SERVICE, MNEMONIC_ACCESS))
+    PlatformMnemonicStorage::new(keychain_item(
+        config,
+        MNEMONIC_KEYCHAIN_SERVICE,
+        MNEMONIC_ACCESS,
+    ))
 }
 
 pub fn account_storage(config: &StorageConfig) -> PlatformAccountStorage {
-    PlatformAccountStorage::new(item(
+    PlatformAccountStorage::new(keychain_item(
         config,
         ACCOUNT_INFO_KEYCHAIN_SERVICE,
         KeychainAccess::AfterFirstUnlock,
@@ -61,23 +64,11 @@ pub fn account_storage(config: &StorageConfig) -> PlatformAccountStorage {
 }
 
 /// Moves plaintext device keys found on disk to the keychain.
-pub fn device_keys(config: &StorageConfig, _database_key: &DatabaseKey) -> PlatformDeviceKeys {
-    PlatformDeviceKeys::new(item(
+pub fn device_keys(config: &StorageConfig, _key_secret: KeySecret) -> PlatformDeviceKeys {
+    PlatformDeviceKeys::new(keychain_item(
         config,
         DEVICE_KEYS_KEYCHAIN_SERVICE,
         KeychainAccess::AfterFirstUnlock,
     ))
     .with_plaintext_migration(DeviceKeysPaths::new(&config.base_data_directory))
-}
-
-pub fn migration_manager<'a>(
-    config: &StorageConfig,
-    mnemonic_storage: &'a PlatformMnemonicStorage,
-    account_storage: &'a PlatformAccountStorage,
-) -> SecureStoreMigrationManager<'a, PlatformMnemonicStorage, PlatformAccountStorage> {
-    SecureStoreMigrationManager::new(
-        config.base_data_directory.join(LEGACY_MNEMONIC_FILE_NAME),
-        mnemonic_storage,
-        account_storage,
-    )
 }

@@ -50,10 +50,10 @@ use nym_vpn_store::{
         AccountSummaryStorage,
         on_disk::{OnDiskAccountSummaryStorage, OnDiskAccountSummaryStorageError},
     },
-    database_key::{DatabaseKey, DatabaseKeyStorageError},
     keys::device::{DeviceKeyStore, DeviceKeys},
+    master_key::{MasterKeyStorageError, StorageKeys},
     mnemonic::{MnemonicStorage, StoredMnemonic},
-    store_ciphers::database_key_cipher::DatabaseKeyCipher,
+    secure_store_migration::SecureStoreMigrationManager,
 };
 use typed_builder::TypedBuilder;
 
@@ -94,25 +94,36 @@ pub struct VpnClientOnDiskStorage {
     mnemonic_storage: PlatformMnemonicStorage,
     account_storage: PlatformAccountStorage,
     summary_storage: OnDiskAccountSummaryStorage,
-    database_key: DatabaseKey,
+    storage_keys: StorageKeys,
 }
 
 impl VpnClientOnDiskStorage {
-    /// Creates the storage, loading the database key or creating it on first use.
-    pub async fn new(config: StorageConfig) -> Result<Self, DatabaseKeyStorageError> {
-        let database_key = platform::database_key(&config).await?;
+    /// Creates the storage, loading the master key or creating it on first use.
+    pub async fn new(config: StorageConfig) -> Result<Self, MasterKeyStorageError> {
+        let master_key = platform::master_key(&config).await?;
+        let storage_keys = master_key.derive_storage_keys()?;
+        let summary_cipher = master_key.derive_store_cipher()?;
+        drop(master_key);
         let mnemonic_storage = platform::mnemonic_storage(&config);
         let account_storage = platform::account_storage(&config);
-        let key_store = platform::device_keys(&config, &database_key);
+        let key_store = platform::device_keys(&config, storage_keys.key_secret.clone());
         let base_data_directory = &config.base_data_directory;
 
         let summary_storage = OnDiskAccountSummaryStorage::new(
             base_data_directory.join(ACCOUNT_SUMMARY_FILE_NAME),
-            DatabaseKeyCipher::new(&database_key),
+            summary_cipher,
         )
         .with_legacy_plaintext(base_data_directory.join(LEGACY_ACCOUNT_SUMMARY_FILE_NAME));
 
-        let migration = platform::migration_manager(&config, &mnemonic_storage, &account_storage);
+        let migration = SecureStoreMigrationManager::builder()
+            .mnemonic_json_path(base_data_directory.join(LEGACY_MNEMONIC_FILE_NAME))
+            .mnemonic_storage(&mnemonic_storage)
+            .account_storage(&account_storage);
+        #[cfg(target_os = "android")]
+        let migration = migration
+            .secure_enclave(config.secure_enclave.clone())
+            .unlock_reason(platform::MIGRATION_UNLOCK_REASON);
+        let migration = migration.build();
         // Plaintext files are kept on failure, so the migration is retried on next start.
         if let Err(err) = migration.migrate().await {
             tracing::error!("Failed to migrate to secure store: {err}");
@@ -123,13 +134,13 @@ impl VpnClientOnDiskStorage {
             mnemonic_storage,
             account_storage,
             summary_storage,
-            database_key,
+            storage_keys,
         })
     }
 
-    /// Key used to encrypt the on-disk databases.
-    pub fn database_key(&self) -> &DatabaseKey {
-        &self.database_key
+    /// Keys encrypting the on-disk databases and private key files.
+    pub fn storage_keys(&self) -> &StorageKeys {
+        &self.storage_keys
     }
 }
 

@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_store::{
-    database_key::{DatabaseKey, DatabaseKeyStorageError, on_disk::OnDiskDatabaseKeyStorage},
     keys::device::DeviceKeysPaths,
-    secure_store_migration::SecureStoreMigrationManager,
+    master_key::{KeySecret, MasterKey, MasterKeyStorageError, on_disk::OnDiskMasterKeyStorage},
     store_ciphers::secure_enclave_cipher::{SecureEnclaveCipher, SecureEnclaveCipherOptions},
 };
 
-use super::{LEGACY_MNEMONIC_FILE_NAME, StorageConfig};
+use super::StorageConfig;
 
 pub type PlatformMnemonicStorage = nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorage;
 pub type PlatformAccountStorage = nym_vpn_store::account::on_disk::OnDiskAccountStorage;
@@ -16,7 +15,7 @@ pub type PlatformDeviceKeys = nym_vpn_store::keys::device::OnDiskKeys;
 
 const MNEMONIC_FILE_NAME: &str = "mnemonic.bin";
 const ACCOUNT_INFO_FILE_NAME: &str = "account.bin";
-const DATABASE_KEY_FILE_NAME: &str = "encryption.key";
+const MASTER_KEY_FILE_NAME: &str = "master.key";
 
 /// Name of the systemd credentials, authenticated on decryption.
 const DEVICE_SE_KEY: &str = "net.nymtech.vpn.device-key";
@@ -32,10 +31,10 @@ fn device_cipher(config: &StorageConfig) -> SecureEnclaveCipher {
     )
 }
 
-/// Loads the database key, encrypted with `systemd-creds`.
-pub async fn database_key(config: &StorageConfig) -> Result<DatabaseKey, DatabaseKeyStorageError> {
-    OnDiskDatabaseKeyStorage::new(
-        config.base_data_directory.join(DATABASE_KEY_FILE_NAME),
+/// Loads the master key, encrypted with `systemd-creds`.
+pub async fn master_key(config: &StorageConfig) -> Result<MasterKey, MasterKeyStorageError> {
+    OnDiskMasterKeyStorage::new(
+        config.base_data_directory.join(MASTER_KEY_FILE_NAME),
         device_cipher(config),
     )
     .load_or_create()
@@ -56,21 +55,9 @@ pub fn account_storage(config: &StorageConfig) -> PlatformAccountStorage {
     )
 }
 
-pub fn device_keys(config: &StorageConfig, database_key: &DatabaseKey) -> PlatformDeviceKeys {
+pub fn device_keys(config: &StorageConfig, key_secret: KeySecret) -> PlatformDeviceKeys {
     PlatformDeviceKeys::new(
         DeviceKeysPaths::new(&config.base_data_directory),
-        database_key,
-    )
-}
-
-pub fn migration_manager<'a>(
-    config: &StorageConfig,
-    mnemonic_storage: &'a PlatformMnemonicStorage,
-    account_storage: &'a PlatformAccountStorage,
-) -> SecureStoreMigrationManager<'a, PlatformMnemonicStorage, PlatformAccountStorage> {
-    SecureStoreMigrationManager::new(
-        config.base_data_directory.join(LEGACY_MNEMONIC_FILE_NAME),
-        mnemonic_storage,
-        account_storage,
+        key_secret,
     )
 }
