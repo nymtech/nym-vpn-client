@@ -12,24 +12,24 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 
 @Composable
-fun LogsSection(onPrivacyClick: () -> Unit) {
-	SettingsGroup(
-		items = listOf(
-			SelectionItem(
-				leading = {
-					SettingsIcon(
-						Icons.Outlined.Lock,
-						stringResource(R.string.settings_logs_title),
-					)
-				},
-				trailing = {
-					SettingsArrowIcon()
-				},
-				title = {
-					SettingsTitle(stringResource(R.string.settings_logs_title))
-				},
-				onClick = onPrivacyClick,
-			),
+fun logsEntries(onPrivacyClick: () -> Unit): List<SettingsEntry> = buildList {
+	add(
+		R.string.settings_section_help_data,
+		stringResource(R.string.settings_logs_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					Icons.Outlined.Lock,
+					stringResource(R.string.settings_logs_title),
+				)
+			},
+			trailing = {
+				SettingsArrowIcon()
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_logs_title))
+			},
+			onClick = onPrivacyClick,
 		),
 	)
 }
@@ -38,6 +38,6 @@ fun LogsSection(onPrivacyClick: () -> Unit) {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewLogsSection() {
 	NymVPNTheme(Theme.default()) {
-		LogsSection({})
+		SettingsGroup(items = logsEntries({}).map { it.item })
 	}
 }

@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.components
 
+import androidx.annotation.StringRes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,3 +16,8 @@ fun SettingsGroup(items: List<SelectionItem>, modifier: Modifier = Modifier, bac
 		modifier = modifier,
 	)
 }
+
+/** A settings row with the plain title used by search and the section it belongs to. */
+data class SettingsEntry(@StringRes val section: Int, val title: String, val item: SelectionItem)
+
+fun MutableList<SettingsEntry>.add(@StringRes section: Int, title: String, item: SelectionItem) = add(SettingsEntry(section, title, item))

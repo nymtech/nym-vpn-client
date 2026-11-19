@@ -19,6 +19,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import net.nymtech.nymvpn.ui.screens.settings.components.SettingsGroup
+import net.nymtech.nymvpn.ui.screens.settings.components.accountEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.appEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.legalEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.logsEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.supportEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.vpnSettingsEntries
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +42,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.theme.iconSize
+import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
+import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
@@ -39,19 +55,13 @@ import net.nymtech.nymvpn.ui.common.deviceauth.rememberScreenLockGate
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
 import net.nymtech.nymvpn.ui.screens.scan.RedeemCodeSheet
-import net.nymtech.nymvpn.ui.screens.settings.components.AccountSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppVersionSection
-import net.nymtech.nymvpn.ui.screens.settings.components.AppearanceSection
 import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
-import net.nymtech.nymvpn.ui.screens.settings.components.LegalSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LoginSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutSection
-import net.nymtech.nymvpn.ui.screens.settings.components.LogsSection
 import net.nymtech.nymvpn.ui.screens.settings.components.QuitSection
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
-import net.nymtech.nymvpn.ui.screens.settings.components.SupportSection
-import net.nymtech.nymvpn.ui.screens.settings.components.VpnSettingsSection
 import net.nymtech.nymvpn.ui.screens.settings.modal.PrivateDnsDialog
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -232,6 +242,16 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 	)
 }
 
+private val settingsSectionOrder = listOf(
+	R.string.settings_section_account,
+	R.string.settings_section_protection,
+	R.string.settings_section_connection,
+	R.string.settings_section_routing,
+	R.string.settings_section_mixnet,
+	R.string.settings_section_app,
+	R.string.settings_section_help_data,
+)
+
 @Composable
 fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 	Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -245,27 +265,75 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 				.padding(horizontal = 16.dp.scaledWidth())
 				.navigationBarsPadding(),
 		) {
-			LoginSection(
-				isMnemonicStored = values.isMnemonicStored,
-				onGetStartedClick = actions.onGetStartedClick,
-			)
-			AccountSection(
+			var query by rememberSaveable { mutableStateOf("") }
+			val entries = accountEntries(
 				isMnemonicStored = values.isMnemonicStored,
 				onPassphraseClick = actions.onPassphraseClick,
 				onAccountClick = actions.onAccountClick,
 				onRedeemCodeClick = actions.onRedeemCodeClick,
 				subscription = values.subscription,
+			) + vpnSettingsEntries(values, actions) + appEntries(values, actions) +
+				supportEntries(actions.onSupportClick) + logsEntries(actions.onPrivacyClick) + legalEntries(actions.onLegalClick)
+			CustomTextField(
+				value = query,
+				onValueChange = { query = it },
+				modifier = Modifier.fillMaxWidth(),
+				placeholder = {
+					Text(
+						stringResource(R.string.settings_search_placeholder),
+						color = MaterialTheme.colorScheme.onBackground,
+					)
+				},
+				singleLine = true,
+				leading = {
+					Icon(
+						Icons.Rounded.Search,
+						contentDescription = stringResource(R.string.search),
+						modifier = Modifier.size(iconSize),
+					)
+				},
+				label = {},
+				showClearIcon = true,
+				textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+				containerColor = MaterialTheme.colorScheme.background,
 			)
-			SupportSection(actions.onSupportClick)
-			VpnSettingsSection(values, actions)
-			AppearanceSection(values, actions)
-			LogsSection(onPrivacyClick = actions.onPrivacyClick)
-			// ResetAppSection(actions.onResetClick)
-			LegalSection(actions.onLegalClick)
-			// SystemStatusSection(actions.onSystemStatusClick)
-			LogoutSection(isMnemonicStored = values.isMnemonicStored, actions.onLogoutClick)
-			QuitSection(actions.onQuitClick)
-			AppVersionSection(appVersion = values.appVersion, onAppVersionClick = actions.onAppVersionClick)
+			if (query.isBlank()) {
+				settingsSectionOrder.forEach { section ->
+					val items = entries.filter { it.section == section }.map { it.item }
+					if (section == R.string.settings_section_account || items.isNotEmpty()) {
+						GroupLabel(stringResource(section))
+					}
+					if (section == R.string.settings_section_account) {
+						LoginSection(
+							isMnemonicStored = values.isMnemonicStored,
+							onGetStartedClick = actions.onGetStartedClick,
+						)
+					}
+					if (items.isNotEmpty()) SettingsGroup(items = items)
+				}
+				LogoutSection(isMnemonicStored = values.isMnemonicStored, actions.onLogoutClick)
+				QuitSection(actions.onQuitClick)
+				AppVersionSection(appVersion = values.appVersion, onAppVersionClick = actions.onAppVersionClick)
+			} else {
+				// search hits: matching rows from every section, section name as the description
+				val hits = entries.filter { it.title.contains(query.trim(), ignoreCase = true) }
+				if (hits.isNotEmpty()) {
+					SettingsGroup(
+						items = hits.map { entry ->
+							val sectionName = stringResource(entry.section)
+							entry.item.copy(
+								description = {
+									Text(
+										sectionName,
+										style = MaterialTheme.typography.bodySmall,
+										color = MaterialTheme.colorScheme.onBackground,
+									)
+								},
+							)
+						},
+					)
+				}
+			}
 		}
 	}
 }
