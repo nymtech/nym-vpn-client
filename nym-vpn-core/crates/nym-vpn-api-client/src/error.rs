@@ -50,6 +50,9 @@ pub enum VpnApiClientError {
     #[error("failed to check account pairing")]
     CheckPairingAccount(#[source] Box<HttpClientError>),
 
+    #[error("failed to confirm pairing PIN")]
+    ConfirmPairingPinAccount(#[source] Box<HttpClientError>),
+
     #[error("failed to get pairing secret account")]
     GetPairingSecretAccount(#[source] Box<HttpClientError>),
 
