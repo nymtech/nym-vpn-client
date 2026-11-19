@@ -10,6 +10,8 @@ import Theme
 public struct SettingsView: View {
     @EnvironmentObject private var credentialsManager: CredentialsManager
     @StateObject private var viewModel: SettingsViewModel
+    @State private var searchText = ""
+    @FocusState private var isSearchFocused: Bool
 #if os(macOS)
     @State private var autologinState = AutologinState()
 #endif
@@ -30,6 +32,13 @@ private extension SettingsView {
             navbar()
             ScrollView {
                 VStack(spacing: 0) {
+                    Spacer()
+                        .frame(height: NymSpacing.section)
+                    SearchView(
+                        searchText: $searchText,
+                        isSearchFocused: $isSearchFocused,
+                        placeholder: "settings.search.placeholder".localizedString
+                    )
                     Spacer()
                         .frame(height: NymSpacing.section)
                     settingsList()
@@ -88,7 +97,30 @@ private extension SettingsView {
 
     @ViewBuilder
     func settingsList() -> some View {
-        SettingsList(viewModel: SettingsListViewModel(sections: viewModel.sections))
+        ForEach(visibleSections(), id: \.self) { section in
+            sectionHeader(section.kind.title)
+            SettingsList(viewModel: SettingsListViewModel(sections: [section]))
+        }
+    }
+
+    /// All sections, or while searching only the rows whose title matches, under their section header.
+    func visibleSections() -> [SettingsSection<AppSettingsSectionKind>] {
+        let query = searchText.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else { return viewModel.sections }
+        return viewModel.sections.compactMap { section in
+            let hits = section.viewModels.filter { $0.title.localizedCaseInsensitiveContains(query) }
+            return hits.isEmpty ? nil : SettingsSection(kind: section.kind, viewModels: hits)
+        }
+    }
+
+    func sectionHeader(_ title: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodySmall)
+                .padding(.bottom, NymSpacing.small)
+            Spacer()
+        }
     }
 
     func appVersionText() -> some View {
