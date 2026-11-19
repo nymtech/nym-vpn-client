@@ -1219,9 +1219,8 @@ message QrUrlResponse {
 }
 
 message QrPairingConfirmationResponse {
-  string pin_code = 1;
   // Identifies the started pairing process in its PairingCheckResult events
-  uint32 session_id = 2;
+  uint32 session_id = 1;
 }
 
 message GetDeeplinkParams {

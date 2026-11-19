@@ -16,7 +16,8 @@ use nym_crypto::{
     symmetric::aead::{self, AeadKey, KeySizeUser, Nonce, nonce_size, random_nonce},
 };
 use nym_qr_pairing_requests::{
-    NymVpnGetPairingSecretResponse, NymVpnPairingCheckResponse, NymVpnPairingResponse,
+    NymVpnGetPairingSecretResponse, NymVpnPairingCheckResponse, NymVpnPairingFinalisedResponse,
+    NymVpnPairingResponse,
 };
 use nym_sdk::mixnet::x25519::{KeyPair, PublicKey};
 use nym_vpn_api_client::{
@@ -35,6 +36,9 @@ use crate::{
 };
 
 const RETRY_INTERVAL: Duration = Duration::from_secs(5);
+const PIN_ENC_INFO: &str = "pin_enc_info";
+const PIN_RE_ENC_INFO: &str = "pin_re_enc_info";
+const MNEMONIC_ENC_INFO: &str = "mnemonic_enc_info";
 
 type SharedKeySizeUser = Aes256GcmSiv;
 
@@ -147,16 +151,120 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
     fn derive_shared_key(
         &self,
         remote_public: &PublicKey,
+        info: &str,
     ) -> Result<SharedSymmetricKey, AccountCommandError> {
         let dh_result = self.qr_keypair.private_key().diffie_hellman(remote_public);
         let key_size = SharedKeySizeUser::key_size();
 
-        let okm = hkdf::extract_then_expand::<blake3::Hasher>(None, &dh_result, None, key_size)
-            .expect("somehow too long okm was provided");
+        let okm = hkdf::extract_then_expand::<blake3::Hasher>(
+            None,
+            &dh_result,
+            Some(info.as_bytes()),
+            key_size,
+        )
+        .expect("somehow too long okm was provided");
 
         AeadKey::<Aes256GcmSiv>::try_from(&okm)
             .map(SharedSymmetricKey)
             .map_err(|err| AccountCommandError::PairingDerivingSharedSecret(err.to_string()))
+    }
+
+    fn treat_err(&self, err_msg: &str) -> String {
+        tracing::error!(err_msg);
+        self.send_event(AccountControllerPairingResult::Error(err_msg.to_string()));
+        err_msg.to_string()
+    }
+
+    async fn check_pairing_account(
+        &self,
+        account: &VpnAccount,
+    ) -> Result<Option<NymVpnPairingFinalisedResponse>, String> {
+        match self
+            .unless_cancelled(
+                self.vpn_api_client
+                    .check_pairing_account(account, &self.qr_keypair.public_key().to_string()),
+            )
+            .await
+        {
+            Some(Ok(response)) => {
+                if response.inner.is_none() {
+                    tracing::debug!("QR pairing not yet completed, retrying in {RETRY_INTERVAL:?}")
+                }
+                Ok(response.inner)
+            }
+            Some(Err(VpnApiClientError::CheckPairingAccount(e))) if e.is_timeout() => {
+                tracing::debug!("Timeout on checking the pairing");
+                Ok(None)
+            }
+            Some(Err(err)) => Err(self.treat_err(&format!(
+                "Error checking QR pairing, stopping the checks: {err:?}"
+            ))),
+            None => {
+                tracing::debug!("QR pairing loop cancelled");
+                self.send_event(AccountControllerPairingResult::Cancelled);
+                Err("cancelled".to_string())
+            }
+        }
+    }
+
+    async fn confirm_pairing_pin(
+        &self,
+        account: &VpnAccount,
+        response: NymVpnPairingFinalisedResponse,
+    ) -> Result<Option<(SharedSymmetricKey, String)>, String> {
+        let Ok(remote_pub_key) = PublicKey::from_str(&response.remote_pub_key) else {
+            return Err(self.treat_err("Invalid public key received in QR pairing response"));
+        };
+        let Ok(first_shared_key) = self.derive_shared_key(&remote_pub_key, PIN_ENC_INFO) else {
+            return Err(self.treat_err("First key derivation not possible"));
+        };
+        let Some(received_nonce) = SharedSymmetricKey::validate_aead_nonce(&response.nonce) else {
+            return Err(self.treat_err("Nonce validation failed"));
+        };
+        let Some(pin_code_bytes) =
+            first_shared_key.decrypt(&response.encrypted_pin_code, &received_nonce)
+        else {
+            return Err(self.treat_err("Could not decrypt pin code"));
+        };
+        if !is_valid_pin(&pin_code_bytes) {
+            return Err(self.treat_err("Invalid PIN code"));
+        }
+
+        let Ok(second_shared_key) = self.derive_shared_key(&remote_pub_key, PIN_RE_ENC_INFO) else {
+            return Err(self.treat_err("Second key derivation not possible"));
+        };
+        let nonce = second_shared_key.random_nonce();
+        let Some(re_encrypted_pin_code) = second_shared_key.encrypt(&pin_code_bytes, &nonce) else {
+            return Err(self.treat_err("Could not re-encrypt PIN"));
+        };
+
+        let pin_code = String::from_utf8_lossy_owned(pin_code_bytes);
+        let Ok(third_shared_key) = self.derive_shared_key(&remote_pub_key, MNEMONIC_ENC_INFO)
+        else {
+            return Err(self.treat_err("Third key derivation not possible"));
+        };
+
+        match self
+            .unless_cancelled(self.vpn_api_client.confirm_pin(
+                account,
+                &self.qr_keypair.public_key().to_string(),
+                re_encrypted_pin_code,
+                nonce.to_vec(),
+            ))
+            .await
+        {
+            Some(Err(VpnApiClientError::ConfirmPairingPinAccount(e))) if e.is_timeout() => {
+                tracing::debug!("Timeout on confirming the PIN");
+                Ok(None)
+            }
+            Some(Err(err)) => Err(self.treat_err(&format!("Confirming PIN: {err:?}"))),
+            None => {
+                tracing::debug!("QR confirm pairing PIN loop cancelled");
+                self.send_event(AccountControllerPairingResult::Cancelled);
+                Err("cancelled".to_string())
+            }
+            _ => Ok(Some((third_shared_key, pin_code))),
+        }
     }
 
     fn spawn_pairing_check_task(
@@ -171,6 +279,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
         let shared_key_setter = shared_key.clone();
         let session_id = self.session_id;
         let qr_pubkey = self.qr_keypair.public_key().to_string();
+        let mut received_response: Option<NymVpnPairingFinalisedResponse> = None;
 
         tokio::spawn(async move {
             loop {
@@ -187,47 +296,27 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                             self.send_event(AccountControllerPairingResult::TimedOut);
                             break;
                         }
-                        let Some(response) = self
-                            .unless_cancelled(self.vpn_api_client.check_pairing_account(&account, &self.qr_keypair.public_key().to_string()))
-                            .await
-                        else {
-                            tracing::debug!("QR pairing loop cancelled");
-                            self.send_event(AccountControllerPairingResult::Cancelled);
-                            break;
+                        let response = if let Some(r) = &received_response {
+                            r.clone()
+                        } else {
+                            let response = match self.check_pairing_account(&account).await {
+                                Ok(Some(response)) => response,
+                                Ok(None) => continue,
+                                Err(_) => break,
+                            };
+                            received_response = Some(response.clone());
+                            response
                         };
-                        match response {
-                            Ok(response) => {
-                                if let Some(response) = response.inner {
-                                    let Ok(remote_pub_key) = PublicKey::from_str(&response.remote_pub_key) else {
-                                        tracing::error!("Invalid public key received in QR pairing response");
-                                        self.send_event(AccountControllerPairingResult::Error("invalid public key received from API".to_string()));
-                                        break;
-                                    };
-                                    match self.derive_shared_key(&remote_pub_key) {
-                                        Ok(shared_key) => {
-                                            *shared_key_setter.lock().await = Some(shared_key);
-                                            tracing::debug!("QR code was scanned, checking PIN code");
-                                            self.send_event(AccountControllerPairingResult::PinCode(response.pin_code));
-                                        }
-                                        Err(err) => {
-                                            tracing::error!("Key derivation not possible: {err:?}");
-                                            self.send_event(AccountControllerPairingResult::Error(format!("key derivation: {err:?}")));
-                                        }
-                                    }
-                                    break;
-                                } else {
-                                    tracing::debug!("QR pairing not yet completed, retrying in {RETRY_INTERVAL:?}");
-                                }
-                            }
-                            Err(VpnApiClientError::CheckPairingAccount(e)) if e.is_timeout() => {
-                                tracing::debug!("Timeout on checking the pairing");
-                            }
-                            Err(e) => {
-                                tracing::error!("Error checking QR pairing, stopping the checks: {e:?}");
-                                self.send_event(AccountControllerPairingResult::Error(e.to_string()));
-                                break;
-                            }
-                        }
+
+                        let (shared_key, pin_code) = match self.confirm_pairing_pin(&account, response).await {
+                            Ok(Some((key, pin_code))) => (key, pin_code),
+                            Ok(None) => continue,
+                            Err(_) => break,
+                        };
+                        *shared_key_setter.lock().await = Some(shared_key);
+                        tracing::debug!("QR code was scanned, checking PIN code");
+                        self.send_event(AccountControllerPairingResult::PinCode(pin_code));
+                        break;
                     }
                 }
             }
@@ -241,16 +330,115 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
         }
     }
 
+    async fn get_pairing_secret(
+        &self,
+        remote_qr_pub_key: &PublicKey,
+        pin_code: &str,
+        pairing_token: &str,
+        confirmed: &mut bool,
+    ) -> Result<Option<Mnemonic>, String> {
+        match self
+            .unless_cancelled(
+                self.vpn_api_client
+                    .try_to_get_secret_account(&remote_qr_pub_key.to_string(), pairing_token),
+            )
+            .await
+        {
+            Some(Ok(NymVpnGetPairingSecretResponse::Nothing)) => {
+                tracing::debug!("QR pairing not yet completed, retrying in {RETRY_INTERVAL:?}");
+                Ok(None)
+            }
+            Some(Ok(NymVpnGetPairingSecretResponse::PinConfirmation(confirmation))) => {
+                if *confirmed {
+                    tracing::debug!(
+                        "QR pairing PIN already confirmed, waiting for the secret, retrying in {RETRY_INTERVAL:?}"
+                    );
+                    return Ok(None);
+                }
+                let Some(received_nonce) =
+                    SharedSymmetricKey::validate_aead_nonce(&confirmation.nonce)
+                else {
+                    return Err(self.treat_err("Nonce validation failed on PIN confirmation"));
+                };
+                let Ok(shared_key) = self.derive_shared_key(remote_qr_pub_key, PIN_RE_ENC_INFO)
+                else {
+                    return Err(self.treat_err("Second PIN encryption derived key"));
+                };
+                let Some(pin_code_bytes) =
+                    shared_key.decrypt(&confirmation.enc_pin_code, &received_nonce)
+                else {
+                    return Err(self.treat_err("Could not decrypt pin code"));
+                };
+                let confirmed_pin = String::from_utf8_lossy_owned(pin_code_bytes);
+                if *pin_code != confirmed_pin {
+                    return Err(
+                        self.treat_err("PIN not confirmed, the pairing process might be MiMed")
+                    );
+                }
+                *confirmed = true;
+                tracing::debug!("QR pairing PIN confirmed, showing PIN to user");
+                self.send_event(AccountControllerPairingResult::PinCode(confirmed_pin));
+                Ok(None)
+            }
+            Some(Ok(NymVpnGetPairingSecretResponse::Secret(secret))) => {
+                if !*confirmed {
+                    // If the user clicks the PIN confirmation button before they actually see the PIN on the other device, we'll get
+                    // the secret eariler. That's not a big issue and it's on the user's responsability.
+                    // In case there's a MiM attack where the user didn't click the confirmation button, the decryption bellow will fail anyway.
+                    // In case there's a MiM attack and the user clicked the confirmation button without actually confirming, than they
+                    // leaked their mnemonic X)
+                    tracing::warn!(
+                        "The user might have clicked the PIN confirmation without actually seeing the PIN match."
+                    )
+                }
+                let Some(received_nonce) = SharedSymmetricKey::validate_aead_nonce(&secret.nonce)
+                else {
+                    return Err(self.treat_err("Nonce validation failed on secret"));
+                };
+                let Ok(shared_key) = self.derive_shared_key(remote_qr_pub_key, MNEMONIC_ENC_INFO)
+                else {
+                    return Err(self.treat_err("Mnemonic encryption derived key"));
+                };
+                let Some(mnemonic_bytes) =
+                    shared_key.decrypt(&secret.enc_mnemonic, &received_nonce)
+                else {
+                    return Err(self.treat_err("Could not decrypt mnemonic"));
+                };
+                let Ok(mnemonic) = String::from_utf8(mnemonic_bytes) else {
+                    return Err(self.treat_err("Could not decode mnemonic bytes"));
+                };
+                let Ok(parsed_mnemonic) = Mnemonic::parse(&mnemonic) else {
+                    return Err(self.treat_err("Could not parse mnemonic bytes"));
+                };
+                tracing::debug!("Received account secret mnemonic, pairing completed");
+                Ok(Some(parsed_mnemonic))
+            }
+            Some(Err(VpnApiClientError::GetPairingSecretAccount(e))) if e.is_timeout() => {
+                tracing::debug!("Timeout on checking the pairing");
+                Ok(None)
+            }
+            Some(Err(err)) => Err(self.treat_err(&format!(
+                "Error getting the account secret, stopping the queries {err:?}"
+            ))),
+            None => {
+                tracing::debug!("QR get pairing secret loop cancelled");
+                self.send_event(AccountControllerPairingResult::Cancelled);
+                Err("cancelled".to_string())
+            }
+        }
+    }
+
     fn spawn_get_pairing_secret_task(
         self,
         remote_qr_pub_key: PublicKey,
-        shared_key: SharedSymmetricKey,
+        pin_code: String,
         pairing_token: String,
         ttl: Duration,
     ) -> QrPairingProcessHandle {
         let initial_instant = tokio::time::Instant::now();
         let mut interval = tokio::time::interval(RETRY_INTERVAL);
         let cancel_token = self.cancel_token.clone();
+        let mut confirmed = false;
 
         tokio::spawn(async move {
             loop {
@@ -267,50 +455,13 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                             self.send_event(AccountControllerPairingResult::TimedOut);
                             break;
                         }
-                        let Some(response) = self
-                            .unless_cancelled(
-                                self.vpn_api_client
-                                    .try_to_get_secret_account(&remote_qr_pub_key.to_string(), &pairing_token),
-                            )
-                            .await
-                        else {
-                            tracing::debug!("QR pairing loop cancelled");
-                            self.send_event(AccountControllerPairingResult::Cancelled);
-                            break;
+                        let mnemonic = match self.get_pairing_secret(&remote_qr_pub_key, &pin_code, &pairing_token, &mut confirmed).await {
+                            Ok(Some(mnemonic)) => mnemonic,
+                            Ok(None) => continue,
+                            Err(_) => break,
                         };
-                        match response {
-                            Ok(response) => {
-                                if let Some(response) = response.inner {
-                                    let Some(mnemonic_bytes) = SharedSymmetricKey::validate_aead_nonce(&response.nonce)
-                                        .and_then(|nonce| shared_key.decrypt(&response.enc_mnemonic, &nonce)
-                                    ) else {
-                                        tracing::error!("decrypt mnemonic");
-                                        self.send_event(AccountControllerPairingResult::Error("could not decrypt mnemonic".to_string()));
-                                        break;
-                                    };
-                                    let Ok(mnemonic) = String::from_utf8(mnemonic_bytes) else {
-                                        tracing::error!("decode mnemonic bytes");
-                                        self.send_event(AccountControllerPairingResult::Error("could not decode mnemonic".to_string()));
-                                        break;
-                                    };
-                                    let Ok(parsed_mnemonic) = Mnemonic::parse(&mnemonic) else {
-                                        tracing::error!("parse mnemonic");
-                                        self.send_event(AccountControllerPairingResult::Error("could not parse mnemonic".to_string()));
-                                        break;
-                                    };
-                                    tracing::debug!("Received account secret mnemonic, pairing completed");
-                                    self.send_event(AccountControllerPairingResult::Mnemonic(parsed_mnemonic));
-                                    break;
-                                } else {
-                                    tracing::debug!("QR pairing not yet completed, retrying in {RETRY_INTERVAL:?}");
-                                }
-                            }
-                            Err(e) => {
-                                tracing::error!("Error getting the account secret, stopping the queries {e:?}");
-                                self.send_event(AccountControllerPairingResult::Error(e.to_string()));
-                                break;
-                            }
-                        }
+                        self.send_event(AccountControllerPairingResult::Mnemonic(mnemonic));
+                        break;
                     }
                 }
             }
@@ -334,11 +485,19 @@ pub trait PairingApiClient: Clone {
         account: &VpnAccount,
         qr_pub_key: &str,
     ) -> Result<NymVpnPairingCheckResponse, VpnApiClientError>;
+    async fn confirm_pin(
+        &self,
+        account: &VpnAccount,
+        qr_pub_key: &str,
+        enc_pin_code: Vec<u8>,
+        nonce: Vec<u8>,
+    ) -> Result<StatusOk, VpnApiClientError>;
     async fn try_to_pair_to_account(
         &self,
         remote_qr_pub_key: &str,
         local_qr_pub_key: &str,
-        pin_code: &str,
+        encrypted_pin_code: &[u8],
+        nonce: &[u8],
         token: &str,
     ) -> Result<NymVpnPairingResponse, VpnApiClientError>;
     async fn try_to_get_secret_account(
@@ -373,15 +532,33 @@ impl PairingApiClient for VpnApiClient {
         self.check_pairing_account(account, qr_pub_key).await
     }
 
+    async fn confirm_pin(
+        &self,
+        account: &VpnAccount,
+        qr_pub_key: &str,
+        enc_pin_code: Vec<u8>,
+        nonce: Vec<u8>,
+    ) -> Result<StatusOk, VpnApiClientError> {
+        self.confirm_pin(account, qr_pub_key, enc_pin_code, nonce)
+            .await
+    }
+
     async fn try_to_pair_to_account(
         &self,
         remote_qr_pub_key: &str,
         local_qr_pub_key: &str,
-        pin_code: &str,
+        encrypted_pin_code: &[u8],
+        nonce: &[u8],
         token: &str,
     ) -> Result<NymVpnPairingResponse, VpnApiClientError> {
-        self.try_to_pair_to_account(remote_qr_pub_key, local_qr_pub_key, pin_code, token)
-            .await
+        self.try_to_pair_to_account(
+            remote_qr_pub_key,
+            local_qr_pub_key,
+            encrypted_pin_code,
+            nonce,
+            token,
+        )
+        .await
     }
 
     async fn try_to_get_secret_account(
@@ -405,10 +582,16 @@ impl PairingApiClient for VpnApiClient {
     }
 }
 
+const PIN_LENGTH: usize = 6;
+
 fn random_pin() -> String {
-    let mut random = vec![0u8; 6];
+    let mut random = vec![0u8; PIN_LENGTH];
     rand::rng().fill_bytes(&mut random);
     random.iter().map(|n| (n % 10).to_string()).collect()
+}
+
+fn is_valid_pin(pin: &[u8]) -> bool {
+    pin.len() == PIN_LENGTH && pin.iter().all(u8::is_ascii_digit)
 }
 
 fn random_token() -> String {
@@ -490,28 +673,31 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         let token = random_token();
         let remote_qr_pub_key = PublicKey::from_str(remote_qr_pub_key_str)
             .map_err(|err| AccountCommandError::InvalidPublicKey(err.to_string()))?;
+        let shared_key = qr_pairing_process.derive_shared_key(&remote_qr_pub_key, PIN_ENC_INFO)?;
+
+        let nonce = shared_key.random_nonce();
+        let enc_pin = shared_key.encrypt(pin_code.as_bytes(), &nonce).ok_or(
+            AccountCommandError::Internal(String::from("encrypt mnemonic")),
+        )?;
 
         let response = self
             .vpn_api_client
             .try_to_pair_to_account(
                 remote_qr_pub_key_str,
                 &qr_pairing_process.qr_public_key(),
-                &pin_code,
+                &enc_pin,
+                &nonce,
                 &token,
             )
             .await?;
-        let shared_key = qr_pairing_process.derive_shared_key(&remote_qr_pub_key)?;
         self.process_handle = qr_pairing_process.spawn_get_pairing_secret_task(
             remote_qr_pub_key,
-            shared_key,
+            pin_code,
             token,
             Duration::from_secs(response.ttl_seconds),
         );
 
-        Ok(QrPairingConfirmation {
-            pin_code,
-            session_id,
-        })
+        Ok(QrPairingConfirmation { session_id })
     }
 
     async fn verified_pairing_pin_can_fail(
@@ -589,8 +775,10 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
 mod tests {
     use std::collections::HashMap;
 
-    use nym_http_api_client::HttpClientError;
-    use nym_qr_pairing_requests::{NymVpnPairingFinalisedResponse, SharePairSecretBody};
+    use nym_http_api_client::{HttpClientError, ResolveError};
+    use nym_qr_pairing_requests::{
+        NymVpnPairingFinalisedResponse, PairingConfirmPinRequestBody, SharePairSecretBody,
+    };
     use tokio::time::Instant;
 
     use crate::event_sender::AccountControllerEventReceiver;
@@ -608,7 +796,8 @@ mod tests {
     // The mocked API mirrors the pairing service's `PairingManager`
     // (`websites/packages/qr-pairing/rust/pairing-service/src/service/manager.rs`): one pairing
     // process per QR public key, owned by the account that registered it, moving through
-    // `Empty -> InProgress -> SharedSecret`, and expiring TTL after it was registered or paired.
+    // `Empty -> SharedPin -> ConfirmedPin -> SharedSecret`, and expiring TTL after it was
+    // registered or paired.
 
     struct LoggedOutData {
         pairing_response: NymVpnPairingFinalisedResponse,
@@ -618,8 +807,14 @@ mod tests {
     enum PairingState {
         /// Waiting for a logged out device to scan the QR code
         Empty,
-        /// Scanned; waiting for the logged in device to share the secret
-        InProgress(LoggedOutData),
+        /// Scanned; waiting for the logged in device to confirm it received the PIN
+        SharedPin(LoggedOutData),
+        /// PIN confirmed; the logged out device checks the confirmation against its own PIN
+        /// while the logged in device waits for the user to share the secret
+        ConfirmedPin {
+            token: String,
+            confirmation: PairingConfirmPinRequestBody,
+        },
         /// Secret shared; handed out to whoever presents the token from the pairing request
         SharedSecret {
             token: String,
@@ -638,6 +833,11 @@ mod tests {
         /// Makes the polling requests hang, like a stalled network
         hang_requests: bool,
         hanging_requests: usize,
+        /// Makes the API refuse PIN confirmations
+        reject_pin_confirmations: bool,
+        /// Makes the API keep the next PIN confirmation but let its request time out, like a
+        /// reply that never arrives
+        time_out_next_pin_confirmation: bool,
         /// Pairing processes by QR public key
         pairing_processes: HashMap<String, PairingProcess>,
     }
@@ -672,6 +872,14 @@ mod tests {
 
     fn api_error(message: &str) -> Box<HttpClientError> {
         Box::new(HttpClientError::GenericRequestFailure(message.to_string()))
+    }
+
+    /// A timed out request; a DNS lookup timeout is the only one that can be made without
+    /// sending a real request
+    fn timeout_error() -> Box<HttpClientError> {
+        Box::new(HttpClientError::DnsLookupFailure {
+            inner: ResolveError::Timeout,
+        })
     }
 
     #[derive(Clone)]
@@ -726,8 +934,8 @@ mod tests {
                 .map_err(VpnApiClientError::CheckPairingAccount)?;
             let inner = match &process.state {
                 PairingState::Empty => None,
-                PairingState::InProgress(data) => Some(data.pairing_response.clone()),
-                PairingState::SharedSecret { .. } => {
+                PairingState::SharedPin(data) => Some(data.pairing_response.clone()),
+                PairingState::ConfirmedPin { .. } | PairingState::SharedSecret { .. } => {
                     return Err(VpnApiClientError::CheckPairingAccount(api_error(
                         "400: the process already advanced",
                     )));
@@ -737,11 +945,54 @@ mod tests {
             Ok(NymVpnPairingCheckResponse { inner })
         }
 
+        async fn confirm_pin(
+            &self,
+            account: &VpnAccount,
+            qr_pub_key: &str,
+            enc_pin_code: Vec<u8>,
+            nonce: Vec<u8>,
+        ) -> Result<StatusOk, VpnApiClientError> {
+            let mut db = self.api_db.lock().await;
+            if db.reject_pin_confirmations {
+                return Err(VpnApiClientError::ConfirmPairingPinAccount(api_error(
+                    "500: PIN confirmation refused",
+                )));
+            }
+
+            let account_id = account.id();
+            let process = db
+                .active_process(qr_pub_key, Some(&account_id))
+                .map_err(VpnApiClientError::ConfirmPairingPinAccount)?;
+            let PairingState::SharedPin(data) = &process.state else {
+                return Err(VpnApiClientError::ConfirmPairingPinAccount(api_error(
+                    "400: not in the step of PIN confirmation",
+                )));
+            };
+            process.state = PairingState::ConfirmedPin {
+                token: data.token.clone(),
+                confirmation: PairingConfirmPinRequestBody {
+                    account_id,
+                    pubkey: qr_pub_key.to_string(),
+                    enc_pin_code,
+                    nonce,
+                },
+            };
+            if db.time_out_next_pin_confirmation {
+                db.time_out_next_pin_confirmation = false;
+                return Err(VpnApiClientError::ConfirmPairingPinAccount(timeout_error()));
+            }
+
+            Ok(StatusOk {
+                status: "Ok".to_string(),
+            })
+        }
+
         async fn try_to_pair_to_account(
             &self,
             remote_qr_pub_key: &str,
             local_qr_pub_key: &str,
-            pin_code: &str,
+            encrypted_pin_code: &[u8],
+            nonce: &[u8],
             token: &str,
         ) -> Result<NymVpnPairingResponse, VpnApiClientError> {
             let mut db = self.api_db.lock().await;
@@ -756,9 +1007,10 @@ mod tests {
                 )));
             }
 
-            process.state = PairingState::InProgress(LoggedOutData {
+            process.state = PairingState::SharedPin(LoggedOutData {
                 pairing_response: NymVpnPairingFinalisedResponse {
-                    pin_code: pin_code.to_string(),
+                    encrypted_pin_code: encrypted_pin_code.to_vec(),
+                    nonce: nonce.to_vec(),
                     remote_pub_key: local_qr_pub_key.to_string(),
                 },
                 token: token.to_string(),
@@ -785,24 +1037,35 @@ mod tests {
             let process = db
                 .active_process(remote_qr_pub_key, None)
                 .map_err(VpnApiClientError::GetPairingSecretAccount)?;
-            let inner = match &process.state {
+            let check_token = |token: &str| {
+                if pairing_token != token {
+                    return Err(VpnApiClientError::GetPairingSecretAccount(api_error(
+                        "401: provided token is not correct",
+                    )));
+                }
+                Ok(())
+            };
+            let response = match &process.state {
                 PairingState::Empty => {
                     return Err(VpnApiClientError::GetPairingSecretAccount(api_error(
                         "400: pairing process not started",
                     )));
                 }
-                PairingState::InProgress(_) => None,
+                PairingState::SharedPin(_) => NymVpnGetPairingSecretResponse::Nothing,
+                PairingState::ConfirmedPin {
+                    token,
+                    confirmation,
+                } => {
+                    check_token(token)?;
+                    NymVpnGetPairingSecretResponse::PinConfirmation(confirmation.clone())
+                }
                 PairingState::SharedSecret { token, secret_body } => {
-                    if pairing_token != token {
-                        return Err(VpnApiClientError::GetPairingSecretAccount(api_error(
-                            "401: provided token is not correct",
-                        )));
-                    }
-                    Some(secret_body.clone())
+                    check_token(token)?;
+                    NymVpnGetPairingSecretResponse::Secret(secret_body.clone())
                 }
             };
 
-            Ok(NymVpnGetPairingSecretResponse { inner })
+            Ok(response)
         }
 
         async fn share_secret_account(
@@ -824,7 +1087,12 @@ mod tests {
                         "400: process was not started",
                     )));
                 }
-                PairingState::InProgress(data) => data.token.clone(),
+                PairingState::SharedPin(_) => {
+                    return Err(VpnApiClientError::SharePairingSecretAccount(api_error(
+                        "400: pin should be confirmed first",
+                    )));
+                }
+                PairingState::ConfirmedPin { token, .. } => token.clone(),
                 PairingState::SharedSecret { .. } => {
                     return Err(VpnApiClientError::SharePairingSecretAccount(api_error(
                         "400: secret was already shared",
@@ -847,7 +1115,7 @@ mod tests {
         }
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn happy_flow() {
         let account = Arc::new(VpnAccount::generate_new().unwrap().0);
         let cancel_token = CancellationToken::new();
@@ -856,10 +1124,12 @@ mod tests {
         let logged_in_client = MockedApiClient::new(api_db.clone());
         let mut logged_in_handler = QrPairingHandler::new(logged_in_client);
         let logged_in_event_sender = AccountControllerEventSender::new();
+        let mut logged_in_events = logged_in_event_sender.subscribe();
 
-        let logged_out_client = MockedApiClient::new(api_db);
+        let logged_out_client = MockedApiClient::new(api_db.clone());
         let mut logged_out_handler = QrPairingHandler::new(logged_out_client);
         let logged_out_event_sender = AccountControllerEventSender::new();
+        let mut logged_out_events = logged_out_event_sender.subscribe();
 
         // user triggers the pairing process by opening the pairing page
         let url = logged_in_handler
@@ -876,27 +1146,42 @@ mod tests {
         // obtaining the public key needed for the pairing process
         let qr_pub_key = url.split("pubkey=").last().unwrap();
 
-        // the logged out device shows a PIN code that needs to be confirmed manually by the user
-        // on the logged in device
-        let generated_pin_code = logged_out_handler
+        // the logged out device generates a PIN code and sends it to the API, encrypted with the
+        // key it derives from the scanned public key
+        logged_out_handler
             .scanned_key(
                 qr_pub_key,
                 logged_out_event_sender.clone(),
                 cancel_token.child_token(),
             )
             .await
-            .unwrap()
-            .pin_code;
+            .unwrap();
 
-        // the logged in device also receives the same PIN code that needs to be shown to the user
-        // and be confirmed for match
+        // the logged in device decrypts the PIN code and confirms it to the API, re-encrypted,
+        // before showing it to the user
         let AccountControllerEvent::Pairing(AccountControllerPairingEvent {
             result: AccountControllerPairingResult::PinCode(received_pin_code),
             session_id,
-        }) = logged_in_event_sender.subscribe().recv().await.unwrap()
+        }) = logged_in_events.recv().await.unwrap()
         else {
             panic!("no pin code event")
         };
+        assert!(matches!(
+            api_db.lock().await.pairing_processes[qr_pub_key].state,
+            PairingState::ConfirmedPin { .. }
+        ));
+
+        // the logged out device only shows its PIN code once it gets the confirmation back and
+        // checks it against the PIN code it generated
+        let AccountControllerEvent::Pairing(AccountControllerPairingEvent {
+            result: AccountControllerPairingResult::PinCode(generated_pin_code),
+            ..
+        }) = logged_out_events.recv().await.unwrap()
+        else {
+            panic!("no pin code confirmation event")
+        };
+
+        // the user checks that both devices show the same PIN code
         assert_eq!(generated_pin_code, received_pin_code);
 
         // after PINs were cross checked, the logged in device initiates sharing of the secret
@@ -909,7 +1194,7 @@ mod tests {
         let AccountControllerEvent::Pairing(AccountControllerPairingEvent {
             result: AccountControllerPairingResult::Mnemonic(mnemonic),
             ..
-        }) = logged_out_event_sender.subscribe().recv().await.unwrap()
+        }) = logged_out_events.recv().await.unwrap()
         else {
             panic!("no mnemonic received")
         };
@@ -944,6 +1229,33 @@ mod tests {
         url.url.split("pubkey=").last().unwrap()
     }
 
+    /// A process playing a MitM between the two devices
+    fn new_mitm(api_db: &Arc<Mutex<ApiDb>>) -> QrPairingProcess<MockedApiClient> {
+        QrPairingProcess::new(
+            MockedApiClient::new(api_db.clone()),
+            AccountControllerEventSender::new(),
+            CancellationToken::new(),
+            0,
+        )
+    }
+
+    /// The MitM's own pairing request: its public key, and a PIN the logged in device can decrypt
+    fn mitm_pairing_request(
+        mitm: &QrPairingProcess<MockedApiClient>,
+        qr_pub_key: &str,
+        pin: &str,
+    ) -> NymVpnPairingFinalisedResponse {
+        let key = mitm
+            .derive_shared_key(&PublicKey::from_str(qr_pub_key).unwrap(), PIN_ENC_INFO)
+            .unwrap();
+        let nonce = key.random_nonce();
+        NymVpnPairingFinalisedResponse {
+            encrypted_pin_code: key.encrypt(pin.as_bytes(), &nonce).unwrap(),
+            nonce: nonce.to_vec(),
+            remote_pub_key: mitm.qr_public_key(),
+        }
+    }
+
     /// Waits for the next pairing event, checking that it comes from the expected session
     async fn next_pairing_event(
         event_rx: &mut AccountControllerEventReceiver,
@@ -954,6 +1266,45 @@ mod tests {
         };
         assert_eq!(event.session_id, session_id, "{event:?}");
         event.result
+    }
+
+    /// Waits for the next pairing event of each of the given sessions, which share the channel
+    /// and can report in any order
+    async fn next_pairing_events<const N: usize>(
+        event_rx: &mut AccountControllerEventReceiver,
+        session_ids: [u32; N],
+    ) -> [AccountControllerPairingResult; N] {
+        let mut results = [const { None }; N];
+        while results.iter().any(Option::is_none) {
+            let AccountControllerEvent::Pairing(event) = event_rx.recv().await.unwrap() else {
+                panic!("Wrong type of event")
+            };
+            let Some(index) = session_ids.iter().position(|id| *id == event.session_id) else {
+                panic!("event from an unexpected session: {event:?}")
+            };
+            assert!(results[index].is_none(), "unexpected event: {event:?}");
+            results[index] = Some(event.result);
+        }
+        results.map(Option::unwrap)
+    }
+
+    /// Waits for both devices to show the PIN code, checking that it's the same one
+    async fn expect_matching_pins(
+        logged_in_event_rx: &mut AccountControllerEventReceiver,
+        logged_in_session_id: u32,
+        logged_out_event_rx: &mut AccountControllerEventReceiver,
+        logged_out_session_id: u32,
+    ) -> String {
+        let event = next_pairing_event(logged_in_event_rx, logged_in_session_id).await;
+        let AccountControllerPairingResult::PinCode(logged_in_pin) = event else {
+            panic!("unexpected event on the logged in device: {event:?}")
+        };
+        let event = next_pairing_event(logged_out_event_rx, logged_out_session_id).await;
+        let AccountControllerPairingResult::PinCode(logged_out_pin) = event else {
+            panic!("unexpected event on the logged out device: {event:?}")
+        };
+        assert_eq!(logged_in_pin, logged_out_pin);
+        logged_in_pin
     }
 
     async fn assert_no_event_for(event_rx: &mut AccountControllerEventReceiver, wait: Duration) {
@@ -1051,13 +1402,15 @@ mod tests {
             .await
             .unwrap();
 
-        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
-        assert!(
-            matches!(event, AccountControllerPairingResult::PinCode(_)),
-            "{event:?}"
-        );
+        expect_matching_pins(
+            &mut logged_in_event_rx,
+            url.session_id,
+            &mut logged_out_event_rx,
+            confirmation.session_id,
+        )
+        .await;
 
-        // the logged in device never confirms the PIN
+        // the user never verifies the PIN on the logged in device
         assert_no_event_for(&mut logged_out_event_rx, WITHIN_TTL - started.elapsed()).await;
 
         // the secret query ends around the TTL, timed out by the client or expired by the API
@@ -1147,11 +1500,13 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
-        assert!(
-            matches!(event, AccountControllerPairingResult::PinCode(_)),
-            "{event:?}"
-        );
+        expect_matching_pins(
+            &mut logged_in_event_rx,
+            url.session_id,
+            &mut logged_out_event_rx,
+            confirmation.session_id,
+        )
+        .await;
 
         // the logged out device runs a secret query, not a pairing check
         logged_out_handler.cancel_pairing_check();
@@ -1214,11 +1569,13 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
-        assert!(
-            matches!(event, AccountControllerPairingResult::PinCode(_)),
-            "{event:?}"
-        );
+        expect_matching_pins(
+            &mut logged_in_event_rx,
+            url.session_id,
+            &mut logged_out_event_rx,
+            confirmation.session_id,
+        )
+        .await;
 
         // the user closes the pairing window on the logged out device
         logged_out_handler.cancel_pairing_process();
@@ -1260,11 +1617,13 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
-        assert!(
-            matches!(event, AccountControllerPairingResult::PinCode(_)),
-            "{event:?}"
-        );
+        expect_matching_pins(
+            &mut logged_in_event_rx,
+            url.session_id,
+            &mut logged_out_event_rx,
+            confirmation.session_id,
+        )
+        .await;
         logged_in_handler
             .verified_pairing_pin(&account, url.session_id)
             .await
@@ -1334,11 +1693,13 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
-        assert!(
-            matches!(event, AccountControllerPairingResult::PinCode(_)),
-            "{event:?}"
-        );
+        expect_matching_pins(
+            &mut logged_in_event_rx,
+            url.session_id,
+            &mut logged_out_event_rx,
+            confirmation.session_id,
+        )
+        .await;
 
         // the API stops answering while a secret query is in flight
         api_db.lock().await.hang_requests = true;
@@ -1423,11 +1784,13 @@ mod tests {
                 )
                 .await
                 .unwrap();
-            let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
-            assert!(
-                matches!(event, AccountControllerPairingResult::PinCode(_)),
-                "{event:?}"
-            );
+            expect_matching_pins(
+                &mut logged_in_event_rx,
+                url.session_id,
+                &mut logged_out_event_rx,
+                confirmation.session_id,
+            )
+            .await;
             logged_in_handler
                 .verified_pairing_pin(&account, url.session_id)
                 .await
@@ -1639,11 +2002,13 @@ mod tests {
         assert!(matches!(err, AccountCommandError::Internal(_)), "{err:?}");
 
         // the first device to scan still completes the pairing
-        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
-        assert!(
-            matches!(event, AccountControllerPairingResult::PinCode(_)),
-            "{event:?}"
-        );
+        expect_matching_pins(
+            &mut logged_in_event_rx,
+            url.session_id,
+            &mut logged_out_event_rx,
+            confirmation.session_id,
+        )
+        .await;
         logged_in_handler
             .verified_pairing_pin(&account, url.session_id)
             .await
@@ -1675,7 +2040,8 @@ mod tests {
         let AccountControllerPairingResult::Error(err) = event else {
             panic!("unexpected event: {event:?}")
         };
-        assert_eq!(err, "failed to check account pairing");
+        assert!(err.starts_with("Error checking QR pairing"), "{err}");
+        assert!(err.contains("no active pairing process"), "{err}");
     }
 
     #[tokio::test(start_paused = true)]
@@ -1706,7 +2072,8 @@ mod tests {
         let AccountControllerPairingResult::Error(err) = event else {
             panic!("unexpected event: {event:?}")
         };
-        assert_eq!(err, "failed to get pairing secret account");
+        assert!(err.starts_with("Error getting the account secret"), "{err}");
+        assert!(err.contains("no active pairing process"), "{err}");
     }
 
     #[tokio::test(start_paused = true)]
@@ -1730,11 +2097,13 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
-        assert!(
-            matches!(event, AccountControllerPairingResult::PinCode(_)),
-            "{event:?}"
-        );
+        expect_matching_pins(
+            &mut logged_in_event_rx,
+            url.session_id,
+            &mut logged_out_event_rx,
+            confirmation.session_id,
+        )
+        .await;
 
         // a secret not encrypted with the DH shared key ends up on the API
         let mut rng = rand::rng();
@@ -1777,11 +2146,13 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
-        assert!(
-            matches!(event, AccountControllerPairingResult::PinCode(_)),
-            "{event:?}"
-        );
+        expect_matching_pins(
+            &mut logged_in_event_rx,
+            url.session_id,
+            &mut logged_out_event_rx,
+            confirmation.session_id,
+        )
+        .await;
 
         MockedApiClient::new(api_db.clone())
             .share_secret_account(
@@ -1801,6 +2172,359 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
+    async fn confirmation_of_another_pin_is_reported() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        // the logged in device is played by hand, to confirm a PIN it was never sent
+        let api_client = MockedApiClient::new(api_db.clone());
+        let logged_in_process = QrPairingProcess::new(
+            api_client.clone(),
+            AccountControllerEventSender::new(),
+            CancellationToken::new(),
+            0,
+        );
+        let qr_pub_key = logged_in_process.qr_public_key();
+        api_client
+            .pair_account(&account, &qr_pub_key)
+            .await
+            .unwrap();
+
+        let confirmation = logged_out_handler
+            .scanned_key(&qr_pub_key, logged_out_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        // the logged out device shows nothing until its PIN gets confirmed
+        assert_no_event_for(&mut logged_out_event_rx, RETRY_INTERVAL * 2).await;
+
+        let pairing_request = api_client
+            .check_pairing_account(&account, &qr_pub_key)
+            .await
+            .unwrap()
+            .inner
+            .unwrap();
+        let confirmation_key = logged_in_process
+            .derive_shared_key(
+                &PublicKey::from_str(&pairing_request.remote_pub_key).unwrap(),
+                PIN_RE_ENC_INFO,
+            )
+            .unwrap();
+        let nonce = confirmation_key.random_nonce();
+        api_client
+            .confirm_pin(
+                &account,
+                &qr_pub_key,
+                confirmation_key.encrypt(b"not the PIN", &nonce).unwrap(),
+                nonce.to_vec(),
+            )
+            .await
+            .unwrap();
+
+        let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
+        let AccountControllerPairingResult::Error(err) = event else {
+            panic!("unexpected event: {event:?}")
+        };
+        assert!(err.starts_with("PIN not confirmed"), "{err}");
+        assert_channel_closed(&mut logged_out_event_rx).await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn pin_confirmed_through_mitm_is_reported() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        let qr_pub_key = pub_key_from_url(&url);
+        let confirmation = logged_out_handler
+            .scanned_key(qr_pub_key, logged_out_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        // before the logged in device picks up the pairing request, a MitM swaps in its own key
+        // and PIN, to be able to decrypt what the logged in device sends next
+        let mitm = new_mitm(&api_db);
+        let mitm_pin = "123456";
+        {
+            let mut db = api_db.lock().await;
+            let process = db.pairing_processes.get_mut(qr_pub_key).unwrap();
+            let PairingState::SharedPin(data) = &mut process.state else {
+                panic!("the pairing request was already picked up")
+            };
+            data.pairing_response = mitm_pairing_request(&mitm, qr_pub_key, mitm_pin);
+        }
+
+        // the logged in device shows and confirms the MitM's PIN
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
+        let AccountControllerPairingResult::PinCode(pin) = event else {
+            panic!("unexpected event: {event:?}")
+        };
+        assert_eq!(pin, mitm_pin);
+
+        // but the logged out device can't decrypt that confirmation, so it never shows a PIN the
+        // user could take for a match
+        let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
+        assert!(
+            matches!(event, AccountControllerPairingResult::Error(_)),
+            "{event:?}"
+        );
+        assert_channel_closed(&mut logged_out_event_rx).await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn pin_reflected_as_confirmation_is_reported() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        // the logged in device checks at t=0, 5, 10, ... and the logged out device, scanning at
+        // t=2.5, polls at t=2.5, 7.5, ..., which leaves the MitM time to act in between
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        let qr_pub_key = pub_key_from_url(&url);
+        tokio::time::sleep(RETRY_INTERVAL / 2).await;
+        let logged_out_session = logged_out_handler
+            .scanned_key(qr_pub_key, logged_out_event_tx, CancellationToken::new())
+            .await
+            .unwrap()
+            .session_id;
+
+        // a MitM swaps in its own key and PIN, keeping the logged out device's encrypted PIN
+        let mitm = new_mitm(&api_db);
+        let mitm_pin = "123456";
+        let genuine_request = {
+            let mut db = api_db.lock().await;
+            let process = db.pairing_processes.get_mut(qr_pub_key).unwrap();
+            let PairingState::SharedPin(data) = &mut process.state else {
+                panic!("the pairing request was already picked up")
+            };
+            std::mem::replace(
+                &mut data.pairing_response,
+                mitm_pairing_request(&mitm, qr_pub_key, mitm_pin),
+            )
+        };
+
+        // t=5: the logged in device shows and confirms the MitM's PIN
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
+        let AccountControllerPairingResult::PinCode(pin) = event else {
+            panic!("unexpected event: {event:?}")
+        };
+        assert_eq!(pin, mitm_pin);
+
+        // the MitM can't read the logged out device's PIN, but it can send the encrypted PIN back
+        // to that device as the confirmation
+        {
+            let mut db = api_db.lock().await;
+            let process = db.pairing_processes.get_mut(qr_pub_key).unwrap();
+            let PairingState::ConfirmedPin { confirmation, .. } = &mut process.state else {
+                panic!("the PIN wasn't confirmed")
+            };
+            confirmation.enc_pin_code = genuine_request.encrypted_pin_code;
+            confirmation.nonce = genuine_request.nonce;
+        }
+
+        // t=7.5: confirmations are encrypted with another key than PINs, so the logged out device
+        // doesn't take its own PIN for a confirmation
+        let event = next_pairing_event(&mut logged_out_event_rx, logged_out_session).await;
+        let AccountControllerPairingResult::Error(err) = event else {
+            panic!("unexpected event: {event:?}")
+        };
+        assert_eq!(err, "Could not decrypt pin code");
+        assert_channel_closed(&mut logged_out_event_rx).await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn confirmation_retry_ignores_a_swapped_pairing_request() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        api_db.lock().await.time_out_next_pin_confirmation = true;
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        // the logged in device checks at t=0, 5, 10, ... and the logged out device, scanning at
+        // t=2.5, polls at t=2.5, 7.5, ..., which leaves the MitM time to act in between
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        let qr_pub_key = pub_key_from_url(&url);
+        tokio::time::sleep(RETRY_INTERVAL / 2).await;
+        let logged_out_session = logged_out_handler
+            .scanned_key(qr_pub_key, logged_out_event_tx, CancellationToken::new())
+            .await
+            .unwrap()
+            .session_id;
+
+        // t=5: the logged in device confirms the genuine PIN; a MitM keeps the confirmation but
+        // withholds the reply, so the request times out
+        // t=7.5: the logged out device gets the confirmation and shows its PIN
+        let event = next_pairing_event(&mut logged_out_event_rx, logged_out_session).await;
+        let AccountControllerPairingResult::PinCode(logged_out_pin) = event else {
+            panic!("unexpected event: {event:?}")
+        };
+        assert_no_event_for(&mut logged_in_event_rx, Duration::ZERO).await;
+
+        // the MitM puts its own pairing request up for the logged in device's next check
+        let mitm = new_mitm(&api_db);
+        {
+            let mut db = api_db.lock().await;
+            let process = db.pairing_processes.get_mut(qr_pub_key).unwrap();
+            let PairingState::ConfirmedPin { token, .. } = &process.state else {
+                panic!("the PIN wasn't confirmed")
+            };
+            process.state = PairingState::SharedPin(LoggedOutData {
+                pairing_response: mitm_pairing_request(&mitm, qr_pub_key, "123456"),
+                token: token.clone(),
+            });
+        }
+
+        // t=10: the logged in device retries the confirmation for the pairing request it already
+        // decrypted, instead of checking for a new one, so it shows the same PIN
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
+        let AccountControllerPairingResult::PinCode(logged_in_pin) = event else {
+            panic!("unexpected event: {event:?}")
+        };
+        assert_eq!(logged_in_pin, logged_out_pin);
+
+        // and the secret is shared with the logged out device, not with the MitM
+        logged_in_handler
+            .verified_pairing_pin(&account, url.session_id)
+            .await
+            .unwrap();
+        {
+            let db = api_db.lock().await;
+            let PairingState::SharedSecret { secret_body, .. } =
+                &db.pairing_processes[qr_pub_key].state
+            else {
+                panic!("the secret wasn't shared")
+            };
+            let mitm_key = mitm
+                .derive_shared_key(&PublicKey::from_str(qr_pub_key).unwrap(), MNEMONIC_ENC_INFO)
+                .unwrap();
+            let nonce = SharedSymmetricKey::validate_aead_nonce(&secret_body.nonce).unwrap();
+            let decrypted = mitm_key.decrypt(&secret_body.enc_mnemonic, &nonce);
+            assert!(decrypted.is_none(), "the MitM decrypted the secret");
+        }
+        let AccountControllerPairingResult::Mnemonic(mnemonic) =
+            next_pairing_event(&mut logged_out_event_rx, logged_out_session).await
+        else {
+            panic!("no mnemonic received")
+        };
+        assert_eq!(*account.get_mnemonic(), mnemonic.to_string());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn text_instead_of_pin_is_reported() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        let qr_pub_key = pub_key_from_url(&url);
+        logged_out_handler
+            .scanned_key(qr_pub_key, logged_out_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        // before the logged in device picks up the pairing request, a MitM swaps in its own key,
+        // with a message to the user in place of the PIN
+        let mitm = new_mitm(&api_db);
+        {
+            let mut db = api_db.lock().await;
+            let process = db.pairing_processes.get_mut(qr_pub_key).unwrap();
+            let PairingState::SharedPin(data) = &mut process.state else {
+                panic!("the pairing request was already picked up")
+            };
+            data.pairing_response =
+                mitm_pairing_request(&mitm, qr_pub_key, "Codes match \u{2713} Tap Approve");
+        }
+
+        // the logged in device neither shows nor confirms it
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
+        let AccountControllerPairingResult::Error(err) = event else {
+            panic!("unexpected event: {event:?}")
+        };
+        assert_eq!(err, "Invalid PIN code");
+        assert_channel_closed(&mut logged_in_event_rx).await;
+
+        // so there's nothing to approve
+        let err = logged_in_handler
+            .verified_pairing_pin(&account, url.session_id)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
+        assert!(!api_db.lock().await.has_shared_secret());
+
+        // and the logged out device keeps waiting for a confirmation
+        assert_no_event_for(&mut logged_out_event_rx, RETRY_INTERVAL * 2).await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn pin_is_not_shown_when_confirmation_is_refused() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+        api_db.lock().await.reject_pin_confirmations = true;
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+
+        // the logged in device doesn't show a PIN that the logged out device would never show
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
+        let AccountControllerPairingResult::Error(err) = event else {
+            panic!("unexpected event: {event:?}")
+        };
+        assert!(err.starts_with("Confirming PIN"), "{err}");
+        assert_channel_closed(&mut logged_in_event_rx).await;
+
+        // so the secret can't be shared
+        let err = logged_in_handler
+            .verified_pairing_pin(&account, url.session_id)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
+        assert!(!api_db.lock().await.has_shared_secret());
+
+        // and the logged out device keeps waiting for a confirmation
+        assert_no_event_for(&mut logged_out_event_rx, RETRY_INTERVAL * 2).await;
+    }
+
+    #[tokio::test(start_paused = true)]
     async fn pairing_check_reports_invalid_remote_key() {
         let account = new_account();
         let api_db = Arc::new(Mutex::new(ApiDb::default()));
@@ -1814,7 +2538,7 @@ mod tests {
 
         // the API hands back a malformed key for the scanning device
         MockedApiClient::new(api_db.clone())
-            .try_to_pair_to_account(pub_key_from_url(&url), "not-a-public-key", "", "")
+            .try_to_pair_to_account(pub_key_from_url(&url), "not-a-public-key", &[], &[], "")
             .await
             .unwrap();
 
@@ -1871,11 +2595,13 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx, second_url.session_id).await;
-        assert!(
-            matches!(event, AccountControllerPairingResult::PinCode(_)),
-            "{event:?}"
-        );
+        expect_matching_pins(
+            &mut logged_in_event_rx,
+            second_url.session_id,
+            &mut logged_out_event_rx,
+            confirmation.session_id,
+        )
+        .await;
 
         logged_in_handler
             .verified_pairing_pin(&account, second_url.session_id)
@@ -1917,11 +2643,13 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx, first_url.session_id).await;
-        assert!(
-            matches!(event, AccountControllerPairingResult::PinCode(_)),
-            "{event:?}"
-        );
+        expect_matching_pins(
+            &mut logged_in_event_rx,
+            first_url.session_id,
+            &mut logged_out_event_rx,
+            first_confirmation.session_id,
+        )
+        .await;
 
         // the user restarts the whole flow and scans a new QR code
         let second_url = logged_in_handler
@@ -1941,19 +2669,29 @@ mod tests {
             second_confirmation.session_id
         );
 
-        // the stale query reports its cancellation under its own session
-        let event =
-            next_pairing_event(&mut logged_out_event_rx, first_confirmation.session_id).await;
+        // the stale query reports its cancellation under its own session, while the new one
+        // shows the new PIN code once it's confirmed
+        let [stale, fresh] = next_pairing_events(
+            &mut logged_out_event_rx,
+            [
+                first_confirmation.session_id,
+                second_confirmation.session_id,
+            ],
+        )
+        .await;
         assert!(
-            matches!(event, AccountControllerPairingResult::Cancelled),
-            "{event:?}"
+            matches!(stale, AccountControllerPairingResult::Cancelled),
+            "{stale:?}"
         );
+        let AccountControllerPairingResult::PinCode(logged_out_pin) = fresh else {
+            panic!("unexpected event: {fresh:?}")
+        };
 
         let event = next_pairing_event(&mut logged_in_event_rx, second_url.session_id).await;
-        assert!(
-            matches!(event, AccountControllerPairingResult::PinCode(_)),
-            "{event:?}"
-        );
+        let AccountControllerPairingResult::PinCode(logged_in_pin) = event else {
+            panic!("unexpected event: {event:?}")
+        };
+        assert_eq!(logged_in_pin, logged_out_pin);
         logged_in_handler
             .verified_pairing_pin(&account, second_url.session_id)
             .await
@@ -2007,9 +2745,21 @@ mod tests {
     #[test]
     fn pin_generation() {
         let pin = random_pin();
-        assert_eq!(pin.len(), 6);
-        for c in pin.chars() {
-            assert!(c >= '0' && c <= '9');
+        assert!(is_valid_pin(pin.as_bytes()), "{pin}");
+    }
+
+    #[test]
+    fn pin_validation() {
+        assert!(is_valid_pin(b"012345"));
+        for invalid in [
+            &b""[..],
+            b"12345",
+            b"1234567",
+            b"12345a",
+            b"12 345",
+            "Codes match \u{2713} Tap Approve".as_bytes(),
+        ] {
+            assert!(!is_valid_pin(invalid), "{invalid:?}");
         }
     }
 }
