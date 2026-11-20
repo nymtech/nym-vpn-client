@@ -1,4 +1,3 @@
-#if os(iOS)
 import CredentialsManager
 import Theme
 import UIComponents
@@ -7,18 +6,31 @@ import UIComponents
 final class ScannedCodeValidator: QRScanValidator {
     static let retryAfter: Duration = .seconds(3)
 
+#if os(iOS)
     private let pairingManager: PairingManager
+#endif
     private let freepassManager: FreepassManager
 
+#if os(iOS)
     init(pairingManager: PairingManager = .shared, freepassManager: FreepassManager = .shared) {
         self.pairingManager = pairingManager
         self.freepassManager = freepassManager
     }
+#elseif os(macOS)
+    init(freepassManager: FreepassManager = .shared) {
+        self.freepassManager = freepassManager
+    }
+#endif
 
     func validate(_ contents: String) async throws -> QRScanValidation {
         switch ScannedQRCode.parse(contents) {
+#if os(iOS)
         case let .pairing(publicKey):
             await validatePairing(publicKey)
+#elseif os(macOS)
+        case .pairing:
+            .invalid()
+#endif
         case let .freepass(code):
             await validateFreepass(code)
         case nil:
@@ -26,6 +38,7 @@ final class ScannedCodeValidator: QRScanValidator {
         }
     }
 
+#if os(iOS)
     private func validatePairing(_ publicKey: String) async -> QRScanValidation {
         switch await pairingManager.onScannedKey(publicKey) {
         case .success:
@@ -44,6 +57,7 @@ final class ScannedCodeValidator: QRScanValidator {
             .invalid(message: "pairing.error.genericRetrying".localizedString, retryAfter: Self.retryAfter)
         }
     }
+#endif
 
     private func validateFreepass(_ code: String) async -> QRScanValidation {
         switch await freepassManager.redeem(code: code) {
@@ -54,4 +68,3 @@ final class ScannedCodeValidator: QRScanValidator {
         }
     }
 }
-#endif

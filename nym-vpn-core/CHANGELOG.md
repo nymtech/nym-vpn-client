@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- [macOS] Add `CreateAccount`, `ApplyFreepass` and `RedeemFreepass` daemon RPCs, and expose pairing in the uniffi `RpcClient` (https://github.com/nymtech/nym-vpn-client/pull/7178)
+
 ## [2026.16.0] - 2026-11-18
 
 ### Added

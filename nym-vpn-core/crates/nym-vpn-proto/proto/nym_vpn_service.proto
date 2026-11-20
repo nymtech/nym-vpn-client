@@ -1459,6 +1459,15 @@ service NymVpnService {
   // Login using a deeplink callback URL
   rpc DeeplinkStoreAccount(google.protobuf.StringValue) returns (AccountCommandResponse) {}
 
+  // Create and store a new account with a generated recovery phrase
+  rpc CreateAccount(google.protobuf.Empty) returns (AccountCommandResponse) {}
+
+  // Apply a free pass code to the stored account
+  rpc ApplyFreepass(google.protobuf.StringValue) returns (AccountCommandResponse) {}
+
+  // Register the stored account on the API with a free pass code
+  rpc RedeemFreepass(google.protobuf.StringValue) returns (AccountCommandResponse) {}
+
   // Pair a device with this account using a QR encoded URL
   rpc StartPairing(google.protobuf.Empty) returns (QrUrlResponse) {}
 

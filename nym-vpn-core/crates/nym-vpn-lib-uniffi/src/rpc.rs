@@ -14,7 +14,7 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
     DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType,
     GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, PrivyDerivationMessage, Profile, RecentGateways, Socks5Settings,
+    ParsedAccountLinks, PrivyDerivationMessage, Profile, QrUrl, RecentGateways, Socks5Settings,
     Socks5Status, SplitApp, SplitTunnelExcludedProcessList, StoreAccountRequest, StoredAccountMode,
     SystemMessage, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig,
     VpnServiceInfo,
@@ -345,6 +345,47 @@ impl RpcClient {
         } else {
             Ok(())
         }
+    }
+
+    pub async fn create_account(&self) -> Result<()> {
+        let response = self.inner.clone().create_account().await?;
+        if let Some(err) = response.error {
+            Err(RpcError::from(Arc::new(err)))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub async fn apply_freepass(&self, code: String) -> Result<()> {
+        let response = self.inner.clone().apply_freepass(code).await?;
+        if let Some(err) = response.error {
+            Err(RpcError::from(Arc::new(err)))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub async fn redeem_freepass(&self, code: String) -> Result<()> {
+        let response = self.inner.clone().redeem_freepass(code).await?;
+        if let Some(err) = response.error {
+            Err(RpcError::from(Arc::new(err)))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub async fn start_pairing(&self) -> Result<QrUrl> {
+        Ok(self.inner.clone().start_pairing().await?)
+    }
+
+    pub async fn verified_pairing_pin(&self, session_id: u32) -> Result<()> {
+        self.inner.clone().verified_pairing_pin(session_id).await?;
+        Ok(())
+    }
+
+    pub async fn cancel_pairing_process(&self) -> Result<()> {
+        self.inner.clone().cancel_pairing_process().await?;
+        Ok(())
     }
 
     pub async fn get_autologin_deeplink(

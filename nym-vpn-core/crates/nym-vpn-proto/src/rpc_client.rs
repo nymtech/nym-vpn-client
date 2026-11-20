@@ -721,6 +721,39 @@ impl RpcClient {
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
+    pub async fn create_account(&mut self) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .create_account(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn apply_freepass(&mut self, code: String) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .apply_freepass(code)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn redeem_freepass(&mut self, code: String) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .redeem_freepass(code)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
     pub async fn start_pairing(&mut self) -> Result<QrUrl> {
         let response = self
             .0
