@@ -114,6 +114,7 @@ extension ConnectionManager {
         appSettings.isAdBlockerEnabled = daemonConfig.enableAdBlocking
         appSettings.bridgeMode = daemonConfig.bridgeMode
         appSettings.isStealthApiEnabled = daemonConfig.stealthMode
+        appSettings.transportPreference = daemonConfig.transportPreference
         appSettings.customDns = daemonConfig.customDns.dnsServers.map(\.address)
         appSettings.isCustomDnsEnabled = daemonConfig.customDns.isEnabled && !daemonConfig.customDns.dnsServers.isEmpty
     }
