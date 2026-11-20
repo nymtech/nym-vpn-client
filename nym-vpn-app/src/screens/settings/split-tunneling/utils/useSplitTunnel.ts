@@ -1,11 +1,19 @@
 import { invoke } from '@tauri-apps/api/core';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dispatch, useAppStore } from '../../../../store';
 import { App } from '../../../../types/tauri';
 import { BackendError } from '../../../../types/util';
 import { AppEntry } from '../AppItem';
 import { useI18nError, useToast } from '../../../../hooks/index';
+
+// Merge into the latest store list, not the render-captured one, so a
+// concurrent bulk or single-app update is not overwritten
+const markExcluded = (path: string) => {
+  const current = useAppStore.getState().splitTunnel.apps;
+  if (current.some((existing) => existing.path === path)) return;
+  dispatch({ type: 'set-split-tunnel-apps', apps: [...current, { path }] });
+};
 
 export const useSplitTunnel = () => {
   const { t } = useTranslation('settings');
@@ -17,6 +25,10 @@ export const useSplitTunnel = () => {
   const [installedApps, setInstalledApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const [allAppsLoading, setAllAppsLoading] = useState(false);
+  // Sync guard: the Switch and its card both fire on one click, before the
+  // state above re-renders
+  const allAppsBusyRef = useRef(false);
 
   useEffect(() => {
     (async () => {
@@ -76,10 +88,7 @@ export const useSplitTunnel = () => {
       await invoke('add_app_to_split_tunnel', {
         app: { path: app.executable_path },
       });
-      dispatch({
-        type: 'set-split-tunnel-apps',
-        apps: [...splitTunnelApps, { path: app.executable_path }],
-      });
+      markExcluded(app.executable_path);
     } catch (error) {
       console.error('Failed to add app to split tunneling', error);
       addToast({
@@ -133,6 +142,43 @@ export const useSplitTunnel = () => {
     }
   };
 
+  // `true` when the daemon exclusion list is empty, i.e. every app goes
+  // through the tunnel. Derived from the full list rather than the discovered
+  // apps so stale entries still read as "something is excluded"
+  const allViaVpn = splitTunnelApps.length === 0;
+
+  // Route every listed app via the VPN (clears the daemon exclusion list) or
+  // exclude every listed app from it. There is no bulk-add RPC, so excluding
+  // is one call per app
+  const setAllViaVpn = async (viaVpn: boolean) => {
+    if (allAppsBusyRef.current) return;
+    allAppsBusyRef.current = true;
+    setAllAppsLoading(true);
+    try {
+      if (viaVpn) {
+        await invoke('clear_split_tunnel_apps');
+        dispatch({ type: 'set-split-tunnel-apps', apps: [] });
+        return;
+      }
+
+      for (const app of appList) {
+        if (app.state === 'included') continue;
+        const path = app.executable_path;
+        await invoke('add_app_to_split_tunnel', { app: { path } });
+        markExcluded(path);
+      }
+    } catch (error) {
+      console.error('Failed to update split tunneling for all apps', error);
+      addToast({
+        title: t('split-tunneling.error.failed-to-update-all-apps'),
+        type: 'error',
+      });
+    } finally {
+      allAppsBusyRef.current = false;
+      setAllAppsLoading(false);
+    }
+  };
+
   const remove = async (app: AppEntry) => {
     if (app.state === 'excluded') return;
     try {
@@ -141,9 +187,11 @@ export const useSplitTunnel = () => {
       });
       dispatch({
         type: 'set-split-tunnel-apps',
-        apps: splitTunnelApps.filter(
-          (existing) => existing.path !== app.executable_path,
-        ),
+        apps: useAppStore
+          .getState()
+          .splitTunnel.apps.filter(
+            (existing) => existing.path !== app.executable_path,
+          ),
       });
     } catch (error) {
       console.error('Failed to remove app from split tunneling', error);
@@ -164,6 +212,9 @@ export const useSplitTunnel = () => {
     addCustomApp,
     remove,
     removeCustomApp,
+    allViaVpn,
+    setAllViaVpn,
+    allAppsLoading,
     loading,
     isSupported,
   };

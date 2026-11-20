@@ -20,6 +20,7 @@ type AppItemProps = {
   isRunning?: boolean;
   onLaunch?: (app: AppEntry) => Promise<void>;
   onRemove?: (app: AppEntry) => void;
+  disabled?: boolean;
 };
 
 function AppItem({
@@ -28,6 +29,7 @@ function AppItem({
   isRunning,
   onLaunch,
   onRemove,
+  disabled,
 }: AppItemProps) {
   const { t } = useTranslation('settings');
   const os = type();
@@ -92,8 +94,9 @@ function AppItem({
             e.stopPropagation();
             onRemove?.(app);
           }}
+          disabled={disabled}
           aria-label={t('split-tunneling.remove-app', { name: app.name })}
-          className="text-text-tertiary hover:text-status-error transition-noborder flex cursor-default items-center justify-center"
+          className="text-text-tertiary hover:text-status-error transition-noborder flex cursor-default items-center justify-center disabled:pointer-events-none disabled:opacity-50"
         >
           <MsIcon icon="close" className="text-base" />
         </button>
@@ -106,7 +109,12 @@ function AppItem({
       {/* Only Windows can include/exclude apps from inside the app */}
       {/* Linux uses custom app launcher to launch the app and immediately exclude it from the tunnel */}
       {os === 'windows' && (
-        <div className="border-text-secondary dark:border-text-tertiary flex items-center rounded-lg border">
+        <div
+          className={clsx(
+            'border-text-secondary dark:border-text-tertiary flex items-center rounded-lg border',
+            disabled && 'opacity-50',
+          )}
+        >
           <button
             className={clsx(
               'transition-noborder border-r-iron dark:border-r-bombay flex h-full w-full cursor-default items-center justify-center rounded-l-lg border-r px-2',
@@ -115,6 +123,7 @@ function AppItem({
                 : 'text-text-secondary',
             )}
             onClick={() => onStateChange(app, 'included')}
+            disabled={disabled}
             aria-label={`Exclude ${app.name} from VPN`}
           >
             <MsIcon icon="block" className="text-base" />
@@ -127,6 +136,7 @@ function AppItem({
                 : 'text-text-secondary',
             )}
             onClick={() => onStateChange(app, 'excluded')}
+            disabled={disabled}
             aria-label={`Include ${app.name} in VPN`}
           >
             <MsIcon icon="shield" className="text-base" />
