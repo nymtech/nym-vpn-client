@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- [Linux] The `nym-vpnd` deb package no longer depends on `polkit-1-auth-agent`, so installing it on a system without a desktop doesn't pull in a graphical polkit agent. The dependency moved to the `nym-vpn-app` deb package (https://github.com/nymtech/nym-vpn-client/pull/7175)
+
 ## [2026.16.0] - 2026-11-18
 
 ### Added
