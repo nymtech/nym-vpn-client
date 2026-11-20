@@ -25,6 +25,7 @@ public final class PairingManager: ObservableObject {
     private var backgroundObserver: NSObjectProtocol?
 #elseif os(macOS)
     private var daemonObserver: AnyCancellable?
+    private var daemonDisconnects = 0
 #endif
 
     init(credentialsManager: CredentialsManager) {
@@ -51,13 +52,15 @@ public final class PairingManager: ObservableObject {
                 await self?.serialized { await $0.onEvent(event) }
             }
         }
-        // Ends the session a restarted daemon lost, not a newer one.
+        // Counts disconnects and ends the session a restarted daemon lost, not a newer one.
         daemonObserver = GRPCManager.shared.$isServing
             .removeDuplicates()
             .filter { !$0 }
             .sink { [weak self] _ in
                 MainActor.assumeIsolated {
-                    guard let self, let sessionId = state.activeSessionId else { return }
+                    guard let self else { return }
+                    daemonDisconnects += 1
+                    guard let sessionId = state.activeSessionId else { return }
                     Task { await self.endActiveSession(sessionId) }
                 }
             }
@@ -70,7 +73,17 @@ public final class PairingManager: ObservableObject {
             await manager.cancelActiveSession()
             manager.state = .startingCode
             do {
+#if os(macOS)
+                let disconnects = manager.daemonDisconnects
+#endif
                 let qr = try await manager.credentialsManager.startPairing()
+#if os(macOS)
+                // The daemon restarted meanwhile, so the code can't pair.
+                guard disconnects == manager.daemonDisconnects else {
+                    await manager.fail(with: .sessionEnded)
+                    return
+                }
+#endif
                 manager.state = .showingCode(
                     url: qr.url,
                     sessionId: qr.sessionId,
