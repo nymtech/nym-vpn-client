@@ -14,7 +14,7 @@ pub use config::{
 };
 pub use error::{
     AccountLinksError, Error, GeoExclusionConfigError, GlobalConfigError, ListGatewaysError,
-    SetCustomDnsError, SetNetworkError,
+    SetCustomDnsError, SetNetworkError, SetTransportPreferenceError,
 };
 pub use socks5::{
     Socks5Error, Socks5Service, Socks5Status, socks5_idle_timeout, socks5_request_timeout,
