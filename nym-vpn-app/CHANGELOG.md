@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [Linux] The deb package depends on `polkit-1-auth-agent`, so a graphical password prompt is available. This dependency used to come with `nym-vpnd` (https://github.com/nymtech/nym-vpn-client/pull/7175)
+- [Linux] The deb package now depends on `polkit-1-auth-agent`, so a polkit authentication agent is installed together with the app. This dependency used to come with `nym-vpnd` (https://github.com/nymtech/nym-vpn-client/pull/7175)
 
 ## [2026.16.1] - 2026-11-19
 
