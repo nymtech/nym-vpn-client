@@ -265,7 +265,7 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 				.padding(horizontal = 16.dp.scaledWidth())
 				.navigationBarsPadding(),
 		) {
-			var query by rememberSaveable { mutableStateOf("") }
+			var query by remember { mutableStateOf("") }
 			val entries = accountEntries(
 				isMnemonicStored = values.isMnemonicStored,
 				onPassphraseClick = actions.onPassphraseClick,
@@ -297,43 +297,39 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 				textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
 				containerColor = MaterialTheme.colorScheme.background,
 			)
-			if (query.isBlank()) {
-				settingsSectionOrder.forEach { section ->
-					val items = entries.filter { it.section == section }.map { it.item }
-					if (section == R.string.settings_section_account || items.isNotEmpty()) {
-						GroupLabel(stringResource(section))
-					}
-					if (section == R.string.settings_section_account) {
-						LoginSection(
-							isMnemonicStored = values.isMnemonicStored,
-							onGetStartedClick = actions.onGetStartedClick,
-						)
-					}
-					if (items.isNotEmpty()) SettingsGroup(items = items)
+			// while searching, keep only matching rows, each under its own section header
+			val search = query.trim()
+			val accountMatches = search.isEmpty() || stringResource(R.string.settings_section_account).contains(search, ignoreCase = true)
+			var anyShown = false
+			settingsSectionOrder.forEach { section ->
+				val isAccount = section == R.string.settings_section_account
+				val items = entries.filter { entry ->
+					entry.section == section &&
+						(search.isEmpty() || (isAccount && accountMatches) || entry.title.contains(search, ignoreCase = true))
+				}.map { it.item }
+				val showLogin = isAccount && accountMatches && !values.isMnemonicStored
+				if (items.isNotEmpty() || showLogin) {
+					anyShown = true
+					GroupLabel(stringResource(section))
 				}
-				LogoutSection(isMnemonicStored = values.isMnemonicStored, actions.onLogoutClick)
-				QuitSection(actions.onQuitClick)
-				AppVersionSection(appVersion = values.appVersion, onAppVersionClick = actions.onAppVersionClick)
-			} else {
-				// search hits: matching rows from every section, section name as the description
-				val hits = entries.filter { it.title.contains(query.trim(), ignoreCase = true) }
-				if (hits.isNotEmpty()) {
-					SettingsGroup(
-						items = hits.map { entry ->
-							val sectionName = stringResource(entry.section)
-							entry.item.copy(
-								description = {
-									Text(
-										sectionName,
-										style = MaterialTheme.typography.bodySmall,
-										color = MaterialTheme.colorScheme.onBackground,
-									)
-								},
-							)
-						},
+				if (showLogin) {
+					LoginSection(
+						isMnemonicStored = values.isMnemonicStored,
+						onGetStartedClick = actions.onGetStartedClick,
 					)
 				}
+				if (items.isNotEmpty()) SettingsGroup(items = items)
 			}
+			if (!anyShown) {
+				Text(
+					stringResource(R.string.no_results_found),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onBackground,
+				)
+			}
+			LogoutSection(isMnemonicStored = values.isMnemonicStored, actions.onLogoutClick)
+			QuitSection(actions.onQuitClick)
+			AppVersionSection(appVersion = values.appVersion, onAppVersionClick = actions.onAppVersionClick)
 		}
 	}
 }
