@@ -9,8 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- macOS: Redeem a free pass from Settings, whether signed in or out ([#7178](https://github.com/nymtech/nym-vpn-client/pull/7178))
-- macOS: Pair a device from Account & Devices by scanning a QR code and confirming the PIN ([#7178](https://github.com/nymtech/nym-vpn-client/pull/7178))
+- [macOS] Add `CreateAccount`, `ApplyFreepass` and `RedeemFreepass` daemon RPCs, and expose pairing in the uniffi `RpcClient` (https://github.com/nymtech/nym-vpn-client/pull/7178)
 
 ## [2026.16.0] - 2026-11-18
 
