@@ -29,6 +29,7 @@ import net.nymtech.nymvpn.ui.screens.settings.components.SettingsGroup
 import net.nymtech.nymvpn.ui.screens.settings.components.accountEntries
 import net.nymtech.nymvpn.ui.screens.settings.components.appEntries
 import net.nymtech.nymvpn.ui.screens.settings.components.legalEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.matchesSearch
 import net.nymtech.nymvpn.ui.screens.settings.components.logsEntries
 import net.nymtech.nymvpn.ui.screens.settings.components.supportEntries
 import net.nymtech.nymvpn.ui.screens.settings.components.vpnSettingsEntries
@@ -299,13 +300,13 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 			)
 			// while searching, keep only matching rows, each under its own section header
 			val search = query.trim()
-			val accountMatches = search.isEmpty() || stringResource(R.string.settings_section_account).contains(search, ignoreCase = true)
+			val accountMatches = search.isEmpty() || matchesSearch(stringResource(R.string.settings_section_account), search)
 			var anyShown = false
 			settingsSectionOrder.forEach { section ->
 				val isAccount = section == R.string.settings_section_account
 				val items = entries.filter { entry ->
 					entry.section == section &&
-						(search.isEmpty() || (isAccount && accountMatches) || entry.title.contains(search, ignoreCase = true))
+						(search.isEmpty() || (isAccount && accountMatches) || matchesSearch(entry.title, search))
 				}.map { it.item }
 				val showLogin = isAccount && accountMatches && !values.isMnemonicStored
 				if (items.isNotEmpty() || showLogin) {

@@ -224,7 +224,7 @@ fun vpnSettingsEntries(values: SettingsValues, actions: SettingsActions): List<S
 			leading = {
 				SettingsIcon(
 					ImageVector.vectorResource(R.drawable.ic_mixnet_tuning),
-					stringResource(R.string.settings_split_tunneling_title),
+					stringResource(R.string.settings_mixnet_tuning_title),
 				)
 			},
 			trailing = {
