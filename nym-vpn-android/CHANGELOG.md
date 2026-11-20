@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fixed a crash when connecting while a system VPN profile is set as always-on in the device settings. Tapping Connect in the app now shows a warning explaining that another VPN is blocking the connection; connections started outside the app screen (auto-start, boot, quick tile) no longer crash and fail without a warning (https://github.com/nymtech/nym-vpn-client/pull/7181)
+
 ## [2026.16.0] - 2026-11-18
 
 ### Added
