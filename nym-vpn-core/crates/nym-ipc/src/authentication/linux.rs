@@ -335,6 +335,7 @@ pub(crate) fn incoming(
 #[cfg(test)]
 mod tests {
     use std::{
+        assert_matches,
         future::pending,
         sync::{
             Arc,
@@ -443,7 +444,7 @@ mod tests {
         let (mut client, mut server) = UnixStream::pair().unwrap();
         authorize(&mut server).await;
         let ret = AuthenticaticationResult::recv(&mut client).await;
-        assert!(matches!(ret, AuthenticaticationResult::Accepted));
+        assert_matches!(ret, AuthenticaticationResult::Accepted);
     }
 
     #[tokio::test]
@@ -484,7 +485,7 @@ mod tests {
         let res = handle.await.unwrap();
 
         assert!(proxy.lock().await.cancelled);
-        assert!(matches!(res, Err(AuthenticationError::ShuttingDown)));
+        assert_matches!(res, Err(AuthenticationError::ShuttingDown));
     }
 
     #[tokio::test]
@@ -503,7 +504,7 @@ mod tests {
         timeout.timeout();
         let res = handle.await.unwrap();
 
-        assert!(matches!(res, Err(AuthenticationError::Timeout)));
+        assert_matches!(res, Err(AuthenticationError::Timeout));
     }
 
     #[tokio::test]
@@ -530,7 +531,7 @@ mod tests {
         )
         .await
         .unwrap_err();
-        assert!(matches!(err, AuthenticationError::AuthorizationDenied));
+        assert_matches!(err, AuthenticationError::AuthorizationDenied);
     }
 
     #[test]
@@ -611,6 +612,6 @@ mod tests {
         let err = install_polkit_policy(dirs[0], &[dirs[1]])
             .await
             .unwrap_err();
-        assert!(matches!(err, AuthenticationError::CreateActionPolicy(_)));
+        assert_matches!(err, AuthenticationError::CreateActionPolicy(_));
     }
 }

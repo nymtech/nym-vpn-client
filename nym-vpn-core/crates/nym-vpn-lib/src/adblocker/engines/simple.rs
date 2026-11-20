@@ -429,6 +429,7 @@ fn get_all_subdomains(domain: &str) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
+    use std::assert_matches;
     use tempfile::TempDir;
 
     use super::*;
@@ -458,14 +459,14 @@ mod tests {
         let engine = SimpleAdBlockEngine::new(temp_dir.path().join("adblock.db"));
 
         engine.load_filters(temp_dir.path()).await.unwrap();
-        assert!(matches!(
+        assert_matches!(
             engine.should_block(SHOULD_BE_BLOCKED_DOMAIN).await,
             DnsFilterDecision::Block(_)
-        ));
+        );
 
         engine.unload_filters().await;
         let decision = engine.should_block(SHOULD_BE_BLOCKED_DOMAIN).await;
-        assert!(matches!(decision, DnsFilterDecision::Pass));
+        assert_matches!(decision, DnsFilterDecision::Pass);
     }
 
     #[tokio::test]
@@ -474,7 +475,7 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let engine = SimpleAdBlockEngine::new(temp_dir.path().join("adblock.db"));
         let decision = engine.should_block(SHOULD_BE_BLOCKED_DOMAIN).await;
-        assert!(matches!(decision, DnsFilterDecision::Pass));
+        assert_matches!(decision, DnsFilterDecision::Pass);
     }
 
     #[tokio::test]
@@ -498,8 +499,7 @@ mod tests {
             .unwrap();
 
         for f in files {
-            assert!(
-                matches!(fs::metadata(f).await, Err(err) if err.kind() == std::io::ErrorKind::NotFound)
+            assert_matches!(fs::metadata(f).await, Err(err) if err.kind() == std::io::ErrorKind::NotFound
             )
         }
     }

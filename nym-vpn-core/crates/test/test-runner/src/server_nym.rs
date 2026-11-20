@@ -866,6 +866,7 @@ mod observed_state_tests {
         AccountControllerErrorStateReason, AccountControllerState, ActionAfterDisconnect,
         ErrorStateReason, EstablishConnectionState, TunnelState, TunnelType,
     };
+    use std::assert_matches;
     use test_rpc::nym_daemon::{ObservedAccountState, ObservedTunnelState, ObservedTunnelType};
 
     #[test]
@@ -906,10 +907,10 @@ mod observed_state_tests {
             observed_tunnel_state(TunnelState::Offline { reconnect: false }),
             ObservedTunnelState::Offline
         );
-        assert!(matches!(
+        assert_matches!(
             observed_tunnel_state(TunnelState::Error(ErrorStateReason::SetFirewallPolicy)),
             ObservedTunnelState::Error(_)
-        ));
+        );
     }
 
     #[test]
@@ -943,11 +944,11 @@ mod observed_state_tests {
         for (input, expected) in cases {
             assert_eq!(observed_account_state(input), expected);
         }
-        assert!(matches!(
+        assert_matches!(
             observed_account_state(AccountControllerState::Error(
                 AccountControllerErrorStateReason::InactiveSubscription
             )),
             ObservedAccountState::Error(_)
-        ));
+        );
     }
 }

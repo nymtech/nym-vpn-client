@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #![allow(unused)]
 
-use std::{collections::HashMap, time::Duration};
+use std::{assert_matches, collections::HashMap, time::Duration};
 
 use nym_gateway_directory::{
     Asn, AsnKind, BlacklistedGateways, Config, Gateway, GatewayType, Location, Performance,
@@ -350,8 +350,9 @@ async fn tentative_gateways_waits_for_fresh_selection_after_reset() {
         .unwrap();
     let tentative = gw_provider.tentative_gateways().await;
 
-    assert!(
-        matches!(tentative, TentativeGateways::Selected { .. }),
+    assert_matches!(
+        tentative,
+        TentativeGateways::Selected { .. },
         "tentative_gateways must wait for the freshly computed selection instead \
          of returning NoGatewaysAvailable; got {tentative:?}"
     );
@@ -607,11 +608,9 @@ async fn mainnet_syntethic_node_families() {
             identity: gw_identity(&gw_b),
         };
         let result = full_select(settings).await;
-        assert!(
-            matches!(
-                result,
-                Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)
-            ),
+        assert_matches!(
+            result,
+            Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria),
             "same-family pair under default criteria should need relaxed criteria; got {result:?}"
         );
     } else {
@@ -640,11 +639,9 @@ async fn mainnet_syntethic_node_families() {
             identity: gw_identity(&gw_b),
         };
         let result = full_select(settings).await;
-        assert!(
-            matches!(
-                result,
-                Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)
-            ),
+        assert_matches!(
+            result,
+            Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria),
             "same-ASN pair under default criteria should need relaxed criteria; got {result:?}"
         );
     } else {
@@ -673,11 +670,9 @@ async fn mainnet_syntethic_node_families() {
             identity: gw_identity(&gw_b),
         };
         let result = full_select(settings).await;
-        assert!(
-            matches!(
-                result,
-                Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)
-            ),
+        assert_matches!(
+            result,
+            Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria),
             "same-subnet pair under default criteria should need relaxed criteria; got {result:?}"
         );
     } else {
@@ -776,11 +771,9 @@ async fn mainnet_syntethic_node_families() {
             two_letter_iso_country_code: cc.clone(),
         };
         let result = full_select(settings).await;
-        assert!(
-            matches!(
-                result,
-                Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)
-            ),
+        assert_matches!(
+            result,
+            Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria),
             "country {cc}: same single-ASN country for entry+exit under default criteria should need relaxed criteria; got {result:?}"
         );
     }
@@ -826,11 +819,9 @@ async fn mainnet_syntethic_node_families() {
             two_letter_iso_country_code: cc.clone(),
         };
         let result = full_select(settings).await;
-        assert!(
-            matches!(
-                result,
-                Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)
-            ),
+        assert_matches!(
+            result,
+            Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria),
             "country {cc}: same single-family country for entry+exit under default criteria should need relaxed criteria; got {result:?}"
         );
     }
@@ -865,11 +856,9 @@ async fn all_gateways_same_family_blocks_selection() {
     )
     .await;
 
-    assert!(
-        matches!(
-            result,
-            Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)
-        ),
+    assert_matches!(
+        result,
+        Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria),
         "all-same-family pool should require relaxed criteria; got {result:?}"
     );
 }
