@@ -397,5 +397,17 @@
       "failed-to-set-port": "Couldn't update the SOCKS5 port. Please try again.",
       "failed-to-set-region": "Couldn't update the excluded region. Please try again."
     }
+  },
+  "sections": {
+    "account": "Account",
+    "protection": "Protection",
+    "connection": "Connection",
+    "routing": "Routing",
+    "mixnet": "Mixnet",
+    "app": "App",
+    "help-data": "Help and data"
+  },
+  "search": {
+    "placeholder": "Search settings"
   }
 }

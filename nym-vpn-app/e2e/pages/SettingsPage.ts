@@ -8,6 +8,8 @@ class SettingsPage {
   readonly daemonVersion: Locator;
   readonly networkName: Locator;
   readonly toast: Locator;
+  readonly searchInput: Locator;
+  readonly noResults: Locator;
   readonly accountRow: Locator;
   readonly logoutButton: Locator;
   readonly accountId: Locator;
@@ -39,6 +41,8 @@ class SettingsPage {
     this.daemonVersion = page.getByTestId('daemon-version-value');
     this.networkName = page.getByTestId('network-name-value');
     this.toast = page.getByRole('dialog');
+    this.searchInput = page.getByPlaceholder('Search settings');
+    this.noResults = page.getByText('No results found.');
 
     this.accountRow = page.getByRole('button', { name: /Account/ }).first();
     this.logoutButton = page.getByRole('button', { name: /Log ?out/i });
@@ -91,6 +95,10 @@ class SettingsPage {
         name: typeof label === 'string' ? new RegExp(label) : label,
       })
       .first();
+  }
+
+  async search(term: string) {
+    await this.searchInput.fill(term);
   }
 
   async openRow(label: string | RegExp) {

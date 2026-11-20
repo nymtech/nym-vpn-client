@@ -34,6 +34,32 @@ test.describe('Settings', () => {
     await expect(settingsPage.networkName).toHaveText('mainnet');
   });
 
+  test('search keeps matches under their section with their description', async ({
+    page,
+  }) => {
+    await settingsPage.search('dns');
+    await expect(settingsPage.row('Customize DNS')).toBeVisible();
+    await expect(page.getByText('Connection', { exact: true })).toBeVisible();
+    await expect(settingsPage.row('Kill switch')).toBeHidden();
+
+    await settingsPage.search('kill');
+    await expect(settingsPage.row('Kill switch')).toContainText(
+      'Always on to protect your data',
+    );
+    await expect(settingsPage.quitButton).toBeVisible();
+  });
+
+  test('search with no match shows no results and clearing restores the list', async () => {
+    await settingsPage.search('zzz');
+    await expect(settingsPage.noResults).toBeVisible();
+    await expect(settingsPage.quitButton).toBeVisible();
+
+    await settingsPage.search('');
+    await expect(settingsPage.noResults).toBeHidden();
+    await expect(settingsPage.row('Account')).toBeVisible();
+    await expect(settingsPage.row('Legal')).toBeVisible();
+  });
+
   test('closes settings screen correctly', async ({ page }) => {
     const mainPage = new MainPage(page);
     await mainPage.goto();
