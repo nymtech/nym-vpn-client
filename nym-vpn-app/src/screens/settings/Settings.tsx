@@ -262,8 +262,11 @@ function Settings() {
     },
   ];
 
-  const search = query.trim().toLowerCase();
-  const matches = (text: string) => text.toLowerCase().includes(search);
+  // ignore case and accents, so "ecran" finds "Écran"
+  const fold = (text: string) =>
+    text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+  const search = fold(query.trim());
+  const matches = (text: string) => fold(text).includes(search);
   // while searching, keep only matching rows, each under its own section header
   const visibleSections = sections
     .map((section) => ({
