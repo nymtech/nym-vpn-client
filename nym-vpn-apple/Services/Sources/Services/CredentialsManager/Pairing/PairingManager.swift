@@ -51,12 +51,15 @@ public final class PairingManager: ObservableObject {
                 await self?.serialized { await $0.onEvent(event) }
             }
         }
-        // A restarted daemon has lost the session.
+        // Ends the session a restarted daemon lost, not a newer one.
         daemonObserver = GRPCManager.shared.$isServing
             .removeDuplicates()
             .filter { !$0 }
             .sink { [weak self] _ in
-                Task { @MainActor in await self?.endActiveSession() }
+                MainActor.assumeIsolated {
+                    guard let self, let sessionId = state.activeSessionId else { return }
+                    Task { await self.endActiveSession(sessionId) }
+                }
             }
 #endif
     }
@@ -161,9 +164,9 @@ private extension PairingManager {
         await credentialsManager.closePairingController()
     }
 
-    func endActiveSession() async {
+    func endActiveSession(_ sessionId: UInt32? = nil) async {
         await serialized { manager in
-            guard manager.state.activeSessionId != nil else { return }
+            guard let active = manager.state.activeSessionId, sessionId == nil || sessionId == active else { return }
             await manager.cancelActiveSession()
             manager.state = .failed(.sessionEnded)
         }
