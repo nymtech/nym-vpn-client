@@ -1,8 +1,12 @@
-#if os(iOS)
 import Foundation
 import Logging
+#if os(iOS)
 import UIKit
 import ErrorHandler
+#elseif os(macOS)
+import Combine
+import GRPCManager
+#endif
 import NymVPNLib
 
 @MainActor
@@ -17,10 +21,15 @@ public final class PairingManager: ObservableObject {
     private let logger = Logger(label: "PairingManager")
     private var queue: Task<Void, Never>?
     private var eventsTask: Task<Void, Never>?
+#if os(iOS)
     private var backgroundObserver: NSObjectProtocol?
+#elseif os(macOS)
+    private var daemonObserver: AnyCancellable?
+#endif
 
     init(credentialsManager: CredentialsManager) {
         self.credentialsManager = credentialsManager
+#if os(iOS)
         // The core doesn't replay pairing events, so they're collected for the app's lifetime.
         eventsTask = Task { [weak self, events = credentialsManager.accountControllerEvents] in
             for await event in events {
@@ -34,11 +43,25 @@ public final class PairingManager: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in await self?.endOnBackground() }
+            Task { @MainActor in await self?.endActiveSession() }
         }
+#elseif os(macOS)
+        eventsTask = Task { [weak self, events = GRPCManager.shared.pairingEvents] in
+            for await event in events {
+                await self?.serialized { await $0.onEvent(event) }
+            }
+        }
+        // A restarted daemon has lost the session.
+        daemonObserver = GRPCManager.shared.$isServing
+            .removeDuplicates()
+            .filter { !$0 }
+            .sink { [weak self] _ in
+                Task { @MainActor in await self?.endActiveSession() }
+            }
+#endif
     }
 
-    /// Callers verify device auth before showing a code.
+    /// On iOS, callers verify device auth first; on macOS the daemon asks.
     public func startShowingCode() async {
         await serialized { manager in
             await manager.cancelActiveSession()
@@ -71,6 +94,7 @@ public final class PairingManager: ObservableObject {
         }
     }
 
+#if os(iOS)
     /// Not cancellable, since the core keeps the session.
     public func onScannedKey(_ publicKey: String) async -> Result<Void, PairingError> {
         let result = await serialized { manager -> Result<UInt32, PairingError> in
@@ -98,6 +122,7 @@ public final class PairingManager: ObservableObject {
             return .failure(error)
         }
     }
+#endif
 
     public func cancel() async {
         await serialized { manager in
@@ -136,7 +161,7 @@ private extension PairingManager {
         await credentialsManager.closePairingController()
     }
 
-    func endOnBackground() async {
+    func endActiveSession() async {
         await serialized { manager in
             guard manager.state.activeSessionId != nil else { return }
             await manager.cancelActiveSession()
@@ -169,6 +194,7 @@ private extension PairingManager {
 }
 
 extension PairingError {
+#if os(iOS)
     init(_ error: Error) {
         if let reason = error as? VPNErrorReason {
             if case .accountStoreBusy = reason {
@@ -199,5 +225,20 @@ extension PairingError {
             self = .unknown
         }
     }
-}
+#elseif os(macOS)
+    init(_ error: Error) {
+        switch (error as? RpcError)?.accountError() {
+        case .NoAccountStored:
+            self = .notSignedIn
+        case .PairingNotStarted, .PairingSessionIdMismatch, .NoPairingSharedSecret:
+            self = .sessionEnded
+        case .Offline:
+            self = .offline
+        case .VpnApi, .UnexpectedVpnApiResponse:
+            self = .server
+        default:
+            self = .unknown
+        }
+    }
 #endif
+}

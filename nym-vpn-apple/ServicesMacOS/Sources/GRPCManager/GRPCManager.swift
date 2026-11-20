@@ -35,6 +35,10 @@ let kRpcReconnectDelay = Duration.seconds(5)
     @Published public var networkName: String?
     @Published public var daemonVersion = "unknown"
 
+    /// Pairing events; the daemon doesn't replay them.
+    public let pairingEvents: AsyncStream<PairingEvent>
+    let pairingEventsContinuation: AsyncStream<PairingEvent>.Continuation
+
     public var userAgent: UserAgent {
         UserAgent(
             application: AppVersionProvider.app,
@@ -45,6 +49,7 @@ let kRpcReconnectDelay = Duration.seconds(5)
     }
 
     private init() {
+        (pairingEvents, pairingEventsContinuation) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(16))
         startConnectionLoop()
     }
 
@@ -100,8 +105,8 @@ private extension GRPCManager {
             break
         case .conflictDetected:
             break
-        case .pairing:
-            break
+        case let .pairing(event):
+            pairingEventsContinuation.yield(event)
         }
     }
 
