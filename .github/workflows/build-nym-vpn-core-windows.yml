@@ -85,6 +85,21 @@ jobs:
       - name: Setup VS dev shell
         uses: humbletim/vsdevenv-shell@503210b7b39a7405e534ea93c36a733b93f01087 # v2
 
+      - name: Check MSVC version
+        shell: vsdevenv x64 pwsh {0}
+        run: |
+          $minimum = [version]'14.44'
+          if (-not $env:VCToolsVersion) {
+            echo "::error::VCToolsVersion is not set, the VS dev shell is not active"
+            exit 1
+          }
+          $version = [version]$env:VCToolsVersion.Trim().TrimEnd('\')
+          echo "MSVC toolset: $version"
+          if ($version -lt $minimum) {
+            echo "::error::MSVC $version is older than $minimum, update Visual Studio 2022 to 17.14 or newer"
+            exit 1
+          }
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         with:
