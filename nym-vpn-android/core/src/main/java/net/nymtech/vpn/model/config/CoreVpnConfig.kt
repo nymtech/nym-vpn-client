@@ -2,6 +2,7 @@ package net.nymtech.vpn.model.config
 
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.BridgeMode
+import nym_vpn_lib_types.BridgeTransport
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 
@@ -39,6 +40,7 @@ data class CoreVpnConfig(
 	val sentry: Boolean = false,
 	val adBlockingEnabled: Boolean = false,
 	val stealthMode: Boolean = false,
+	val transportPreference: BridgeTransport? = null,
 	val nodeFamiliesNotificationsEnabled: Boolean = true,
 	val geoExclusionEnabled: Boolean = false,
 	val geoExclusionPort: Int = 1081,

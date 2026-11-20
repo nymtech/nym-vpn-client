@@ -401,16 +401,27 @@
 	<string name="censorship_quic_title">Disguise your traffic</string>
 	<string name="censorship_quic_description">Bridges help you slip past networks that detect and block VPN traffic. **dVPN** mode uses AmneziaWG by default to make **WireGuard** harder to detect.</string>
 	<string name="censorship_bridge_changes_apply">Changes require reconnection.</string>
+	<string name="censorship_transport_auto_mode_disclaimer">Auto only uses a bridge if the direct connection fails, so your pin has no effect unless that happens.</string>
 	<string name="censorship_bridge_off_title">Off</string>
 	<string name="censorship_bridge_off_description">Connect directly, without a bridge. Fastest, but easiest to block.</string>
 	<string name="censorship_bridge_auto_title">Auto</string>
-	<string name="censorship_bridge_auto_description">Tries **WireGuard** first, then switches to a bridge (QUIC, TLS, or SSH) if it fails.</string>
+	<string name="censorship_bridge_auto_description">Tries **WireGuard** first, then switches to a bridge if it fails.</string>
 	<string name="censorship_bridge_on_title">On</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be your entry server.</string>
 	<string name="censorship_quic_link" translatable="false">https://nym.com/features/anti-censorship-bridges</string>
 	<string name="censorship_stealth_title">Disguise your Nym connection</string>
 	<string name="censorship_stealth_description">Stay connected even if Nym\'s servers are blocked where you are.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_transport_title">Bridge transport</string>
+	<string name="censorship_transport_description">Choose which protocol a bridge connection uses.</string>
+	<string name="censorship_transport_auto_title">Default</string>
+	<string name="censorship_transport_auto_description">Tries QUIC first, then falls back to TLS or SSH if it fails.</string>
+	<string name="censorship_transport_quic_title">QUIC</string>
+	<string name="censorship_transport_quic_description">Always use QUIC.</string>
+	<string name="censorship_transport_tls_title">TLS</string>
+	<string name="censorship_transport_tls_description">Always use TLS.</string>
+	<string name="censorship_transport_ssh_title">SSH</string>
+	<string name="censorship_transport_ssh_description">Always use SSH.</string>
 	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers that offer a bridge. To reveal all servers, set “Disguise your traffic” to Off or Auto.</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">By continuing, you agree to NymVPN\'s  </string>
