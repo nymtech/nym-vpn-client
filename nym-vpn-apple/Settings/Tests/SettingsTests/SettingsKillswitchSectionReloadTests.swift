@@ -47,7 +47,7 @@ final class SettingsKillswitchSectionReloadTests: XCTestCase {
         let viewModel = makeViewModel()
         await waitForSections(viewModel)
 
-        let killSwitchCountBefore = viewModel.sections.first { $0.kind == .killSwitch }?.viewModels.count
+        let killSwitchCountBefore = viewModel.sections.first { $0.kind == .protection }?.viewModels.count
         XCTAssertNotNil(killSwitchCountBefore)
 
         AppSettings.shared.isCredentialImported = true
@@ -59,7 +59,7 @@ final class SettingsKillswitchSectionReloadTests: XCTestCase {
         )
         viewModel.updateAccountSectionOnly()
 
-        let killSwitchCountAfter = viewModel.sections.first { $0.kind == .killSwitch }?.viewModels.count
+        let killSwitchCountAfter = viewModel.sections.first { $0.kind == .protection }?.viewModels.count
         XCTAssertEqual(killSwitchCountBefore, killSwitchCountAfter)
         XCTAssertNotNil(viewModel.sections.first { $0.kind == .account })
     }

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- _pending changelog_
 - iOS: Debug logging is now "Your troubleshooting detail" in Data, privacy & logs, with an info sheet explaining what it does (https://github.com/nymtech/nym-vpn-client/pull/7138)
 
 ### Fixed

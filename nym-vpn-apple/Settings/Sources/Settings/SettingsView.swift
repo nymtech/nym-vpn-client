@@ -10,6 +10,8 @@ import Theme
 public struct SettingsView: View {
     @EnvironmentObject private var credentialsManager: CredentialsManager
     @StateObject private var viewModel: SettingsViewModel
+    @State private var searchText = ""
+    @FocusState private var isSearchFocused: Bool
 #if os(macOS)
     @State private var autologinState = AutologinState()
 #endif
@@ -30,6 +32,13 @@ private extension SettingsView {
             navbar()
             ScrollView {
                 VStack(spacing: 0) {
+                    Spacer()
+                        .frame(height: NymSpacing.section)
+                    SearchView(
+                        searchText: $searchText,
+                        isSearchFocused: $isSearchFocused,
+                        placeholder: "settings.search.placeholder".localizedString
+                    )
                     Spacer()
                         .frame(height: NymSpacing.section)
                     settingsList()
@@ -74,6 +83,10 @@ private extension SettingsView {
                 await credentialsManager.updateAccountSummary()
             }
         }
+        .onDisappear {
+            // a pushed subpage hides this screen; start unfiltered when coming back
+            searchText = ""
+        }
     }
 
     @ViewBuilder
@@ -88,7 +101,31 @@ private extension SettingsView {
 
     @ViewBuilder
     func settingsList() -> some View {
-        SettingsList(viewModel: SettingsListViewModel(sections: viewModel.sections))
+        let sections = visibleSections()
+        if sections.isEmpty && !viewModel.sections.isEmpty {
+            sectionHeader("search.noResults".localizedString)
+        } else {
+            ForEach(sections, id: \.self) { section in
+                sectionHeader(section.kind.title)
+                    .accessibilityAddTraits(.isHeader)
+                SettingsList(viewModel: SettingsListViewModel(sections: [section]))
+            }
+        }
+    }
+
+    /// All sections, or while searching only the rows whose title matches, under their section header.
+    func visibleSections() -> [SettingsSection<AppSettingsSectionKind>] {
+        SettingsSearch.filter(viewModel.sections, query: searchText)
+    }
+
+    func sectionHeader(_ title: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodySmall)
+                .padding(.bottom, NymSpacing.small)
+            Spacer()
+        }
     }
 
     func appVersionText() -> some View {

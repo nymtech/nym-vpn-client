@@ -128,6 +128,8 @@ import Theme
         if let index = sections.firstIndex(where: { $0.kind == .account }) {
             sections[index] = updated
         } else {
+            // signed in now: the account section replaces the signed-out redeem section
+            sections.removeAll { $0.kind == .redeemCode }
             sections.insert(updated, at: 0)
         }
     }
@@ -281,14 +283,9 @@ private extension SettingsViewModel {
 #endif
             }
             newSections.append(
-                contentsOf: [
-                    feedbackSection(),
-                    notificationsSection(),
-                    killswitchSection(),
-                    appearanceSection(),
-                    privacyAndDataSection(),
-                    legalSection(),
-                    systemStatusSection()
+                contentsOf: vpnSections() + [
+                    appSection(),
+                    helpAndDataSection()
                 ]
             )
             await MainActor.run {
@@ -407,9 +404,9 @@ private extension SettingsViewModel {
     }
 #endif
 
-    func appearanceSection() -> AppSettingsSection {
+    func appSection() -> AppSettingsSection {
         AppSettingsSection(
-            kind: .theme,
+            kind: .app,
             viewModels: [
                 SettingsListItemViewModel(
                     accessory: .arrow,
@@ -420,15 +417,7 @@ private extension SettingsViewModel {
                             self?.navigateToAppearance()
                         }
                     }
-                )
-            ]
-        )
-    }
-
-    func notificationsSection() -> AppSettingsSection {
-        AppSettingsSection(
-            kind: .notifications,
-            viewModels: [
+                ),
                 SettingsListItemViewModel(
                     accessory: .arrow,
                     title: "settings.notifications.title".localizedString,
@@ -443,28 +432,17 @@ private extension SettingsViewModel {
         )
     }
 
-    func feedbackSection() -> AppSettingsSection {
-        AppSettingsSection(
-            kind: .feedback,
-            viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.supportAndFeedback".localizedString,
-                    imageName: "support",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToSupportAndFeedback()
-                        }
-                    }
-                )
-            ]
-        )
-    }
-
     // swiftlint:disable:next function_body_length
-    func killswitchSection() -> AppSettingsSection {
-        var viewModels = [SettingsListItemViewModel]()
-        viewModels.append(
+    func vpnSections() -> [AppSettingsSection] {
+        var protection = [SettingsListItemViewModel]()
+        var connection = [SettingsListItemViewModel]()
+#if os(macOS)
+        var routing = [SettingsListItemViewModel]()
+#else
+        let routing = [SettingsListItemViewModel]()
+#endif
+        var mixnet = [SettingsListItemViewModel]()
+        protection.append(
             SettingsListItemViewModel(
                 accessory: .empty,
                 title: "settings.killswitch.title".localizedString,
@@ -501,9 +479,44 @@ private extension SettingsViewModel {
                 )
             }
             .store(in: &cancellables)
-        viewModels.append(adBlockViewModel)
+        protection.append(adBlockViewModel)
+        connection.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.censorship.title".localizedString,
+                imageName: "domain",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToCensorship()
+                    }
+                }
+            )
+        )
+        connection.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.profiles.title".localizedString,
+                subtitle: "settings.profiles.subtitle".localizedString,
+                imageName: "profiles",
+                action: { [weak self] in
+                    self?.navigateToProfiles()
+                }
+            )
+        )
+        connection.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.dns.title".localizedString,
+                imageName: "dns",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToDns()
+                    }
+                }
+            )
+        )
 #if os(macOS)
-        viewModels.append(
+        connection.append(
             SettingsListItemViewModel(
                 accessory: .toggle(
                     isOn: Binding(
@@ -518,7 +531,7 @@ private extension SettingsViewModel {
             )
         )
 #endif
-        viewModels.append(
+        connection.append(
             SettingsListItemViewModel(
                 accessory: .toggle(
                     isOn: Binding(
@@ -533,7 +546,17 @@ private extension SettingsViewModel {
             )
         )
 #if os(macOS)
-        viewModels.append(
+        routing.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.splitTunnel".localizedString,
+                imageName: "arrow.trianglehead.branch",
+                action: { [weak self] in
+                    self?.navigateToSplitTunneling()
+                }
+            )
+        )
+        routing.append(
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.geoExclusion".localizedString,
@@ -545,17 +568,7 @@ private extension SettingsViewModel {
                 }
             )
         )
-        viewModels.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.splitTunnel".localizedString,
-                imageName: "arrow.trianglehead.branch",
-                action: { [weak self] in
-                    self?.navigateToSplitTunneling()
-                }
-            )
-        )
-        viewModels.append(
+        routing.append(
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.proxy.title".localizedString,
@@ -570,30 +583,7 @@ private extension SettingsViewModel {
             )
         )
 #endif
-        viewModels.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.dns.title".localizedString,
-                imageName: "dns",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToDns()
-                    }
-                }
-            )
-        )
-        viewModels.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.profiles.title".localizedString,
-                subtitle: "settings.profiles.subtitle".localizedString,
-                imageName: "profiles",
-                action: { [weak self] in
-                    self?.navigateToProfiles()
-                }
-            )
-        )
-        viewModels.append(
+        mixnet.append(
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.mixnetTuning.title".localizedString,
@@ -604,24 +594,28 @@ private extension SettingsViewModel {
                 }
             )
         )
-        viewModels.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.censorship.title".localizedString,
-                imageName: "domain",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToCensorship()
-                    }
-                }
-            )
-        )
 
-        return AppSettingsSection(kind: .killSwitch, viewModels: viewModels)
+        return [
+            AppSettingsSection(kind: .protection, viewModels: protection),
+            AppSettingsSection(kind: .connection, viewModels: connection),
+            AppSettingsSection(kind: .routing, viewModels: routing),
+            AppSettingsSection(kind: .mixnet, viewModels: mixnet)
+        ]
+        .filter { !$0.viewModels.isEmpty }
     }
 
-    func privacyAndDataSection() -> AppSettingsSection {
+    func helpAndDataSection() -> AppSettingsSection {
         let viewModels = [
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.supportAndFeedback".localizedString,
+                imageName: "support",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToSupportAndFeedback()
+                    }
+                }
+            ),
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.privacyAndData".localizedString,
@@ -631,13 +625,7 @@ private extension SettingsViewModel {
                         self?.navigateToPrivacyAndData()
                     }
                 }
-            )
-        ]
-        return AppSettingsSection(kind: .logs, viewModels: viewModels)
-    }
-
-    func legalSection() -> AppSettingsSection {
-        let viewModels = [
+            ),
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "legal".localizedString,
@@ -646,13 +634,7 @@ private extension SettingsViewModel {
                         self?.navigateToLegal()
                     }
                 }
-            )
-        ]
-        return AppSettingsSection(kind: .legal, viewModels: viewModels)
-    }
-
-    func systemStatusSection() -> AppSettingsSection {
-        let viewModels = [
+            ),
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.systemStatus".localizedString,
@@ -661,7 +643,7 @@ private extension SettingsViewModel {
                 }
             )
         ]
-        return AppSettingsSection(kind: .systemStatus, viewModels: viewModels)
+        return AppSettingsSection(kind: .helpAndData, viewModels: viewModels)
     }
 }
 
