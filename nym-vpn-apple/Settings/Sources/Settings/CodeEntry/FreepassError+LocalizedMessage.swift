@@ -1,4 +1,3 @@
-#if os(iOS)
 import CredentialsManager
 import Theme
 
@@ -22,4 +21,3 @@ extension FreepassError {
         }
     }
 }
-#endif

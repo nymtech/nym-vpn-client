@@ -4,12 +4,6 @@ import CredentialsManager
 import Theme
 import UIComponents
 
-public enum CodeEntryOutcome: Equatable {
-    case freepassRedeemed
-    case pairingSignedIn
-    case cancelled
-}
-
 public struct CodeEntryView: View {
     private enum Step {
         case scanner

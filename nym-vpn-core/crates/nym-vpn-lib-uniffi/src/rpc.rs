@@ -347,6 +347,33 @@ impl RpcClient {
         }
     }
 
+    pub async fn create_account(&self) -> Result<()> {
+        let response = self.inner.clone().create_account().await?;
+        if let Some(err) = response.error {
+            Err(RpcError::from(Arc::new(err)))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub async fn apply_freepass(&self, code: String) -> Result<()> {
+        let response = self.inner.clone().apply_freepass(code).await?;
+        if let Some(err) = response.error {
+            Err(RpcError::from(Arc::new(err)))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub async fn redeem_freepass(&self, code: String) -> Result<()> {
+        let response = self.inner.clone().redeem_freepass(code).await?;
+        if let Some(err) = response.error {
+            Err(RpcError::from(Arc::new(err)))
+        } else {
+            Ok(())
+        }
+    }
+
     pub async fn get_autologin_deeplink(
         &self,
         params: GetDeeplinkParams,

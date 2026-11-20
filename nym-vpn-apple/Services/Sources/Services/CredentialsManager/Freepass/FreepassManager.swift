@@ -1,17 +1,25 @@
-#if os(iOS)
 import Foundation
 import Logging
+#if os(iOS)
 import ErrorHandler
-import NymVPNLib
 import PathManager
+#elseif os(macOS)
+import GRPCManager
+#endif
+import NymVPNLib
 
 @MainActor
 public final class FreepassManager {
     public static let shared = FreepassManager(credentialsManager: .shared)
 
+#if os(iOS)
     static let accountCreationTimeout: Duration = .seconds(30)
+#endif
 
     private let credentialsManager: CredentialsManager
+#if os(macOS)
+    private let grpcManager = GRPCManager.shared
+#endif
     private let logger = Logger(label: "FreepassManager")
     private var queue: Task<Void, Never>?
 
@@ -39,13 +47,23 @@ public final class FreepassManager {
 }
 
 private extension FreepassManager {
+#if os(iOS)
+    typealias AccountClient = NymAccountController
+#elseif os(macOS)
+    typealias AccountClient = GRPCManager
+#endif
+
     func isAccountStored() async -> Bool? {
         do {
+#if os(iOS)
             let env = try credentialsManager.resolvedNetworkEnvironment()
             return try await Task {
                 let dataDir = try PathManager.dataFolderURL().path()
                 return try await NymVpnAccountStorage(dataDir: dataDir, environment: env).isAccountMnemonicStored()
             }.value
+#elseif os(macOS)
+            return try await grpcManager.isAccountStored()
+#endif
         } catch {
             logger.warning("Account lookup failed: \(String(describing: type(of: error)))")
             return nil
@@ -73,6 +91,7 @@ private extension FreepassManager {
         return result
     }
 
+#if os(iOS)
     // The Rust call can't be cancelled, so it's raced against the timeout.
     func createLocalAccount() async -> Bool {
         await withCheckedContinuation { continuation in
@@ -94,10 +113,26 @@ private extension FreepassManager {
             }
         }
     }
-
-    func call(_ body: @escaping (NymAccountController) async throws -> Void) async -> FreepassResult {
+#elseif os(macOS)
+    // The daemon asks the user to confirm, so there's no timeout.
+    func createLocalAccount() async -> Bool {
         do {
+            try await grpcManager.createAccount()
+            return true
+        } catch {
+            logger.warning("Account creation failed: \(String(describing: type(of: error)))")
+            return false
+        }
+    }
+#endif
+
+    func call(_ body: (AccountClient) async throws -> Void) async -> FreepassResult {
+        do {
+#if os(iOS)
             try await credentialsManager.withController(body)
+#elseif os(macOS)
+            try await body(grpcManager)
+#endif
             return .redeemed
         } catch {
             return .failed(FreepassError(error))
@@ -105,6 +140,7 @@ private extension FreepassManager {
     }
 }
 
+#if os(iOS)
 private final class CreationOutcome: @unchecked Sendable {
     private var continuation: CheckedContinuation<Bool, Never>?
 
@@ -120,8 +156,10 @@ private final class CreationOutcome: @unchecked Sendable {
         return true
     }
 }
+#endif
 
 extension FreepassError {
+#if os(iOS)
     init(_ error: Error) {
         if let reason = error as? VPNErrorReason {
             switch reason {
@@ -151,5 +189,24 @@ extension FreepassError {
             self = .unknown
         }
     }
-}
+#elseif os(macOS)
+    init(_ error: Error) {
+        guard let accountError = (error as? RpcError)?.accountError() else {
+            self = .unknown
+            return
+        }
+        switch accountError {
+        case let .VpnApi(.Response(response)):
+            self = .fromApi(messageId: response.messageId, message: response.message)
+        case let .VpnApi(.StatusCode(code: code, msg: message)):
+            self = code == 429 ? .rateLimited : .fromApi(messageId: nil, message: message)
+        case .VpnApi, .UnexpectedVpnApiResponse:
+            self = .server
+        case .Offline:
+            self = .offline
+        default:
+            self = .unknown
+        }
+    }
 #endif
+}

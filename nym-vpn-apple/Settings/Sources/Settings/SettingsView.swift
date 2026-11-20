@@ -65,6 +65,12 @@ private extension SettingsView {
             }
             .interactiveDismissDisabled()
         }
+#elseif os(macOS)
+        .sheet(isPresented: $viewModel.isCodeEntryPresented) {
+            CodeEntryView { outcome in
+                viewModel.handleCodeEntry(outcome)
+            }
+        }
 #endif
         .onAppear {
 #if os(macOS)

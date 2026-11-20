@@ -1,4 +1,3 @@
-#if os(iOS)
 import Foundation
 import AccountPrefetchGates
 import CredentialsManager
@@ -42,4 +41,3 @@ public enum CodeEntryOutcomeHandler {
         sendSessionEvent(.authCompleted(outcome: outcome, flow: .login))
     }
 }
-#endif

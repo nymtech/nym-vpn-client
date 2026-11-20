@@ -38,9 +38,7 @@ import Theme
 #endif
     @Published var sections: [AppSettingsSection] = []
     @Published var accountIdentifier: String?
-#if os(iOS)
     @Published var isCodeEntryPresented = false
-#endif
 #if os(macOS)
     var autologinState: AutologinState?
 #endif
@@ -276,9 +274,7 @@ private extension SettingsViewModel {
             if appSettings.isCredentialImported {
                 newSections.append(accountSection())
             } else {
-#if os(iOS)
                 newSections.append(AppSettingsSection(kind: .redeemCode, viewModels: [redeemCodeItem()]))
-#endif
             }
             newSections.append(
                 contentsOf: [
@@ -298,7 +294,6 @@ private extension SettingsViewModel {
     }
 }
 
-#if os(iOS)
 // MARK: - Code entry -
 extension SettingsViewModel {
     func handleCodeEntry(_ outcome: CodeEntryOutcome) {
@@ -315,7 +310,6 @@ extension SettingsViewModel {
         }
     }
 }
-#endif
 
 // MARK: - Helpers -
 private extension SettingsViewModel {
@@ -385,12 +379,11 @@ private extension SettingsViewModel {
                 }
             )
         )
-        viewModels.append(redeemCodeItem())
 #endif
+        viewModels.append(redeemCodeItem())
         return AppSettingsSection(kind: .account, viewModels: viewModels)
     }
 
-#if os(iOS)
     /// Shown without an account too.
     func redeemCodeItem() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
@@ -405,7 +398,6 @@ private extension SettingsViewModel {
             }
         )
     }
-#endif
 
     func appearanceSection() -> AppSettingsSection {
         AppSettingsSection(
