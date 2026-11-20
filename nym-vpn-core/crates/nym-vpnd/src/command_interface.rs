@@ -27,7 +27,9 @@ use nym_vpn_proto::proto::{
 };
 
 use nym_authorization_service::Client;
-use nym_vpn_lib::service::{ClientRequest, SetNetworkError, Socks5Error, VpnServiceCommand};
+use nym_vpn_lib::service::{
+    ClientRequest, SetNetworkError, SetTransportPreferenceError, Socks5Error, VpnServiceCommand,
+};
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
 
@@ -240,15 +242,16 @@ impl NymVpnService for CommandInterface {
             .map_err(|e| tonic::Status::invalid_argument(format!("Invalid transport: {e}")))?
             .map(Into::into);
 
-        let _ = self
-            .send_and_wait(
-                VpnServiceCommand::SetTransportPreference,
-                transport_preference,
-            )
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set transport preference: {e}"))
-            })?;
+        self.send_and_wait(
+            VpnServiceCommand::SetTransportPreference,
+            transport_preference,
+        )
+        .await?
+        .map_err(|e| match e {
+            SetTransportPreferenceError::FallbackTransportsDisabled => {
+                tonic::Status::failed_precondition(e.to_string())
+            }
+        })?;
 
         Ok(tonic::Response::new(()))
     }

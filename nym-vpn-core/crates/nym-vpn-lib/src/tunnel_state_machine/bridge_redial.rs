@@ -14,7 +14,7 @@ use nym_vpn_lib_types::{BridgeAddress, BridgeTransport};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use crate::tunnel_state_machine::{Result, tunnel::SelectedGateways, tunnel::transports};
+use crate::tunnel_state_machine::{Error, Result, tunnel::SelectedGateways, tunnel::transports};
 
 /// Cap on waiting for a generation's forwarder to exit gracefully before aborting it.
 const GRACEFUL_EXIT_TIMEOUT: Duration = Duration::from_secs(3);
@@ -140,6 +140,11 @@ pub(super) async fn start_bridges(
         fallback,
         transport_preference,
     );
+
+    // A pin accepted while fallback was enabled can go stale once the network disables it.
+    if quic.is_empty() && fallback.is_empty() && transport_preference.is_some() {
+        return Err(Error::TransportPreferenceUnavailable);
+    }
 
     tracing::info!("Establishing DVPN bridge tunnel");
 

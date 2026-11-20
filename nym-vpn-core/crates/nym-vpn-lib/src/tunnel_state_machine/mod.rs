@@ -1760,6 +1760,13 @@ pub enum Error {
 
     #[error("gateway provider shut down")]
     GatewayProviderDown,
+
+    #[error(
+        "the pinned bridge transport has no usable candidates for this gateway right now \
+         (it may lack that transport, or the network may have disabled TLS/SSH bridge \
+         fallback since the preference was set)"
+    )]
+    TransportPreferenceUnavailable,
 }
 
 impl Error {
@@ -1793,6 +1800,8 @@ impl Error {
             #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
             Self::Tunnel(e) => e.error_state_reason()?,
+            // Retryable, same as an ordinary bridge-connect failure (`Transport(_)` above).
+            Self::TransportPreferenceUnavailable => None?,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::ConfigureTunnelProvider(_) => ErrorStateReason::TunnelProvider,
             #[cfg(target_os = "ios")]
