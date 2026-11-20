@@ -890,7 +890,7 @@ impl VpnApiClient {
                 routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
-                &account_id,
+                account_id,
                 routes::DEVICE,
                 &device.identity_key().to_string(),
             ],
