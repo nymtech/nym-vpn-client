@@ -39,6 +39,13 @@ sudo dpkg -i /tmp/nym-repo-setup_1.0.1_amd64.deb
 sudo apt install nym-vpn
 ```
 
+### RPM (Fedora 44)
+
+The repository includes source packaging for an unsigned, combined GUI and
+daemon RPM on `x86_64` and `aarch64`. See
+[the Fedora packaging guide](../.pkg/fedora/README.md) for reproducible Podman
+builds, artifact validation, and the intentional setuid helper design.
+
 ### Flatpak (client app only)
 
 The app is available on [Flathub](https://flathub.org/apps/net.nymtech.NymVPN)

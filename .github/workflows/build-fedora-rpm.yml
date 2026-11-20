@@ -1,0 +1,79 @@
+name: Build Fedora 44 RPM
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".pkg/fedora/**"
+      - ".github/workflows/build-fedora-rpm.yml"
+  push:
+    branches: [develop]
+    paths:
+      - ".pkg/fedora/**"
+      - ".github/workflows/build-fedora-rpm.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Fedora 44 / ${{ matrix.rpm_arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rpm_arch: x86_64
+            runner: ubuntu-24.04
+            platform: linux/amd64
+          - rpm_arch: aarch64
+            runner: ubuntu-24.04-arm
+            platform: linux/arm64
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Prepare dependency caches
+        run: mkdir -p .pkg/fedora/.build-cache/cargo-registry .pkg/fedora/.build-cache/cargo-git .pkg/fedora/.build-cache/npm
+
+      - name: Restore dependency caches
+        uses: actions/cache@v6
+        with:
+          path: .pkg/fedora/.build-cache
+          key: nym-vpn-2026.11.2-fedora44-${{ matrix.rpm_arch }}-${{ hashFiles('.pkg/fedora/sources.lock', '.pkg/fedora/Containerfile') }}
+          restore-keys: |
+            nym-vpn-2026.11.2-fedora44-${{ matrix.rpm_arch }}-
+
+      - name: Build pinned Fedora builder
+        run: |
+          docker build \
+            --platform "${{ matrix.platform }}" \
+            --tag "nym-vpn-rpm-builder:${{ matrix.rpm_arch }}" \
+            --file .pkg/fedora/Containerfile .pkg/fedora
+
+      - name: Build and validate RPM
+        run: |
+          mkdir -p ".pkg/fedora/dist/${{ matrix.rpm_arch }}" .pkg/fedora/dist/SRPMS
+          docker run --rm \
+            --platform "${{ matrix.platform }}" \
+            --volume "$PWD/.pkg/fedora:/workspace" \
+            --volume "$PWD/.pkg/fedora/.build-cache/cargo-registry:/opt/cargo/registry" \
+            --volume "$PWD/.pkg/fedora/.build-cache/cargo-git:/opt/cargo/git" \
+            --volume "$PWD/.pkg/fedora/.build-cache/npm:/var/cache/npm" \
+            "nym-vpn-rpm-builder:${{ matrix.rpm_arch }}" \
+            /workspace/scripts/container-build.sh "${{ matrix.rpm_arch }}"
+
+      - name: Verify systemd lifecycle
+        env:
+          CONTAINER_ENGINE: docker
+        run: .pkg/fedora/scripts/systemd-smoke.sh .pkg/fedora/dist/${{ matrix.rpm_arch }}/nym-vpn-*.rpm
+
+      - name: Upload RPM, SRPM, checksums, and logs
+        uses: actions/upload-artifact@v7
+        with:
+          name: nym-vpn-2026.11.2-fedora44-${{ matrix.rpm_arch }}
+          if-no-files-found: error
+          path: |
+            .pkg/fedora/dist/${{ matrix.rpm_arch }}/
+            .pkg/fedora/dist/SRPMS/
