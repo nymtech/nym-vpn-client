@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import { useToast } from '../../../hooks';
 import { MsIcon, PageAnim, Switch } from '../../../ui';
 import { dispatch, useMainState } from '../../../store';
 import SettingsGroup from '../SettingsGroup';
@@ -14,32 +15,53 @@ import TelemetryInfoDialog, {
 function DataAndPrivacy() {
   const { monitoring, networkStats } = useMainState();
   const [info, setInfo] = useState<TelemetryInfoKind | null>(null);
+  const [netStatsPending, setNetStatsPending] = useState(false);
+  const [monitoringPending, setMonitoringPending] = useState(false);
 
   const { t } = useTranslation(['settings', 'welcome']);
   const navigate = useNavigate();
+  const { add } = useToast();
 
-  const onNetStatsChange = async () => {
-    const isChecked = !networkStats;
-    dispatch({ type: 'set-network-stats', enabled: isChecked });
-    try {
-      if (isChecked) {
-        await invoke('enable_netstats');
-      } else {
-        await invoke('disable_netstats');
-      }
-    } catch {}
-  };
+  const choices = {
+    netstats: {
+      checked: networkStats,
+      pending: netStatsPending,
+      setPending: setNetStatsPending,
+      enable: 'enable_netstats',
+      disable: 'disable_netstats',
+      action: 'set-network-stats',
+      label: 'network stats',
+    },
+    monitoring: {
+      checked: monitoring,
+      pending: monitoringPending,
+      setPending: setMonitoringPending,
+      enable: 'enable_sentry',
+      disable: 'disable_sentry',
+      action: 'set-monitoring',
+      label: 'monitoring',
+    },
+  } as const;
 
-  const onMonitoringChange = async () => {
-    const isChecked = !monitoring;
-    dispatch({ type: 'set-monitoring', enabled: isChecked });
+  const saveChoice = async (name: keyof typeof choices) => {
+    const choice = choices[name];
+    if (choice.pending) {
+      return;
+    }
+    choice.setPending(true);
+    const isChecked = !choice.checked;
     try {
-      if (isChecked) {
-        await invoke('enable_sentry');
-      } else {
-        await invoke('disable_sentry');
-      }
-    } catch {}
+      await invoke(isChecked ? choice.enable : choice.disable);
+      dispatch({ type: choice.action, enabled: isChecked });
+    } catch (error) {
+      console.error(`[data-privacy] ${choice.label} error`, error);
+      add({
+        title: t('privacy.errors.failed'),
+        type: 'error',
+      });
+    } finally {
+      choice.setPending(false);
+    }
   };
 
   return (
@@ -87,7 +109,8 @@ function DataAndPrivacy() {
             trailing: (
               <Switch
                 checked={networkStats}
-                onChange={onNetStatsChange}
+                onChange={() => saveChoice('netstats')}
+                disabled={netStatsPending}
                 data-testid="data-privacy-netstats-switch"
               />
             ),
@@ -115,7 +138,8 @@ function DataAndPrivacy() {
             trailing: (
               <Switch
                 checked={monitoring}
-                onChange={onMonitoringChange}
+                onChange={() => saveChoice('monitoring')}
+                disabled={monitoringPending}
                 data-testid="data-privacy-monitoring-switch"
               />
             ),

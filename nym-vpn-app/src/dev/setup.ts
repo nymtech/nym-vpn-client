@@ -109,6 +109,14 @@ export function mockTauriIPC() {
       console.debug(`IPC call mocked "${cmd}"`);
       console.debug(args);
 
+      // Playwright sets this before load to make one IPC call fail.
+      const ipcFail = (
+        window as Window & { __NYM_IPC_FAIL?: readonly string[] }
+      ).__NYM_IPC_FAIL;
+      if (ipcFail?.includes(cmd)) {
+        throw new Error(`mocked failure: ${cmd}`);
+      }
+
       if (cmd === 'daemon_status') {
         return new Promise<VpndStatus>((resolve) => resolve(daemon));
       }

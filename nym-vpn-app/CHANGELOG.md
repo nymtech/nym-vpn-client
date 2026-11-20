@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Telemetry consent toggles stay on the saved choice when the daemon rejects the change, and say so (https://github.com/nymtech/nym-vpn-client/issues/7000)
 - Show a specific error when Enhanced connection is On and the entry server has no bridge, and say the connection is reconnecting when the setting changes (https://github.com/nymtech/nym-vpn-client/pull/6973)
 
 ## [2026.15.0] - 2026-11-05

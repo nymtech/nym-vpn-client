@@ -1,3 +1,4 @@
+use crate::commands::revert_vpnd_on_save_error;
 use crate::db::{Db, Key};
 use crate::error::BackendError;
 use crate::vpnd::client::VpndClient;
@@ -12,7 +13,8 @@ pub async fn enable_netstats(
     vpnd: State<'_, VpndClient>,
 ) -> Result<(), BackendError> {
     vpnd.enable_netstats().await?;
-    db.insert(Key::NetworkStatsEnabled.as_ref(), true)?;
+    let saved = db.insert(Key::NetworkStatsEnabled.as_ref(), true);
+    revert_vpnd_on_save_error(saved, vpnd.disable_netstats()).await?;
     Ok(())
 }
 
@@ -23,6 +25,7 @@ pub async fn disable_netstats(
     vpnd: State<'_, VpndClient>,
 ) -> Result<(), BackendError> {
     vpnd.disable_netstats().await?;
-    db.insert(Key::NetworkStatsEnabled.as_ref(), false)?;
+    let saved = db.insert(Key::NetworkStatsEnabled.as_ref(), false);
+    revert_vpnd_on_save_error(saved, vpnd.enable_netstats()).await?;
     Ok(())
 }
