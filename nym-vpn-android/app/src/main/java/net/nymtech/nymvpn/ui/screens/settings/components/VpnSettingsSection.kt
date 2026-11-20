@@ -24,207 +24,224 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 
 @Composable
-fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
-	SettingsGroup(
-		items = buildList {
-			add(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							Icons.Outlined.Power,
-							stringResource(R.string.settings_kill_switch_title),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.settings_kill_switch_title))
-					},
-					onClick = actions.onKillSwitchClick,
-					description = {
-						Text(
-							boldMarkupText(stringResource(R.string.settings_kill_switch_description)),
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onBackground,
-						)
-					},
-				),
-			)
+fun vpnSettingsEntries(values: SettingsValues, actions: SettingsActions): List<SettingsEntry> = buildList {
+	add(
+		R.string.settings_section_protection,
+		stringResource(R.string.settings_kill_switch_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					Icons.Outlined.Power,
+					stringResource(R.string.settings_kill_switch_title),
+				)
+			},
+			trailing = {
+				SettingsArrowIcon()
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_kill_switch_title))
+			},
+			onClick = actions.onKillSwitchClick,
+			description = {
+				Text(
+					boldMarkupText(stringResource(R.string.settings_kill_switch_description)),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
+				)
+			},
+		),
+	)
 
-			add(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							Icons.Outlined.Lan,
-							stringResource(R.string.settings_bypass_lan_title),
-						)
-					},
-					trailing = {
-						ScaledSwitch(
-							checked = values.bypassLanEnabled,
-							onClick = actions.onBypassLanEnable,
-						)
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.settings_bypass_lan_title))
-					},
-					description = {
-						Text(
-							stringResource(R.string.settings_bypass_lan_description),
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onBackground,
-						)
-					},
-				),
-			)
+	add(
+		R.string.settings_section_protection,
+		stringResource(R.string.settings_ad_blocking_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					Icons.Outlined.Block,
+					stringResource(R.string.settings_ad_blocking_title),
+				)
+			},
+			trailing = {
+				ScaledSwitch(
+					checked = values.adBlockingEnabled,
+					onClick = actions.onAdBlockingEnable,
+				)
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_ad_blocking_title))
+			},
+		),
+	)
 
-			add(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							Icons.Outlined.Block,
-							stringResource(R.string.settings_ad_blocking_title),
-						)
-					},
-					trailing = {
-						ScaledSwitch(
-							checked = values.adBlockingEnabled,
-							onClick = actions.onAdBlockingEnable,
-						)
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.settings_ad_blocking_title))
-					},
-				),
-			)
+	add(
+		R.string.settings_section_connection,
+		stringResource(R.string.settings_censorship_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					ImageVector.vectorResource(R.drawable.ic_censorship),
+					stringResource(R.string.settings_censorship_title),
+				)
+			},
+			trailing = {
+				SettingsArrowIcon()
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_censorship_title))
+			},
+			onClick = actions.onCensorshipClick,
+		),
+	)
 
-			add(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							Icons.Outlined.Public,
-							stringResource(R.string.settings_geo_exclusion_title),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.settings_geo_exclusion_title))
-					},
-					description = {
-						Text(
-							stringResource(R.string.settings_geo_exclusion_description),
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onBackground,
-						)
-					},
-					onClick = actions.onGeoExclusionClick,
-				),
-			)
+	add(
+		R.string.settings_section_connection,
+		stringResource(R.string.settings_profiles_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					ImageVector.vectorResource(R.drawable.ic_profiles),
+					stringResource(R.string.settings_profiles_title),
+				)
+			},
+			trailing = {
+				SettingsArrowIcon()
+			},
+			description = {
+				Text(
+					stringResource(R.string.settings_profiles_description),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
+				)
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_profiles_title))
+			},
+			onClick = actions.onProfilesClick,
+		),
+	)
 
-			add(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							ImageVector.vectorResource(R.drawable.ic_split_tunneling),
-							stringResource(R.string.settings_split_tunneling_title),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.settings_split_tunneling_title))
-					},
-					onClick = actions.onSplitTunnelingClick,
-				),
-			)
+	add(
+		R.string.settings_section_connection,
+		stringResource(R.string.settings_dns_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					Icons.Outlined.Dns,
+					stringResource(R.string.settings_dns_title),
+				)
+			},
+			trailing = {
+				SettingsArrowIcon()
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_dns_title))
+			},
+			onClick = actions.onDnsClick,
+		),
+	)
 
-			add(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							Icons.Outlined.Dns,
-							stringResource(R.string.settings_dns_title),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.settings_dns_title))
-					},
-					onClick = actions.onDnsClick,
-				),
-			)
-			add(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							ImageVector.vectorResource(R.drawable.ic_mixnet_tuning),
-							stringResource(R.string.settings_split_tunneling_title),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					description = {
-						Text(
-							stringResource(R.string.settings_mixnet_tuning_description),
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onBackground,
-						)
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.settings_mixnet_tuning_title))
-					},
-					onClick = actions.onMixnetTuningClick,
-				),
-			)
-			add(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							ImageVector.vectorResource(R.drawable.ic_profiles),
-							stringResource(R.string.settings_profiles_title),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					description = {
-						Text(
-							stringResource(R.string.settings_profiles_description),
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onBackground,
-						)
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.settings_profiles_title))
-					},
-					onClick = actions.onProfilesClick,
-				),
-			)
-			add(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							ImageVector.vectorResource(R.drawable.ic_censorship),
-							stringResource(R.string.settings_censorship_title),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.settings_censorship_title))
-					},
-					onClick = actions.onCensorshipClick,
-				),
-			)
-		},
+	add(
+		R.string.settings_section_connection,
+		stringResource(R.string.settings_bypass_lan_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					Icons.Outlined.Lan,
+					stringResource(R.string.settings_bypass_lan_title),
+				)
+			},
+			trailing = {
+				ScaledSwitch(
+					checked = values.bypassLanEnabled,
+					onClick = actions.onBypassLanEnable,
+				)
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_bypass_lan_title))
+			},
+			description = {
+				Text(
+					stringResource(R.string.settings_bypass_lan_description),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
+				)
+			},
+		),
+	)
+
+	add(
+		R.string.settings_section_routing,
+		stringResource(R.string.settings_split_tunneling_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					ImageVector.vectorResource(R.drawable.ic_split_tunneling),
+					stringResource(R.string.settings_split_tunneling_title),
+				)
+			},
+			trailing = {
+				SettingsArrowIcon()
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_split_tunneling_title))
+			},
+			onClick = actions.onSplitTunnelingClick,
+		),
+	)
+
+	add(
+		R.string.settings_section_routing,
+		stringResource(R.string.settings_geo_exclusion_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					Icons.Outlined.Public,
+					stringResource(R.string.settings_geo_exclusion_title),
+				)
+			},
+			trailing = {
+				SettingsArrowIcon()
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_geo_exclusion_title))
+			},
+			description = {
+				Text(
+					stringResource(R.string.settings_geo_exclusion_description),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
+				)
+			},
+			onClick = actions.onGeoExclusionClick,
+		),
+	)
+
+	add(
+		R.string.settings_section_mixnet,
+		stringResource(R.string.settings_mixnet_tuning_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					ImageVector.vectorResource(R.drawable.ic_mixnet_tuning),
+					stringResource(R.string.settings_mixnet_tuning_title),
+				)
+			},
+			trailing = {
+				SettingsArrowIcon()
+			},
+			description = {
+				Text(
+					stringResource(R.string.settings_mixnet_tuning_description),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
+				)
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_mixnet_tuning_title))
+			},
+			onClick = actions.onMixnetTuningClick,
+		),
 	)
 }
 
@@ -232,9 +249,6 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewVpnSections() {
 	NymVPNTheme(Theme.default()) {
-		VpnSettingsSection(
-			SettingsValues(),
-			SettingsActions(),
-		)
+		SettingsGroup(items = vpnSettingsEntries(SettingsValues(), SettingsActions()).map { it.item })
 	}
 }
