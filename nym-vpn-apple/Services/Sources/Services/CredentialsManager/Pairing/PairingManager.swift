@@ -59,8 +59,8 @@ public final class PairingManager: ObservableObject {
             .sink { [weak self] _ in
                 MainActor.assumeIsolated {
                     guard let self else { return }
-                    daemonDisconnects += 1
-                    guard let sessionId = state.activeSessionId else { return }
+                    self.daemonDisconnects += 1
+                    guard let sessionId = self.state.activeSessionId else { return }
                     Task { await self.endActiveSession(sessionId) }
                 }
             }
