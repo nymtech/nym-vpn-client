@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Windows] Sign bundled libwg.dll, winfw.dll and uninstall.exe. Fixes issue with Windows 11 Smart App Control (https://github.com/nymtech/nym-vpn-client/pull/7154, https://github.com/nymtech/nym-vpn-client/pull/7164)
 - [Windows] Hide console window during system service registration invoked by installer (https://github.com/nymtech/nym-vpn-client/pull/7154)
 
-
 ## [2026.16.0] - 2026-11-18
 
 ### Added
