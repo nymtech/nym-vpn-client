@@ -128,6 +128,8 @@ import Theme
         if let index = sections.firstIndex(where: { $0.kind == .account }) {
             sections[index] = updated
         } else {
+            // signed in now: the account section replaces the signed-out redeem section
+            sections.removeAll { $0.kind == .redeemCode }
             sections.insert(updated, at: 0)
         }
     }

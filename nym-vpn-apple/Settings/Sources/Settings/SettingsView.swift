@@ -115,12 +115,7 @@ private extension SettingsView {
 
     /// All sections, or while searching only the rows whose title matches, under their section header.
     func visibleSections() -> [SettingsSection<AppSettingsSectionKind>] {
-        let query = searchText.trimmingCharacters(in: .whitespaces)
-        guard !query.isEmpty else { return viewModel.sections }
-        return viewModel.sections.compactMap { section in
-            let hits = section.viewModels.filter { $0.title.localizedCaseInsensitiveContains(query) }
-            return hits.isEmpty ? nil : SettingsSection(kind: section.kind, viewModels: hits)
-        }
+        SettingsSearch.filter(viewModel.sections, query: searchText)
     }
 
     func sectionHeader(_ title: String) -> some View {
