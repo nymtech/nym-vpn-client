@@ -263,12 +263,16 @@ function Settings() {
   ];
 
   const search = query.trim().toLowerCase();
-  // search hits: matching rows from every section, section name as the description
-  const hits = sections.flatMap((section) =>
-    section.settings
-      .filter((s) => s.title.toLowerCase().includes(search))
-      .map((s) => ({ ...s, desc: section.title })),
-  );
+  const matches = (text: string) => text.toLowerCase().includes(search);
+  // while searching, keep only matching rows, each under its own section header
+  const visibleSections = sections
+    .map((section) => ({
+      ...section,
+      settings: section.settings.filter((s) => !search || matches(s.title)),
+    }))
+    .filter((section) => section.settings.length > 0);
+  const showAccount = !search || matches(t('sections.account'));
+  const noResults = !showAccount && visibleSections.length === 0;
 
   return (
     <PageAnim className="flex h-full flex-col gap-4">
@@ -280,24 +284,25 @@ function Settings() {
         spellCheck={false}
         clearable
       />
-      {search ? (
-        <SettingsGroup settings={hits} />
-      ) : (
-        <>
-          <SettingsSection title={t('sections.account')}>
-            <AccountSettingRow />
-          </SettingsSection>
-          {sections.map((section) => (
-            <SettingsSection key={section.key} title={section.title}>
-              <SettingsGroup settings={section.settings} />
-            </SettingsSection>
-          ))}
-          <Button variant="destructive" onClick={exit}>
-            {t('quit')}
-          </Button>
-          <InfoData />
-        </>
+      {showAccount && (
+        <SettingsSection title={t('sections.account')}>
+          <AccountSettingRow />
+        </SettingsSection>
       )}
+      {visibleSections.map((section) => (
+        <SettingsSection key={section.key} title={section.title}>
+          <SettingsGroup settings={section.settings} />
+        </SettingsSection>
+      ))}
+      {noResults && (
+        <p className="text-text-secondary px-5 text-sm select-none">
+          {t('no-results-found.title', { ns: 'node-location' })}
+        </p>
+      )}
+      <Button variant="destructive" onClick={exit}>
+        {t('quit')}
+      </Button>
+      <InfoData />
     </PageAnim>
   );
 }
