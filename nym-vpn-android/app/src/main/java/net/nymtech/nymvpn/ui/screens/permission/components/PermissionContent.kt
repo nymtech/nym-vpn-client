@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.permission.components
 
-import android.net.VpnService
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +21,7 @@ import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.prepareVpn
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
@@ -40,11 +40,17 @@ fun PermissionContent(permission: Permission, navController: NavController) {
 			Column(verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom)) {
 				MainStyledButton(
 					onClick = {
-						if (VpnService.prepare(context) == null) {
-							navController.navigateAndForget(Route.Main(true))
-						} else {
-							snackbar.showMessage(context.getString(R.string.permission_required))
-						}
+						context.prepareVpn()
+							.onSuccess { intent ->
+								if (intent == null) {
+									navController.navigateAndForget(Route.Main(true))
+								} else {
+									snackbar.showMessage(context.getString(R.string.permission_required))
+								}
+							}
+							.onFailure {
+								snackbar.showMessage(context.getString(R.string.vpn_blocked_by_system_lockdown))
+							}
 					},
 					content = {
 						Text(

@@ -145,7 +145,12 @@ class VpnCoreController(
 	suspend fun reconnect(): ConnectResult = coreMutex.withLock { reconnectLocked() }
 
 	suspend fun connectLocked(): ConnectResult {
-		if (android.net.VpnService.prepare(service) != null) {
+		// prepare() throws IllegalStateException when a system always-on (lockdown) VPN profile is active.
+		val prepareIntent = runCatching { android.net.VpnService.prepare(service) }.getOrElse { t ->
+			Timber.tag(TAG).w(t, "VpnPrepareFailed")
+			return ConnectResult.Failed("VPN unavailable: blocked by system", t::class.java.name)
+		}
+		if (prepareIntent != null) {
 			return ConnectResult.PermissionRequired("VPN permission not granted")
 		}
 
