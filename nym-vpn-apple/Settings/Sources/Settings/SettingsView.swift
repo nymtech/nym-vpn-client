@@ -83,6 +83,10 @@ private extension SettingsView {
                 await credentialsManager.updateAccountSummary()
             }
         }
+        .onDisappear {
+            // a pushed subpage hides this screen; start unfiltered when coming back
+            searchText = ""
+        }
     }
 
     @ViewBuilder
@@ -97,9 +101,15 @@ private extension SettingsView {
 
     @ViewBuilder
     func settingsList() -> some View {
-        ForEach(visibleSections(), id: \.self) { section in
-            sectionHeader(section.kind.title)
-            SettingsList(viewModel: SettingsListViewModel(sections: [section]))
+        let sections = visibleSections()
+        if sections.isEmpty && !viewModel.sections.isEmpty {
+            sectionHeader("search.noResults".localizedString)
+        } else {
+            ForEach(sections, id: \.self) { section in
+                sectionHeader(section.kind.title)
+                    .accessibilityAddTraits(.isHeader)
+                SettingsList(viewModel: SettingsListViewModel(sections: [section]))
+            }
         }
     }
 
