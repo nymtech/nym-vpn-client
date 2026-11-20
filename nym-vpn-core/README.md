@@ -91,7 +91,9 @@ After installing Rust, install the following Rust targets and dependencies to en
 
 ### Windows
 
-1. Install Visual Studio 2022 Community
+1. Install Visual Studio 2022 Community 17.14 or newer (MSVC 14.44 toolset)
+
+    Visual Studio does not update the build tools on its own, so update existing installations with the Visual Studio Installer.
 
     When you install Visual Studio 2022, select the Desktop development with C++ workload, then under Individual Components add:
     - MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools
