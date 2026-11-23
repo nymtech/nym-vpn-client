@@ -1,0 +1,14 @@
+{
+  "bundle": {
+    "resources": [
+      "nym-vpnd.exe",
+      "nym-socks5-proxy.exe",
+      "libwg.dll",
+      "winfw.dll",
+      "wintun.dll",
+      "nymvpn-split-tunnel.sys",
+      "nymvpn-split-tunnel.inf",
+      "nymvpn-split-tunnel.cat"
+    ]
+  }
+}
