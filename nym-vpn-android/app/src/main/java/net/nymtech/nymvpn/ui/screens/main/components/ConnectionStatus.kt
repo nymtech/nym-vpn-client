@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.main.components
 import android.content.Context
 import android.provider.Settings
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -69,10 +70,10 @@ private const val ERROR_START = 360f * ERROR_GAP / 2f
 private const val ERROR_SWEEP = 360f * (1f - ERROR_GAP)
 private const val ERROR_ALPHA = 0.85f
 
-// Blocked: only the outer ring, blinking.
-private const val BLOCKED_ALPHA_MIN = 0.15f
-private const val BLOCKED_ALPHA_MAX = 0.9f
-private const val BLOCKED_HALF_CYCLE_MS = 1200
+// Blocked: only the outer ring, in the error colour, with a gap that turns once every 4 s
+// (track and fill together, so the gap stays open). Still, the gap ends at 12 o'clock.
+private const val BLOCKED_SWEEP = 360f * (1f - 0.15f)
+private const val BLOCKED_TURN_MS = 4000
 
 @Composable
 fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: Tunnel.Mode, connectionTime: String? = null, modifier: Modifier = Modifier) {
@@ -114,15 +115,16 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 	val pulse = rememberInfiniteTransition(label = "arcPulse")
 
 	// Blocked
-	val blockedBlink by pulse.animateFloat(
-		initialValue = BLOCKED_ALPHA_MIN,
-		targetValue = BLOCKED_ALPHA_MAX,
+	val blockedTurn by pulse.animateFloat(
+		initialValue = 0f,
+		targetValue = 360f,
 		animationSpec = infiniteRepeatable(
-			animation = tween(BLOCKED_HALF_CYCLE_MS, easing = FastOutSlowInEasing),
-			repeatMode = RepeatMode.Reverse,
+			animation = tween(BLOCKED_TURN_MS, easing = LinearEasing),
+			repeatMode = RepeatMode.Restart,
 		),
-		label = "blockedBlink",
+		label = "blockedTurn",
 	)
+	val blockedStart = -90f + if (animationsOff) 0f else blockedTurn
 
 	// Connected
 	val connectedGlow by pulse.animateFloat(
@@ -147,9 +149,8 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 	)
 
 	val fillColor = when {
-		isError -> MaterialTheme.colorScheme.error.copy(alpha = ERROR_ALPHA)
+		isError || isBlocked -> MaterialTheme.colorScheme.error.copy(alpha = ERROR_ALPHA)
 		isConnecting -> LocalNymColors.current.markerConnecting
-		isBlocked -> MaterialTheme.colorScheme.primary.copy(alpha = if (animationsOff) BLOCKED_ALPHA_MAX else blockedBlink)
 		else -> MaterialTheme.colorScheme.primary
 	}
 
@@ -222,14 +223,20 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 
 				for (radius in floatArrayOf(OUTER_RADIUS, MIDDLE_RADIUS, INNER_RADIUS)) {
 					val rPx = radius.dp.toPx()
+					val blockedRing = isBlocked && radius == OUTER_RADIUS
+					val (trackStart, trackSweep) = when {
+						isError -> ERROR_START to ERROR_SWEEP
+						blockedRing -> blockedStart to BLOCKED_SWEEP
+						else -> -90f to 360f
+					}
 					drawArc(
 						color = bg,
-						startAngle = if (isError) ERROR_START else -90f,
-						sweepAngle = if (isError) ERROR_SWEEP else 360f,
+						startAngle = trackStart,
+						sweepAngle = trackSweep,
 						useCenter = false,
 						topLeft = Offset(cx - rPx, cy - rPx),
 						size = Size(rPx * 2f, rPx * 2f),
-						style = Stroke(width = ARC_STROKE.dp.toPx(), cap = if (isError) StrokeCap.Round else StrokeCap.Butt),
+						style = Stroke(width = ARC_STROKE.dp.toPx(), cap = if (isError || blockedRing) StrokeCap.Round else StrokeCap.Butt),
 					)
 				}
 
@@ -270,10 +277,11 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 							style = Stroke(width = ARC_STROKE.dp.toPx(), cap = StrokeCap.Round),
 						)
 					} else if (sweep > 0.5f) {
+						val blockedRing = isBlocked && radius == OUTER_RADIUS
 						drawArc(
 							color = fillColor,
-							startAngle = -90f,
-							sweepAngle = sweep,
+							startAngle = if (blockedRing) blockedStart else -90f,
+							sweepAngle = if (blockedRing) minOf(sweep, BLOCKED_SWEEP) else sweep,
 							useCenter = false,
 							topLeft = Offset(cx - rPx, cy - rPx),
 							size = Size(rPx * 2f, rPx * 2f),
