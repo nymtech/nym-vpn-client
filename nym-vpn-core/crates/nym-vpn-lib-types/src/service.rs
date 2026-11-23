@@ -18,7 +18,7 @@ use time::OffsetDateTime;
 use ts_rs::TS;
 
 use crate::{
-    EntryPoint, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
+    BridgeTransport, EntryPoint, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
     NetworkStatisticsConfig, NymNetworkDetails, NymVpnNetwork,
 };
 
@@ -46,6 +46,8 @@ pub struct VpnServiceConfig {
     pub enable_ad_blocking: bool,
     pub enable_conflict_detection: bool,
     pub fronting_mode: FrontingMode,
+    /// Pin bridge connections to one transport; `None` keeps today's QUIC-first-then-fallback.
+    pub transport_preference: Option<BridgeTransport>,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -119,6 +121,7 @@ impl Default for VpnServiceConfig {
             enable_ad_blocking: false,
             enable_conflict_detection: true,
             fronting_mode: FrontingMode::default(),
+            transport_preference: None,
             netstack: false,
             min_gateway_vpn_performance: None,
             residential_exit: false,

@@ -70,7 +70,7 @@ use super::{
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountLinksError, Error, GeoExclusionConfigError, GlobalConfigError, ListGatewaysError,
-        Result, SetCustomDnsError, SetNetworkError,
+        Result, SetCustomDnsError, SetNetworkError, SetTransportPreferenceError,
     },
     socks5::Socks5EnableConfig,
     socks5_idle_timeout, socks5_request_timeout,
@@ -132,6 +132,10 @@ pub enum VpnServiceCommand {
     SetEnableAdBlocking(oneshot::Sender<()>, bool),
     SetEnableConflictDetection(oneshot::Sender<()>, bool),
     SetFrontingMode(oneshot::Sender<()>, nym_vpn_lib_types::FrontingMode),
+    SetTransportPreference(
+        oneshot::Sender<Result<(), SetTransportPreferenceError>>,
+        Option<nym_vpn_lib_types::BridgeTransport>,
+    ),
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(
@@ -1165,6 +1169,12 @@ impl NymVpnService {
                 self.handle_set_fronting_mode(fronting_mode).await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetTransportPreference(tx, transport_preference) => {
+                let _ = tx.send(
+                    self.handle_set_transport_preference(transport_preference)
+                        .await,
+                );
+            }
             VpnServiceCommand::SetNetstack(tx, netstack) => {
                 self.handle_set_netstack(netstack).await;
                 let _ = tx.send(());
@@ -1576,6 +1586,24 @@ impl NymVpnService {
     async fn handle_set_fronting_mode(&mut self, fronting_mode: nym_vpn_lib_types::FrontingMode) {
         self.config_manager.set_fronting_mode(fronting_mode).await;
         self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_transport_preference(
+        &mut self,
+        transport_preference: Option<nym_vpn_lib_types::BridgeTransport>,
+    ) -> Result<(), SetTransportPreferenceError> {
+        let fallback_enabled = self
+            .network_tx
+            .borrow()
+            .bridge_transports_enabled()
+            .unwrap_or(false);
+        validate_transport_preference(transport_preference, fallback_enabled)?;
+
+        self.config_manager
+            .set_transport_preference(transport_preference)
+            .await;
+        self.update_tunnel_settings_with_throttle();
+        Ok(())
     }
 
     async fn handle_set_residential_exit(&mut self, residential_exit: bool) {
@@ -2833,6 +2861,23 @@ impl NymVpnService {
     }
 }
 
+/// A TLS or SSH pin is unusable once `bridge_candidates` drops fallback transports for
+/// `!fallback_enabled`; reject it here instead of silently storing a pin nothing can dial.
+fn validate_transport_preference(
+    transport_preference: Option<nym_vpn_lib_types::BridgeTransport>,
+    fallback_enabled: bool,
+) -> Result<(), SetTransportPreferenceError> {
+    let needs_fallback = matches!(
+        transport_preference,
+        Some(nym_vpn_lib_types::BridgeTransport::Tls)
+            | Some(nym_vpn_lib_types::BridgeTransport::Ssh)
+    );
+    if needs_fallback && !fallback_enabled {
+        return Err(SetTransportPreferenceError::FallbackTransportsDisabled);
+    }
+    Ok(())
+}
+
 /// The thresholds the tunnel monitor installs on connect. The gateway cache is cleared when a
 /// replacement client carries different ones, so every client given to it must use these.
 fn min_gateway_performance(options: GatewayPerformanceOptions) -> Option<GatewayMinPerformance> {
@@ -2968,5 +3013,29 @@ mod tests {
             0,
             "receiver should not observe a change when network is unchanged"
         );
+    }
+
+    #[test]
+    fn tls_or_ssh_pin_rejected_when_fallback_transports_disabled() {
+        use nym_vpn_lib_types::BridgeTransport;
+
+        assert!(matches!(
+            validate_transport_preference(Some(BridgeTransport::Tls), false),
+            Err(SetTransportPreferenceError::FallbackTransportsDisabled)
+        ));
+        assert!(matches!(
+            validate_transport_preference(Some(BridgeTransport::Ssh), false),
+            Err(SetTransportPreferenceError::FallbackTransportsDisabled)
+        ));
+    }
+
+    #[test]
+    fn quic_or_no_pin_allowed_regardless_of_fallback_transports_flag() {
+        use nym_vpn_lib_types::BridgeTransport;
+
+        assert!(validate_transport_preference(Some(BridgeTransport::Quic), false).is_ok());
+        assert!(validate_transport_preference(None, false).is_ok());
+        assert!(validate_transport_preference(Some(BridgeTransport::Tls), true).is_ok());
+        assert!(validate_transport_preference(Some(BridgeTransport::Ssh), true).is_ok());
     }
 }

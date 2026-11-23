@@ -148,6 +148,7 @@ impl VPNConfig {
             enable_ad_blocking: self.enable_ad_blocking,
             enable_conflict_detection: false,
             fronting_mode: self.fronting_mode,
+            transport_preference: None,
 
             // Always true on mobile platforms
             netstack: true,
