@@ -9,7 +9,7 @@
   },
   "search-country": "Search location",
   "countries-nodes": "{{countriesCount}} countries · {{nodesCount}} nodes",
-  "quic-filter-note": "Only showing dVPN locations and servers that offer a bridge. To reveal all servers, set Enhanced connection to Off or Auto <here />.",
+  "quic-filter-note": "Only showing dVPN locations and servers that offer a bridge. To reveal all servers, set “Disguise your traffic” to Off or Auto <here />.",
   "location-details": {
     "streaming": {
       "title": "Streaming",
@@ -20,8 +20,8 @@
       "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
     },
     "quic": {
-      "title": "QUIC protocol",
-      "description": "Improves the dVPN reliability in restrictive networks by <1>wrapping WireGuard traffic in QUIC</1> (HTTP/3) to appear as regular web browsing."
+      "title": "Disguise your traffic",
+      "description": "Bridges help you slip past networks that detect and block VPN traffic. <1>Learn more</1>"
     },
     "entry-title": "Choosing entry servers",
     "exit-title": "Choosing exit locations"
@@ -65,7 +65,7 @@
       "offline": "Offline"
     },
     "notes": {
-      "anti-censorship": "<0>Set “Enhanced connection” to Auto or On</0> in Anti-censorship Settings to use this feature",
+      "anti-censorship": "<0>Set “Disguise your traffic” to Auto or On</0> in Anti-censorship Settings to use this feature",
       "performance_with_time": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{relativeTime}}.",
       "performance": "Performance score calculated from server load and uptime. Uptime as last 24-hours average."
     },

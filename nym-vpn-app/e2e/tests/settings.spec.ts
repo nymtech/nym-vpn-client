@@ -84,7 +84,6 @@ test.describe('Settings - anti censorship', () => {
 
   test('renders anti censorship settings correctly', async () => {
     await expect(settingsPage.bridgeModeGroup).toBeVisible();
-    await expect(settingsPage.amneziaToggle).toBeVisible();
     await expect(settingsPage.stealthApiToggle).toBeVisible();
   });
 
@@ -98,12 +97,5 @@ test.describe('Settings - anti censorship', () => {
 
     await expect(auto).toHaveAttribute('aria-checked', 'true');
     await expect(off).toHaveAttribute('aria-checked', 'false');
-  });
-
-  test('keeps AmneziaWG locked on', async () => {
-    const amneziaSwitch = settingsPage.amneziaToggle.getByRole('switch');
-
-    await expect(amneziaSwitch).toBeChecked();
-    await expect(amneziaSwitch).toBeDisabled();
   });
 });

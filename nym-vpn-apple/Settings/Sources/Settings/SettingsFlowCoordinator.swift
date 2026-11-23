@@ -49,7 +49,11 @@ struct SettingsFlowCoordinator<Content: View>: View {
                 displayPurchaseView: displayPurchaseView,
                 onPurchaseFlowDismissed: {
                     flowState.onSessionEvent?(.checkoutDismissed)
-                }
+                },
+                onPurchaseFlowComplete: {
+                    flowState.onSessionEvent?(.checkoutCompleted)
+                },
+                onSessionEvent: { flowState.onSessionEvent?($0) }
             )
         case .processingAccount:
             ProcessingAccountView(

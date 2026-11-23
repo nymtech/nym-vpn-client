@@ -116,7 +116,7 @@ private extension LocationInfoView {
         }
         .environment(\.openURL, OpenURLAction { url in
             if url == URL(string: Constants.streamingServicesURL.rawValue)
-                || url == URL(string: Constants.quicURL.rawValue) {
+                || url == URL(string: Constants.antiCensorshipBridgesURL.rawValue) {
                 externalLinkManager.openExternalURL(url)
                 return .handled
             }
@@ -134,13 +134,12 @@ private extension LocationInfoView {
     }
 
     func quicAttributtedString() -> AttributedString {
-        let first = AttributedString("locationModal.quic.subtitle1".localizedString)
-        var second = AttributedString("locationModal.quic.subtitle2".localizedString)
-        let third = AttributedString("locationModal.quic.subtitle3".localizedString)
+        let first = AttributedString("locationModal.bridges.subtitle".localizedString)
+        var second = AttributedString("locationModal.bridges.link".localizedString)
         second.underlineStyle = .single
         second.foregroundColor = Color.Nym.textPrimary
-        second.link = URL(string: Constants.quicURL.rawValue)
-        return first + AttributedString(" ") + second + AttributedString(" ") + third
+        second.link = URL(string: Constants.antiCensorshipBridgesURL.rawValue)
+        return first + AttributedString(" ") + second
     }
 
     func streamingAttributtedString() -> AttributedString {

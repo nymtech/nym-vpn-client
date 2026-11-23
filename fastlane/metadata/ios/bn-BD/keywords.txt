@@ -1,0 +1,1 @@
+WireGuard,Mixnet,Tor,proxy,crypto,killswitch,wifi,এনক্রিপশন,সেন্সরশিপ,সাংবাদিক,গোপনীয়তা,বেনামী

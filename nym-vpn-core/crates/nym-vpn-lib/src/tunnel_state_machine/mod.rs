@@ -4,6 +4,7 @@
 mod account;
 #[cfg(any(target_os = "android", target_os = "ios", test))]
 mod blocking_tun;
+mod bridge_redial;
 mod custom_dns;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod dns_handler;
