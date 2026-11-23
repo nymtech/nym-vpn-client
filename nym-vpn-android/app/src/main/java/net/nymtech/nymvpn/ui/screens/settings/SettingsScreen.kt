@@ -121,7 +121,7 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 	)
 
 	if (showRedeemCodeSheet) {
-		RedeemCodeSheet(onDismiss = { showRedeemCodeSheet = false })
+		RedeemCodeSheet(accountStored = appUiState.managerState.isMnemonicStored, onDismiss = { showRedeemCodeSheet = false })
 	}
 
 	val shortcutsLockGate = rememberScreenLockGate(

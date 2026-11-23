@@ -7,9 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- iOS: Sign in by scanning a QR code from a signed-in device (https://github.com/nymtech/nym-vpn-client/pull/7122)
+- iOS: Redeem a free pass by scanning or typing a code, from Welcome, the plan screen or Settings (https://github.com/nymtech/nym-vpn-client/pull/7122)
+- iOS: Reusable QR scanner in UIComponents for on-device scanning (https://github.com/nymtech/nym-vpn-client/pull/7122)
+
 ### Changed
 
-- Home screen: the connection rings show the new connection marker. Connecting fills the rings in yellow step by step, an error breaks every ring at the same point, and losing the network mid-session shows "Kill switch is blocking traffic". The centre shows the mode: two linked blocks for dVPN, the mix layers for Mixnet, with the route playing while connected The connecting steps drop the "(n/7)" counter and use a smaller label than the state words. (https://github.com/nymtech/nym-vpn-client/pull/7097)
+- Home screen: the connection rings show the new connection marker. Connecting fills the rings in yellow step by step, an error breaks every ring at the same point, and losing the network mid-session shows "Kill switch is blocking traffic". The centre shows the mode: two linked blocks for dVPN, the mix layers for Mixnet, with the route playing while connected. The connecting steps drop the "(n/7)" counter and use a smaller label than the state words. (https://github.com/nymtech/nym-vpn-client/pull/7097)
+- iOS: Debug logging is now "Your troubleshooting detail" in Data, privacy & logs, with an info sheet explaining what it does (https://github.com/nymtech/nym-vpn-client/pull/7138)
+
+### Fixed
+
+- iOS: The VPN connection's error reporting follows the "Your app errors & crashes" setting (https://github.com/nymtech/nym-vpn-client/pull/7138)
+
+## [2026.16.0] - 2026-11-18
+
+### Added
+
+- macOS: Split tunneling settings explain that excluded apps' DNS lookups still go through NymVPN (https://github.com/nymtech/nym-vpn-client/pull/7104)
 
 ### Fixed
 

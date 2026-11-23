@@ -16,12 +16,13 @@ import net.nymtech.qrscanner.model.QrScanAction
 import net.nymtech.qrscanner.model.QrScanMode
 
 @Composable
-fun QrScanScreen(fromWelcome: Boolean, viewModel: QrScanViewModel = hiltViewModel()) {
+fun QrScanScreen(fromWelcome: Boolean, accountStored: Boolean, viewModel: QrScanViewModel = hiltViewModel()) {
 	SecureScreen()
 	SecureOverlayProtection()
 
 	val navController = LocalNavController.current
-	val openAcceptedCode = rememberOpenAcceptedCode()
+	val hadAccount = rememberSaveable { accountStored }
+	val openAcceptedCode = rememberOpenAcceptedCode(hadAccount)
 	var showRedeemSheet by rememberSaveable { mutableStateOf(false) }
 
 	QrScanner(
@@ -34,6 +35,6 @@ fun QrScanScreen(fromWelcome: Boolean, viewModel: QrScanViewModel = hiltViewMode
 	)
 
 	if (showRedeemSheet) {
-		RedeemCodeSheet(onDismiss = { showRedeemSheet = false })
+		RedeemCodeSheet(accountStored = hadAccount, onDismiss = { showRedeemSheet = false })
 	}
 }

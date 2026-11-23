@@ -38,6 +38,9 @@ import Theme
 #endif
     @Published var sections: [AppSettingsSection] = []
     @Published var accountIdentifier: String?
+#if os(iOS)
+    @Published var isCodeEntryPresented = false
+#endif
 #if os(macOS)
     var autologinState: AutologinState?
 #endif
@@ -272,6 +275,10 @@ private extension SettingsViewModel {
             var newSections = [AppSettingsSection]()
             if appSettings.isCredentialImported {
                 newSections.append(accountSection())
+            } else {
+#if os(iOS)
+                newSections.append(AppSettingsSection(kind: .redeemCode, viewModels: [redeemCodeItem()]))
+#endif
             }
             newSections.append(
                 contentsOf: [
@@ -290,6 +297,25 @@ private extension SettingsViewModel {
         }
     }
 }
+
+#if os(iOS)
+// MARK: - Code entry -
+extension SettingsViewModel {
+    func handleCodeEntry(_ outcome: CodeEntryOutcome) {
+        isCodeEntryPresented = false
+        if outcome != .cancelled {
+            path = NavigationPath()
+        }
+        Task { [credentialsManager, onSessionEvent] in
+            await CodeEntryOutcomeHandler.handle(
+                outcome,
+                credentialsManager: credentialsManager,
+                sendSessionEvent: { onSessionEvent?($0) }
+            )
+        }
+    }
+}
+#endif
 
 // MARK: - Helpers -
 private extension SettingsViewModel {
@@ -359,9 +385,27 @@ private extension SettingsViewModel {
                 }
             )
         )
+        viewModels.append(redeemCodeItem())
 #endif
         return AppSettingsSection(kind: .account, viewModels: viewModels)
     }
+
+#if os(iOS)
+    /// Shown without an account too.
+    func redeemCodeItem() -> SettingsListItemViewModel {
+        SettingsListItemViewModel(
+            accessory: .arrow,
+            title: "settings.redeemCode".localizedString,
+            systemImageName: "ticket",
+            action: { [weak self] in
+                Task { @MainActor in
+                    self?.impactGenerator.softImpact()
+                    self?.isCodeEntryPresented = true
+                }
+            }
+        )
+    }
+#endif
 
     func appearanceSection() -> AppSettingsSection {
         AppSettingsSection(

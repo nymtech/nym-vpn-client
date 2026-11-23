@@ -270,14 +270,6 @@
 	<string name="battery_opt_settings_text">تنظیمات بهینه‌سازی باتری را می‌توان هر زمان در تنظیمات برنامه تغییر داد.</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">داده، حریم خصوصی &amp; گزارشها</string>
-	<string name="privacy_anonymous_stats_title">آمار ناشناس شبکه</string>
-	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
-	<string name="privacy_anonymous_stats_link_text">دقیقاً بدانید چه چیزی به اشتراک گذاشته شده است</string>
-	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
-	<string name="privacy_error_reports_title">گزارش‌های خطا &amp; و خرابی</string>
-	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
-	<string name="privacy_error_reports_link_text">مشاهده سیاست حفظ حریم خصوصی Sentry</string>
-	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">تغییرات پس از راه‌اندازی مجدد برنامه اعمال خواهند شد.</string>
 	<string name="modal_network_stats_title">تجربه خود را ارتقا دهید</string>
 	<string name="modal_network_stats_descr">با اشتراک‌گذاری آمار شبکه به صورت ناشناس از منطقه خود به بهبود عملکرد NymVPN کمک کنید. \n\n سایر داده‌های خصوصی شما امن باقی می‌مانند.</string>
@@ -291,12 +283,6 @@
 	<string name="welcome_continue">ادامه</string>
 	<string name="welcome_title">به ما کمک کنید NymVPN را بهبود دهیم</string>
 	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
-	<string name="welcome_error_reports_title">گزارش‌های خطا را به اشتراک بگذارید</string>
-	<string name="welcome_error_reports_description_start">به ما کمک می‌کند باگ‌ها را سریع‌تر برطرف کنیم، هیچ دادهٔ شخصی جمع‌آوری نمی‌شود (از طریق </string>
-	<string name="welcome_error_reports_link_text">Sentry</string>
-	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">آمار استفاده را به اشتراک بگذارید</string>
-	<string name="welcome_usage_description">به ما کمک می‌کند شبکهٔ Nym را بهبود دهیم. هیچ لاگ‌گیری انجام نمی‌شود و هیچ فعالیتی ردیابی نمی‌گردد.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">خوش آمدید به NymVPN</string>
 	<string name="onboarding_welcome_description">دسترسی خصوصی شما به **اینترنت بدون دیوار.**</string>
@@ -385,15 +371,10 @@
 	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
 	<string name="censorship_bridge_on_title">روشن</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
-	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
 	<string name="censorship_stealth_description">با استفاده از دامنه‌های پوششی از مسدودسازی VPN جلوگیری می‌کند. آن را روشن کنید تا همیشه استفاده شود، یا خاموش بگذارید تا فقط هنگام عدم موفقیت اتصال عادی فعال شود.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
-	<string name="censorship_amnezia_title">حداقل ابهام (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">ترافیک WireGuard را با بسته‌های فریبنده پنهان می‌کند تا از مسدود شدن VPN جلوگیری شود.\n\nتوجه: این قابلیت فقط در سمت کاربر (Client-side) پیاده‌سازی شده است.</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">با ادامه، شما با NymVPN موافقت می‌کنید  </string>
 	<string name="account_welcome_privacy_middle">و</string>

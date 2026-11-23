@@ -58,6 +58,14 @@ private extension SettingsView {
             onRetry: { autologinState.start(kind: .autologinRenew, using: credentialsManager) }
         )
 #endif
+#if os(iOS)
+        .fullScreenCover(isPresented: $viewModel.isCodeEntryPresented) {
+            CodeEntryView(startsWithScanner: true) { outcome in
+                viewModel.handleCodeEntry(outcome)
+            }
+            .interactiveDismissDisabled()
+        }
+#endif
         .onAppear {
 #if os(macOS)
             viewModel.autologinState = autologinState

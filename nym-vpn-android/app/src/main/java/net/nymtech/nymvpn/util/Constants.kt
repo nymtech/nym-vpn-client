@@ -33,5 +33,10 @@ object Constants {
 
 	const val URL_PLAY_SUBSCRIPTIONS = "https://play.google.com/store/account/subscriptions?package="
 
+	// Must match the https intent-filters in AndroidManifest.xml.
+	const val APP_LINK_HOST = "nym.com"
+	const val APP_LINK_PRIVY_PATH = "/app/privy/return"
+	const val APP_LINK_PAYMENT_PATH = "/app/payment/return"
+
 	val countryCodesForRegionSupport = listOf("us", "ca", "au", "mx", "br", "in", "cn")
 }

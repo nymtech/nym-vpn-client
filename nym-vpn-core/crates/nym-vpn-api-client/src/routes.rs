@@ -34,6 +34,7 @@ pub(crate) const AGGREGATED_EXPIRATION_DATE_SIGNATURES: &str =
 pub(crate) const GEO: &str = "geo";
 pub(crate) const IP: &str = "ip";
 pub(crate) const PAIRING: &str = "pairing";
+pub(crate) const START: &str = "start";
 pub(crate) const CHECK: &str = "check";
 pub(crate) const PAIR: &str = "pair";
 pub(crate) const GET_SECRET: &str = "get-secret";
