@@ -40,7 +40,7 @@ public struct ArcProgressView: View {
                 .frame(width: Constants.canvasSize, height: Constants.canvasSize)
 
             Text(labelText)
-                .font(.system(size: Constants.labelFontSize))
+                .font(.system(size: isConnectingStep ? Constants.stepFontSize : Constants.labelFontSize))
                 .foregroundColor(labelColor)
                 .frame(minHeight: Constants.labelMinHeight)
                 .animation(.easeOut(duration: 0.3), value: state)
@@ -188,6 +188,13 @@ private extension ArcProgressView {
 
     var sweepAnimation: Animation {
         .timingCurve(0.4, 0, 0.2, 1, duration: mode == .fast ? 0.8 : 1.2)
+    }
+
+    var isConnectingStep: Bool {
+        if case .step = state {
+            return true
+        }
+        return false
     }
 
     /// The connection marker state (#7063) this arc phase draws.
@@ -463,6 +470,8 @@ private extension ArcProgressView {
 
         static let labelFontSize: CGFloat = 11
         static let warningFontSize: CGFloat = 10
+        /// Connecting steps sit one notch below the state words.
+        static let stepFontSize: CGFloat = 10
         static let warningTopOffset: CGFloat = 18
         static let labelTopSpacing: CGFloat = 14
         static let labelMinHeight: CGFloat = 14
