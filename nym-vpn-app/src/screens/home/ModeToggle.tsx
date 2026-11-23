@@ -80,14 +80,14 @@ export const ModeToggle = () => {
             className={clsx(
               'relative flex flex-1 cursor-default items-center justify-center gap-1.5 rounded-full px-4.5 py-2.5 text-sm font-bold transition-colors',
               isSelected
-                ? 'text-primary'
+                ? 'text-brand-primary'
                 : 'text-text-secondary hover:bg-surface-elev',
             )}
           >
             {isSelected && (
               <motion.div
                 layoutId="mode-toggle-pill"
-                className="bg-surface-elev absolute inset-0 rounded-full"
+                className="bg-surface-elev border-brand-primary absolute inset-0 rounded-full border"
                 transition={{ duration: 0.3, ease: 'easeOut' }}
               />
             )}
