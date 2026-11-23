@@ -3,7 +3,6 @@
 
 mod cli;
 mod command_interface;
-#[cfg(target_os = "linux")]
 mod core_dumps;
 mod environment;
 mod shutdown_handler;
@@ -73,7 +72,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result<()> {
-    #[cfg(target_os = "linux")]
+    #[cfg(unix)]
     core_dumps::disable().context("Failed to disable core dumps")?;
 
     let mut paths = Paths::new();

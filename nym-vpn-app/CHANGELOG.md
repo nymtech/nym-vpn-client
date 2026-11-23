@@ -9,7 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Home screen: the connection rings show the new connection marker. Connecting fills the rings in yellow step by step, an error breaks every ring at the same point, and losing the network mid-session shows "Kill switch is blocking traffic" instead of an error. The centre shows the mode: two linked blocks for dVPN, the mix layers for Mixnet, with the route playing while connected The connecting steps drop the "(n/7)" counter and use a smaller label than the state words. (https://github.com/nymtech/nym-vpn-client/pull/7094)
+- Home screen: the connection rings show the new connection marker. Connecting fills the rings in yellow step by step, an error breaks every ring at the same point, and losing the network mid-session shows "Kill switch is blocking traffic" instead of an error. The centre shows the mode: two linked blocks for dVPN, the mix layers for Mixnet, with the route playing while connected. The connecting steps drop the "(n/7)" counter and use a smaller label than the state words. (https://github.com/nymtech/nym-vpn-client/pull/7094)
+- [Linux] The deb package now depends on `polkit-1-auth-agent`, so a polkit authentication agent is installed together with the app. This dependency used to come with `nym-vpnd` (https://github.com/nymtech/nym-vpn-client/pull/7175)
+
+## [2026.16.1] - 2026-11-19
+
+### Fixed
+
+- [Windows] Sign bundled libwg.dll, winfw.dll and uninstall.exe. Fixes issue with Windows 11 Smart App Control (https://github.com/nymtech/nym-vpn-client/pull/7154, https://github.com/nymtech/nym-vpn-client/pull/7164)
+- [Windows] Hide console window during system service registration invoked by installer (https://github.com/nymtech/nym-vpn-client/pull/7154)
+
+## [2026.16.0] - 2026-11-18
+
+### Added
+
+- Split tunneling settings explain that excluded apps' DNS lookups still go through NymVPN (https://github.com/nymtech/nym-vpn-client/pull/7105)
 
 ### Fixed
 

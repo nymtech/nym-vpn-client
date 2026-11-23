@@ -33,6 +33,9 @@ import Theme
     @State var logoutProgressText: String?
     @State var isRefreshingAccount = false
     @State var autologinState = AutologinState()
+#if os(iOS)
+    @State var isPairDevicePresented = false
+#endif
 
     @Binding private var path: NavigationPath
 
@@ -47,6 +50,9 @@ import Theme
                         if credentialsManager.isValidCredentialImported {
                             accountStatusSection()
                             nymAccountSection()
+#if os(iOS)
+                            pairDeviceSection()
+#endif
                             accountIdentifier()
                             accountIdText()
                             deviceIdentifier()
@@ -74,6 +80,11 @@ import Theme
         .navigationBarBackButtonHidden(true)
 #if os(iOS)
         .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
+        .sheet(isPresented: $isPairDevicePresented) {
+            PairDeviceView(pairingManager: .shared) {
+                isPairDevicePresented = false
+            }
+        }
 #endif
         .autologinOverlay(state: autologinState, onRetry: { navigateToAccount() })
         .background {

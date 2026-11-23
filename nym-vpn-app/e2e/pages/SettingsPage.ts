@@ -14,7 +14,6 @@ class SettingsPage {
   readonly deviceId: Locator;
   readonly getStartedButton: Locator;
   readonly bridgeModeGroup: Locator;
-  readonly amneziaToggle: Locator;
   readonly stealthApiToggle: Locator;
   readonly viewDefaultDnsButton: Locator;
   readonly customDnsToggle: Locator;
@@ -48,11 +47,8 @@ class SettingsPage {
     this.getStartedButton = page.getByRole('button', { name: 'Get started' });
 
     this.bridgeModeGroup = page.getByTestId('bridge-mode-radio-group');
-    this.amneziaToggle = page.getByRole('button', {
-      name: /Minimal obfuscation \(AmneziaWG\)/,
-    });
     this.stealthApiToggle = page.getByRole('button', {
-      name: /Stealth API connect/,
+      name: /Disguise your Nym connection/,
     });
 
     this.viewDefaultDnsButton = page.getByRole('button', {
