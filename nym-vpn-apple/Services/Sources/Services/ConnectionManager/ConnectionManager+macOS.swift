@@ -100,6 +100,7 @@ extension ConnectionManager {
     }
 
     @MainActor func fetchDaemonConfig() async {
+        let transportPreferenceBeforeFetch = appSettings.transportPreference
         guard let daemonConfig = await grpcManager.config() else { return }
 
         let preservedCustomAppPaths = connectionConfig.splitTunnelConfig.customAppPaths
@@ -114,7 +115,9 @@ extension ConnectionManager {
         appSettings.isAdBlockerEnabled = daemonConfig.enableAdBlocking
         appSettings.bridgeMode = daemonConfig.bridgeMode
         appSettings.isStealthApiEnabled = daemonConfig.stealthMode
-        appSettings.transportPreference = daemonConfig.transportPreference
+        if appSettings.transportPreference == transportPreferenceBeforeFetch {
+            appSettings.transportPreference = daemonConfig.transportPreference
+        }
         appSettings.customDns = daemonConfig.customDns.dnsServers.map(\.address)
         appSettings.isCustomDnsEnabled = daemonConfig.customDns.isEnabled && !daemonConfig.customDns.dnsServers.isEmpty
     }
