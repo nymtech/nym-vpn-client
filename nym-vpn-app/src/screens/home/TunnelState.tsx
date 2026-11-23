@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
+import clsx from 'clsx';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../../store';
 import {
@@ -359,7 +360,11 @@ export function TunnelState() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 12 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
-                  className="text-text-secondary flex items-center justify-center text-lg"
+                  className={clsx(
+                    'text-text-secondary flex items-center justify-center',
+                    // connecting steps sit at the IP line's size, below the state words
+                    phase === 'connecting' ? 'text-base' : 'text-lg',
+                  )}
                 >
                   {label}
                 </motion.div>
