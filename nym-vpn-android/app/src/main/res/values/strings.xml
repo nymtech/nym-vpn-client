@@ -422,6 +422,7 @@
 	<string name="censorship_transport_tls_description">Always use TLS.</string>
 	<string name="censorship_transport_ssh_title">SSH</string>
 	<string name="censorship_transport_ssh_description">Always use SSH.</string>
+	<string name="censorship_transport_preference_error">Could not save transport preference. Please try again.</string>
 	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers that offer a bridge. To reveal all servers, set “Disguise your traffic” to Off or Auto.</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">By continuing, you agree to NymVPN\'s  </string>
