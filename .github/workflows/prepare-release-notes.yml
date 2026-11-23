@@ -253,13 +253,13 @@ jobs:
       release_notes_artifact: ${{ env.RELEASE_NOTES_ARTIFACT }}
       release_notes_file: ${{ env.RELEASE_NOTES }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
       - name: Extract core changelog
         id: core-changelog
-        uses: ffurrer2/extract-release-notes@v3
+        uses: ffurrer2/extract-release-notes@273da39a24fb7db106a35526c8162815faffd31d # v3.1.0
         with:
           changelog_file: nym-vpn-core/CHANGELOG.md
           # for prereleases, extract the changelog from the [unreleased] section
@@ -268,7 +268,7 @@ jobs:
       - name: Extract android changelog
         id: android-changelog
         if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
-        uses: ffurrer2/extract-release-notes@v3
+        uses: ffurrer2/extract-release-notes@273da39a24fb7db106a35526c8162815faffd31d # v3.1.0
         with:
           changelog_file: nym-vpn-android/CHANGELOG.md
           # for prereleases, extract the changelog from the [unreleased] section
@@ -277,7 +277,7 @@ jobs:
       - name: Extract tauri changelog
         id: tauri-changelog
         if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
-        uses: ffurrer2/extract-release-notes@v3
+        uses: ffurrer2/extract-release-notes@273da39a24fb7db106a35526c8162815faffd31d # v3.1.0
         with:
           changelog_file: nym-vpn-app/CHANGELOG.md
           # for prereleases, extract the changelog from the [unreleased] section
@@ -286,7 +286,7 @@ jobs:
       - name: Extract apple changelog
         id: apple-changelog
         if: ${{ needs.resolve.outputs.macos == 'true' || needs.resolve.outputs.ios == 'true' }}
-        uses: ffurrer2/extract-release-notes@v3
+        uses: ffurrer2/extract-release-notes@273da39a24fb7db106a35526c8162815faffd31d # v3.1.0
         with:
           changelog_file: nym-vpn-apple/CHANGELOG.md
           # for prereleases, extract the changelog from the [unreleased] section
@@ -549,7 +549,7 @@ jobs:
           EOF
 
       - name: Upload release notes
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.RELEASE_NOTES_ARTIFACT }}
           path: ${{ env.RELEASE_NOTES }}

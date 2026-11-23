@@ -14,6 +14,7 @@ use std::{
 use nym_crypto::asymmetric::x25519;
 #[cfg(windows)]
 use nym_windows::net::AddressFamily;
+use zeroize::Zeroizing;
 
 use super::{
     Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, Result, uapi::UapiConfigBuilder,
@@ -59,11 +60,12 @@ pub struct Config {
 }
 
 impl Config {
-    fn into_uapi_config(self) -> Vec<u8> {
-        let mut config_builder = UapiConfigBuilder::new();
+    /// Returns nul-terminated UAPI configuration
+    fn into_uapi_config(self) -> Zeroizing<Vec<u8>> {
+        let mut config_builder = UapiConfigBuilder::default();
         config_builder.add(
             "private_key",
-            self.interface.keypair.private_key().to_bytes().as_ref(),
+            self.interface.keypair.private_key().as_bytes().as_ref(),
         );
 
         #[cfg(target_os = "linux")]
@@ -83,7 +85,7 @@ impl Config {
             }
         }
 
-        config_builder.into_bytes()
+        config_builder.into_bytes_with_nul()
     }
 }
 
@@ -124,7 +126,8 @@ impl Tunnel {
             .map_err(|_| Error::ConvertToCString("interface local addrs"))?;
         let dns_addrs = CString::new(to_comma_separated_addrs(&config.interface.dns_addrs))
             .map_err(|_| Error::ConvertToCString("interface dns addrs"))?;
-        let settings = CString::new(config.into_uapi_config())
+        let uapi_config = config.into_uapi_config();
+        let settings = CStr::from_bytes_with_nul(&uapi_config)
             .map_err(|_| Error::ConvertToCString("uapi config"))?;
 
         let tunnel_handle = unsafe {
@@ -154,11 +157,12 @@ impl Tunnel {
 
     /// Update the endpoints of peers matched by public key.
     pub fn update_peers(&mut self, peer_updates: &[PeerEndpointUpdate]) -> Result<()> {
-        let mut config_builder = UapiConfigBuilder::new();
+        let mut config_builder = UapiConfigBuilder::default();
         for peer_update in peer_updates {
             peer_update.append_to(&mut config_builder);
         }
-        let settings = CString::new(config_builder.into_bytes())
+        let uapi_config = config_builder.into_bytes_with_nul();
+        let settings = CStr::from_bytes_with_nul(&uapi_config)
             .map_err(|_| Error::ConvertToCString("peer update config"))?;
         let ret_code = unsafe { wgNetSetConfig(self.tunnel_handle, settings.as_ptr()) };
 

@@ -7,21 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- [Linux] The `nym-vpnd` deb package no longer depends on `polkit-1-auth-agent`, so installing it on a system without a desktop doesn't pull in a graphical polkit agent. The dependency moved to the `nym-vpn-app` deb package. On a headless install, run `nym-vpnc` as root or add your user to the `nym-vpn` group (https://github.com/nymtech/nym-vpn-client/pull/7175)
+- [iOS] Limit adblocker SQLite memory per connection instead of setting process-wide heap limits that affected other SQLite databases (https://github.com/nymtech/nym-vpn-client/pull/6963)
+
+
+## [2026.16.0] - 2026-11-18
+
 ### Added
 
 - [Linux] Add NetworkManager VPN plugin that can be used to manage VPN connection from system menu. Note that removing VPN from system network settings also disconnects VPN. In all other cases VPN is only managed via UI interaction by user. (https://github.com/nymtech/nym-vpn-client/pull/6873, https://github.com/nymtech/nym-vpn-client/pull/6861)
+- Add `NYM_VPN_API_URL_OVERRIDE` compile time environment variable to override VPN API server in `nym-vpnd` during development (https://github.com/nymtech/nym-vpn-client/pull/6962)
+- [Android] Expose `apply_freepass` to apply a free pass to the signed-in account (https://github.com/nymtech/nym-vpn-client/pull/7085)
+- Add `redeem_freepass` command that creates the stored account on the VPN API with a free pass applied (https://github.com/nymtech/nym-vpn-client/pull/7085)
+
+### Changed
+
+- Strip debug info in release builds (https://github.com/nymtech/nym-vpn-client/pull/7018)
+- [Linux] Use the same systemd unit for `nym-vpnd` in the Debian and AUR packages. The daemon restarts only on failure, 2 seconds after it stops, and no longer orders itself relative to `network-pre.target` or `network-online.target` (https://github.com/nymtech/nym-vpn-client/pull/7072)
 
 ### Fixed
 
 - Restrict allowed IPs for exit gateway (https://github.com/nymtech/nym-vpn-client/pull/6952)
-- [iOS] Limit adblocker SQLite memory per connection instead of setting process-wide heap limits that affected other SQLite databases (https://github.com/nymtech/nym-vpn-client/pull/6963)
+- Show a specific error when Enhanced connection is On and the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6973)
+- Connect directly in Auto when the entry server has no bridge (https://github.com/nymtech/nym-vpn-client/pull/6976)
 
 ### Security
 
 - [Android] Build C/C++ dependencies of `nym-vpn-lib` with `-fstack-protector-strong` (https://github.com/nymtech/nym-vpn-client/pull/6960)
+- [Linux, macOS] Disable core dumps of `nym-vpnd`, which would contain the WireGuard private key and account tokens (https://github.com/nymtech/nym-vpn-client/pull/7067, https://github.com/nymtech/nym-vpn-client/pull/7078)
+- [Windows] Exclude `nym-vpnd` from Windows Error Reporting so that crash dumps don't contain the WireGuard private key and account tokens (https://github.com/nymtech/nym-vpn-client/pull/7078)
+- [macOS] Require user presence with password or Touch ID for account-related operations. Affects the app and the CLI. Use `nym-vpnc authorize` and `nym-vpnc deauthorize` to manage authorization (https://github.com/nymtech/nym-vpn-client/pull/6980)
+- Keep the login link received from the website, which carries login data, out of the logs and error messages (https://github.com/nymtech/nym-vpn-client/pull/7086)
+- Zeroize the copy of the account's ecash private key taken when deriving the ecash keypair (https://github.com/nymtech/nym-vpn-client/pull/7084)
+- Zero WireGuard configuration buffers holding private and preshared keys after passing them to wireguard-go (https://github.com/nymtech/nym-vpn-client/pull/7069)
 
 
-## [2026.15.0] - TBD
+## [2026.15.0] - 2026-11-05
 
 ### Added
 

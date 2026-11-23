@@ -11,6 +11,11 @@ import net.nymtech.vpn.model.config.ConfigResult
 import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
+import net.nymtech.vpn.model.freepass.FreepassError
+import net.nymtech.vpn.model.freepass.FreepassResult
+import net.nymtech.vpn.model.pairing.PairingCommandResult
+import net.nymtech.vpn.model.pairing.PairingError
+import nym_vpn_lib.NymVpnServiceCommandSender
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AppCompatibility
 import nym_vpn_lib_types.AutologinResponse
@@ -20,6 +25,8 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.GetDeeplinkParams
 import nym_vpn_lib_types.ListGatewaysOptions
 import nym_vpn_lib_types.ParsedAccountLinks
+import nym_vpn_lib_types.QrPairingConfirmation
+import nym_vpn_lib_types.QrUrl
 import nym_vpn_lib_types.RegisterAccountRequest
 import nym_vpn_lib_types.StoreAccountRequest
 import nym_vpn_lib_types.StoredAccountMode
@@ -130,5 +137,25 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun setGatewayIndependenceEnabled(enabled: Boolean) {
 		core.tryWithCoreSender { it.setEnableGatewayIndependence(enabled) }
+	}
+
+	override suspend fun startPairing(): PairingCommandResult<QrUrl> = pairingCall { PairingCommandResult.Ok(it.startPairing()) }
+
+	override suspend fun scannedPairingKey(publicKey: String): PairingCommandResult<QrPairingConfirmation> = pairingCall { PairingCommandResult.Ok(it.scannedKey(publicKey)) }
+
+	override suspend fun verifiedPairingPin(sessionId: UInt): PairingCommandResult<Unit> = pairingCall { PairingCommandResult.Ok(it.verifiedPairingPin(sessionId)) }
+
+	override suspend fun cancelPairing(): PairingCommandResult<Unit> = pairingCall { PairingCommandResult.Ok(it.cancelPairingProcess()) }
+
+	override suspend fun redeemFreepass(code: String): FreepassResult = freepassCall { it.redeemFreepass(code) }
+
+	override suspend fun applyFreepass(code: String): FreepassResult = freepassCall { it.applyFreepass(code) }
+
+	private suspend fun <T> pairingCall(block: suspend (NymVpnServiceCommandSender) -> PairingCommandResult<T>): PairingCommandResult<T> =
+		core.withCoreSenderResult(PairingError, { PairingCommandResult.Failed(it) }, block)
+
+	private suspend fun freepassCall(block: suspend (NymVpnServiceCommandSender) -> Unit): FreepassResult = core.withCoreSenderResult(FreepassError, FreepassResult::Failed) {
+		block(it)
+		FreepassResult.Redeemed
 	}
 }

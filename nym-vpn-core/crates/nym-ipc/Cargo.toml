@@ -29,12 +29,22 @@ zbus_polkit = { workspace = true, optional = true }
 [target.'cfg(target_os = "macos")'.dependencies]
 block2 = { workspace = true }
 objc2 = { workspace = true }
-objc2-core-foundation = { workspace = true, features = ["CFString"] }
+objc2-core-foundation = { workspace = true, features = ["std", "CFString"] }
 objc2-foundation = { workspace = true, features = [
+    "std",
+    "block2",
+    "NSData",
     "NSString",
     "NSXPCConnection",
 ] }
-objc2-security = { workspace = true, features = ["CSCommon", "SecCode"] }
+objc2-security = { workspace = true, features = [
+    "std",
+    "objc2",
+    "CSCommon",
+    "SecBase",
+    "SecCode",
+    "SecRequirement",
+] }
 
 
 [target.'cfg(windows)'.dependencies]

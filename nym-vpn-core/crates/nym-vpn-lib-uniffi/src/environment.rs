@@ -10,6 +10,13 @@ use nym_vpn_network_config::NetworkCache;
 
 use crate::error::VpnError;
 
+/// VPN API URL set with `NYM_VPN_API_URL_OVERRIDE` at build time.
+pub fn vpn_api_override() -> Option<String> {
+    option_env!("NYM_VPN_API_URL_OVERRIDE")
+        .filter(|url| !url.is_empty())
+        .map(str::to_owned)
+}
+
 #[derive(Clone, uniffi::Object)]
 pub struct NymEnvironment {
     network: Box<nym_vpn_network_config::Network>,
@@ -35,9 +42,14 @@ impl NymEnvironment {
         network_name: &str,
         user_agent: UserAgent,
     ) -> Result<Self, VpnError> {
-        let mut network_cache = NetworkCache::new(cache_dir, network_name, Some(user_agent.into()))
-            .await
-            .map_err(VpnError::internal)?;
+        let mut network_cache = NetworkCache::new(
+            cache_dir,
+            network_name,
+            Some(user_agent.into()),
+            vpn_api_override(),
+        )
+        .await
+        .map_err(VpnError::internal)?;
 
         let network = if let Ok(network) = network_cache.network() {
             network

@@ -91,7 +91,9 @@ After installing Rust, install the following Rust targets and dependencies to en
 
 ### Windows
 
-1. Install Visual Studio 2022 Community
+1. Install Visual Studio 2022 Community 17.14 or newer (MSVC 14.44 toolset)
+
+    Visual Studio does not update the build tools on its own, so update existing installations with the Visual Studio Installer.
 
     When you install Visual Studio 2022, select the Desktop development with C++ workload, then under Individual Components add:
     - MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools
@@ -159,6 +161,18 @@ After installing Rust, install the following Rust targets and dependencies to en
 
     ```sh
     cargo install cargo-get
+    ```
+
+8. Install Strawberry Perl, which is required to build the vendored OpenSSL used by SQLCipher:
+
+    ```
+    winget install -e --id=StrawberryPerl.StrawberryPerl
+    ```
+
+    The Perl shipped with msys2 or Git for Windows does not work with the MSVC toolchain. Make sure Strawberry Perl comes first in `PATH`:
+
+    ```cmd
+    where perl
     ```
 
 ## Code formatting
@@ -340,6 +354,14 @@ make -C nym-vpn-core -f Android.mk
 - `NYM_NET_CLS_MOUNT_DIR` - On Linux, forces the daemon to mount the `net_cls` controller in the
   specified directory if it isn't mounted already. This will only have an effect on older systems
   where cgroup v1 is used for split tunneling.
+
+- `NYM_VPN_API_URL_OVERRIDE` - Override VPN API server, used during development only (compile time only)
+
+- `SENTRY_DSN` - Sentry DSN used by desktop targets, used in release builds (compile time only)
+
+- `VPNLIB_SENTRY_DSN` - Sentry DSN used by mobile targets, used in release builds (compile time only)
+
+- `CI_TESTING` - Used when building on CI, typically used to workaround some issues in tests (compile time only)
 
 ## Log file locations
 

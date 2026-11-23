@@ -1,9 +1,26 @@
 {
   "title": "Help us improve NymVPN",
   "description": "Choose what anonymous data to share. \nNo personal information included.",
-  "anonymous-network-stats-toggle-desc": "View Sentry Privacy Policy",
   "continue-button": "Continue",
-  "anonymous-network-stats": "Anonymous network stats",
-  "error-and-crash-reports": "Error & crash reports",
-  "error-and-crash-reports-toggle-desc": "Learn exactly what's shared"
+  "privacy-statement-link": "Read our Privacy Statement",
+  "info-aria": "What's shared: {{name}}",
+  "popup": {
+    "title": "What's shared",
+    "never-label": "Never:",
+    "got-it": "Got it"
+  },
+  "connection": {
+    "label": "Your connection quality",
+    "desc": "Helps improve network connectivity",
+    "shares": "Connect time and error codes\nSession date and length\nMode (dVPN / Mixnet) and exit server\nOS, device type, app version\nAn anonymous ID (not tied to your account)",
+    "never": "your IP, browsing, or traffic contents.",
+    "handling": "Sent through the VPN tunnel to Nym. No third party."
+  },
+  "monitoring": {
+    "label": "Your app errors & crashes",
+    "desc": "Helps improve app performance",
+    "shares": "Crashes and error messages\nWhere it happened (stack traces)\nOS, device type, app version",
+    "never": "personal info, browsing, or traffic content.",
+    "handling": "Handled by Sentry, a third-party service. Nym never sees your IP."
+  }
 }

@@ -2,7 +2,7 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error, fmt, fmt::Write};
+use std::{error::Error, fmt::Write};
 
 /// Used to generate string representations of error chains.
 pub trait ErrorExt {
@@ -43,27 +43,6 @@ macro_rules! trace_err_chain {
     ($err:expr, $($args:tt)*) => {
         ::tracing::error!("{}", $crate::ErrorExt::display_chain_with_msg(&$err, ::std::format!($($args)*)))
     };
-}
-
-#[derive(Debug)]
-pub struct BoxedError(Box<dyn Error + 'static + Send>);
-
-impl fmt::Display for BoxedError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl Error for BoxedError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.0.source()
-    }
-}
-
-impl BoxedError {
-    pub fn new(error: impl Error + 'static + Send) -> Self {
-        BoxedError(Box::new(error))
-    }
 }
 
 #[cfg(test)]

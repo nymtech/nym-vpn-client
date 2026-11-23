@@ -12,10 +12,6 @@
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 	<uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
 
-	<uses-permission
-		android:name="android.permission.CAMERA"
-		tools:node="remove" />
-
 	<application
 		android:name=".NymVpn"
 		android:allowBackup="false"
@@ -41,17 +37,54 @@
 			android:windowSoftInputMode="adjustResize"
 			tools:ignore="LockedOrientationActivity">
 
+			<!-- Verified App Links; paths must match Constants.APP_LINK_* -->
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+
+				<data
+					android:host="nym.com"
+					android:path="/app/privy/return"
+					android:scheme="https" />
+			</intent-filter>
+
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+
+				<data
+					android:host="nym.com"
+					android:path="/app/payment/return"
+					android:scheme="https" />
+			</intent-filter>
+
+			<!-- Legacy scheme: remove once the website returns via https -->
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
 
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 
-				<data android:scheme="nymvpn" />
-				<data android:host="auth" />
-				<data android:pathPrefix="/privy/privateKey" />
-				<data android:host="account" />
-				<data android:pathPrefix="/response" />
+				<data
+					android:host="auth"
+					android:pathPrefix="/privy/privateKey"
+					android:scheme="nymvpn" />
+			</intent-filter>
+
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+
+				<data
+					android:host="account"
+					android:pathPrefix="/response"
+					android:scheme="nymvpn" />
 			</intent-filter>
 
 			<intent-filter>

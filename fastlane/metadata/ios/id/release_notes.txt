@@ -1,0 +1,7 @@
+Tetap terhubung di tempat VPN diblokir: mode bridge baru Off / Auto / On membuat Anda tetap online saat jaringan Anda mencoba memblokir koneksi, dengan otomatis berganti metode koneksi agar tetap tembus.
+
+Juga di versi ini:
+• Lebih hemat baterai saat terhubung
+• Status koneksi lebih akurat
+• Peralihan pemblokir iklan lebih mulus
+• Pengingat perpanjangan lebih jelas dan istilah lebih konsisten di seluruh aplikasi

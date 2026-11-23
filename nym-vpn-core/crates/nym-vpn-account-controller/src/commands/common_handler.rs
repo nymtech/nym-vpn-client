@@ -7,8 +7,8 @@ use nym_vpn_api_client::{
     types::VpnAccountMode,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, DeeplinkKind, StorableAccount, StoredAccountMode,
-    VpnAccountSummary,
+    AccountCommandError, AutologinResponse, DeeplinkKind, NymVpnSubscription, StorableAccount,
+    StoredAccountMode, VpnAccountSummary,
 };
 
 use crate::{
@@ -62,6 +62,9 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
                 )
                 .await,
             );
+        }
+        CommonCommand::ApplyFreepass(result_tx, code) => {
+            result_tx.send(handle_apply_freepass(shared_state, code).await);
         }
         CommonCommand::GetDeeplink(result_tx, params) => {
             result_tx.send(handle_get_deeplink(shared_state, params).await)
@@ -230,6 +233,23 @@ async fn handle_is_trial_eligible<C: ConnectivityMonitor>(
 
     tracing::debug!("Trial eligible: {eligible}");
     Ok(eligible)
+}
+
+async fn handle_apply_freepass<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    code: String,
+) -> Result<NymVpnSubscription, AccountCommandError> {
+    let account = shared_state
+        .vpn_api_account
+        .as_ref()
+        .ok_or(AccountCommandError::NoAccountStored)?;
+
+    let subscription = shared_state
+        .vpn_api_client
+        .apply_freepass(account, code)
+        .await?;
+
+    Ok(NymVpnSubscription::try_from(&subscription)?)
 }
 
 /// The denying Apple introductory-offer token, or `None` when the account may be offered a free

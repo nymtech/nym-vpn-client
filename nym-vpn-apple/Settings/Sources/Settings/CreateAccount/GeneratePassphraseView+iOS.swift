@@ -1,10 +1,13 @@
 #if os(iOS)
+import SwiftUI
 import StoreKit
 import ImpactGenerator
 import ErrorHandler
 import NymVPNLib
 import AccountPrefetchGates
 import PurchasesManager
+import Theme
+import UIComponents
 
 // MARK: - Views -
 extension GeneratePassphraseView {
@@ -24,6 +27,44 @@ extension GeneratePassphraseView {
         } else {
             return "\(plan.displayName) (\(plan.displayPrice))"
         }
+    }
+
+    var scanCodeButton: some View {
+        GenericButton(title: "welcome.scanQrCode".localizedString, style: .primaryBorderOnly)
+            .onTapGesture { openCodeEntry() }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { openCodeEntry() }
+    }
+
+    /// Shown instead of the plan picker when the Apple ID's subscription belongs to another Nym account.
+    func appleIdSubscriptionGateView(expirationDate: Date, willAutoRenew: Bool) -> some View {
+        let bodyKey = willAutoRenew
+            ? AppleIdSubscriptionGateUI.bodyAutoRenewOnKey
+            : AppleIdSubscriptionGateUI.bodyAutoRenewOffKey
+        let body = String(
+            format: bodyKey.localizedString,
+            expirationDate.formatted(date: .long, time: .omitted)
+        )
+        return VStack(alignment: .center, spacing: 16) {
+            Text(AppleIdSubscriptionGateUI.titleKey.localizedString)
+                .nymTextStyle(.titleScreen)
+                .foregroundStyle(Color.Nym.textPrimary)
+                .multilineTextAlignment(.center)
+            Text(body)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .multilineTextAlignment(.center)
+            GenericButton(title: AppleIdSubscriptionGateUI.manageButtonKey.localizedString)
+                .onTapGesture { isPresentedManageSubscription = true }
+                .accessibilityAction { isPresentedManageSubscription = true }
+            GenericButton(
+                title: AppleIdSubscriptionGateUI.switchAccountButtonKey.localizedString,
+                style: .primaryBorderOnly
+            )
+            .onTapGesture { navigateToAccountAndDevices() }
+            .accessibilityAction { navigateToAccountAndDevices() }
+        }
+        .padding(.horizontal, 32)
     }
 }
 
@@ -81,6 +122,12 @@ extension GeneratePassphraseView {
                     message: IAPFeedbackPolicy.alertLocalizationKey(for: checkoutResult).localizedString
                 )
             }
+        } catch PurchaseGateError.subscriptionAttachedToOtherAccount {
+            // The purchase's own read normally flipped the screen to the gate; a newer read may have overwritten it.
+            if case .attachedToOtherAccount = purchasesManager.appleIdSubscriptionGate { return }
+            presentPurchaseAlert(message: AppleIdSubscriptionGateUI.statusUnavailableAlertKey.localizedString)
+        } catch PurchaseGateError.statusUnavailable {
+            presentPurchaseAlert(message: AppleIdSubscriptionGateUI.statusUnavailableAlertKey.localizedString)
         } catch {
             Task { @MainActor in
                 presentPurchaseAlert(
@@ -106,6 +153,11 @@ extension GeneratePassphraseView {
         Task {
             await purchasePlanAction(with: plan)
         }
+    }
+
+    func openCodeEntry() {
+        ImpactGenerator.shared.softImpact()
+        isCodeEntryPresented = true
     }
 
     func selectPlanAction() {

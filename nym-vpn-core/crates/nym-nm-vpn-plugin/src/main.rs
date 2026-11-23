@@ -63,13 +63,13 @@ async fn main() -> anyhow::Result<()> {
     let (tx, rx) = tokio::sync::mpsc::channel(8);
 
     let builder = if cli.session_bus {
-        zbus::connection::Builder::session()?
+        zbus::connection::Builder::session()
     } else {
-        zbus::connection::Builder::system()?
+        zbus::connection::Builder::system()
     };
     let connection = builder
-        .name(nm::BUS_NAME)?
-        .serve_at(nm::OBJECT_PATH, plugin::VpnPlugin::new(tx, state.clone()))?
+        .name(nm::BUS_NAME)
+        .serve_at(nm::OBJECT_PATH, plugin::VpnPlugin::new(tx, state.clone()))
         .build()
         .await
         .with_context(|| format!("failed to own {} on the bus", nm::BUS_NAME))?;

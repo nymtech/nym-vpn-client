@@ -69,8 +69,10 @@ import net.nymtech.nymvpn.ui.screens.account.info.components.AccountActionCard
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountInfoCard
 import net.nymtech.nymvpn.ui.screens.account.info.components.BandwidthUiState
 import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
+import net.nymtech.nymvpn.ui.screens.account.info.modal.PairDeviceDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.account.info.components.SubscriptionSection
+import net.nymtech.nymvpn.ui.screens.account.pairing.PairDeviceViewModel
 import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionStatusText
@@ -88,7 +90,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: AccountInfoViewModel = hiltViewModel()) {
+fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: AccountInfoViewModel = hiltViewModel(), pairDeviceViewModel: PairDeviceViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
@@ -141,6 +143,18 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		AutologinState.Idle -> {}
 	}
 
+	val showPairDeviceDialog by pairDeviceViewModel.showDialog.collectAsStateWithLifecycle()
+	val pairingState by pairDeviceViewModel.state.collectAsStateWithLifecycle()
+
+	if (showPairDeviceDialog) {
+		PairDeviceDialog(
+			state = pairingState,
+			onNewCode = pairDeviceViewModel::newCode,
+			onCodesMatch = pairDeviceViewModel::confirm,
+			onDismiss = pairDeviceViewModel::dismiss,
+		)
+	}
+
 	val accountState = appUiState.managerState.accountState
 	val isAccountNotActive = accountState is AccountControllerState.Error &&
 		accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
@@ -150,6 +164,7 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 			DeviceAuthAction.MANAGE_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW, cryptoObject)
 			DeviceAuthAction.RENEW_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW, cryptoObject)
 			DeviceAuthAction.LINK_SOCIAL -> uiState.accountLinkUrl?.let { context.openWebUrl(it) }
+			DeviceAuthAction.PAIR_DEVICE -> pairDeviceViewModel.start(cryptoObject)
 			DeviceAuthAction.REVEAL_PASSPHRASE, DeviceAuthAction.DELETE_ACCOUNT -> Unit
 		}
 	}
@@ -179,6 +194,7 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 			if (isPlayDistribution) navController.goFromRoot(Route.SelectPlan) else deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION)
 		},
 		onLinkAccountClick = { deviceAuth.request(DeviceAuthAction.LINK_SOCIAL) },
+		onPairDeviceClick = { deviceAuth.request(DeviceAuthAction.PAIR_DEVICE) },
 		onAccountIdClick = {
 			if (uiState.accountId.isNotEmpty()) {
 				scope.launch {
@@ -208,6 +224,7 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		onContactSupportClick = {
 			context.openWebUrl(supportURL)
 		},
+		showLinkSocial = !isPlayDistribution,
 	)
 }
 
@@ -220,6 +237,7 @@ fun AccountInfoScreenContent(
 	onManageClick: () -> Unit,
 	onRenewClick: () -> Unit,
 	onLinkAccountClick: () -> Unit,
+	onPairDeviceClick: () -> Unit,
 	onAccountIdClick: () -> Unit,
 	onDeviceIdClick: () -> Unit,
 	onLogoutClick: () -> Unit,
@@ -228,6 +246,7 @@ fun AccountInfoScreenContent(
 	onContactSupportClick: () -> Unit,
 	subscriptionState: SubscriptionUiState?,
 	bandwidthState: BandwidthUiState?,
+	showLinkSocial: Boolean = true,
 ) {
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -258,26 +277,28 @@ fun AccountInfoScreenContent(
 
 		Spacer(Modifier.height(16.dp))
 
-		Row(
-			verticalAlignment = Alignment.CenterVertically,
-		) {
-			Spacer(
-				modifier = Modifier
-					.size(12.dp)
-					.background(LocalNymColors.current.warning, CircleShape),
-			)
-			Spacer(Modifier.width(4.dp))
-			if (!isLinked) {
-				AddSocialText(onLinkAccountClick)
-			} else {
-				Text(
-					text = stringResource(R.string.account_info_backup),
-					color = MaterialTheme.colorScheme.onBackground,
-					style = MaterialTheme.typography.bodyMedium,
+		if (isLinked || showLinkSocial) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Spacer(
+					modifier = Modifier
+						.size(12.dp)
+						.background(LocalNymColors.current.warning, CircleShape),
 				)
+				Spacer(Modifier.width(4.dp))
+				if (!isLinked) {
+					AddSocialText(onLinkAccountClick)
+				} else {
+					Text(
+						text = stringResource(R.string.account_info_backup),
+						color = MaterialTheme.colorScheme.onBackground,
+						style = MaterialTheme.typography.bodyMedium,
+					)
+				}
 			}
+			Spacer(Modifier.height(16.dp))
 		}
-		Spacer(Modifier.height(16.dp))
 
 		AccountInfoCard(
 			title = stringResource(R.string.account_info_id_title),
@@ -307,6 +328,19 @@ fun AccountInfoScreenContent(
 		)
 		Spacer(Modifier.height(16.dp))
 		if (isMnemonicStored) {
+			OutlineStyledButton(
+				onClick = onPairDeviceClick,
+				content = {
+					Text(
+						stringResource(R.string.pair_device_button),
+						style = MaterialTheme.typography.titleMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
+					)
+				},
+				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
+			)
+			Spacer(Modifier.height(16.dp))
 			OutlineStyledButton(
 				onClick = onLogoutClick,
 				content = {
@@ -386,6 +420,7 @@ internal fun PreviewAccountInfoScreen() {
 				onManageClick = {},
 				onRenewClick = {},
 				onLinkAccountClick = {},
+				onPairDeviceClick = {},
 				onAccountIdClick = {},
 				onDeviceIdClick = {},
 				onLogoutClick = {},

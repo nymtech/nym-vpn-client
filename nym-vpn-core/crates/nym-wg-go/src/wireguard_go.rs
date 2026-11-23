@@ -1,10 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(windows)]
+use std::ffi::CString;
 #[cfg(unix)]
 use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
 use std::{
-    ffi::{CStr, CString, c_char, c_void},
+    ffi::{CStr, c_char, c_void},
     fmt,
     mem::replace,
     net::SocketAddr,
@@ -18,6 +20,7 @@ use nym_windows::net::AddressFamily;
 use typed_builder::TypedBuilder;
 #[cfg(windows)]
 use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
+use zeroize::Zeroizing;
 
 use super::{
     Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, Result, uapi::UapiConfigBuilder,
@@ -60,11 +63,12 @@ pub struct Config {
 }
 
 impl Config {
-    fn into_uapi_config(self) -> Vec<u8> {
-        let mut config_builder = UapiConfigBuilder::new();
+    /// Returns nul-terminated UAPI configuration
+    fn into_uapi_config(self) -> Zeroizing<Vec<u8>> {
+        let mut config_builder = UapiConfigBuilder::default();
         config_builder.add(
             "private_key",
-            self.interface.keypair.private_key().to_bytes().as_ref(),
+            self.interface.keypair.private_key().as_bytes().as_ref(),
         );
 
         if let Some(listen_port) = self.interface.listen_port {
@@ -88,7 +92,7 @@ impl Config {
             }
         }
 
-        config_builder.into_bytes()
+        config_builder.into_bytes_with_nul()
     }
 }
 
@@ -179,7 +183,8 @@ impl Tunnel {
     fn start_with_tun(config: Config, tun_fd: OwnedFd) -> Result<Self> {
         #[cfg(any(target_os = "linux", target_os = "macos"))]
         let interface_mtu = config.interface.mtu;
-        let settings = CString::new(config.into_uapi_config())
+        let uapi_config = config.into_uapi_config();
+        let settings = CStr::from_bytes_with_nul(&uapi_config)
             .map_err(|_| Error::ConvertToCString("uapi config"))?;
 
         let tunnel_handle = unsafe {
@@ -212,7 +217,8 @@ impl Tunnel {
         wintun_tunnel_type: &str,
     ) -> Result<Self> {
         let interface_mtu = config.interface.mtu;
-        let settings = CString::new(config.into_uapi_config())
+        let uapi_config = config.into_uapi_config();
+        let settings = CStr::from_bytes_with_nul(&uapi_config)
             .map_err(|_| Error::ConvertToCString("settings"))?;
         let interface_name_cstr =
             CString::new(interface_name).map_err(|_| Error::ConvertToCString("interface name"))?;
@@ -275,7 +281,8 @@ impl Tunnel {
     #[cfg(target_os = "android")]
     fn start_with_proxy_fd(config: Config, proxy_fd: OwnedFd) -> Result<Self> {
         let mtu = config.interface.mtu;
-        let settings = CString::new(config.into_uapi_config())
+        let uapi_config = config.into_uapi_config();
+        let settings = CStr::from_bytes_with_nul(&uapi_config)
             .map_err(|_| Error::ConvertToCString("uapi config"))?;
 
         let tunnel_handle = unsafe {
@@ -331,11 +338,12 @@ impl Tunnel {
 
     /// Update the endpoints of peers matched by public key.
     pub fn update_peers(&mut self, peer_updates: &[PeerEndpointUpdate]) -> Result<()> {
-        let mut config_builder = UapiConfigBuilder::new();
+        let mut config_builder = UapiConfigBuilder::default();
         for peer_update in peer_updates {
             peer_update.append_to(&mut config_builder);
         }
-        let settings = CString::new(config_builder.into_bytes())
+        let uapi_config = config_builder.into_bytes_with_nul();
+        let settings = CStr::from_bytes_with_nul(&uapi_config)
             .map_err(|_| Error::ConvertToCString("peer update config"))?;
         let handle = self
             .tunnel_handle

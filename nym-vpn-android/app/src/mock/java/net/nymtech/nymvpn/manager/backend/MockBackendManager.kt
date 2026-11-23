@@ -316,6 +316,8 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 
 	override suspend fun storeDeeplinkAccount(url: String) {}
 
+	override suspend fun refreshStoredAccount() {}
+
 	override suspend fun getAccountMode(): StoredAccountMode = StoredAccountMode.PRIVY
 
 	override suspend fun getAccountSummary(): VpnAccountSummary? = _accountSummaryFlow.value

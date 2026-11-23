@@ -47,6 +47,7 @@ public struct ErrorReason: LocalizedError, Codable {
         case needsRelaxedIndependenceCriteria
         case needsDeviceLocation
         case connectionAttemptsExceeded
+        case entryGatewayHasNoBridge
     }
 
     public let code: Code
@@ -192,6 +193,8 @@ private extension ErrorReason.Code {
             self = .connectionAttemptsExceeded
         case .setLocalDnsResolverConfig:
             self = .setLocalDnsResolverConfig
+        case .entryGatewayHasNoBridge:
+            self = .entryGatewayHasNoBridge
         }
     }
 }

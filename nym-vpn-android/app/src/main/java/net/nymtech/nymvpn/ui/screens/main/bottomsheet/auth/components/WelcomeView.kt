@@ -23,12 +23,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun WelcomeView(onLoginClick: () -> Unit, onSignUpClick: () -> Unit, modifier: Modifier = Modifier) {
+fun WelcomeView(onLoginClick: () -> Unit, onSignUpClick: () -> Unit, modifier: Modifier = Modifier, onScanCodeClick: (() -> Unit)? = null) {
 	Column(
 		modifier = modifier
 			.background(MaterialTheme.colorScheme.surface)
@@ -68,12 +69,13 @@ fun WelcomeView(onLoginClick: () -> Unit, onSignUpClick: () -> Unit, modifier: M
 			shape = RoundedCornerShape(12.dp),
 		)
 
-		MainStyledButton(
+		OutlineStyledButton(
 			onClick = onLoginClick,
 			content = {
 				Text(
 					stringResource(R.string.auth_welcome_login_button),
 					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 			},
 			modifier = Modifier
@@ -81,6 +83,23 @@ fun WelcomeView(onLoginClick: () -> Unit, onSignUpClick: () -> Unit, modifier: M
 				.height(48.dp.scaledHeight()),
 			shape = RoundedCornerShape(12.dp),
 		)
+
+		if (onScanCodeClick != null) {
+			OutlineStyledButton(
+				onClick = onScanCodeClick,
+				content = {
+					Text(
+						stringResource(R.string.auth_welcome_scan_button),
+						style = MaterialTheme.typography.titleMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
+					)
+				},
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
+			)
+		}
 
 		PrivacyText()
 	}
@@ -93,6 +112,7 @@ private fun PreviewWelcomeViewDark() {
 		WelcomeView(
 			onLoginClick = {},
 			onSignUpClick = {},
+			onScanCodeClick = {},
 		)
 	}
 }

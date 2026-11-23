@@ -1,0 +1,9 @@
+Luôn kết nối ở những nơi VPN bị chặn: các chế độ cầu nối mới Off / Auto / On giúp bạn luôn trực tuyến khi một mạng cố chặn kết nối, tự động chuyển đổi phương thức truyền tải để vượt qua.
+
+Cũng trong phiên bản này:
+• Dùng ít pin hơn khi đang kết nối
+• Xóa tài khoản của bạn ngay trong ứng dụng
+• Màn hình nhạy cảm nay được bảo vệ khỏi chụp màn hình và lớp phủ
+• Danh sách máy chủ nhanh hơn
+• Trạng thái kết nối chính xác hơn
+• Nhắc gia hạn rõ ràng hơn và dùng từ nhất quán hơn

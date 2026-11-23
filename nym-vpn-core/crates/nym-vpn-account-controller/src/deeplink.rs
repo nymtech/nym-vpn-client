@@ -112,8 +112,7 @@ impl Deeplinks {
     }
 
     pub fn derive_mnemonic(&mut self, url_str: &str) -> Result<DeeplinkMnemonic, DeeplinkError> {
-        let url =
-            Url::parse(url_str).map_err(|_| DeeplinkError::InvalidUrl(url_str.to_string()))?;
+        let url = Url::parse(url_str).map_err(|_| DeeplinkError::InvalidUrl)?;
 
         let url_params: HashMap<String, String> = url
             .query_pairs()
@@ -121,7 +120,7 @@ impl Deeplinks {
             .collect();
 
         let Some(deeplink_id_str) = url_params.get("deeplink_id") else {
-            return Err(DeeplinkError::MissingDeeplinkId(url_str.to_string()));
+            return Err(DeeplinkError::MissingDeeplinkId);
         };
 
         let Ok(deeplink_id) = deeplink_id_str.parse::<u64>() else {
@@ -129,7 +128,7 @@ impl Deeplinks {
         };
 
         let Some(payload_b58) = url_params.get("payload") else {
-            return Err(DeeplinkError::MissingPayload(url_str.to_string()));
+            return Err(DeeplinkError::MissingPayload);
         };
 
         let Some(deeplink) = self.0.remove(&deeplink_id) else {
@@ -323,17 +322,17 @@ impl PinCode {
 
 #[derive(thiserror::Error, Debug)]
 pub enum DeeplinkError {
-    #[error("invalid URL: {0}")]
-    InvalidUrl(String),
+    #[error("invalid URL")]
+    InvalidUrl,
 
-    #[error("missing deeplink_id parameter in URL: {0}")]
-    MissingDeeplinkId(String),
+    #[error("missing deeplink_id parameter in URL")]
+    MissingDeeplinkId,
 
     #[error("invalid deeplink_id parameter: {0}")]
     InvalidDeeplinkId(String),
 
-    #[error("missing payload parameter in URL: {0}")]
-    MissingPayload(String),
+    #[error("missing payload parameter in URL")]
+    MissingPayload,
 
     #[error("invalid payload: {0}")]
     InvalidPayload(String),

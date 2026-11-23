@@ -95,6 +95,7 @@ impl NymVpnService {
                     config.config_dir.to_path_buf(),
                     &environment.current().nym_network.network_name,
                     Some(config.user_agent.clone().into()),
+                    crate::environment::vpn_api_override(),
                 )
                 .await
                 .map_err(VpnError::internal)?;

@@ -79,8 +79,12 @@ pub enum Error {
     #[error("failed to convert API URLs")]
     ConvertApiUrls(#[source] VpnApiClientError),
 
-    #[error("Network environment is not initialized")]
+    #[error("network environment is not initialized")]
     NetworkEnvNotInitialized,
+
+    #[cfg(target_os = "macos")]
+    #[error("failed to register authentication service rights")]
+    RegisterAuthenticationServiceRights(#[source] nym_authorization_service::Error),
 }
 
 #[derive(Clone, Debug, thiserror::Error)]

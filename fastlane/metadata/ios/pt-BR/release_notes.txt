@@ -1,0 +1,7 @@
+Continue conectado onde VPNs são bloqueadas: os novos modos de ponte Off / Auto / On mantêm você on-line quando a sua rede tenta bloquear a conexão, trocando de método de conexão automaticamente para conseguir passar.
+
+Também nesta versão:
+• Usa menos bateria
+• Status de conexão mais preciso
+• Troca do bloqueador de anúncios mais fluida
+• Lembretes de renovação mais claros e texto mais consistente em todo o aplicativo

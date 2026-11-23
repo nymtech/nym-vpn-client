@@ -46,6 +46,7 @@ interface BackendManager {
 	suspend fun getDeeplink(kind: DeeplinkKind): String?
 	suspend fun getAutologinDeeplink(kind: DeeplinkKind): AutologinResponse?
 	suspend fun storeDeeplinkAccount(url: String)
+	suspend fun refreshStoredAccount()
 	suspend fun getAccountMode(): StoredAccountMode?
 	suspend fun getAccountSummary(): VpnAccountSummary?
 

@@ -84,7 +84,7 @@ impl AuthorizationChecker for AuthProxy<'_> {
                 &self.subject,
                 ACTION_ID,
                 &details,
-                CheckAuthorizationFlags::AllowUserInteraction.into(),
+                CheckAuthorizationFlags::ALLOW_USER_INTERACTION,
                 CANCELLATION_ID,
             )
             .await
@@ -201,7 +201,7 @@ impl Prompter for PolkitPrompter {
             .ok_or(AuthenticationError::ShuttingDown)?
             .map_err(AuthenticationError::AuthorityProxy)?;
 
-        let subject = Subject::new_for_owner(
+        let subject = Subject::new_for_pid(
             cred.pid()
                 .try_into()
                 .map_err(AuthenticationError::NumberConversion)?,

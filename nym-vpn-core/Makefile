@@ -1,8 +1,5 @@
-# Detect the OS and architecture
-include platform.mk
-
-# Linker/compiler flags for producing reproducible output
-include reproducible_builds.mk
+# Rust flags for stripping local paths from binaries
+include remap_paths.mk
 
 # Minimum deployment targets for macOS and iOS
 # These environment variables are used by clang
@@ -25,16 +22,16 @@ build-all: ## Build all crates in the Rust workspace
 	cargo build --workspace
 
 build-release: ## Build the default crates in the Rust workspace in release mode
-	$(ALL_IDEMPOTENT_FLAGS) cargo build --release
+	RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS)" cargo build --release
 
 build-release-all: ## Build all the crates in the Rust workspace in release mode
-	$(ALL_IDEMPOTENT_FLAGS) cargo build --release --workspace
+	RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS)" cargo build --release --workspace
 
 build-mac: ## Build the Rust workspace suitable for running the daemon
-	$(ALL_IDEMPOTENT_FLAGS) cargo build --release
+	RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS)" cargo build --release
 
 build-win-cross:
-	$(ALL_IDEMPOTENT_FLAGS) cargo build --target x86_64-pc-windows-gnu --release
+	RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS)" cargo build --target x86_64-pc-windows-gnu --release
 
 # -----------------------------------------------------------------------------
 #  Linting targets
@@ -64,8 +61,6 @@ build-deb-vpnc:
 # -----------------------------------------------------------------------------
 #  Misc
 # -----------------------------------------------------------------------------
-
-print-info: ## Print detected architecture
 
 help:  ## Show this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)

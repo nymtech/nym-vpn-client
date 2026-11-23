@@ -26,6 +26,7 @@
 	<string name="error_reason_performant_entry_gateway_unavailable">No entry server is available for your selection. Pick another location, or try again in a few minutes.</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">No exit server is available for your selection. Pick a different location, or try again in a few minutes.</string>
 
+	<string name="error_reason_entry_gateway_has_no_bridge">This server doesn\'t offer a bridge. Choose another server or set Enhanced connection to Auto or Off.</string>
 	<string name="error_reason_invalid_entry_gateway_identity">The entry server you chose isn\'t available. Choose a different entry server, then connect again.</string>
 	<string name="error_reason_invalid_exit_gateway_identity">The exit server you chose isn\'t available with your current settings. Choose a different exit or entry server, then connect again.</string>
 	<string name="error_reason_invalid_entry_gateway_country">No entry servers are available in that location. Choose a different location, then connect again.</string>

@@ -15,7 +15,7 @@ use tokio_stream::{Stream, wrappers::UnboundedReceiverStream};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
 use crate::{
-    AuthenticationMaterial,
+    AuthenticationMaterial, PeerCredentials,
     authentication::{self, skip_authentication_checks},
     xpc::{
         common::{
@@ -71,7 +71,18 @@ define_class!(
                 )
             };
 
-            let xpc_conn = XpcConnection::new(proxy, data_rx.into(), shutdown_token);
+            let peer_credentials = PeerCredentials {
+                // SAFETY: method exists as per documentation
+                // https://developer.apple.com/documentation/foundation/nsxpcconnection/effectiveuseridentifier
+                user_id: unsafe { msg_send![new_connection, effectiveUserIdentifier] },
+                // SAFETY: method exists as per documentation
+                // https://developer.apple.com/documentation/foundation/nsxpcconnection/auditsessionidentifier
+                audit_session_id: Some(unsafe {
+                    msg_send![new_connection, auditSessionIdentifier]
+                }),
+            };
+            let xpc_conn = XpcConnection::new(proxy, data_rx.into(), shutdown_token)
+                .with_peer_credentials(peer_credentials);
             let forwarded = self.ivars().conn_sender.send(xpc_conn);
 
             if let Some(signing_requirement) = self.ivars().signing_requirement.as_ref() {

@@ -16,7 +16,7 @@ network-manager = ["dep:nym-dbus"]
 user-agent-macro = ["dep:nym-bin-common"]
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
-objc2-foundation = { workspace = true, features = ["NSProcessInfo"] }
+objc2-foundation = { workspace = true, features = ["std", "NSProcessInfo"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 rs-release.workspace = true

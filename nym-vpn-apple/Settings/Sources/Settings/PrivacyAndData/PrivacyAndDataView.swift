@@ -1,8 +1,9 @@
 import SwiftUI
 import AppSettings
-import Constants
 import ImpactGenerator
-#if os(macOS)
+#if os(iOS)
+import ConfigurationManager
+#elseif os(macOS)
 import GRPCManager
 #endif
 import Theme
@@ -15,8 +16,7 @@ public struct PrivacyAndDataView: View {
     @EnvironmentObject private var grpcManager: GRPCManager
 #endif
     @Binding private var path: NavigationPath
-    @State private var isHovered = false
-    @State private var hoveredId: Int?
+    @State private var infoContent: TelemetryInfoContent?
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -46,6 +46,11 @@ public struct PrivacyAndDataView: View {
             Color.Nym.background
                 .ignoresSafeArea()
         }
+        .sheet(item: $infoContent) { content in
+            TelemetryInfoSheet(content: content) {
+                infoContent = nil
+            }
+        }
     }
 
     public init(path: Binding<NavigationPath>) {
@@ -65,17 +70,7 @@ private extension PrivacyAndDataView {
     @ViewBuilder
     func logsSection() -> some View {
 #if os(iOS)
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: $appSettings.isDebugLogsOn
-                ),
-                title: "settings.privacyAndData.enableDebugLogs".localizedString,
-                systemImageName: "ladybug",
-                position: SettingsListItemPosition(isFirst: true, isLast: true),
-                action: {}
-            )
-        )
+        diagnosticsSection()
         Spacer()
             .frame(height: 24)
 #endif
@@ -92,6 +87,32 @@ private extension PrivacyAndDataView {
         )
     }
 
+#if os(iOS)
+    func diagnosticsSection() -> some View {
+        // TestFlight builds always log at debug level, so show the toggle locked on.
+        let isTestFlight = ConfigurationManager.shared.isTestFlight
+        return TelemetryOptInCard(
+            icon: "stethoscope",
+            title: "welcomeOptIns.diagnostics.title".localizedString,
+            subtitle: isTestFlight
+                ? "welcomeOptIns.diagnostics.testFlight".localizedString
+                : "welcomeOptIns.diagnostics.subtitle".localizedString,
+            isOn: isTestFlight ? .constant(true) : $appSettings.isDebugLogsOn,
+            isDisabled: isTestFlight,
+            onInfo: { infoContent = diagnosticsInfo() }
+        )
+    }
+
+    func diagnosticsInfo() -> TelemetryInfoContent {
+        .telemetry(
+            id: "diagnostics",
+            sharesKey: "welcomeOptIns.diagnostics.shares",
+            neverKey: nil,
+            handlingKey: "welcomeOptIns.diagnostics.handling"
+        )
+    }
+#endif
+
     func diagnosticToolSection() -> some View {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
@@ -107,16 +128,12 @@ private extension PrivacyAndDataView {
     }
 
     func statisticsSection() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: $appSettings.isStatisticsEnabled
-                ),
-                title: "privacyData.anonymousStats".localizedString,
-                multilineText: privacyMultilineText(),
-                position: .init(isFirst: true, isLast: true),
-                action: {}
-            )
+        TelemetryOptInCard(
+            icon: "chart.bar",
+            title: "welcomeOptIns.connection.title".localizedString,
+            subtitle: "welcomeOptIns.connection.subtitle".localizedString,
+            isOn: $appSettings.isStatisticsEnabled,
+            onInfo: { infoContent = connectionInfo() }
         )
 #if os(macOS)
         .onChange(of: appSettings.isStatisticsEnabled) {
@@ -125,38 +142,13 @@ private extension PrivacyAndDataView {
 #endif
     }
 
-    func privacyMultilineText() -> AttributedString? {
-        let first  = "privacyData.anonymousStats.subtitle1".localizedString
-        let second = "privacyData.anonymousStats.subtitle2".localizedString
-        let third  = "privacyData.anonymousStats.subtitle3".localizedString
-        let link   = Constants.anonymousStatsURL.rawValue
-        let markdown = """
-\(first)
-
-\(second)
-
-[\(third)](\(link))
-"""
-
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        guard var text = try? AttributedString(markdown: markdown, options: options) else { return nil }
-        if let range = text.range(of: third) {
-            text[range].underlineStyle = .single
-        }
-        return text
-    }
-
     func errorReportingSection() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: $appSettings.isErrorReportingOn
-                ),
-                title: "privacyData.errorCrashReports".localizedString,
-                multilineText: errorReportingMultilineText(),
-                position: .init(isFirst: true, isLast: true),
-                action: {}
-            )
+        TelemetryOptInCard(
+            icon: "ladybug",
+            title: "welcomeOptIns.monitoring.title".localizedString,
+            subtitle: "welcomeOptIns.monitoring.subtitle".localizedString,
+            isOn: $appSettings.isErrorReportingOn,
+            onInfo: { infoContent = monitoringInfo() }
         )
 #if os(macOS)
         .onChange(of: appSettings.isErrorReportingOn) {
@@ -165,22 +157,22 @@ private extension PrivacyAndDataView {
 #endif
     }
 
-    func errorReportingMultilineText() -> AttributedString? {
-        let first  = "privacyData.errorCrashReports.subtitle1".localizedString
-        let second = "privacyData.errorCrashReports.subtitle2".localizedString
-        let link   = Constants.sentryPrivacyURL.rawValue
-        let markdown = """
-\(first)
+    func connectionInfo() -> TelemetryInfoContent {
+        .telemetry(
+            id: "connection",
+            sharesKey: "welcomeOptIns.connection.shares",
+            neverKey: "welcomeOptIns.connection.never",
+            handlingKey: "welcomeOptIns.connection.handling"
+        )
+    }
 
-[\(second)](\(link))
-"""
-
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        guard var text = try? AttributedString(markdown: markdown, options: options) else { return nil }
-        if let range = text.range(of: second) {
-            text[range].underlineStyle = .single
-        }
-        return text
+    func monitoringInfo() -> TelemetryInfoContent {
+        .telemetry(
+            id: "monitoring",
+            sharesKey: "welcomeOptIns.monitoring.shares",
+            neverKey: "welcomeOptIns.monitoring.never",
+            handlingKey: "welcomeOptIns.monitoring.handling"
+        )
     }
 }
 

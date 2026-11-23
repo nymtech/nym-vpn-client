@@ -40,6 +40,7 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
             key={setting.title}
             value={setting.title}
             onClick={setting.onClick}
+            data-testid={setting['data-testid']}
             className={clsx([
               'group cursor-default',
               'relative flex min-h-16 px-5 py-2 focus:outline-hidden',
@@ -75,7 +76,10 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
                 </div>
                 <Description
                   as="div"
-                  className="text-text-secondary truncate text-sm select-none"
+                  className={clsx([
+                    'text-text-secondary text-sm select-none',
+                    typeof setting.desc === 'string' && 'truncate',
+                  ])}
                 >
                   {typeof setting.desc === 'string' ? (
                     <span>{setting.desc}</span>

@@ -1,8 +1,8 @@
 NymVPN: VPN riêng tư nhất thế giới. Một dVPN phi tập trung, ẩn danh, bảo mật của Thụy Sĩ, không log. Tốc độ WireGuard, ẩn danh với Noise Generating Mixnet. Không cần đăng ký email. Không quảng cáo.
 
-<b>Dùng thử VPN miễn phí 7 ngày & các gói dịch vụ từ $4/tháng</b>
+<b>Dùng thử VPN miễn phí 7 ngày</b>
 
-Dùng thử miễn phí 7 ngày, không ràng buộc. Thanh toán bằng tiền điện tử, thẻ hoặc tiền mặt: tùy bạn chọn.
+Dùng thử miễn phí 7 ngày, không ràng buộc.
 
 <b>Riêng tư từ thiết kế</b>
 
@@ -12,10 +12,6 @@ Hầu hết các VPN tuyên bố "không log" như một chính sách — họ c
 
 • Chế độ dVPN: dVPN 2 bước nhảy dựa trên AmneziaWG (WireGuard). Phát trực tuyến và duyệt web tốc độ cao.
 • Chế độ Mixnet: Noise Generating Mixnet 5 bước nhảy, một phiên bản kế nhiệm riêng tư hơn của Tor. Định tuyến lưu lượng của bạn qua các máy chủ vận hành độc lập, trộn gói tin của bạn với của người khác, và thêm nhiễu cùng lưu lượng che phủ để đánh bại phân tích lưu lượng. VPN ẩn danh nhất dành cho người tiêu dùng. Hoàn hảo cho tiền điện tử, email và nhắn tin riêng tư như Signal.
-
-<b>Thanh toán ẩn danh bằng tiền điện tử hoặc tiền mặt</b>
-
-NymVPN chấp nhận nhiều loại tiền điện tử hơn bất kỳ VPN nào khác, cộng với thanh toán tiền mặt. Thanh toán bằng Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM và nhiều loại khác. Thông tin xác thực zero-knowledge tách biệt thanh toán khỏi việc sử dụng VPN: thanh toán ẩn danh, sử dụng ẩn danh.
 
 <b>Tại sao NymVPN khác biệt</b>
 

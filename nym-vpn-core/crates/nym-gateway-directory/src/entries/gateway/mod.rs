@@ -7,7 +7,7 @@ mod tests;
 use ipnetwork::IpNetwork;
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
-use nym_topology::{NodeId, RoutingNode};
+use nym_topology::RoutingNode;
 use nym_validator_client::models::{
     KeyRotationId,
     described::{type_translation::LewesProtocolDetailsV1, v2::NymNodeDescriptionV2},
@@ -1256,31 +1256,6 @@ impl IntoIterator for GatewayList {
 
     fn into_iter(self) -> Self::IntoIter {
         self.gateways.into_iter()
-    }
-}
-
-impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
-    #[allow(unconditional_recursion)]
-    fn node_id(&self) -> NodeId {
-        self.node_id()
-    }
-
-    fn identity(&self) -> NodeIdentity {
-        self.identity()
-    }
-
-    fn clients_address(&self, _prefer_ipv6: bool) -> Option<String> {
-        // This is a bit of a sharp edge, but temporary until we can remove Option from host
-        // and tls port when we add these to the vpn API endpoints.
-        Some(
-            self.clients_address_tls()
-                .or(self.clients_address_no_tls())
-                .unwrap_or("ws://".to_string()),
-        )
-    }
-
-    fn is_wss(&self) -> bool {
-        self.clients_address_tls().is_some()
     }
 }
 

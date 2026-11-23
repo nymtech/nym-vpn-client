@@ -15,7 +15,6 @@ anyhow.workspace = true
 async-compression = { workspace = true, features = ["tokio", "gzip"] }
 ipnetwork.workspace = true
 itertools.workspace = true
-nym-client-core.workspace = true
 nym-http-api-client.workspace = true
 nym-network-defaults.workspace = true
 nym-offline-monitor.workspace = true

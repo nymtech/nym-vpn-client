@@ -1,8 +1,8 @@
 NymVPN：世界上最私密的 VPN。一款安全、匿名、不留紀錄的去中心化瑞士 dVPN。WireGuard 的速度，Noise Generating Mixnet 的匿名性。無需電郵註冊。無廣告。
 
-<b>7 天免費 VPN 試用，計劃低至每月 4 美元</b>
+<b>7 天免費 VPN 試用</b>
 
-免費試用 7 天，無需任何承諾。接受加密貨幣、信用卡或現金付款：任您選擇。
+免費試用 7 天，無需任何承諾。
 
 <b>源自設計的極致私隱保護</b>
 
@@ -13,10 +13,6 @@ NymVPN：世界上最私密的 VPN。一款安全、匿名、不留紀錄的去�
 • dVPN 模式：基於 AmneziaWG（WireGuard）的 2 跳 dVPN。在去中心化網絡中享受快速串流與瀏覽體驗，沒有任何單一營運者能記錄您。
 
 • Mixnet 模式：5 跳 Noise Generating Mixnet，比 Tor 更私密的後繼方案。透過獨立營運的伺服器路由您的流量，將您的數據封包與其他用戶的混合，並加入噪音與掩護流量以對抗流量分析。目前最匿名的消費級 VPN。加密貨幣、電郵和 Signal 等私人通訊應用程式的最佳選擇。
-
-<b>使用加密貨幣或現金匿名支付</b>
-
-NymVPN 接受的加密貨幣種類比任何其他 VPN 都多，此外我們還接受現金支付。您可以使用 Bitcoin (BTC)、Ethereum (ETH)、Monero (XMR)、Zcash (ZEC)、USDT、USDC、NYM 等多種加密貨幣支付。零知識 (zero-knowledge) 憑證將您的付款資料與 VPN 使用紀錄脫鈎：匿名付款，匿名使用。
 
 <b>為什麼 NymVPN 與眾不同</b>
 

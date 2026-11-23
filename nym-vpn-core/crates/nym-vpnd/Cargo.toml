@@ -35,12 +35,19 @@ tracing.workspace = true
 nym-bin-common.workspace = true
 nym-sdk.workspace = true
 
+nym-authorization-service.workspace = true
 nym-ipc = { workspace = true, features = ["daemon"] }
 nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-vpn-lib = { workspace = true }
 nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 nym-vpn-network-config = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+nix = { workspace = true, features = ["process"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+nix = { workspace = true, features = ["resource"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-service.workspace = true
@@ -55,6 +62,7 @@ features = [
     "Win32_Security_Authorization",
     "Win32_Security_Authentication_Identity",
     "Win32_System_Diagnostics_Debug",
+    "Win32_System_ErrorReporting",
     "Win32_System_Kernel",
     "Win32_System_Memory",
     "Win32_System_Threading",
@@ -64,7 +72,7 @@ features = [
 pretty_assertions.workspace = true
 
 [build-dependencies]
-vergen-gitcl = { workspace = true, default-features = false, features = [
+vergen-gitcl = { workspace = true, features = [
     "build",
     "cargo",
     "rustc",
@@ -80,12 +88,12 @@ This package contains the nym-vpnd daemon binary, which runs as a background ser
 End-users should use either the CLI client, nym-vpnc, or the GUI client, nym-vpn-app.'''
 maintainer-scripts = "linux/scripts"
 recommends = "nym-vpnc"
-depends = "$auto, adduser, policykit-1 | polkit | polkitd, polkit-1-auth-agent"
+depends = "$auto, adduser, policykit-1 | polkit | polkitd"
 assets = [
     "$auto",
     { source = "target/release/nym-exclude", dest = "usr/bin/nym-exclude", mode = "755" },
     { source = "target/release/nym-socks5-proxy", dest = "usr/bin/nym-socks5-proxy", mode = "755" },
-    { source = ".pkg/sysusers.d/nym-vpn.conf", dest = "usr/lib/sysusers.d/nym-vpn.conf", mode = "644" },
+    { source = "linux/sysusers.d/nym-vpn.conf", dest = "usr/lib/sysusers.d/nym-vpn.conf", mode = "644" },
 ]
 revision = ""
 

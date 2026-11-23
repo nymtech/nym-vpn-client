@@ -33,7 +33,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun SignUpView(onBackClick: () -> Unit, onAccountClick: () -> Unit, onSocialClick: () -> Unit, modifier: Modifier = Modifier) {
+fun SignUpView(onBackClick: () -> Unit, onAccountClick: () -> Unit, onSocialClick: () -> Unit, modifier: Modifier = Modifier, showSocial: Boolean = true) {
 	Column(
 		modifier = modifier
 			.background(MaterialTheme.colorScheme.surface)
@@ -80,26 +80,28 @@ fun SignUpView(onBackClick: () -> Unit, onAccountClick: () -> Unit, onSocialClic
 			shape = RoundedCornerShape(12.dp),
 		)
 
-		OutlineStyledButton(
-			onClick = onSocialClick,
-			content = {
-				Text(
-					stringResource(R.string.auth_sign_up_social_button),
-					style = MaterialTheme.typography.titleMedium,
-					color = MaterialTheme.colorScheme.onPrimaryContainer,
-				)
-			},
-			modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
-			shape = RoundedCornerShape(12.dp),
-		)
+		if (showSocial) {
+			OutlineStyledButton(
+				onClick = onSocialClick,
+				content = {
+					Text(
+						stringResource(R.string.auth_sign_up_social_button),
+						style = MaterialTheme.typography.titleMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
+					)
+				},
+				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
+			)
 
-		Text(
-			text = stringResource(R.string.auth_sign_up_info),
-			textAlign = TextAlign.Center,
-			style = MaterialTheme.typography.bodyMedium,
-			color = MaterialTheme.colorScheme.onSurface,
-			modifier = Modifier.fillMaxWidth(),
-		)
+			Text(
+				text = stringResource(R.string.auth_sign_up_info),
+				textAlign = TextAlign.Center,
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onSurface,
+				modifier = Modifier.fillMaxWidth(),
+			)
+		}
 	}
 }
 

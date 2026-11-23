@@ -1,0 +1,7 @@
+VPN'lerin engellendiği yerlerde bağlantıda kalın: yeni Off / Auto / On köprü modları, ağınız bağlantıyı engellemeye çalıştığında bağlantı yöntemini otomatik olarak değiştirerek çevrimiçi kalmanızı sağlar.
+
+Bu sürümde ayrıca:
+• Bağlıyken daha az pil tüketir
+• Daha doğru bağlantı durumu
+• Reklam engelleyici geçişi daha akıcı
+• Daha anlaşılır yenileme hatırlatmaları ve uygulama genelinde daha tutarlı ifadeler

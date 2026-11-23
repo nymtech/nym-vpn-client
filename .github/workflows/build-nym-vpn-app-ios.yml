@@ -52,12 +52,6 @@ on:
         required: true
       CROWDIN_PERSONAL_TOKEN:
         required: true
-      APPLE_SENTRY_CLI_AUTH_TOKEN:
-        required: true
-      APPLE_SENTRY_CLI_ORG:
-        required: true
-      APPLE_SENTRY_CLI_PROJECT:
-        required: true
 
 env:
   HOMEBREW_NO_ANALYTICS: 1
@@ -65,6 +59,7 @@ env:
   UPLOAD_DIR_IOS: ios_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
   IPA_DIR: ${{ github.workspace }}/nym-vpn-apple/build/ios/ipa
+  DEBUG_SYMBOLS_DIR: apple_debug_symbols_ios
 
 jobs:
   build-nym-vpn-app-ios:
@@ -85,12 +80,12 @@ jobs:
           ls -la ./
 
       - name: Checkout repo
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
       - name: Dotenv Action
-        uses: xom9ikk/dotenv@v2.4.0
+        uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
 
       - name: Setup sccache
         uses: ./.github/actions/setup-sccache
@@ -133,7 +128,7 @@ jobs:
         run: echo "RELEASE_TYPE=${{ env.RELEASE_TYPE }}"
 
       - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         with:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
@@ -141,27 +136,27 @@ jobs:
 
       - name: Install cargo-license
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
-        uses: baptiste0928/cargo-install@v3
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
           crate: cargo-license
 
       - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
           crate: cargo-edit
 
       - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
           crate: cargo-get
 
       - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Go
-        uses: actions/setup-go@v7.0.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
@@ -199,7 +194,7 @@ jobs:
 
       - name: Cache virtual env
         id: cache-virtual-env
-        uses: actions/cache@v6.1.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: python-venv
           key: ${{ runner.os }}-${{ runner.arch }}-python-venv
@@ -308,13 +303,13 @@ jobs:
           keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
 
       - name: Download translations
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: translations-apple
           path: nym-vpn-apple/NymVPN/Resources
 
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: core_artifacts_ios
           path: core_artifacts_ios
@@ -406,20 +401,16 @@ jobs:
           cp -R "$IPA_DIR" "${{ env.UPLOAD_DIR_IOS }}"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.UPLOAD_DIR_IOS }}
           path: ${{ env.UPLOAD_DIR_IOS }}
           if-no-files-found: error
           retention-days: 1
 
-      - name: Upload iOS dSYMs to Sentry (nightly)
-        if: ${{ env.RELEASE_TYPE == 'qa' }}
+      - name: Collect debug symbols
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
         working-directory: nym-vpn-apple
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.APPLE_SENTRY_CLI_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.APPLE_SENTRY_CLI_ORG }}
-          SENTRY_PROJECT: ${{ secrets.APPLE_SENTRY_CLI_PROJECT }}
         run: |
           set -euo pipefail
 
@@ -435,22 +426,26 @@ jobs:
           fi
 
           DSYMS_DIR="$IOS_XCARCHIVE/dSYMs"
-          if [[ ! -d "$DSYMS_DIR" ]]; then
-            echo "No debug symbols dir found at $DSYMS_DIR, skip publishing to Sentry"
-            exit 0
+          if ! find "$DSYMS_DIR" -maxdepth 1 -name "*.dSYM" -print -quit 2>/dev/null | grep -q .; then
+            echo "::error::No .dSYM bundles found in $DSYMS_DIR"
+            exit 1
           fi
 
-          if ! find "$DSYMS_DIR" -name "*.dSYM" -print -quit | grep -q .; then
-            echo "No .dSYM bundles found in $DSYMS_DIR, skip publishing to Sentry"
-            exit 0
-          fi
+          DEBUG_SYMBOLS_DIR="${{ github.workspace }}/${{ env.DEBUG_SYMBOLS_DIR }}"
+          mkdir -p "$DEBUG_SYMBOLS_DIR"
+          cp -R "$DSYMS_DIR"/*.dSYM "$DEBUG_SYMBOLS_DIR/"
 
-          echo "📤 Uploading iOS debug files from: $DSYMS_DIR"
-          sentry-cli debug-files upload  \
-            --auth-token "$SENTRY_AUTH_TOKEN" \
-            --org "$SENTRY_ORG" \
-            --project "$SENTRY_PROJECT" \
-            --include-sources "$DSYMS_DIR"
+          # Sources are bundled here because they're only available on this machine.
+          sentry-cli debug-files bundle-sources -o "$DEBUG_SYMBOLS_DIR" "$DSYMS_DIR"/*.dSYM/Contents/Resources/DWARF/*
+
+      - name: Upload debug symbols
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ env.DEBUG_SYMBOLS_DIR }}
+          path: ${{ env.DEBUG_SYMBOLS_DIR }}
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Cleanup Keychain
         if: always()

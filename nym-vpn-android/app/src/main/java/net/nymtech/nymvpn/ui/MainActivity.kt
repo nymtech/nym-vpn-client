@@ -2,7 +2,6 @@ package net.nymtech.nymvpn.ui
 
 import android.content.Intent
 import android.graphics.Color.TRANSPARENT
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
@@ -49,15 +48,19 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
+import net.nymtech.nymvpn.ui.deeplink.AppDeepLink
+import net.nymtech.nymvpn.ui.deeplink.AppDeepLinkParser
 import net.nymtech.nymvpn.ui.screens.account.delete.DeleteScreen
 import net.nymtech.nymvpn.ui.screens.account.delete.DeletedScreen
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
+import net.nymtech.nymvpn.ui.screens.account.pairing.PairingSignInScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
 import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
 import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.onboarding.OnboardingScreen
+import net.nymtech.nymvpn.ui.screens.scan.QrScanScreen
 import net.nymtech.nymvpn.ui.screens.server.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.server.ServerScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
@@ -104,7 +107,7 @@ class MainActivity : AppCompatActivity() {
 
 	@Inject lateinit var billingManager: BillingManager
 
-	private var pendingDeepLink: Uri? = null
+	private var pendingDeepLink: AppDeepLink? = null
 	private var navControllerRef: NavHostController? = null
 
 	val appViewModel by viewModels<AppViewModel>()
@@ -122,7 +125,8 @@ class MainActivity : AppCompatActivity() {
 		super.onCreate(savedInstanceState)
 
 		appViewModel.onAppStartup()
-		captureDeepLink(intent)
+		// Don't replay a handled link on restore.
+		if (savedInstanceState == null) captureDeepLink(intent)
 		resetTile()
 
 		setContent {
@@ -347,6 +351,12 @@ class MainActivity : AppCompatActivity() {
 
 								composable<Route.DeletedAccount> { DeletedScreen() }
 
+								composable<Route.QrScan> {
+									QrScanScreen(fromWelcome = it.toRoute<Route.QrScan>().fromWelcome, accountStored = appState.managerState.isMnemonicStored)
+								}
+
+								composable<Route.PairingSignIn> { PairingSignInScreen() }
+
 								composable<Route.SplitTunneling> {
 									SplitTunnelingScreen(
 										onBackEventConsume = { onBackClickEventFromRoute = null },
@@ -384,35 +394,40 @@ class MainActivity : AppCompatActivity() {
 	}
 
 	private fun captureDeepLink(intent: Intent?) {
-		val uri = intent?.data ?: return
-		if (uri.scheme != "nymvpn") return
-		pendingDeepLink = uri
+		if (intent?.action != Intent.ACTION_VIEW) return
+		// Don't replay a handled link on relaunch from recents.
+		if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
+		val raw = intent.dataString ?: return
+		intent.data = null
+		val link = AppDeepLinkParser.parse(raw)
+		if (link == null) {
+			Timber.w("Rejected deep link")
+			return
+		}
+		pendingDeepLink = link
 	}
 
 	private fun consumeDeepLinkIfAny() {
-		val uri = pendingDeepLink ?: return
+		val link = pendingDeepLink ?: return
 		pendingDeepLink = null
 
 		val navController = navControllerRef
 		if (navController == null) {
-			pendingDeepLink = uri
+			pendingDeepLink = link
 			return
 		}
-		handleDeepLink(uri)
+		handleDeepLink(link)
 	}
 
-	private fun handleDeepLink(uri: Uri) {
-		val host = uri.host
-		val path = uri.path
-		if (host == "auth" && path?.startsWith("/privy/privateKey") == true) {
-			lifecycleScope.launch {
-				val storeSucceeded = appViewModel.handleDeepLinkAuth(uri.toString())
+	private fun handleDeepLink(link: AppDeepLink) {
+		when (link) {
+			is AppDeepLink.PrivyReturn -> lifecycleScope.launch {
+				val storeSucceeded = appViewModel.handleDeepLinkAuth(link.callbackUrl)
 				navControllerRef?.navigateAndForgetToMain(routeAfterDeepLinkAuth(storeSucceeded))
 			}
-		} else if (host == "account" && path?.startsWith("/response") == true) {
-			lifecycleScope.launch {
-				appViewModel.handleDeepLinkAuth(uri.toString())
-				appViewModel.dismissAutologin()
+
+			is AppDeepLink.PaymentReturn -> lifecycleScope.launch {
+				appViewModel.handlePaymentReturn(link.callbackUrl)
 				navControllerRef?.navigateAndForgetToMain(Route.Main(autoStart = false))
 			}
 		}

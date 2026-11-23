@@ -4,6 +4,7 @@ data class SettingsActions(
 	val onGetStartedClick: () -> Unit = {},
 	val onAccountClick: () -> Unit = {},
 	val onPassphraseClick: () -> Unit = {},
+	val onRedeemCodeClick: () -> Unit = {},
 	val onSupportClick: () -> Unit = {},
 	val onResetClick: () -> Unit = {},
 	val onLegalClick: () -> Unit = {},

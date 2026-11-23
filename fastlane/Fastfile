@@ -91,7 +91,7 @@ end
 
 
 platform :ios do
-	desc "Upload iOS App Store metadata to App Store Connect (listing text only — no binary, no screenshots, no auto-submit)"
+	desc "Upload iOS App Store metadata to App Store Connect (listing text + screenshots when the workflow fetches them; no binary, no auto-submit)"
 	lane :upload_metadata do |options|
 		# Default off: a human submits the version for review. Pass submit:true to override.
 		submit = options[:submit].to_s == 'true'

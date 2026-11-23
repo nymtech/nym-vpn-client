@@ -1,6 +1,5 @@
 # This Makefile can only be used on macOS
-OS := Darwin
-include reproducible_builds.mk
+include remap_paths.mk
 
 # Minimum iOS deployment target used by clang
 export IPHONEOS_DEPLOYMENT_TARGET = 16.0
@@ -47,7 +46,7 @@ build: libwg
 	else \
 		echo "Sentry DSN is set!" ; \
 	fi
-	$(ALL_IDEMPOTENT_FLAGS) cargo build --package $(LIB_CRATE_NAME) $(addprefix --target ,$(RUST_TRIPLETS)) $(RELEASE_FLAG)
+	RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS)" cargo build --package $(LIB_CRATE_NAME) $(addprefix --target ,$(RUST_TRIPLETS)) $(RELEASE_FLAG)
 
 swift-package: build
 	$(CURDIR)/scripts/build-swift-package.sh --profile $(TARGET_DIR) --platform ios $(SWIFT_SLICES)

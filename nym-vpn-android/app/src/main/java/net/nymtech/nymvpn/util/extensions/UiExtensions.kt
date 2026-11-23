@@ -172,6 +172,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String = when (this) {
 	ErrorStateReason.PerformantEntryGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_entry)
 	ErrorStateReason.PerformantExitGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_exit)
 
+	ErrorStateReason.EntryGatewayHasNoBridge -> context.getString(R.string.error_entry_gateway_has_no_bridge)
 	ErrorStateReason.InvalidEntryGatewayIdentity -> context.getString(R.string.error_invalid_entry_gateway_identity)
 	ErrorStateReason.InvalidExitGatewayIdentity -> context.getString(R.string.error_invalid_exit_gateway_identity)
 

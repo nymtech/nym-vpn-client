@@ -1,8 +1,8 @@
 NymVPN: dünyanın en gizli VPN’i. Kayıt tutmayan, güvenli, merkeziyetsiz ve anonim bir İsviçre dVPN’i. WireGuard hızı, Noise Generating Mixnet anonimliği. E-posta ile kayıt gerekmez. Reklam içermez.
 
-<b>7 günlük ücretsiz VPN denemesi & aylık 4 $’dan başlayan planlar</b>
+<b>7 günlük ücretsiz VPN denemesi</b>
 
-7 gün boyunca ücretsiz deneyin, taahhüt yok. Kripto, kart veya nakit ile ödeme yapın: seçim sizin.
+7 gün boyunca ücretsiz deneyin, taahhüt yok.
 
 <b>Tasarımdan gelen gizlilik</b>
 
@@ -13,10 +13,6 @@ NymVPN: dünyanın en gizli VPN’i. Kayıt tutmayan, güvenli, merkeziyetsiz ve
 • dVPN modu: AmneziaWG (WireGuard) tabanlı 2 atlamalı (2-hop) dVPN. Merkeziyetsiz bir ağda hızlı yayın ve gezinme.
 
 • Mixnet modu: 5 atlamalı (5-hop) Noise Generating Mixnet, Tor’un daha gizli bir halefi. Trafiği başkalarınınkiyle karıştırır, gürültü ve sahte trafik ekler. En anonim tüketici VPN’i. Kripto işlemleri, e-posta ve Signal gibi gizli mesajlaşma uygulamaları için idealdir.
-
-<b>Kripto veya nakit ile anonim ödeme yapın</b>
-
-NymVPN, diğer VPN’lerden daha fazla kripto para birimini ve nakit ödemeyi kabul eder. Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM ve daha fazlasıyla ödeme yapabilirsiniz. Zero-knowledge kimlik bilgileri, ödemenizi VPN kullanımınızdan ayırır: anonim ödeme yapın, anonim kullanın.
 
 <b>NymVPN neden farklı?</b>
 

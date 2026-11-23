@@ -28,6 +28,7 @@ enum class DeviceAuthAction(@StringRes val authTitle: Int, @StringRes val authSu
 	RENEW_SUBSCRIPTION(R.string.account_info_renew_auth_title, R.string.account_info_manage_auth_subtitle, R.string.screen_lock_setup_body, keyBound = true),
 	LINK_SOCIAL(R.string.account_info_add_social_action, R.string.account_info_link_auth_subtitle, R.string.screen_lock_setup_body, keyBound = false),
 	DELETE_ACCOUNT(R.string.delete_account_title, R.string.delete_account_auth_subtitle, R.string.screen_lock_setup_body, keyBound = false),
+	PAIR_DEVICE(R.string.pair_device_title, R.string.pair_device_auth_subtitle, R.string.screen_lock_setup_body, keyBound = true),
 }
 
 fun interface DeviceAuth {

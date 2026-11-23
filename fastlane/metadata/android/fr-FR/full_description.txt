@@ -1,8 +1,8 @@
 NymVPN : le VPN le plus privé au monde. Un dVPN suisse sécurisé, décentralisé et anonyme, sans logs. Vitesse WireGuard, anonymat Noise Generating Mixnet. Inscription sans e-mail. Aucune publicité.
 
-<b>7 jours d'essai VPN gratuit & abonnements à partir de 4 $/mois</b>
+<b>7 jours d'essai VPN gratuit</b>
 
-Essayez gratuitement pendant 7 jours, sans engagement. Payez en crypto, par carte ou en espèces : à vous de choisir.
+Essayez gratuitement pendant 7 jours, sans engagement.
 
 <b>Confidentialité dès la conception</b>
 
@@ -13,10 +13,6 @@ La plupart des VPN affirment une politique « sans logs » : ils peuvent loguer,
 • Mode dVPN : dVPN à 2 sauts basé sur AmneziaWG (WireGuard). Streaming et navigation rapides sur un réseau décentralisé.
 
 • Mode Mixnet : Noise Generating Mixnet à 5 sauts, un successeur de Tor plus respectueux de la vie privée. Il mélange votre trafic à d'autres et y ajoute du bruit et un trafic de couverture. Le VPN grand public le plus anonyme. Idéal pour la crypto, les e-mails et les messageries privées comme Signal.
-
-<b>Payez anonymement en cryptomonnaies ou en espèces</b>
-
-NymVPN accepte plus de cryptomonnaies que tout autre VPN, ainsi que les paiements en espèces. Payez en Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM, et bien d'autres. Les identifiants zero-knowledge dissocient votre paiement de votre utilisation du VPN : payez anonymement et utilisez-le anonymement.
 
 <b>Pourquoi NymVPN est différent</b>
 

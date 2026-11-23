@@ -174,10 +174,11 @@
 	<string name="error_tun_device">Couldn\'t set up the VPN network interface. Reconnect. If it persists, restart the app or your device, or contact support.</string>
 	<string name="error_tunnel_provider">Couldn\'t start the VPN on this device. Reconnect, and allow the VPN connection if prompted. If it persists, contact support.</string>
 	<string name="error_active_plan">You don\'t have an active subscription. Get or renew a plan, then refresh your account and reconnect.</string>
-	<string name="error_bandwidth_entry">The entry server didn\'t complete your connection. Try again, or turn on QUIC in Anti-censorship settings.</string>
+	<string name="error_bandwidth_entry">The entry server didn\'t complete your connection. Try again, or turn on “Disguise your traffic” in Anti-censorship settings.</string>
 	<string name="error_bandwidth_exit">The exit server didn\'t complete your connection. Choose a different exit location and try again.</string>
 	<string name="error_gateway_unavailable_entry">No entry server is available for your selection. Pick another location, or try again in a few minutes.</string>
 	<string name="error_gateway_unavailable_exit">No exit server is available for your selection. Pick a different location, or try again in a few minutes.</string>
+	<string name="error_entry_gateway_has_no_bridge">This server doesn\'t offer a bridge. Choose another server or set “Disguise your traffic” to Auto or Off.</string>
 	<string name="error_invalid_entry_gateway_identity">The entry server you chose isn\'t available. Choose a different entry server, then connect again.</string>
 	<string name="error_invalid_exit_gateway_identity">The exit server you chose isn\'t available with your current settings. Choose a different exit or entry server, then connect again.</string>
 	<string name="error_needs_device_location">Automatic routing isn\'t available right now. Try again later or choose your own servers.</string>
@@ -235,6 +236,7 @@
 	<string name="auth_welcome_title">Welcome!</string>
 	<string name="auth_welcome_description">To the world\'s most private VPN</string>
 	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_scan_button">Scan QR code</string>
 	<string name="auth_sign_up_title">Sign up</string>
 	<string name="auth_sign_up_account_button">Anonymous account</string>
 	<string name="auth_sign_up_social_button">Sign up with socials *</string>
@@ -286,14 +288,6 @@
 	<string name="battery_opt_settings_text">Battery optimization setting can be changed anytime in app settings.</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">Data, privacy &amp; logs</string>
-	<string name="privacy_anonymous_stats_title">Anonymous network stats</string>
-	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
-	<string name="privacy_anonymous_stats_link_text">Learn exactly what\'s shared</string>
-	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
-	<string name="privacy_error_reports_title">Error &amp; crash reports</string>
-	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
-	<string name="privacy_error_reports_link_text">View Sentry Privacy Policy</string>
-	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">Changes will apply after app restart.</string>
 	<string name="modal_network_stats_title">Upgrade your experience</string>
 	<string name="modal_network_stats_descr">Help improve NymVPN by sharing anonymous network stats from your region. \n\nYour data stays private and secure.</string>
@@ -307,13 +301,23 @@
 	<string name="welcome_continue">Continue</string>
 	<string name="welcome_title">Help us improve NymVPN</string>
 	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
-	<string name="welcome_error_reports_title">Share error reports</string>
-	<string name="welcome_error_reports_description_start">Helps us fix bugs faster, no personal data collected (via </string>
-	<string name="welcome_error_reports_link" translatable="false">https://sentry.io/welcome/</string>
-	<string name="welcome_error_reports_link_text">Sentry</string>
-	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">Share usage analytics</string>
-	<string name="welcome_usage_description">Helps us improve the Nym network. No logging or activity tracked.</string>
+	<!-- Telemetry opt-in (onboarding + settings) -->
+	<string name="optin_connection_title">Your connection quality</string>
+	<string name="optin_connection_subtitle">Helps improve network connectivity</string>
+	<string name="optin_monitoring_title">Your app errors &amp; crashes</string>
+	<string name="optin_monitoring_subtitle">Helps improve app performance</string>
+	<string name="optin_privacy_link_text">Read our Privacy Statement</string>
+	<string name="optin_privacy_link" translatable="false">https://nym.com/vpn-privacy-statement</string>
+	<string name="optin_info_title">What\'s shared</string>
+	<string name="optin_info_accessibility">What\'s shared: %1$s</string>
+	<string name="optin_info_got_it">Got it</string>
+	<string name="optin_info_never_label">Never:</string>
+	<string name="optin_connection_shares">Connect time and error codes\nSession date and length\nMode (dVPN / Mixnet) and exit server\nOS, device type, app version\nAn anonymous ID (not tied to your account)</string>
+	<string name="optin_connection_never">your IP, browsing, or traffic contents.</string>
+	<string name="optin_connection_handling">Sent through the VPN tunnel to Nym. No third party.</string>
+	<string name="optin_monitoring_shares">Crashes and error messages\nFreezes, hangs, slow performance\nWhere it happened (stack traces)\nOS, device type, app version</string>
+	<string name="optin_monitoring_never">personal info, browsing, or traffic content.</string>
+	<string name="optin_monitoring_handling">Handled by Sentry, a third-party service. Nym never sees your IP.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">Welcome to NymVPN</string>
 	<string name="onboarding_welcome_description">Your private access to \nan **internet without walls.**</string>
@@ -324,7 +328,7 @@
 	<string name="onboarding_modes_tagline_dvpn">Can’t snitch - won’t snitch network design.</string>
 	<string name="onboarding_modes_tagline_mixnet">Protecting metadata fingerprints.</string>
 	<string name="onboarding_around_title">Nym gets you around</string>
-	<string name="onboarding_around_description">Disguise WireGuard with **AmneziaWG** \nget around firewalls with **QUIC** \navoid VPN blocking with **Stealth Connect** \n**Post-quantum** security</string>
+	<string name="onboarding_around_description">Disguise WireGuard with **AmneziaWG** \nAdaptive **anti-censorship bridges** \nPrevent **VPN blocking** \n**Post-quantum** security</string>
 	<string name="onboarding_plan_title">What plan works for you?</string>
 	<string name="onboarding_plan_community_favorite">NYM COMMUNITY FAVORITE</string>
 	<string name="onboarding_plan_year_plan_prefix">1-year plan &amp; </string>
@@ -371,7 +375,7 @@
 	<string name="details_anti_censorship">Anti-censorship</string>
 	<string name="details_quic_protocol">QUIC protocol</string>
 	<string name="details_standard_protocol">Standard protocol</string>
-	<string name="details_enable_quic_start">Enable QUIC protocol</string>
+	<string name="details_enable_quic_start">Set “Disguise your traffic” to Auto or On</string>
 	<string name="details_enable_quic_end">in Anti-censorship Settings to use this feature</string>
 	<string name="details_overall_performance">Overall performance</string>
 	<string name="details_server_load">Server load</string>
@@ -392,25 +396,22 @@
 	<string name="details_more_details_end">Nym Network Explorer</string>
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
-	<string name="censorship_description">Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking.</string>
+	<string name="censorship_description">Improve your connection on restrictive networks and against VPN blocking.</string>
 	<string name="censorship_learn_more_link_text">Learn more</string>
-	<string name="censorship_quic_title">Enhanced connection</string>
-	<string name="censorship_bridge_changes_apply">Changes will apply after reconnect</string>
+	<string name="censorship_quic_title">Disguise your traffic</string>
+	<string name="censorship_quic_description">Bridges help you slip past networks that detect and block VPN traffic. **dVPN** mode uses AmneziaWG by default to make **WireGuard** harder to detect.</string>
+	<string name="censorship_bridge_changes_apply">Changes require reconnection.</string>
 	<string name="censorship_bridge_off_title">Off</string>
-	<string name="censorship_bridge_off_description">Connect directly without a bridge.</string>
+	<string name="censorship_bridge_off_description">Connect directly, without a bridge. Fastest, but easiest to block.</string>
 	<string name="censorship_bridge_auto_title">Auto</string>
-	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
+	<string name="censorship_bridge_auto_description">Tries **WireGuard** first, then switches to a bridge (QUIC, TLS, or SSH) if it fails.</string>
 	<string name="censorship_bridge_on_title">On</string>
-	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
-	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
-	<string name="censorship_stealth_title">Stealth API connect</string>
-	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
+	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be your entry server.</string>
+	<string name="censorship_quic_link" translatable="false">https://nym.com/features/anti-censorship-bridges</string>
+	<string name="censorship_stealth_title">Disguise your Nym connection</string>
+	<string name="censorship_stealth_description">Stay connected even if Nym\'s servers are blocked where you are.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
-	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">Disguises WireGuard traffic with decoy packets to prevent VPN blocking. \n\nNote: Only implemented client-side.</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers that offer a bridge. To reveal all servers, set “Disguise your traffic” to Off or Auto.</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">By continuing, you agree to NymVPN\'s  </string>
 	<string name="account_welcome_privacy_middle">and</string>
@@ -536,6 +537,7 @@
 	<string name="logs_saved">Logs saved to your Downloads folder"</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
+	<string name="split_tunneling_dns_warning">Excluded apps connect directly to the internet, including their DNS lookups.</string>
 	<string name="split_tunneling_search_apps_hint">Search apps</string>
 	<string name="split_tunneling_apps">Apps</string>
 	<string name="split_tunneling_direct">Direct</string>
@@ -721,4 +723,53 @@
 	<string name="delete_account_error_descr">Nothing was deleted. Check your connection and try again.</string>
 	<string name="delete_account_time_title">You lose the time you have left</string>
 	<string name="delete_account_time_descr">Your NymVPN access runs until %1$s and doesn\'t renew. Deleting your account ends it today.</string>
+	<string name="pair_device_title">Pair a device</string>
+	<string name="pair_device_button">Pair new device</string>
+	<string name="pair_device_auth_subtitle">Confirm it\'s you to sign in another device with your account</string>
+	<string name="pair_device_starting">Creating a pairing code…</string>
+	<string name="pair_device_instructions">On your other device, open NymVPN, tap Scan QR code and point the camera at this code.</string>
+	<string name="pair_device_qr_description">Pairing QR code</string>
+	<string name="pair_device_expires_in">Code expires in %1$s</string>
+	<string name="pair_device_new_code">Get a new code</string>
+	<string name="pair_device_confirm_title">Do the codes match?</string>
+	<string name="pair_device_confirm_body">Only continue if your other device shows exactly this code. It will be signed in to your account.</string>
+	<string name="pair_device_codes_match">Codes match</string>
+	<string name="pair_device_codes_dont_match">Codes don\'t match</string>
+	<string name="pair_device_sharing">Signing in your other device…</string>
+	<string name="pair_device_done_title">Device paired</string>
+	<string name="pair_device_done_body">Your other device is now signed in to your account.</string>
+	<string name="pair_device_done">Done</string>
+	<string name="pairing_pin_description">Pairing code %1$s</string>
+	<string name="pairing_sign_in_nav_title">Sign in with another device</string>
+	<string name="pairing_sign_in_title">Confirm on your other device</string>
+	<string name="pairing_sign_in_body">Check that your other device shows this code, then confirm it there.</string>
+	<string name="pairing_signing_in">Signing in…</string>
+	<string name="pairing_cancel">Cancel</string>
+	<string name="pairing_back">Back</string>
+	<string name="pairing_try_again">Try again</string>
+	<string name="pairing_expired">The code expired before pairing finished.</string>
+	<string name="pairing_ended">Pairing was cancelled.</string>
+	<string name="pairing_failed">Pairing failed. Please try again.</string>
+	<string name="pairing_failed_offline">No internet connection. Check your connection and try again.</string>
+	<string name="pairing_failed_not_signed_in">This device isn\'t signed in, so there\'s no account to share.</string>
+	<string name="pairing_error_already_signed_in">This device is already signed in. Log out first to pair it with another account.</string>
+	<string name="pairing_error_offline">No internet connection. Retrying…</string>
+	<string name="pairing_error_scan_server">Couldn\'t reach NymVPN, or the code has expired. Retrying…</string>
+	<string name="pairing_error_scan_generic">Pairing couldn\'t start. Retrying…</string>
+	<string name="settings_redeem_code_title">Redeem a code</string>
+	<string name="redeem_code_title">Redeem a code</string>
+	<string name="redeem_code_description">Enter your free pass code, or paste the link you were sent.</string>
+	<string name="redeem_code_label">Code</string>
+	<string name="redeem_code_placeholder">Code or link</string>
+	<string name="redeem_code_submit">Redeem</string>
+	<string name="redeem_code_checking">Checking code…</string>
+	<string name="redeem_code_invalid">This isn\'t a valid NymVPN code</string>
+	<string name="redeem_code_enter_instead">Enter code instead</string>
+	<string name="freepass_error_invalid">This code isn\'t valid. Check it and try again.</string>
+	<string name="freepass_error_already_redeemed">This code has already been used.</string>
+	<string name="freepass_error_rate_limited">Too many attempts. Try again in a minute.</string>
+	<string name="freepass_error_offline">You\'re offline. Connect to the internet and try again.</string>
+	<string name="freepass_error_generic">The code couldn\'t be redeemed. Try again.</string>
+	<string name="freepass_error_subscription_active">Turn off auto-renew for your current subscription to add a free pass. Your code stays valid.</string>
+	<string name="freepass_activated">Free pass activated</string>
 </resources>

@@ -1,0 +1,9 @@
+Stay connected where VPNs are blocked: the new Off / Auto / On bridge modes keep you online when a network tries to block the connection, automatically switching transports to get through.
+
+Also in this release:
+• Uses less battery while connected
+• Delete your account right in the app
+• Sensitive screens are now protected from screen capture and overlays
+• Faster server list
+• More accurate connection status
+• Clearer renewal reminders and more consistent wording

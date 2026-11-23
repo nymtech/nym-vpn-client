@@ -97,7 +97,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Send Zulip message (Android)
-        uses: zulip/github-actions-zulip/send-message@v2
+        uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b # v2.0.2
         with:
           api-key: ${{ secrets.ZULIP_BOT_ANDROID_API_KEY }}
           email: ${{ secrets.ZULIP_BOT_ANDROID_EMAIL }}
@@ -138,7 +138,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Send Zulip message (iOS)
-        uses: zulip/github-actions-zulip/send-message@v2
+        uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b # v2.0.2
         with:
           api-key: ${{ secrets.ZULIP_BOT_APPLE_API_KEY }}
           email: ${{ secrets.ZULIP_BOT_APPLE_EMAIL }}
@@ -186,7 +186,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Send Zulip message (macOS)
-        uses: zulip/github-actions-zulip/send-message@v2
+        uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b # v2.0.2
         with:
           api-key: ${{ secrets.ZULIP_BOT_APPLE_API_KEY }}
           email: ${{ secrets.ZULIP_BOT_APPLE_EMAIL }}
@@ -264,7 +264,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Send Zulip message
-        uses: zulip/github-actions-zulip/send-message@v2
+        uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b # v2.0.2
         with:
           api-key: ${{ secrets.ZULIP_APE_BOT_API_KEY }}
           email: ${{ secrets.ZULIP_APE_BOT_EMAIL }}

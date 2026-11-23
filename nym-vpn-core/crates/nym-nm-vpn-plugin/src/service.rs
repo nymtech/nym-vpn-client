@@ -23,10 +23,7 @@ use tokio::{
     time::{Instant, sleep_until},
 };
 use tokio_stream::{Stream, StreamExt};
-use zbus::{
-    object_server::InterfaceRef,
-    zvariant::{OwnedValue, Value},
-};
+use zbus::{OwnedVariant, Variant, object_server::InterfaceRef};
 
 use crate::{
     nm::{
@@ -418,7 +415,7 @@ impl DbusNm {
             .await?;
         for path in network_manager.active_connections().await? {
             let active = ActiveConnectionProxy::builder(&self.connection)
-                .path(path)?
+                .path(path)
                 .cache_properties(zbus::proxy::CacheProperties::No)
                 .build()
                 .await?;
@@ -455,21 +452,21 @@ impl Nm for DbusNm {
 
 /// `Config["gateway"]` as NetworkManager reads it: IPv4 as a `u32` whose in-memory bytes are the
 /// address in network order (`in_addr` read as a host `u32`), IPv6 as the 16 address bytes (`ay`).
-fn nm_gateway(addr: IpAddr) -> OwnedValue {
+fn nm_gateway(addr: IpAddr) -> OwnedVariant {
     match addr {
-        IpAddr::V4(v4) => OwnedValue::from(u32::from_ne_bytes(v4.octets())),
-        IpAddr::V6(v6) => OwnedValue::try_from(Value::from(v6.octets().to_vec()))
+        IpAddr::V4(v4) => OwnedVariant::from(u32::from_ne_bytes(v4.octets())),
+        IpAddr::V6(v6) => OwnedVariant::try_from(Variant::from(v6.octets().to_vec()))
             .expect("byte arrays never contain file descriptors"),
     }
 }
 
 /// The `Config` signal payload: gateway only, no tun device, no IP families.
-fn config_dict(gateway: IpAddr) -> HashMap<String, OwnedValue> {
+fn config_dict(gateway: IpAddr) -> HashMap<String, OwnedVariant> {
     HashMap::from([
         ("gateway".to_string(), nm_gateway(gateway)),
-        ("has-ip4".to_string(), OwnedValue::from(false)),
-        ("has-ip6".to_string(), OwnedValue::from(false)),
-        ("can-persist".to_string(), OwnedValue::from(false)),
+        ("has-ip4".to_string(), OwnedVariant::from(false)),
+        ("has-ip6".to_string(), OwnedVariant::from(false)),
+        ("can-persist".to_string(), OwnedVariant::from(false)),
     ])
 }
 

@@ -1,6 +1,5 @@
 # This Makefile can only be used on macOS
-OS := Darwin
-include reproducible_builds.mk
+include remap_paths.mk
 
 # Minimum deployment targets for macOS
 export MACOSX_DEPLOYMENT_TARGET = 10.14
@@ -66,7 +65,7 @@ else
     $(error Unknown ARCH: $(ARCH). Please use 'x86_64', 'arm64', or 'fat')
 endif
 
-.PHONY: all $(BIN_TARGETS) create-upload-dir build-dev build-all binaries lib swift-package clean
+.PHONY: all $(BIN_TARGETS) create-upload-dir build-dev install-cli build-all binaries lib swift-package clean
 
 all: build-all
 
@@ -92,6 +91,17 @@ build-dev:
 run: build-dev
 	sudo -E "$(CURDIR)/target/debug/NymVPND.app/Contents/MacOS/nym-vpnd" $(RUN_ARGS)
 
+# Build nym-vpnc and copy it to INSTALL_BIN_DIR.
+# Authorization Services fail for binaries running from external volumes, so this lets the
+# repository live on one while nym-vpnc runs from the internal disk.
+# Usage: make -f macOS.mk install-cli
+INSTALL_BIN_DIR ?= $(HOME)/.local/bin
+
+install-cli:
+	$(CARGO) build --package nym-vpnc
+	$(MKDIR) "$(INSTALL_BIN_DIR)"
+	cp "$(CURDIR)/target/debug/nym-vpnc" "$(INSTALL_BIN_DIR)/nym-vpnc"
+
 build-all: binaries swift-package
 
 binaries: libwg $(BIN_TARGETS)
@@ -102,7 +112,7 @@ $(LIBWG_OBJS): $(LIBWG_SOURCES)
 	$(WIREGUARD_DIR)/build-wireguard-go.sh
 
 lib: $(LIBWG_OBJS)
-	$(ALL_IDEMPOTENT_FLAGS) \
+	RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS)" \
 	$(CARGO) build --package nym-vpn-lib-uniffi $(addprefix --target ,$(LIB_TRIPLETS)) $(RELEASE_FLAG)
 
 swift-package: lib
@@ -119,13 +129,13 @@ $(BIN_TARGETS): create-upload-dir
 
 ifeq ($(BUILD_X86), true)
 	@echo "🔨 Building $@ binaries (x86_64)…"
-	$(ALL_IDEMPOTENT_FLAGS) \
+	RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS)" \
 	$(CARGO) build --package $@ --target x86_64-apple-darwin $(RELEASE_FLAG)
 endif
 
 ifeq ($(BUILD_ARM), true)
 	@echo "🔨 Building $@ binaries (aarch64)…"
-	$(ALL_IDEMPOTENT_FLAGS) \
+	RUSTFLAGS="$(REMAP_PATH_RUSTFLAGS)" \
 	$(CARGO) build --package $@ --target aarch64-apple-darwin $(RELEASE_FLAG)
 endif
 

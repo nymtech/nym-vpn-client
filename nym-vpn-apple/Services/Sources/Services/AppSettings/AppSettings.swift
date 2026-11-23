@@ -104,7 +104,7 @@ import ConnectionTypes
 
     // iOS passes this into the tunnel config at connect. macOS pushes it to nym-vpnd. Same default.
     @AppStorage(AppSettingKey.statistics.rawValue)
-    public var isStatisticsEnabled = true
+    public var isStatisticsEnabled = false
 
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
     public var statisticsConnectionCount = 0

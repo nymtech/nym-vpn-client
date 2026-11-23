@@ -3500,46 +3500,13 @@
         }
       }
     },
-    "censorship.amneziawg.link" : {
+    "captureProtection.hidden" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "How AmneziaWG prevents DPI"
-          }
-        }
-      }
-    },
-    "censorship.amneziawg.subtitle1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Disguises WireGuard traffic with decoy packets to prevent VPN blocking."
-          }
-        }
-      }
-    },
-    "censorship.amneziawg.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Note: Only implemented client-side."
-          }
-        }
-      }
-    },
-    "censorship.amneziawg.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Minimal obfuscation (AmneziaWG)"
+            "value" : "Hidden while the screen is recorded or shared."
           }
         }
       }
@@ -3550,7 +3517,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connect directly without a bridge."
+            "value" : "Connect directly, without a bridge. Fastest, but easiest to block."
           }
         }
       }
@@ -3561,7 +3528,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connect directly first, and use a bridge if that fails."
+            "value" : "Tries **WireGuard** first, then switches to a bridge (QUIC, TLS, or SSH) if it fails."
           }
         }
       }
@@ -3572,7 +3539,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Always use a bridge. Only servers that offer one can be chosen as the entry server."
+            "value" : "Always use a bridge. Only servers that offer one can be your entry server."
           }
         }
       }
@@ -3594,18 +3561,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Changes will apply after reconnect"
-          }
-        }
-      }
-    },
-    "censorship.quic.fallback" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower."
+            "value" : "Changes require reconnection."
           }
         }
       }
@@ -3729,7 +3685,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enhanced connection"
+            "value" : "Disguise your traffic"
           }
         },
         "es" : {
@@ -3808,6 +3764,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "增强连接 (QUIC)"
+          }
+        }
+      }
+    },
+    "censorship.quic.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bridges help you slip past networks that detect and block VPN traffic. **dVPN** mode uses AmneziaWG by default to make **WireGuard** harder to detect."
           }
         }
       }
@@ -3931,7 +3898,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail."
+            "value" : "Stay connected even if Nym's servers are blocked where you are."
           }
         },
         "es" : {
@@ -4032,7 +3999,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stealth API connect"
+            "value" : "Disguise your Nym connection"
           }
         },
         "es" : {
@@ -4121,7 +4088,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking."
+            "value" : "Improve your connection on restrictive networks and against VPN blocking."
           }
         }
       }
@@ -7050,7 +7017,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The entry server didn't complete your connection. Try again, or turn on Enhanced connection in Anti-censorship settings."
+            "value" : "The entry server didn't complete your connection. Try again, or turn on “Disguise your traffic” in Anti-censorship settings."
           }
         },
         "es" : {
@@ -7847,6 +7814,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "内部隧道未知错误"
+          }
+        }
+      }
+    },
+    "errorReason.entryGatewayHasNoBridge" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No entry server for your selection offers a bridge. Choose a different entry server or location, or set “Disguise your traffic” to Auto or Off."
           }
         }
       }
@@ -9858,6 +9836,94 @@
         }
       }
     },
+    "freepass.activated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free pass activated"
+          }
+        }
+      }
+    },
+    "freepass.error.alreadyRedeemed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This code has already been used."
+          }
+        }
+      }
+    },
+    "freepass.error.generic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The code couldn't be redeemed. Try again."
+          }
+        }
+      }
+    },
+    "freepass.error.invalid" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This code isn't valid. Check it and try again."
+          }
+        }
+      }
+    },
+    "freepass.error.offline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're offline. Connect to the internet and try again."
+          }
+        }
+      }
+    },
+    "freepass.error.rateLimited" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many attempts. Try again in a minute."
+          }
+        }
+      }
+    },
+    "freepass.error.subscriptionActive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off auto-renew for your current subscription to add a free pass. Your code stays valid."
+          }
+        }
+      }
+    },
+    "freepass.error.vpnConnected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect from NymVPN to redeem a code, then try again."
+          }
+        }
+      }
+    },
     "freeTrial" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10480,7 +10546,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enable “Enhanced connection”"
+            "value" : "Set “Disguise your traffic” to Auto or On"
           }
         },
         "es" : {
@@ -12496,7 +12562,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only showing dVPN locations and servers that offer a bridge. To reveal all servers, change Enhanced connection"
+            "value" : "Only showing dVPN locations and servers that offer a bridge. To reveal all servers, change “Disguise your traffic”"
           }
         },
         "es" : {
@@ -16885,40 +16951,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "QUIC protocol"
+            "value" : "Disguise your traffic"
           }
         }
       }
     },
-    "locationModal.quic.subtitle1" : {
+    "locationModal.bridges.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Improves the dVPN reliability in restrictive networks by"
+            "value" : "Bridges help you slip past networks that detect and block VPN traffic."
           }
         }
       }
     },
-    "locationModal.quic.subtitle2" : {
+    "locationModal.bridges.link" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "wrapping WireGuard traffic in QUIC"
-          }
-        }
-      }
-    },
-    "locationModal.quic.subtitle3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "(HTTP/3) to appear as regular web browsing."
+            "value" : "Learn more"
           }
         }
       }
@@ -19807,13 +19862,13 @@
         }
       }
     },
-    "onboarding26.censorship.blocking" : {
+    "onboarding26.censorship.prevent" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avoid VPN blocking with "
+            "value" : "Prevent "
           }
         }
       }
@@ -19829,13 +19884,13 @@
         }
       }
     },
-    "onboarding26.censorship.firewalls" : {
+    "onboarding26.censorship.adaptive" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Get around firewalls with "
+            "value" : "Adaptive "
           }
         }
       }
@@ -19862,24 +19917,24 @@
         }
       }
     },
-    "onboarding26.censorship.quicBold" : {
+    "onboarding26.censorship.bridgesBold" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "QUIC"
+            "value" : "anti-censorship bridges"
           }
         }
       }
     },
-    "onboarding26.censorship.stealthBold" : {
+    "onboarding26.censorship.vpnBlockingBold" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stealth Connect"
+            "value" : "VPN blocking"
           }
         }
       }
@@ -20419,6 +20474,336 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Expand"
+          }
+        }
+      }
+    },
+    "pairDevice.authReason" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm it's you to sign in another device with your account"
+          }
+        }
+      }
+    },
+    "pairDevice.button" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair new device"
+          }
+        }
+      }
+    },
+    "pairDevice.codesDontMatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codes don't match"
+          }
+        }
+      }
+    },
+    "pairDevice.codesMatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codes match"
+          }
+        }
+      }
+    },
+    "pairDevice.confirm.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only continue if your other device shows exactly this code. It will be signed in to your account."
+          }
+        }
+      }
+    },
+    "pairDevice.confirm.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do the codes match?"
+          }
+        }
+      }
+    },
+    "pairDevice.done.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your other device is now signed in to your account."
+          }
+        }
+      }
+    },
+    "pairDevice.done.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device paired"
+          }
+        }
+      }
+    },
+    "pairDevice.expiresIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code expires in %@"
+          }
+        }
+      }
+    },
+    "pairDevice.instructions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On your other device, open NymVPN, tap Scan QR code and point the camera at this code."
+          }
+        }
+      }
+    },
+    "pairDevice.newCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get a new code"
+          }
+        }
+      }
+    },
+    "pairDevice.qrAccessibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing QR code"
+          }
+        }
+      }
+    },
+    "pairDevice.sharing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signing in your other device…"
+          }
+        }
+      }
+    },
+    "pairDevice.starting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Creating a pairing code…"
+          }
+        }
+      }
+    },
+    "pairDevice.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair a device"
+          }
+        }
+      }
+    },
+    "pairing.ended" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing was cancelled."
+          }
+        }
+      }
+    },
+    "pairing.error.alreadySignedIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device is already signed in. Log out first to pair it with another account."
+          }
+        }
+      }
+    },
+    "pairing.error.genericRetrying" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing couldn't start. Retrying…"
+          }
+        }
+      }
+    },
+    "pairing.error.offlineRetrying" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection. Retrying…"
+          }
+        }
+      }
+    },
+    "pairing.error.serverRetrying" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't reach NymVPN, or the code has expired. Retrying…"
+          }
+        }
+      }
+    },
+    "pairing.error.vpnConnected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect from NymVPN to pair a device, then try again."
+          }
+        }
+      }
+    },
+    "pairing.expired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The code expired before pairing finished."
+          }
+        }
+      }
+    },
+    "pairing.failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing failed. Please try again."
+          }
+        }
+      }
+    },
+    "pairing.failed.notSignedIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device isn't signed in, so there's no account to share."
+          }
+        }
+      }
+    },
+    "pairing.failed.offline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection. Check your connection and try again."
+          }
+        }
+      }
+    },
+    "pairing.pin.accessibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing code %@"
+          }
+        }
+      }
+    },
+    "pairing.signIn.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check that your other device shows this code, then confirm it there."
+          }
+        }
+      }
+    },
+    "pairing.signIn.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm on your other device"
+          }
+        }
+      }
+    },
+    "pairing.signingIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signing in…"
+          }
+        }
+      }
+    },
+    "pairing.tryAgain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
           }
         }
       }
@@ -22038,713 +22423,6 @@
         }
       }
     },
-    "privacyData.anonymousStats" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إحصائيات الشبكة المجهولة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonyme Netzwerkstatistiken"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonymous network stats"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estadísticas de red anónimas"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "آمار ناشناس شبکه"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Statistiques réseaux anonymes"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous network stats"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Statistiche di rete anonime"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匿名のネットワーク統計"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estatísticas de rede anônimas"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estatísticas de rede anônimas"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонимная статистика сети"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonim ağ istatistikleri"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонімна статистика мережі"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thống kê mạng ẩn danh"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匿名数据报告"
-          }
-        }
-      }
-    },
-    "privacyData.anonymousStats.subtitle1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ساعدنا على بناء شبكة أسرع من خلال مشاركة بيانات الأداء المجهولة من منطقتك. نحن نستخدم هذا لتحسين السرعة، وتقليل قطع الاتصالات، وتوجيه تغطية الخوادم حيث هي في أمس الحاجة إليها."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Helfen Sie uns, ein schnelleres Netzwerk zu bauen, indem Sie anonyme Leistungsdaten aus Ihrer Region teilen. Wir verwenden dies, um die Geschwindigkeit zu optimieren, die Trennung zu reduzieren und die Serverabdeckung dort zu steuern, wo sie am meisten benötigt wird."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ayúdanos a construir una red más rápida compartiendo datos de rendimiento anónimos de tu región. Utilizamos esto para optimizar velocidades, reducir desconexiones y dirigir la cobertura del servidor donde más se necesita."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "به ما از طریق اشتراک گذاری داده های عملکرد به صورت ناشناس از منطقه خود، کمک کنید تا شبکه ای سریع تر بسازیم. ما از این داده ها برای بهینه‌سازی سرعت ها، کاهش قطع ارتباط، و هدایت پوشش سرورها به مناطقی که بیشترین نیاز را دارند استفاده می کنیم. هرگز فعالیت مرورگر یا داده های شخصی شما به اشتراک گذاشته نمی شود – فقط داده های عملکرد شبکه."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aidez-nous à construire un réseau plus rapide en partageant des données de performances anonymisées dans votre région. Nous les utilisons afin de réduire le taux de déconnexion et orienter nos déploiements de serveurs où cela se révèle nécessaire."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aiutaci a costruire una rete più veloce condividendo dati anonimi sulle prestazioni della tua regione. Usiamo questo per ottimizzare le velocità, ridurre le disconnessioni e sterzare la copertura del server dove è più necessario."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "お住まいの地域から匿名のパフォーマンスデータを共有することで、より高速なネットワークを構築することができます。 これを使用して、スピードを最適化し、切断を減らし、最も必要とされるサーバーカバレッジを管理します。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajude-nos a construir uma rede mais rápida, compartilhando dados de desempenho anônimos de sua região. Usamos isto para otimizar velocidades, reduzir desconexões e direcionar a cobertura do servidor onde ele mais precisa."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajude-nos a construir uma rede mais rápida, compartilhando dados de desempenho anônimos de sua região. Usamos isto para otimizar velocidades, reduzir desconexões e direcionar a cobertura do servidor onde ele mais precisa."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Помогите нам создать более быструю сеть, делясь анонимными данными о производительности из вашего региона. Мы используем эту информацию для оптимизации скорости, уменьшения разрывов соединения и улучшения покрытия серверов там, где это необходимо больше всего."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bölgenizden anonim performans verilerini paylaşarak daha hızlı bir ağ oluşturmamıza yardımcı olun. Bu verileri, hızı optimize etmek, bağlantı kopmalarını azaltmak ve sunucu kapsamını en çok ihtiyaç duyulan yerlere yönlendirmek için kullanıyoruz."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Допоможіть нам створити швидшу мережу, поділившись анонімними даними про продуктивність у вашому регіоні. Ми використовуємо ці дані для оптимізації швидкості, зменшення кількості розривів з'єднання та спрямування покриття сервером туди, де це найбільш потрібно."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hãy giúp chúng tôi xây dựng một mạng lưới nhanh hơn bằng cách chia sẻ dữ liệu hiệu suất một cách ẩn danh từ khu vực của bạn. Chúng tôi sử dụng dữ liệu này để tối ưu hóa tốc độ, giảm tình trạng ngắt kết nối và mở rộng độ phủ máy chủ tại những khu vực cần thiết nhất."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通过分享您所在地区的匿名性能数据，帮助我们构建更快速的网络。 我们将利用这些数据优化速度、减少断线，并将服务器资源精准部署到最需要的区域。"
-          }
-        }
-      }
-    },
-    "privacyData.anonymousStats.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يتم مشاركة بيانات أداء الشبكة فقط - لا نشاط التصفح الخاص بك أو البيانات الشخصية أبدا."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Es werden nur Daten über die Netzwerkleistung geteilt – niemals Ihre Surfaktivität oder Ihre persönlichen Daten."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Only network performance data is shared – never your browsing activity or personal data."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sólo los datos de rendimiento de la red son compartidos – nunca su actividad de navegación o datos personales."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "هرگز فعالیت وب گردی یا داده‌های شخصی شما به اشتراک گذاشته نمی‌شود – تنها داده‌های عملکرد شبکه."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seules les données de performance du réseau sont partagées — jamais de données personnelles ou liées à vos activités en ligne."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Only network performance data is shared – never your browsing activity or personal data."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Solo i dati sulle prestazioni di rete sono condivisi – mai la tua attività di navigazione o i tuoi dati personali."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ネットワークパフォーマンスデータのみが共有されます – ブラウジング活動や個人データは共有されません。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apenas dados de desempenho de rede são compartilhados – nunca sua atividade de navegação ou dados pessoais."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apenas dados de desempenho de rede são compartilhados – nunca sua atividade de navegação ou dados pessoais."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Передаются лишь данные о работе сети – при этом ваша активность в интернете и личные данные остаются конфиденциальными."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paylaşılan sadece ağ performans verileridir ve asla tarama etkinliğiniz veya kişisel bilgileriniz paylaşılmaz."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Поширюються лише дані про продуктивність мережі – ніколи ваша активність у мережі або особисті дані."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chỉ có dữ liệu hiệu suất mạng được chia sẻ - không bao giờ chia sẻ hoạt động duyệt web hoặc dữ liệu cá nhân của bạn."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我们仅共享网络性能数据，绝不涉及您的浏览活动或个人信息。"
-          }
-        }
-      }
-    },
-    "privacyData.anonymousStats.subtitle3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعلم بالضبط ما هو مشترك"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erfahren Sie genau, was geteilt wird"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Learn exactly what's shared"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aprende exactamente lo que es compartido"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "دقیقاً بدانید چه چیزی به اشتراک گذاشته شده است"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apprenez en détail ce qui est partagé"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Learn exactly what's shared"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impara esattamente cosa è condiviso"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "共有されているものを正確に学ぶ"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saiba exatamente o que é compartilhado"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saiba exatamente o que é compartilhado"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Узнайте точно, какие данные передаются"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paylaşılan verilerin tam olarak neler olduğunu öğrenin"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Дізнайтеся, що саме публікується"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tìm hiểu chính xác những gì được chia sẻ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "了解何种数据会被收集"
-          }
-        }
-      }
-    },
-    "privacyData.errorCrashReports" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تقارير الأخطاء و الأعطال"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fehler & Absturzberichte"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Error & crash reports"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Informes de errores"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "گزارش‌های خطا و خرابی"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rapports d'erreurs et de crashs"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Error & crash reports"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Segnalazioni di errore e crash"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "エラーとクラッシュレポート"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Relatórios de erros e erros"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Relatórios de erros e erros"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отчёты об ошибках и сбоях"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hata & çökme raporları"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Звіти про помилки та збої"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Báo cáo lỗi & sự cố"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "错误和崩溃报告"
-          }
-        }
-      }
-    },
-    "privacyData.errorCrashReports.subtitle1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sende Absturzinformationen, um uns zu helfen, Fehler schneller zu beheben.\nBerichte gehen durch das sichere System von Sentry und enthalten nur technische Debuggingdaten."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Send anonymous crash reports to help us fix bugs faster."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envíanos información de errores para ayudarnos a corregir errores más rápido.\nLos informes pasan por el sistema seguro de Sentry e incluyen solo datos técnicos de depuración."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اطلاعات خرابی را ارسال کنید تا به ما در رفع سریع‌تر باگ‌ها کمک کنید.\nگزارش‌ها از طریق سیستم امن Sentry ارسال می‌شوند و فقط شامل داده‌های فنی جهت اشکال‌زدایی هستند."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envoyez des informations de plantage pour nous aider à corriger les bugs plus rapidement.\nLes rapports passent par le système sécurisé de Sentry et n'incluent que des données techniques de débogage."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invia informazioni sul crash per aiutarci a correggere i bug più velocemente.\nRapporti passano attraverso il sistema sicuro di Sentry e includono solo dati tecnici di debug."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "バグを迅速に修正するためにクラッシュ情報を送信します。\nSentryの安全なシステムを通過し、技術的なデバッグデータのみを含めます。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envie informações sobre falhas para nos ajudar a corrigir bugs mais rapidamente.\nOs relatórios passam pelo sistema seguro do Sentry e incluem apenas dados técnicos de depuração."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отправить информацию о сбоях, чтобы помочь нам быстрее исправлять ошибки.\nОтчеты передаются через безопасную систему Sentry и содержат только технические данные для отладки."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hataları daha hızlı düzeltmemize yardımcı olmak için çökme bilgilerini paylaşın.\nRaporlar Sentry’nin güvenli sistemi aracılığıyla gönderilir ve sadece teknik hata ayıklama verilerini içerir."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Надішліть інформацію про збій, щоб допомогти нам швидше виправити помилки.\nЗвіти проходять через безпечну систему Sentry і містять лише технічні дані для усунення помилок."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gửi thông tin sự cố để giúp chúng tôi sửa lỗi nhanh hơn.\nBáo cáo được gửi qua hệ thống bảo mật của Sentry và chỉ bao gồm dữ liệu gỡ lỗi kỹ thuật."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "发送崩溃信息以帮助我们更快修复错误。\n报告将通过Sentry的安全系统传输，仅包含技术调试数据。"
-          }
-        }
-      }
-    },
-    "privacyData.errorCrashReports.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "عرض سياسة خصوصية الحراسة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sentry-Datenschutzerklärung anzeigen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View Sentry Privacy Policy"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ver política de privacidad de centinela"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مشاهده سیاست حفظ حریم خصوصی Sentry"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voir la politique de traitement des données de Sentry"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "View Sentry Privacy Policy"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visualizza Informativa Sulla Privacy Della Sentry"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sentry プライバシーポリシーを表示"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ver Política de Privacidade de Sentry"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ver Política de Privacidade de Sentry"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Посмотреть политику конфиденциальности Sentry"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sentry Gizlilik Politikasını Görüntüle"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Переглянути політику конфіденційності Sentry"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Xem Chính sách quyền riêng tư của Sentry"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "查看Sentry隐私政策"
-          }
-        }
-      }
-    },
     "processingAccount.awaitingConfirmation.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23163,6 +22841,72 @@
         }
       }
     },
+    "purchasePlan.appleIdGate.body.autoRenewOff" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Apple ID already has a NymVPN subscription, and it belongs to a different NymVPN account. It is cancelled and ends on %@. Log in to that account to use it until then, or come back after that date to subscribe with this account."
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.body.autoRenewOn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Apple ID already has a NymVPN subscription, and it belongs to a different NymVPN account. Log in to that account to use it. To subscribe with this account instead, cancel it in Settings and come back after %@."
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.manage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage subscription"
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.statusUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We couldn't check this Apple ID's subscription status. Check your connection and try again."
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.switchAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch account"
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscription on another account"
+          }
+        }
+      }
+    },
     "purchasePlan.cancelAnytime" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23550,6 +23294,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "欢迎来到真正的隐私 🎉"
+          }
+        }
+      }
+    },
+    "qrScanner.cameraError.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The camera couldn't be started. Close any other app that may be using it and try again."
+          }
+        }
+      }
+    },
+    "qrScanner.cameraError.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera unavailable"
+          }
+        }
+      }
+    },
+    "qrScanner.checking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking code…"
+          }
+        }
+      }
+    },
+    "qrScanner.close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close scanner"
+          }
+        }
+      }
+    },
+    "qrScanner.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Point your camera at a NymVPN QR code"
+          }
+        }
+      }
+    },
+    "qrScanner.invalid" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This isn't a NymVPN QR code"
+          }
+        }
+      }
+    },
+    "qrScanner.openSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "qrScanner.permission.allow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow camera"
+          }
+        }
+      }
+    },
+    "qrScanner.permission.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The camera is only used to scan a QR code. Images are processed on this device and are never saved or sent anywhere."
+          }
+        }
+      }
+    },
+    "qrScanner.permission.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow camera access"
+          }
+        }
+      }
+    },
+    "qrScanner.permissionDenied.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To scan a QR code, turn on camera access for NymVPN in Settings."
+          }
+        }
+      }
+    },
+    "qrScanner.permissionDenied.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera access is off"
+          }
+        }
+      }
+    },
+    "qrScanner.torchOff" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off flashlight"
+          }
+        }
+      }
+    },
+    "qrScanner.torchOn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on flashlight"
           }
         }
       }
@@ -24055,6 +23953,94 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "退出将停止所有任务并从菜单栏中删除 NymVPN"
+          }
+        }
+      }
+    },
+    "redeemCode.checking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking code…"
+          }
+        }
+      }
+    },
+    "redeemCode.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your free pass code, or paste the link you were sent."
+          }
+        }
+      }
+    },
+    "redeemCode.enterInstead" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter code instead"
+          }
+        }
+      }
+    },
+    "redeemCode.invalid" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This isn't a valid NymVPN code"
+          }
+        }
+      }
+    },
+    "redeemCode.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code"
+          }
+        }
+      }
+    },
+    "redeemCode.placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code or link"
+          }
+        }
+      }
+    },
+    "redeemCode.submit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redeem"
+          }
+        }
+      }
+    },
+    "redeemCode.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redeem a code"
           }
         }
       }
@@ -28353,6 +28339,17 @@
         }
       }
     },
+    "settings.redeemCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redeem a code"
+          }
+        }
+      }
+    },
     "settings.splitTunnel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28703,6 +28700,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Nym VPN can’t exclude itself."
+          }
+        }
+      }
+    },
+    "splitTunnel.dnsWarning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluded apps connect directly to the internet. Their DNS lookups still go through NymVPN, unless the app uses its own DNS."
           }
         }
       }
@@ -30631,6 +30639,17 @@
         }
       }
     },
+    "welcome.scanQrCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan QR code"
+          }
+        }
+      }
+    },
     "welcome.sentry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31742,50 +31761,6 @@
         }
       }
     },
-    "welcomeOptIns.error.link" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Learn exactly what's shared"
-          }
-        }
-      }
-    },
-    "welcomeOptIns.error.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Error & crash reports"
-          }
-        }
-      }
-    },
-    "welcomeOptIns.stats.link" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View Privacy Policy"
-          }
-        }
-      }
-    },
-    "welcomeOptIns.stats.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous network stats"
-          }
-        }
-      }
-    },
     "welcomeOptIns.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32577,6 +32552,237 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "年"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.privacyLink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Read our Privacy Statement"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your connection quality"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Helps improve network connectivity"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.shares" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connect time and error codes\nSession date and length\nMode (dVPN / Mixnet) and exit server\nOS, device type, app version\nAn anonymous ID (not tied to your account)"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.never" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "your IP, browsing, or traffic contents."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.connection.handling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Sent through the VPN tunnel to Nym. No third party."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.handling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Otherwise it stays on this device. You choose when to send it to support. Changes apply the next time you connect."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.shares" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "More detail on what the app is doing\nAdded to error reports only if \"Your app errors & crashes\" is on"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Helps us fix connection problems"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.testFlight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Always on in TestFlight builds."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your troubleshooting detail"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your app errors & crashes"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Helps improve app performance"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.shares" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Crashes and error messages\nFreezes, hangs, slow performance\nWhere it happened (stack traces)\nOS, device type, app version"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.never" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "personal info, browsing, or traffic content."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.handling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Handled by Sentry, a third-party service. Nym never sees your IP."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "What's shared"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.gotIt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Got it"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.neverLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Never:"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.info.accessibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "What's shared: %@"
+          }
+        }
+      }
+    },
+    "pairDevice.authError" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't confirm it's you. Try again."
           }
         }
       }

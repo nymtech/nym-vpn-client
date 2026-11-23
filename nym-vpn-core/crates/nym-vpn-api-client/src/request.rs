@@ -52,6 +52,14 @@ pub struct ApplyFreepassRequestBody {
     pub code: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RedeemFreepassRequestBody {
+    pub redemption_code: String,
+    pub account_addr: String,
+    pub pub_key: String,
+    pub signature_base64: String,
+}
+
 /// Body of `POST account/{id}/subscription/apple/intro-offer-eligibility`.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -136,24 +144,4 @@ pub struct LinkAccountRequestBody {
     pub signature: String,
     pub kind: String,
     pub label: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PairAccountRequestBody {
-    pub pubkey: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TryToPairRequestBody {
-    pub pubkey: String,
-    pub pin_code: String,
-    pub token: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct SharePairSecretBody {
-    #[serde(with = "nym_serde_helpers::base64")]
-    pub enc_mnemonic: Vec<u8>,
-    #[serde(with = "nym_serde_helpers::base64")]
-    pub nonce: Vec<u8>,
 }

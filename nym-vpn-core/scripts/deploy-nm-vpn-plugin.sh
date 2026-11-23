@@ -2,7 +2,7 @@
 # Usage: ./deploy-nm-vpn-plugin.sh [--debug] [--plugin-only] [--no-build] [CORE_DIR]
 #   Builds the .deb packages with cargo deb, then installs them from CORE_DIR/target/debian
 #   and restarts nym-vpnd / NetworkManager. Run as your normal user; sudo is used for installing.
-#   --debug        fast unoptimized build (Cargo "ci" profile: debug build with line-table debug info)
+#   --debug        fast unoptimized build (Cargo "dev" profile, with debug info)
 #   --plugin-only  only build and install the NetworkManager plugin (nym-vpnd is left alone)
 #   --no-build     skip building and install the newest .deb files already in target/debian
 #   CORE_DIR       path to nym-vpn-core (default: the parent of the directory this script is in)
@@ -19,7 +19,7 @@ BUILD=1
 CORE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 for arg in "$@"; do
   case "$arg" in
-    --debug) PROFILE=ci ;;
+    --debug) PROFILE=dev ;;
     --plugin-only) PLUGIN_ONLY=1 ;;
     --no-build) BUILD=0 ;;
     -h|--help) sed -n '2,8p' "$0"; exit 0 ;;
@@ -31,9 +31,9 @@ done
 cd "$CORE_DIR"
 DEB_DIR="target/debian"
 
-# Debug packages use faster (lighter) compression
+# Debug packages use faster (lighter) compression and keep debug info
 DEB_FLAGS=(--no-build --profile "$PROFILE")
-[[ $PROFILE == release ]] || DEB_FLAGS+=(--fast)
+[[ $PROFILE == release ]] || DEB_FLAGS+=(--fast --no-strip)
 
 if (( BUILD )); then
   echo "==> Profile: $PROFILE"

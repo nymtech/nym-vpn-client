@@ -207,6 +207,7 @@ function build_android {
             -v "$(pwd)/../":/workspace \
             --entrypoint "/workspace/wireguard/$LIB_DIR/build-android.sh" \
             --env ANDROID_NDK_HOME="/opt/android/android-ndk-r28c" \
+            --env ARCHITECTURES \
             --platform linux/amd64 \
             docker.io/nymtech/android-wg-patched:latest@sha256:$docker_image_hash
     else

@@ -20,5 +20,6 @@ pub use socks5::{
     Socks5Error, Socks5Service, Socks5Status, socks5_idle_timeout, socks5_request_timeout,
 };
 pub use vpn_service::{
-    NymVpnService, NymVpnServiceParameters, ServiceConfigStorageType, VpnServiceCommand,
+    ClientRequest, NymVpnService, NymVpnServiceParameters, ServiceConfigStorageType,
+    VpnServiceCommand,
 };

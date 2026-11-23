@@ -9,15 +9,15 @@ public enum AccountDaemonRefreshError: Error {
 
 extension GRPCManager {
     public func storeAccount(with request: StoreAccountRequest) async throws {
-        try await Task.detached { [weak self] in
+        try await authorized { [weak self] in
             try await self?.rpcClient?.storeAccount(request: request)
-        }.value
+        }
     }
 
     public func forgetAccount() async throws {
-        try await Task.detached { [weak self] in
+        try await authorized { [weak self] in
             try await self?.rpcClient?.forgetAccount()
-        }.value
+        }
     }
 
     public func isAccountStored() async throws -> Bool {
@@ -84,9 +84,9 @@ extension GRPCManager {
     }
 
     public func storePrivyAccount(with callbackURLString: String) async throws {
-        try await Task.detached { [weak self] in
+        try await authorized { [weak self] in
             try await self?.rpcClient?.deeplinkStoreAccount(deeplinkCallbackUrl: callbackURLString)
-        }.value
+        }
     }
 
     public func handleSubscriptionPayment() async throws {
@@ -100,7 +100,7 @@ extension GRPCManager {
         name: String,
         deeplinkKind: NymDeeplinkKind
     ) async throws -> (url: String, pinCode: String)? {
-        try await Task.detached { [weak self] in
+        try await authorized { [weak self] in
             guard let result = try await self?.rpcClient?.getAutologinDeeplink(
                 params: GetDeeplinkParams(
                     client: .desktop,
@@ -112,6 +112,6 @@ extension GRPCManager {
                 return nil
             }
             return (url: result.url, pinCode: result.pinCode)
-        }.value
+        }
     }
 }

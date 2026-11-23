@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 type BetaPillProps = {
   className?: string;
+  label?: string;
 };
 
-function BetaPill({ className }: BetaPillProps) {
+function BetaPill({ className, label }: BetaPillProps) {
   const { t } = useTranslation('settings');
 
   return (
@@ -17,7 +18,7 @@ function BetaPill({ className }: BetaPillProps) {
         className,
       )}
     >
-      {t('geo-exclusion.beta')}
+      {label ?? t('geo-exclusion.beta')}
     </span>
   );
 }

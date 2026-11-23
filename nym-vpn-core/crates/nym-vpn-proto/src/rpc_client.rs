@@ -273,6 +273,19 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn authorize(&mut self, authorization: Vec<u8>) -> Result<()> {
+        self.0
+            .authorize(proto::AuthorizeRequest { authorization })
+            .await
+            .map_err(Error::Rpc)?;
+        Ok(())
+    }
+
+    pub async fn deauthorize(&mut self) -> Result<()> {
+        self.0.deauthorize(()).await.map_err(Error::Rpc)?;
+        Ok(())
+    }
+
     pub async fn set_fronting_mode(&mut self, fronting_mode: FrontingMode) -> Result<()> {
         self.0
             .set_fronting_mode(proto::FrontingModeRequest {
@@ -1126,6 +1139,16 @@ pub enum Error {
     #[cfg(not(target_os = "linux"))]
     #[error("Authentication is required to access the daemon.")]
     AuthenticationRequired,
+}
+
+impl Error {
+    /// Whether the daemon requires the user to be present before performing the request.
+    ///
+    /// Not to be confused with [`Error::AuthenticationRequired`], which is returned when the
+    /// client is not allowed to connect to the daemon.
+    pub fn is_user_presence_required(&self) -> bool {
+        matches!(self, Error::Rpc(status) if status.code() == tonic::Code::Unauthenticated)
+    }
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

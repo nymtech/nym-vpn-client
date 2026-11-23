@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
-import { AnonNetworkStatsUrl, PrivacyPolicyUrl } from '../../constants';
+import { PrivacyPolicyUrl } from '../../constants';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { Button, Link, Switch } from '../../ui';
@@ -10,6 +10,10 @@ import { NymVpnTextLogo } from '../../assets';
 import SettingsGroup from '../settings/SettingsGroup';
 import { dispatch } from '../../store';
 import { InteractiveCard } from '../home/InteractiveCard';
+import TelemetryInfoDialog, {
+  InfoButton,
+  TelemetryInfoKind,
+} from './TelemetryInfoDialog';
 
 const defaultSentry = window._APP.defaultSentry;
 const defaultNetstats = window._APP.defaultNetstats;
@@ -17,6 +21,7 @@ const defaultNetstats = window._APP.defaultNetstats;
 function TechnicalOptin() {
   const [monitoring, setMonitoring] = useState<boolean>(defaultSentry);
   const [netstats, setNetstats] = useState<boolean>(defaultNetstats);
+  const [info, setInfo] = useState<TelemetryInfoKind | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation('welcome');
 
@@ -64,41 +69,31 @@ function TechnicalOptin() {
         {/* Title & description */}
         <div className="space-y-2 text-center">
           <h1 className="text-text-primary text-2xl">{t('title')}</h1>
-          <p className="text-text-tertiary text-sm">{t('description')}</p>
+          <p className="text-text-tertiary text-sm whitespace-pre-line">
+            {t('description')}
+          </p>
+          <Link
+            color="iron"
+            text={t('privacy-statement-link')}
+            url={PrivacyPolicyUrl}
+          />
         </div>
 
-        {/* Buttons */}
+        {/* Opt-in toggles */}
         <SettingsGroup
           className="w-full"
           settings={[
             {
-              title: t('anonymous-network-stats'),
-              desc: (
-                <Link
-                  color="iron"
-                  text={t('anonymous-network-stats-toggle-desc')}
-                  url={AnonNetworkStatsUrl}
+              title: t('connection.label'),
+              titleTrailing: (
+                <InfoButton
+                  kind="connection"
+                  label={t('connection.label')}
+                  onOpen={setInfo}
+                  data-testid="welcome-netstats-info"
                 />
               ),
-              leadingIcon: 'bug_report',
-              trailing: (
-                <Switch
-                  checked={monitoring}
-                  onChange={toggleMonitoring}
-                  data-testid="welcome-monitoring-switch"
-                />
-              ),
-              'data-testid': 'welcome-monitoring-option',
-            },
-            {
-              title: t('error-and-crash-reports'),
-              desc: (
-                <Link
-                  color="iron"
-                  text={t('error-and-crash-reports-toggle-desc')}
-                  url={PrivacyPolicyUrl}
-                />
-              ),
+              desc: t('connection.desc'),
               leadingIcon: 'analytics',
               trailing: (
                 <Switch
@@ -109,11 +104,34 @@ function TechnicalOptin() {
               ),
               'data-testid': 'welcome-netstats-option',
             },
+            {
+              title: t('monitoring.label'),
+              titleTrailing: (
+                <InfoButton
+                  kind="monitoring"
+                  label={t('monitoring.label')}
+                  onOpen={setInfo}
+                  data-testid="welcome-monitoring-info"
+                />
+              ),
+              desc: t('monitoring.desc'),
+              leadingIcon: 'bug_report',
+              trailing: (
+                <Switch
+                  checked={monitoring}
+                  onChange={toggleMonitoring}
+                  data-testid="welcome-monitoring-switch"
+                />
+              ),
+              'data-testid': 'welcome-monitoring-option',
+            },
           ]}
-          data-testid="welcome-netstats-group"
+          data-testid="welcome-optin-group"
         />
         <Button onClick={handleContinue}>{t('continue-button')}</Button>
       </div>
+
+      <TelemetryInfoDialog kind={info} onClose={() => setInfo(null)} />
     </InteractiveCard>
   );
 }

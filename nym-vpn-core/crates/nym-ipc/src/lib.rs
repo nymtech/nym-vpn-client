@@ -29,3 +29,12 @@ mod uds;
 mod xpc;
 #[cfg(all(target_os = "macos", debug_assertions, not(feature = "xpc")))]
 use objc2_foundation as _;
+
+/// Identity of the process on the other end of a daemon connection.
+#[cfg(target_os = "macos")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PeerCredentials {
+    pub user_id: u32,
+    /// Audit session of the peer, if the transport provides it.
+    pub audit_session_id: Option<i32>,
+}

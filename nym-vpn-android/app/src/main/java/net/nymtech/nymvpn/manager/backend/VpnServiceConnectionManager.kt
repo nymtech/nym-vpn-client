@@ -6,10 +6,12 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +23,7 @@ import kotlinx.coroutines.withTimeout
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.vpn.backend.api.VpnServiceApi
 import net.nymtech.vpn.backend.service.VpnService
+import net.nymtech.vpn.util.CommandErrorMapper
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,6 +38,7 @@ class VpnServiceConnectionManager @Inject constructor(@ApplicationContext privat
 	companion object {
 		private const val TAG = "vpn-service-conn"
 		private const val DEFAULT_TIMEOUT_MS = 10_000L
+		private const val COMMAND_TIMEOUT_MS = 30_000L
 	}
 
 	private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
@@ -102,6 +106,18 @@ class VpnServiceConnectionManager @Inject constructor(@ApplicationContext privat
 	suspend fun <T> withApi(timeoutMs: Long = DEFAULT_TIMEOUT_MS, block: suspend (VpnServiceApi) -> T): T {
 		val api = awaitApi(timeoutMs)
 		return withContext(ioDispatcher) { block(api) }
+	}
+
+	// Timeouts and binding failures become typed errors too.
+	suspend fun <E, R> withApiResult(errors: CommandErrorMapper<E>, failed: (E) -> R, block: suspend (VpnServiceApi) -> R): R = try {
+		withTimeout(COMMAND_TIMEOUT_MS) { withApi(block = block) }
+	} catch (e: TimeoutCancellationException) {
+		failed(errors.server)
+	} catch (e: CancellationException) {
+		throw e
+	} catch (e: Exception) {
+		Timber.tag(TAG).w("Command failed: %s", e::class.java.simpleName)
+		failed(errors.unknown)
 	}
 
 	private fun bindServiceInternal() {

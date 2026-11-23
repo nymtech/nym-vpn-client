@@ -1,8 +1,8 @@
 NymVPN: VPN paling privat di dunia. dVPN Swiss yang aman, terdesentralisasi, anonim, dan tanpa log. Kecepatan WireGuard, anonimitas Noise Generating Mixnet. Tanpa pendaftaran email. Tanpa iklan.
 
-<b>Uji coba VPN gratis selama 7 hari & paket mulai dari $4/bulan</b>
+<b>Uji coba VPN gratis selama 7 hari</b>
 
-Coba gratis 7 hari, tanpa kewajiban. Bayar dengan kripto, kartu, atau uang tunai: terserah Anda.
+Coba gratis 7 hari, tanpa kewajiban.
 
 <b>Privasi sejak awal</b>
 
@@ -13,10 +13,6 @@ Kebanyakan VPN menyebut 'tanpa log' sebagai kebijakan — mereka bisa mencatat, 
 • Mode dVPN: dVPN 2-hop berbasis AmneziaWG (WireGuard). Streaming dan penjelajahan yang cepat di jaringan terdesentralisasi.
 
 • Mode Mixnet: Noise Generating Mixnet 5-hop, penerus Tor yang lebih privat. Mencampur lalu lintas Anda dengan pengguna lain, menambahkan noise dan lalu lintas samaran untuk menggagalkan analisis lalu lintas. VPN konsumen yang paling anonim. Cocok untuk kripto, email, dan pesan pribadi seperti Signal.
-
-<b>Bayar secara anonim dengan kripto atau uang tunai</b>
-
-NymVPN menerima lebih banyak mata uang kripto daripada VPN lain, plus pembayaran tunai. Bayar dengan Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM, dan masih banyak lagi. Kredensial zero-knowledge memisahkan pembayaran Anda dari penggunaan VPN: bayar secara anonim, gunakan secara anonim.
 
 <b>Mengapa NymVPN berbeda</b>
 

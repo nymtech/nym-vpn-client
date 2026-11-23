@@ -40,7 +40,7 @@ pub use system_configuration::{ScoreThresholds, SystemConfiguration};
 pub use system_messages::{SystemMessage, SystemMessages};
 
 use nym_http_api_client::HttpClientError;
-use nym_network_defaults::v2::DnsFallback;
+use nym_network_defaults::v2::{DnsFallback, NetworkingSpecifics};
 use nym_sdk::{UserAgent, mixnet::Recipient};
 use nym_vpn_api_client::str_to_socket_addr;
 
@@ -266,6 +266,7 @@ impl Network {
 #[derive(Debug)]
 pub struct NetworkCache {
     cache_dir: PathBuf,
+    vpn_api_override: Option<String>,
     persistent_envs: PersistentEnvs,
     persistent_discovery: PersistentDiscovery,
     persistent_network_details: Option<PersistentNetworkDetails>,
@@ -277,8 +278,13 @@ impl NetworkCache {
         cache_dir: PathBuf,
         network_name: &str,
         user_agent: Option<UserAgent>,
+        vpn_api_override: Option<String>,
     ) -> Result<Self> {
         Self::clean_up_change_introduced_in_pr4226(&cache_dir).await;
+
+        if let Some(vpn_api) = vpn_api_override.as_deref() {
+            tracing::warn!("Set VPN API override: {vpn_api}");
+        }
 
         let persistent_envs = PersistentEnvs::new_from_cache(cache_dir.clone()).await?;
         let persistent_discovery =
@@ -299,6 +305,7 @@ impl NetworkCache {
 
         Ok(Self {
             cache_dir,
+            vpn_api_override,
             persistent_envs,
             persistent_discovery,
             persistent_network_details,
@@ -353,7 +360,7 @@ impl NetworkCache {
     /// This call will fail if the network details are not fetched yet which can the case for non-mainnet environments.
     /// In such case use `fetch_if_stale` to fetch the network details from network.
     pub fn network(&self) -> Result<Box<Network>> {
-        let discovery = self.persistent_discovery.value().clone();
+        let discovery = self.discovery();
         let mut network_details = self
             .persistent_network_details
             .as_ref()
@@ -362,10 +369,21 @@ impl NetworkCache {
             .clone();
 
         Self::patch_network_details_from_discovery(&mut network_details, &discovery);
+        self.apply_network_overrides(&mut network_details.networking);
 
         let network_env = Network::new_from_discovery(discovery, network_details)?;
 
         Ok(Box::new(network_env))
+    }
+
+    /// Apply VPN API overrides to `NetworkingSpecifics` if set.
+    fn apply_network_overrides(&self, networking: &mut NetworkingSpecifics) {
+        if let Some(vpn_api_override) = self.vpn_api_override.as_ref() {
+            networking.nym_vpn_api_urls = vec![nym_network_defaults::ApiUrl {
+                url: vpn_api_override.clone(),
+                front_hosts: None,
+            }];
+        }
     }
 
     // Patch network details from discovery.
@@ -390,8 +408,10 @@ impl NetworkCache {
     }
 
     /// Query discovery held in persistent store.
-    pub fn discovery(&self) -> &Discovery {
-        self.persistent_discovery.value()
+    pub fn discovery(&self) -> Discovery {
+        let mut discovery = self.persistent_discovery.value().clone();
+        self.apply_network_overrides(&mut discovery.networking);
+        discovery
     }
 
     // Clean up change introduced in https://github.com/nymtech/nym-vpn-client/pull/4226
@@ -572,9 +592,10 @@ mod tests {
 
         let _ = tokio::fs::File::create(cache_dir.path().join("test.txt")).await;
 
-        let _network_cache = NetworkCache::new(cache_dir.path().to_path_buf(), "mainnet", None)
-            .await
-            .unwrap();
+        let _network_cache =
+            NetworkCache::new(cache_dir.path().to_path_buf(), "mainnet", None, None)
+                .await
+                .unwrap();
 
         // ensure network cache removed old directories
         for env in envs {

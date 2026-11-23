@@ -8,8 +8,8 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, QrPairingConfirmation, QrUrl, RegisterAccountResponse,
-    StorableAccount, StoredAccountMode, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, NymVpnSubscription, QrPairingConfirmation, QrUrl,
+    RegisterAccountResponse, StorableAccount, StoredAccountMode, VpnAccountSummary,
 };
 use tokio::sync::oneshot;
 
@@ -26,6 +26,13 @@ pub enum AccountCommand {
         ReturnSender<RegisterAccountResponse, AccountCommandError>,
         StorableAccount,
         Platform,
+    ),
+
+    /// Create the given account on the API with a free pass applied. DOES NOT STORE IT.
+    RedeemFreepass(
+        ReturnSender<(), AccountCommandError>,
+        StorableAccount,
+        String,
     ),
 
     /// Delete the stored account and every associated data
@@ -83,6 +90,7 @@ impl AccountCommand {
             AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
+            AccountCommand::RedeemFreepass(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::DeleteAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::LinkAccount(return_sender, _) => return_sender.send(Err(error)),
@@ -113,6 +121,7 @@ impl AccountCommand {
                 CommonCommand::CheckAppleIntroOfferEligibility(return_sender, _, _) => {
                     return_sender.send(Err(error))
                 }
+                CommonCommand::ApplyFreepass(return_sender, _) => return_sender.send(Err(error)),
                 CommonCommand::GetDeeplink(return_sender, _) => return_sender.send(Err(error)),
                 CommonCommand::GetAutologinDeeplink(return_sender, _) => {
                     return_sender.send(Err(error))
@@ -166,6 +175,12 @@ pub enum CommonCommand {
     CheckAppleIntroOfferEligibility(
         ReturnSender<Option<String>, AccountCommandError>,
         String,
+        String,
+    ),
+
+    /// Redeems a free pass code on the account and returns the subscription it grants.
+    ApplyFreepass(
+        ReturnSender<NymVpnSubscription, AccountCommandError>,
         String,
     ),
 

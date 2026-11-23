@@ -38,7 +38,7 @@ pub const ACTIVE_CONNECTION_STATE_DEACTIVATING: u32 = 3;
 )]
 pub trait NetworkManager {
     #[zbus(property)]
-    fn active_connections(&self) -> zbus::Result<Vec<zbus::zvariant::OwnedObjectPath>>;
+    fn active_connections(&self) -> zbus::Result<Vec<zbus::OwnedObjectPath>>;
 }
 
 #[zbus::proxy(

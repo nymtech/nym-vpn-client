@@ -15,14 +15,14 @@ use std::{
 };
 
 use tokio::sync::{mpsc, oneshot};
-use zbus::{fdo, object_server::SignalEmitter, zvariant::OwnedValue};
+use zbus::{OwnedVariant, fdo, object_server::SignalEmitter};
 
 use crate::nm::service_state;
 
 /// NetworkManager connection settings (`a{sa{sv}}`).
-pub type Settings = HashMap<String, HashMap<String, OwnedValue>>;
+pub type Settings = HashMap<String, HashMap<String, OwnedVariant>>;
 /// A generic `a{sv}` dictionary.
-pub type Dict = HashMap<String, OwnedValue>;
+pub type Dict = HashMap<String, OwnedVariant>;
 
 /// What the D-Bus object asks the service task to do.
 pub enum Command {

@@ -4,6 +4,7 @@
 mod account;
 #[cfg(any(target_os = "android", target_os = "ios", test))]
 mod blocking_tun;
+mod bridge_redial;
 mod custom_dns;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod dns_handler;
@@ -1815,6 +1816,9 @@ impl tunnel::Error {
             Self::SelectGateways(e) => match *e {
                 GatewayProviderError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
+                }
+                GatewayProviderError::EntryGatewayHasNoBridge => {
+                    Some(ErrorStateReason::EntryGatewayHasNoBridge)
                 }
                 GatewayProviderError::EntryGatewayUnavailable(err) => Some(match err {
                     // Only ever returned for a pinned entry gateway identity: it exists but

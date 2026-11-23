@@ -17,8 +17,8 @@ use tonic::{Request, Response, Status, transport::Server};
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
-    DnsServer, EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
-    LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
+    AccountCommandError, DnsServer, EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams,
+    ListGatewaysOptions, LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
@@ -26,7 +26,8 @@ use nym_vpn_proto::proto::{
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
-use nym_vpn_lib::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
+use nym_authorization_service::Client;
+use nym_vpn_lib::service::{ClientRequest, SetNetworkError, Socks5Error, VpnServiceCommand};
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
 
@@ -615,18 +616,18 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<proto::StoreAccountRequest>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let client = client(&request);
         let store_request = nym_vpn_lib_types::StoreAccountRequest::try_from(request.into_inner())
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
 
         let result = self
-            .send_and_wait(VpnServiceCommand::StoreAccount, store_request)
+            .send_and_wait(
+                VpnServiceCommand::StoreAccount,
+                ClientRequest::new(client, store_request),
+            )
             .await?;
 
-        let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
-        };
-
-        Ok(tonic::Response::new(response))
+        account_command_response(result)
     }
 
     async fn account_balance(
@@ -650,11 +651,7 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::DecentralisedObtainTicketbooks, ())
             .await?;
 
-        let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
-        };
-
-        Ok(tonic::Response::new(response))
+        account_command_response(result)
     }
 
     async fn is_account_stored(
@@ -681,17 +678,16 @@ impl NymVpnService for CommandInterface {
 
     async fn forget_account(
         &self,
-        _request: tonic::Request<()>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
         let result = self
-            .send_and_wait(VpnServiceCommand::ForgetAccount, ())
+            .send_and_wait(
+                VpnServiceCommand::ForgetAccount,
+                client_request(&request, ()),
+            )
             .await?;
 
-        let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
-        };
-
-        Ok(tonic::Response::new(response))
+        account_command_response(result)
     }
 
     async fn rotate_keys(
@@ -702,11 +698,7 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::RotateKeys, ())
             .await?;
 
-        let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
-        };
-
-        Ok(tonic::Response::new(response))
+        account_command_response(result)
     }
 
     async fn get_account_identity(
@@ -806,6 +798,7 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<proto::ResetDeviceIdentityRequest>,
     ) -> Result<tonic::Response<()>> {
+        let client = client(&request);
         let seed: Option<[u8; 32]> = request
             .into_inner()
             .seed
@@ -816,11 +809,12 @@ impl NymVpnService for CommandInterface {
             })
             .transpose()?;
 
-        self.send_and_wait(VpnServiceCommand::ResetDeviceIdentity, seed)
-            .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to reset device identity: {err}"))
-            })?;
+        self.send_and_wait(
+            VpnServiceCommand::ResetDeviceIdentity,
+            ClientRequest::new(client, seed),
+        )
+        .await?
+        .map_err(|err| account_command_status("Failed to reset device identity", err))?;
 
         Ok(tonic::Response::new(()))
     }
@@ -843,12 +837,12 @@ impl NymVpnService for CommandInterface {
 
     async fn get_devices(
         &self,
-        _request: tonic::Request<()>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::GetDevicesResponse>> {
         let devices = self
-            .send_and_wait(VpnServiceCommand::GetDevices, ())
+            .send_and_wait(VpnServiceCommand::GetDevices, client_request(&request, ()))
             .await?
-            .map_err(|err| tonic::Status::internal(format!("Failed to get devices: {err}")))?;
+            .map_err(|err| account_command_status("Failed to get devices", err))?;
 
         Ok(tonic::Response::new(proto::GetDevicesResponse {
             devices: Some(proto::get_devices_response::Devices::from(devices)),
@@ -857,14 +851,15 @@ impl NymVpnService for CommandInterface {
 
     async fn get_active_devices(
         &self,
-        _request: tonic::Request<()>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::GetDevicesResponse>> {
         let devices = self
-            .send_and_wait(VpnServiceCommand::GetActiveDevices, ())
+            .send_and_wait(
+                VpnServiceCommand::GetActiveDevices,
+                client_request(&request, ()),
+            )
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get active devices: {err}"))
-            })?;
+            .map_err(|err| account_command_status("Failed to get active devices", err))?;
 
         Ok(tonic::Response::new(proto::GetDevicesResponse {
             devices: Some(proto::get_devices_response::Devices::from(devices)),
@@ -954,6 +949,7 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<proto::GetDeeplinkParams>,
     ) -> Result<tonic::Response<proto::AutologinResponse>> {
+        let client = client(&request);
         let req = request.into_inner();
 
         let params: GetDeeplinkParams = req.try_into().map_err(|err| {
@@ -963,11 +959,12 @@ impl NymVpnService for CommandInterface {
         })?;
 
         let url = self
-            .send_and_wait(VpnServiceCommand::GetAutologinDeeplink, params)
+            .send_and_wait(
+                VpnServiceCommand::GetAutologinDeeplink,
+                ClientRequest::new(client, params),
+            )
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get autologin deeplink: {err}"))
-            })?;
+            .map_err(|err| account_command_status("Failed to get autologin deeplink", err))?;
 
         Ok(tonic::Response::new(url.into()))
     }
@@ -976,30 +973,30 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<String>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let client = client(&request);
         let deeplink_callback_url = request.into_inner();
 
         let result = self
             .send_and_wait(
                 VpnServiceCommand::DeeplinkStoreAccount,
-                deeplink_callback_url,
+                ClientRequest::new(client, deeplink_callback_url),
             )
             .await?;
 
-        let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
-        };
-
-        Ok(tonic::Response::new(response))
+        account_command_response(result)
     }
 
     async fn start_pairing(
         &self,
-        _request: tonic::Request<()>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::QrUrlResponse>> {
         let qr_url = self
-            .send_and_wait(VpnServiceCommand::StartPairing, ())
+            .send_and_wait(
+                VpnServiceCommand::StartPairing,
+                client_request(&request, ()),
+            )
             .await?
-            .map_err(|err| tonic::Status::internal(format!("Failed to start pairing: {err}")))?;
+            .map_err(|err| account_command_status("Failed to start pairing", err))?;
 
         let response = proto::QrUrlResponse::from(qr_url);
 
@@ -1015,9 +1012,7 @@ impl NymVpnService for CommandInterface {
         let qr_pairing_confirmation = self
             .send_and_wait(VpnServiceCommand::ScannedKey, pub_key)
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to obtain scanned key PIN: {err}"))
-            })?;
+            .map_err(|err| account_command_status("Failed to obtain scanned key PIN", err))?;
 
         let response = proto::QrPairingConfirmationResponse::from(qr_pairing_confirmation);
 
@@ -1028,13 +1023,15 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<u32>,
     ) -> Result<tonic::Response<()>> {
+        let client = client(&request);
         let session_id = request.into_inner();
 
-        self.send_and_wait(VpnServiceCommand::VerifiedPairingPin, session_id)
-            .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to verify pairing PIN: {err}"))
-            })?;
+        self.send_and_wait(
+            VpnServiceCommand::VerifiedPairingPin,
+            ClientRequest::new(client, session_id),
+        )
+        .await?
+        .map_err(|err| account_command_status("Failed to verify pairing PIN", err))?;
 
         Ok(tonic::Response::new(()))
     }
@@ -1045,9 +1042,7 @@ impl NymVpnService for CommandInterface {
     ) -> Result<tonic::Response<()>> {
         self.send_and_wait(VpnServiceCommand::CancelPairingProcess, ())
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to cancel pairing process: {err}"))
-            })?;
+            .map_err(|err| account_command_status("Failed to cancel pairing process", err))?;
 
         Ok(tonic::Response::new(()))
     }
@@ -1277,6 +1272,43 @@ impl NymVpnService for CommandInterface {
             .await?;
 
         Ok(tonic::Response::new(tentative_gateways.into()))
+    }
+
+    async fn authorize(
+        &self,
+        _request: tonic::Request<proto::AuthorizeRequest>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            let client = client(&_request).ok_or_else(unknown_client)?;
+            let authorization = _request.into_inner().authorization;
+            if authorization.is_empty() {
+                Err(tonic::Status::invalid_argument(
+                    "Authorization token is required",
+                ))
+            } else {
+                self.send_and_wait(VpnServiceCommand::Authorize, (authorization, client))
+                    .await?
+                    .map_err(|err| tonic::Status::internal(err.to_string()))?;
+                Ok(tonic::Response::new(()))
+            }
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::unimplemented("Unsupported platform"))
+    }
+
+    async fn deauthorize(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            let client = client(&_request).ok_or_else(unknown_client)?;
+            self.send_and_wait(VpnServiceCommand::Deauthorize, client)
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::unimplemented("Unsupported platform"))
     }
 
     async fn is_split_tunnel_supported(
@@ -1524,6 +1556,57 @@ pub async fn start_command_interface(
     });
 
     Ok((server_handle, vpn_command_rx))
+}
+
+/// Client that sent the request, used to bind authorization to the user and session that obtained
+/// it. Only known on macOS, where account operations require authorization.
+fn client<T>(_request: &Request<T>) -> Option<Client> {
+    #[cfg(target_os = "macos")]
+    {
+        nym_ipc::server::peer_credentials(_request.extensions()).map(|credentials| Client {
+            user_id: credentials.user_id,
+            audit_session_id: credentials.audit_session_id,
+        })
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        None
+    }
+}
+
+/// Command parameters sent on behalf of the client that sent the request.
+fn client_request<T, P>(request: &Request<T>, params: P) -> ClientRequest<P> {
+    ClientRequest::new(client(request), params)
+}
+
+#[cfg(target_os = "macos")]
+fn unknown_client() -> Status {
+    Status::unauthenticated("Unable to identify the client")
+}
+
+/// Missing user presence is reported as an `Unauthenticated` status, so clients can prompt the
+/// user and retry regardless of the response type.
+fn user_presence_required() -> Status {
+    Status::unauthenticated(AccountCommandError::UserPresenceRequired.to_string())
+}
+
+fn account_command_response(
+    result: std::result::Result<(), AccountCommandError>,
+) -> Result<Response<proto::AccountCommandResponse>> {
+    match result {
+        Err(AccountCommandError::UserPresenceRequired) => Err(user_presence_required()),
+        result => Ok(Response::new(proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountCommandError::from),
+        })),
+    }
+}
+
+fn account_command_status(context: &str, err: AccountCommandError) -> Status {
+    match err {
+        AccountCommandError::UserPresenceRequired => user_presence_required(),
+        err => Status::internal(format!("{context}: {err}")),
+    }
 }
 
 fn default_socket_path() -> std::path::PathBuf {

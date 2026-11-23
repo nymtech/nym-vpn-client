@@ -15,6 +15,7 @@ pub enum TunnelError {
     PerformantExitGwUnavailable,
     InvalidEntryGwId,
     InvalidExitGwId,
+    EntryGwHasNoBridge,
     InvalidEntryGwCountry,
     InvalidExitGwCountry,
     MaxDevicesReached,
@@ -52,6 +53,7 @@ impl From<lib::ErrorStateReason> for TunnelError {
             }
             lib::ErrorStateReason::InvalidEntryGatewayIdentity => TunnelError::InvalidEntryGwId,
             lib::ErrorStateReason::InvalidExitGatewayIdentity => TunnelError::InvalidExitGwId,
+            lib::ErrorStateReason::EntryGatewayHasNoBridge => TunnelError::EntryGwHasNoBridge,
             lib::ErrorStateReason::InvalidEntryGatewayCountry => TunnelError::InvalidEntryGwCountry,
             lib::ErrorStateReason::InvalidExitGatewayCountry => TunnelError::InvalidExitGwCountry,
             lib::ErrorStateReason::MaxDevicesReached => TunnelError::MaxDevicesReached,
