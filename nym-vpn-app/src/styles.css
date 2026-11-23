@@ -355,22 +355,19 @@
   }
 }
 
-/* connection marker: blocked = the outer ring blinks slowly (kill switch holds traffic) */
-@keyframes nv-marker-blink {
-  0%,
-  100% {
-    stroke-opacity: 0.15;
-  }
-  50% {
-    stroke-opacity: 0.9;
+/* connection marker: blocked = the outer ring's gap turns once every 4 s (kill switch holds traffic) */
+@keyframes nv-marker-orbit {
+  to {
+    transform: rotate(360deg);
   }
 }
-.nv-marker-blink {
-  animation: nv-marker-blink 2.4s ease-in-out infinite;
+.nv-marker-orbit {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nv-marker-orbit 4s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .nv-marker-blink {
+  .nv-marker-orbit {
     animation: none;
-    stroke-opacity: 0.9;
   }
 }

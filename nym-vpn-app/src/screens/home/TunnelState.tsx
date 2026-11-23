@@ -52,6 +52,9 @@ type Phase =
 // without colour. The SVG is rotated so 0 is 12 o'clock.
 const ERROR_GAP = 0.1;
 const ERROR_GAP_START = 0.25 + ERROR_GAP / 2;
+// Blocked: the outer ring, in the error colour, with a gap that turns once
+// every 4 s (track and fill together, so the gap stays open).
+const BLOCKED_GAP = 0.15;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -150,7 +153,7 @@ export function TunnelState() {
   const ringTargets = useMemo((): number[] => {
     if (phase === 'connected') return [0, 0, 0];
     if (phase === 'error') return [0, 0, 0];
-    // only the outer ring, which blinks
+    // only the outer ring, with a turning gap
     if (phase === 'blocked') return [0, CIRCS[1], CIRCS[2]];
     if (phase !== 'connecting') return [...CIRCS];
     // six steps over three rings: odd steps half-fill a ring, even seal it
@@ -178,13 +181,17 @@ export function TunnelState() {
 
   // ─── Per-ring stroke appearance ───────────────────────────────────────────
   const strokeColor =
-    phase === 'error'
+    phase === 'error' || phase === 'blocked'
       ? ERROR_CLR
       : phase === 'connecting'
         ? CONNECTING_CLR
         : FILL;
   const strokeOpacity =
-    phase === 'canceling' ? 0.15 : phase === 'error' ? 0.85 : 1;
+    phase === 'canceling'
+      ? 0.15
+      : phase === 'error' || phase === 'blocked'
+        ? 0.85
+        : 1;
 
   // error snaps into place so every ring's gap appears at 3 o'clock at once
   const ringTransition =
@@ -256,10 +263,15 @@ export function TunnelState() {
               strokeDasharray={
                 phase === 'error'
                   ? `${CIRCS[i] * (1 - ERROR_GAP)} ${CIRCS[i] * ERROR_GAP}`
-                  : undefined
+                  : phase === 'blocked' && i === 0
+                    ? `${CIRCS[i] * (1 - BLOCKED_GAP)} ${CIRCS[i] * BLOCKED_GAP}`
+                    : undefined
               }
               strokeDashoffset={
                 phase === 'error' ? -CIRCS[i] * ERROR_GAP_START : undefined
+              }
+              className={
+                phase === 'blocked' && i === 0 ? 'nv-marker-orbit' : undefined
               }
               style={{ stroke: TRACK }}
             />
@@ -279,7 +291,9 @@ export function TunnelState() {
               strokeDasharray={
                 phase === 'error'
                   ? `${CIRCS[i] * (1 - ERROR_GAP)} ${CIRCS[i] * ERROR_GAP}`
-                  : CIRCS[i]
+                  : phase === 'blocked' && i === 0
+                    ? `${CIRCS[i] * (1 - BLOCKED_GAP)} ${CIRCS[i] * BLOCKED_GAP}`
+                    : CIRCS[i]
               }
               strokeDashoffset={
                 phase === 'error'
@@ -287,7 +301,7 @@ export function TunnelState() {
                   : effectiveOffsets[i]
               }
               className={
-                phase === 'blocked' && i === 0 ? 'nv-marker-blink' : undefined
+                phase === 'blocked' && i === 0 ? 'nv-marker-orbit' : undefined
               }
               style={{ stroke: strokeColor, transition: ringTransition }}
             />
