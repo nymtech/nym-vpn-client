@@ -12,7 +12,7 @@ public enum ArcProgressState: Equatable, Sendable {
     case offline
 
     /// Offline mid-session with the kill switch on, so traffic is held: grey
-    /// tracks, only the outer ring lit and blinking, label "Kill switch is
+    /// tracks, only the outer ring lit in red with a turning gap, label "Kill switch is
     /// blocking traffic" with the will-reconnect caption.
     case blocked
 

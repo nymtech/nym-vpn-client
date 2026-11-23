@@ -102,8 +102,8 @@ private extension ArcProgressView {
                 .animation(sweepAnimation, value: progress(for: ring))
                 .animation(.easeIn(duration: 0.6), value: fillOpacity)
                 .animation(.easeOut(duration: 0.2), value: fillColor)
-                .modifier(MarkerBlink(isActive: markerState == .blocked && ring == .outer))
         }
+        .modifier(MarkerOrbit(isActive: markerState == .blocked && ring == .outer))
     }
 
     var sphereFill: AnyShapeStyle {
@@ -213,11 +213,11 @@ private extension ArcProgressView {
     /// Setup yellow while connecting, error red on error, brand green otherwise.
     var fillColor: Color {
         switch markerState {
-        case .error:
+        case .error, .blocked:
             return Color.Nym.error
         case .connecting:
             return colorScheme == .dark ? Constants.setupDark : Constants.setupLight
-        case .notProtected, .connected, .blocked, .stopping:
+        case .notProtected, .connected, .stopping:
             return Constants.fastFill
         }
     }
@@ -230,7 +230,7 @@ private extension ArcProgressView {
         switch state {
         case .canceling:
             return 0.15
-        case .failed:
+        case .failed, .blocked:
             return Constants.errorFillOpacity
         default:
             return 1.0
@@ -332,7 +332,7 @@ private extension ArcProgressView {
         case .failed:
             return 1.0
         case .blocked:
-            // only the outer ring, which blinks
+            // only the outer ring, with a turning gap
             return ring == .outer ? 1.0 : 0.0
         case .awaitingGatewayConsent:
             // Hold whatever ring the connect had already reached (macOS loads
@@ -385,7 +385,17 @@ private extension ArcProgressView {
     /// On error every ring and its track loses a segment centred on
     /// 3 o'clock, so the state reads without colour. Rings are rotated so the
     /// path starts at 12 o'clock; the dash phase puts the gap at 0.2 to 0.3.
+    /// Blocked: the outer ring and its track lose a segment ending at 12 o'clock,
+    /// and `MarkerOrbit` turns it.
     func ringStroke(for ring: Ring) -> StrokeStyle {
+        if markerState == .blocked && ring == .outer {
+            let circumference = CGFloat.pi * ring.diameter
+            return StrokeStyle(
+                lineWidth: Constants.strokeWidth,
+                lineCap: .round,
+                dash: [circumference * (1 - Constants.blockedGap), circumference * Constants.blockedGap]
+            )
+        }
         guard markerState == .error else {
             return StrokeStyle(lineWidth: Constants.strokeWidth, lineCap: .round)
         }
@@ -488,6 +498,8 @@ private extension ArcProgressView {
         /// Error gap: 10% of the circle, centred on 3 o'clock.
         static let errorGap: CGFloat = 0.1
         static let errorGapStart: CGFloat = 0.25 + errorGap / 2
+        /// Blocked gap: 15% of the outer ring.
+        static let blockedGap: CGFloat = 0.15
         /// Setup yellow for the connecting fill.
         static let setupDark  = Color(red: 0xF4 / 255, green: 0xB9 / 255, blue: 0x40 / 255)
         static let setupLight = Color(red: 0x9A / 255, green: 0x5B / 255, blue: 0x00 / 255)
