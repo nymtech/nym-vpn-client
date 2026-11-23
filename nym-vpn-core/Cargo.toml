@@ -306,8 +306,8 @@ nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym"
 nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
 
-nym-bridges = { git = "https://github.com/nymtech/nym-bridges", rev = "5739d44957af2020de1983745b9712e9bdfcf72a" }
-nym-bridges-types = { git = "https://github.com/nymtech/nym-bridges", rev = "5739d44957af2020de1983745b9712e9bdfcf72a" }
+nym-bridges = { git = "https://github.com/nymtech/nym-bridges", rev = "5f31a3e4947ae28b4f256212d624fdcd7be56a5f" }
+nym-bridges-types = { git = "https://github.com/nymtech/nym-bridges", rev = "5f31a3e4947ae28b4f256212d624fdcd7be56a5f" }
 
 # For local development
 # [patch."https://github.com/nymtech/nym"]
