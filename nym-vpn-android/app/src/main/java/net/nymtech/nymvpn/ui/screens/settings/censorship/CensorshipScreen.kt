@@ -23,10 +23,12 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.screens.settings.censorship.components.QuicSection
 import net.nymtech.nymvpn.ui.screens.settings.censorship.components.StealthApiSection
+import net.nymtech.nymvpn.ui.screens.settings.censorship.components.TransportPreferenceSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import nym_vpn_lib_types.BridgeMode
+import nym_vpn_lib_types.BridgeTransport
 
 @Composable
 fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hiltViewModel()) {
@@ -35,11 +37,20 @@ fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hi
 		onBridgeModeSelected = { mode -> viewModel.onBridgeModeSelected(mode) },
 		stealthModeEnabled = appUiState.vpnConfig.stealthMode,
 		onStealthModeEnable = { enabled -> viewModel.onStealthModeEnabled(enabled) },
+		transportPreference = appUiState.vpnConfig.transportPreference,
+		onTransportPreferenceSelected = { preference -> viewModel.onTransportPreferenceSelected(preference) },
 	)
 }
 
 @Composable
-fun CensorshipScreen(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) -> Unit, stealthModeEnabled: Boolean = false, onStealthModeEnable: (Boolean) -> Unit = {}) {
+fun CensorshipScreen(
+	bridgeMode: BridgeMode,
+	onBridgeModeSelected: (BridgeMode) -> Unit,
+	stealthModeEnabled: Boolean = false,
+	onStealthModeEnable: (Boolean) -> Unit = {},
+	transportPreference: BridgeTransport? = null,
+	onTransportPreferenceSelected: (BridgeTransport?) -> Unit = {},
+) {
 	val scrollState = rememberScrollState()
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -70,6 +81,14 @@ fun CensorshipScreen(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) 
 			onEnable = onStealthModeEnable,
 			modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
 		)
+		if (bridgeMode != BridgeMode.OFF) {
+			TransportPreferenceSection(
+				bridgeMode = bridgeMode,
+				transportPreference = transportPreference,
+				onTransportPreferenceSelected = onTransportPreferenceSelected,
+				modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+			)
+		}
 	}
 }
 
