@@ -145,7 +145,7 @@ fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel 
 	)
 
 	if (showRedeemCodeSheet) {
-		RedeemCodeSheet(onDismiss = { showRedeemCodeSheet = false })
+		RedeemCodeSheet(accountStored = true, onDismiss = { showRedeemCodeSheet = false })
 	}
 }
 

@@ -24,6 +24,9 @@ const SERVICE_WAIT_TIMEOUT: Duration = Duration::from_secs(30);
 const SERVICE_POLL_INTERVAL: Duration = Duration::from_secs(1);
 
 pub fn install_service() -> anyhow::Result<()> {
+    crate::core_dumps::disable()
+        .with_context(|| "Failed to exclude service from Windows Error Reporting")?;
+
     let manager_access = ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
@@ -93,6 +96,39 @@ pub fn install_service() -> anyhow::Result<()> {
 }
 
 pub async fn uninstall_service() -> anyhow::Result<()> {
+    delete_service().await?;
+
+    if let Err(e) = crate::core_dumps::restore() {
+        eprintln!("Failed to remove service from Windows Error Reporting exclusions: {e}");
+    }
+
+    Ok(())
+}
+
+pub async fn start_service() -> anyhow::Result<()> {
+    let manager_access = ServiceManagerAccess::CONNECT;
+    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
+
+    let service_access = ServiceAccess::QUERY_STATUS | ServiceAccess::START;
+    let service = service_manager.open_service(SERVICE_NAME, service_access)?;
+
+    if service.query_status()?.current_state != ServiceState::Running {
+        service.start(&[] as &[&std::ffi::OsStr])?;
+    }
+
+    let start = Instant::now();
+    while start.elapsed() < SERVICE_WAIT_TIMEOUT {
+        if service.query_status()?.current_state == ServiceState::Running {
+            return Ok(());
+        }
+        tokio::time::sleep(SERVICE_POLL_INTERVAL).await;
+    }
+    Err(anyhow!(
+        "timed out waiting for the service to reach running"
+    ))
+}
+
+async fn delete_service() -> anyhow::Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
@@ -134,29 +170,6 @@ pub async fn uninstall_service() -> anyhow::Result<()> {
 
     Err(anyhow!(
         "{SERVICE_NAME} service failed to uninstall in time"
-    ))
-}
-
-pub async fn start_service() -> anyhow::Result<()> {
-    let manager_access = ServiceManagerAccess::CONNECT;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
-
-    let service_access = ServiceAccess::QUERY_STATUS | ServiceAccess::START;
-    let service = service_manager.open_service(SERVICE_NAME, service_access)?;
-
-    if service.query_status()?.current_state != ServiceState::Running {
-        service.start(&[] as &[&std::ffi::OsStr])?;
-    }
-
-    let start = Instant::now();
-    while start.elapsed() < SERVICE_WAIT_TIMEOUT {
-        if service.query_status()?.current_state == ServiceState::Running {
-            return Ok(());
-        }
-        tokio::time::sleep(SERVICE_POLL_INTERVAL).await;
-    }
-    Err(anyhow!(
-        "timed out waiting for the service to reach running"
     ))
 }
 

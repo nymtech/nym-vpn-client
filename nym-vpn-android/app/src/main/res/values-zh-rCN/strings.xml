@@ -268,14 +268,6 @@
 	<string name="battery_opt_settings_text">您随时可以在系统设置中更改电池优化设置。</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">数据、隐私和日志</string>
-	<string name="privacy_anonymous_stats_title">匿名网络统计</string>
-	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
-	<string name="privacy_anonymous_stats_link_text">了解我们收集哪些信息</string>
-	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
-	<string name="privacy_error_reports_title">错误和崩溃报告</string>
-	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
-	<string name="privacy_error_reports_link_text">查看 Sentry 隐私政策</string>
-	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">更改将在应用程序重启后应用。</string>
 	<string name="modal_network_stats_title">升级您的体验</string>
 	<string name="modal_network_stats_descr">通过分享您的匿名网络数据来帮助我们改善 NymVPN。\n\n我们承诺您的隐私和安全始终受到保护。</string>
@@ -289,12 +281,6 @@
 	<string name="welcome_continue">继续</string>
 	<string name="welcome_title">帮助我们改进 NymVPN</string>
 	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
-	<string name="welcome_error_reports_title">共享错误报告</string>
-	<string name="welcome_error_reports_description_start">帮助我们更快地修复错误，您的敏感数据不会被收集（通过 </string>
-	<string name="welcome_error_reports_link_text">Sentry</string>
-	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">共享使用量分析数据</string>
-	<string name="welcome_usage_description">帮助我们改善 Nym 网络。请放心，我们不会收集您的个人信息。</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_welcome_title">欢迎使用 NymVPN</string>
 	<string name="onboarding_welcome_description">您通向\n**隐私互联网**的大门</string>
@@ -381,15 +367,10 @@
 	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
 	<string name="censorship_bridge_on_title">打开</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
-	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API 连接</string>
 	<string name="censorship_stealth_description">通过使用混淆域名技术来绕开 VPN 封锁。打开此开关会始终使用混淆域名技术，关闭此开关则会在正常连接失败后自动使用该功能。</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
-	<string name="censorship_amnezia_title">最低限度的抗审查保护（AmneziaWG）</string>
-	<string name="censorship_amnezia_description">使用诱饵数据包伪装 WireGuard 流量，防止 VPN 被屏蔽。\n\n注意：仅实现了客户端版本。</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">继续即代表您同意 NymVPN 的  </string>
 	<string name="account_welcome_privacy_middle">和</string>

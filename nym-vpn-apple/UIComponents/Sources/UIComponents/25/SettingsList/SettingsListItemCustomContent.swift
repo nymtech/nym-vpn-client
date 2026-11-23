@@ -6,6 +6,7 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
     private let viewModel: SettingsListItemViewModel
     private let customContent: (() -> CustomContent)?
     private let combineAccessibilityChildren: Bool
+    private let compactTitle: Bool
 
     @State private var isHovered = false
     @State private var isToggleOn = false
@@ -13,11 +14,13 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
     public init(
         viewModel: SettingsListItemViewModel,
         customContent: (() -> CustomContent)? = nil,
-        combineAccessibilityChildren: Bool = true
+        combineAccessibilityChildren: Bool = true,
+        compactTitle: Bool = false
     ) {
         self.viewModel = viewModel
         self.customContent = customContent
         self.combineAccessibilityChildren = combineAccessibilityChildren
+        self.compactTitle = compactTitle
         if case let .toggle(isOn, _) = viewModel.accessory {
             _isToggleOn = State(initialValue: isOn.wrappedValue)
         }
@@ -43,6 +46,7 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
                         }
                 }
                 HStack(spacing: 0) {
+                    optionalBadge()
                     optionalAccessoryImage()
                     optionalToggleView()
                 }
@@ -136,15 +140,29 @@ private extension SettingsListItemCustomContent {
     @ViewBuilder
     func titleSubtitle() -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(viewModel.title)
-                .foregroundStyle(Color.Nym.textPrimary)
-                .textStyle(.Body.Large.regular)
+            if compactTitle {
+                Text(viewModel.title)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .nymTextStyle(.bodyDefault)
+            } else {
+                Text(viewModel.title)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .textStyle(.Body.Large.regular)
+            }
 
             if let subtitle = viewModel.subtitle {
                 Text(subtitle)
                     .foregroundStyle(Color.Nym.textSecondary)
                     .textStyle(.Body.Small.regular)
             }
+        }
+    }
+
+    @ViewBuilder
+    func optionalBadge() -> some View {
+        if let badge = viewModel.badge {
+            BetaBadge(text: badge)
+                .padding(.trailing, 16)
         }
     }
 

@@ -1,10 +1,19 @@
 import clsx from 'clsx';
 import { Radio, RadioGroup } from '@headlessui/react';
 import { invoke } from '@tauri-apps/api/core';
-import { useTranslation } from 'react-i18next';
-import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
+import { Trans, useTranslation } from 'react-i18next';
+import {
+  BetaPill,
+  CardSwitch,
+  Link,
+  PageAnim,
+  SettingsMenuCardBig,
+} from '../../../ui';
 import { dispatch, useMainState } from '../../../store';
-import { AmneziaWgUrl, DomainFrontingUrl, QuicUrl } from '../../../constants';
+import {
+  AntiCensorshipBridgesUrl,
+  DomainFrontingUrl,
+} from '../../../constants';
 import { useToast } from '../../../hooks';
 import { BridgeMode } from '../../../types';
 
@@ -119,64 +128,45 @@ function AntiCensorship() {
       {backendFlags.quic && (
         <SettingsMenuCardBig
           header={
-            <div className="flex w-full min-w-0 flex-col gap-1 px-5 pt-4">
+            <div className="flex w-full min-w-0 items-center justify-between gap-2 px-5 pt-4">
               <p className="text-text-primary truncate text-base select-none">
                 {t('anti-censorship.bridge-mode.label')}
               </p>
-              <p className="text-status-warning text-sm select-none">
-                {t('anti-censorship.bridge-mode.warning')}
-              </p>
+              <BetaPill label={t('anti-censorship.bridge-mode.dvpn')} />
             </div>
           }
         >
           <div className="flex flex-col gap-4">
+            <p className="text-text-secondary text-sm">
+              <Trans
+                i18nKey="anti-censorship.bridge-mode.description"
+                ns="settings"
+                components={{ strong: <strong className="font-bold" /> }}
+              />
+            </p>
             <BridgeModeSelector
               value={bridgeMode}
               onChange={onBridgeModeChange}
             />
-            <p className="text-text-primary text-sm">
-              {t(`anti-censorship.bridge-mode.options.${bridgeMode}.desc`)}
+            <p className="text-text-secondary text-sm">
+              <Trans
+                i18nKey={`anti-censorship.bridge-mode.options.${bridgeMode}.desc`}
+                ns="settings"
+                components={{ strong: <strong className="font-bold" /> }}
+              />
             </p>
-            <p className="text-text-secondary text-sm whitespace-pre-line">
-              {t(
-                backendFlags.bridgeTransports
-                  ? 'anti-censorship.bridge-mode.content-transports'
-                  : 'anti-censorship.bridge-mode.content',
-              )}
+            <p className="text-status-warning text-sm">
+              {t('anti-censorship.bridge-mode.warning')}
             </p>
             <Link
               className="w-fit text-sm"
               text={t('anti-censorship.bridge-mode.link')}
-              url={QuicUrl}
+              url={AntiCensorshipBridgesUrl}
               color="primary"
             />
           </div>
         </SettingsMenuCardBig>
       )}
-      <SettingsMenuCardBig
-        header={
-          <CardSwitch
-            header={t('anti-censorship.amneziawg.label')}
-            checked={true}
-            disabled={true}
-            onClick={() => {
-              /* TODO */
-            }}
-          />
-        }
-      >
-        <div className="flex flex-col gap-2">
-          <p className="text-text-secondary text-sm whitespace-pre-line">
-            {t('anti-censorship.amneziawg.content')}
-          </p>
-          <Link
-            className="mt-2 w-fit text-sm"
-            text={t('anti-censorship.amneziawg.link')}
-            url={AmneziaWgUrl}
-            color="primary"
-          />
-        </div>
-      </SettingsMenuCardBig>
       <SettingsMenuCardBig
         header={
           <CardSwitch

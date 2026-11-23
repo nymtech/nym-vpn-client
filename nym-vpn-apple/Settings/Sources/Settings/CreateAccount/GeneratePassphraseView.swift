@@ -35,12 +35,15 @@ public struct GeneratePassphraseView: View {
     @State private var didLeaveForSuccessfulPurchase = false
 #if os(iOS)
     @State private var autologinState = AutologinState()
+    @State var isCodeEntryPresented = false
 #elseif os(macOS)
     @State var autologinState = AutologinState()
 #endif
 
     private let isPurchaseOnly: Bool
     private let onPurchaseFlowDismissed: (() -> Void)?
+    private let onPurchaseFlowComplete: (() -> Void)?
+    private let onSessionEvent: ((SessionEvent) -> Void)?
 
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var credentialsManager: CredentialsManager
@@ -120,6 +123,12 @@ public struct GeneratePassphraseView: View {
             await purchasesManager.refreshTrialEligibility()
         }
         .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
+        .fullScreenCover(isPresented: $isCodeEntryPresented) {
+            CodeEntryView(startsWithScanner: true) { outcome in
+                isCodeEntryPresented = false
+                handleCodeEntry(outcome)
+            }
+        }
         .onChange(of: isPresentedManageSubscription) { _, presented in
             // The user may have cancelled in Apple's sheet; re-read so the copy follows.
             guard !presented else { return }
@@ -145,7 +154,11 @@ public struct GeneratePassphraseView: View {
         .onDisappear {
             isAlertDisplayed = false
             isPlanAlertDisplayed = false
+#if os(iOS)
+            guard !didLeaveForSuccessfulPurchase, !isCodeEntryPresented else { return }
+#else
             guard !didLeaveForSuccessfulPurchase else { return }
+#endif
             onPurchaseFlowDismissed?()
         }
     }
@@ -153,11 +166,15 @@ public struct GeneratePassphraseView: View {
     public init(
         path: Binding<NavigationPath>,
         displayPurchaseView: Bool = false,
-        onPurchaseFlowDismissed: (() -> Void)? = nil
+        onPurchaseFlowDismissed: (() -> Void)? = nil,
+        onPurchaseFlowComplete: (() -> Void)? = nil,
+        onSessionEvent: ((SessionEvent) -> Void)? = nil
     ) {
         _path = path
         isPurchaseOnly = displayPurchaseView
         self.onPurchaseFlowDismissed = onPurchaseFlowDismissed
+        self.onPurchaseFlowComplete = onPurchaseFlowComplete
+        self.onSessionEvent = onSessionEvent
         didFinishAnimatingText = displayPurchaseView
         currentStep = displayPurchaseView
             ? OnboardingSessionPolicy.progressStep(for: .iapPurchaseRequired)
@@ -235,6 +252,11 @@ private extension GeneratePassphraseView {
         }
 #endif
         selectPlanButton
+#if os(iOS)
+        Spacer()
+            .frame(height: 12)
+        scanCodeButton
+#endif
     }
 
     var checkmarkImage: some View {
@@ -359,6 +381,33 @@ extension GeneratePassphraseView {
         path.append(SettingLink.processingAccount)
     }
 
+#if os(iOS)
+    func handleCodeEntry(_ outcome: CodeEntryOutcome) {
+        guard outcome != .cancelled else { return }
+        let needsLogin = outcome == .pairingSignedIn || !credentialsManager.isValidCredentialImported
+        didLeaveForSuccessfulPurchase = true
+        if needsLogin {
+            // Login processing runs in the home drawer.
+            path = NavigationPath()
+        }
+        Task {
+            await CodeEntryOutcomeHandler.handle(
+                outcome,
+                credentialsManager: credentialsManager,
+                sendSessionEvent: { onSessionEvent?($0) }
+            )
+            // Login processing routes checkout itself.
+            guard !needsLogin else { return }
+            if credentialsManager.isAccountActive() {
+                onPurchaseFlowComplete?()
+            } else {
+                onPurchaseFlowDismissed?()
+            }
+            path = NavigationPath()
+        }
+    }
+
+#endif
     /// The account screen holds the log-out flow, which is how the user gets to the other account.
     func navigateToAccountAndDevices() {
         path.append(SettingLink.accountAndDevices)
