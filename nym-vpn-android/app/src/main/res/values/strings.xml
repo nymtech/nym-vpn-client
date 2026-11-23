@@ -741,6 +741,7 @@
 	<string name="pair_device_done">Done</string>
 	<string name="pairing_pin_description">Pairing code %1$s</string>
 	<string name="pairing_sign_in_nav_title">Sign in with another device</string>
+	<string name="pairing_waiting_for_code">Waiting for your other device…</string>
 	<string name="pairing_sign_in_title">Confirm on your other device</string>
 	<string name="pairing_sign_in_body">Check that your other device shows this code, then confirm it there.</string>
 	<string name="pairing_signing_in">Signing in…</string>

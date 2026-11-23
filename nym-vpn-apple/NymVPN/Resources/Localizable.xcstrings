@@ -20808,6 +20808,17 @@
         }
       }
     },
+    "pairing.waitingForCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for your other device…"
+          }
+        }
+      }
+    },
     "passohrase.loseSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
