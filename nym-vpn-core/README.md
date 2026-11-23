@@ -91,7 +91,9 @@ After installing Rust, install the following Rust targets and dependencies to en
 
 ### Windows
 
-1. Install Visual Studio 2022 Community
+1. Install Visual Studio 2022 Community 17.14 or newer (MSVC 14.44 toolset)
+
+    Visual Studio does not update the build tools on its own, so update existing installations with the Visual Studio Installer.
 
     When you install Visual Studio 2022, select the Desktop development with C++ workload, then under Individual Components add:
     - MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools
@@ -159,6 +161,18 @@ After installing Rust, install the following Rust targets and dependencies to en
 
     ```sh
     cargo install cargo-get
+    ```
+
+8. Install Strawberry Perl, which is required to build the vendored OpenSSL used by SQLCipher:
+
+    ```
+    winget install -e --id=StrawberryPerl.StrawberryPerl
+    ```
+
+    The Perl shipped with msys2 or Git for Windows does not work with the MSVC toolchain. Make sure Strawberry Perl comes first in `PATH`:
+
+    ```cmd
+    where perl
     ```
 
 ## Code formatting
