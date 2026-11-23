@@ -193,13 +193,13 @@
 	<string name="account_subscription_pending_title">Subscription pending</string>
 	<string name="account_subscription_pending_description">We\'re waiting for your payment to be confirmed. This can take a little while for some payment methods.</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">Initializing NymVPN (1/7)</string>
-	<string name="connection_state_awaiting_readiness">Setting up your account (2/7)</string>
-	<string name="connection_state_awaiting_credentials">Preparing credentials (3/7)</string>
-	<string name="connection_state_refreshing_gateways">Updating server list (4/7)</string>
-	<string name="connection_state_selecting_gateways">Choosing best servers (5/7)</string>
-	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (6/7)</string>
-	<string name="connection_state_connecting_tunnel">Establishing server connection (7/7)</string>
+	<string name="connection_state_resolving_addresses">Initializing NymVPN</string>
+	<string name="connection_state_awaiting_readiness">Setting up your account</string>
+	<string name="connection_state_awaiting_credentials">Preparing credentials</string>
+	<string name="connection_state_refreshing_gateways">Updating server list</string>
+	<string name="connection_state_selecting_gateways">Choosing best servers</string>
+	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers</string>
+	<string name="connection_state_connecting_tunnel">Establishing server connection</string>
 	<!-- One-click mode -->
 	<string name="one_click_mode_fast">dVPN</string>
 	<string name="connect_mode_mixnet">Mixnet</string>

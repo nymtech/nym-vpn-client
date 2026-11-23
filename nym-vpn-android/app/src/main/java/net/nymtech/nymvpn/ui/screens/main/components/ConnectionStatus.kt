@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -165,6 +166,7 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 	val noInternetLine = stringResource(R.string.connection_status_no_internet)
 
 	val isOffline = connectionState == ConnectionState.Offline || connectionState == ConnectionState.WaitingForConnection
+	val isConnectingStep = !isBlocked && connectionState is ConnectionState.Connecting
 	val currentLabel: String? = when {
 		isBlocked -> blockedLabel
 		phase == MarkerState.NOT_PROTECTED && isOffline -> notProtectedLabel
@@ -318,7 +320,12 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 				}
 				Text(
 					text = (currentLabel ?: "").uppercase(),
-					style = MaterialTheme.typography.labelSmall,
+					// connecting steps sit below the state words: already the smallest label, so lighter weight
+					style = if (isConnectingStep) {
+						MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal)
+					} else {
+						MaterialTheme.typography.labelSmall
+					},
 					color = when {
 						isError -> MaterialTheme.colorScheme.error
 						isConnected -> MaterialTheme.colorScheme.primary
