@@ -62,7 +62,7 @@ default-members = [
 ]
 
 [workspace.package]
-version = "2026.16.0-beta.1"
+version = "2026.17.0-beta.1"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymvpn.com/"
@@ -287,42 +287,42 @@ nym-windows = { path = "crates/nym-windows" }
 test-rpc = { path = "crates/test/test-rpc" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-# nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-# nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-bandwidth-fetcher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi", default-features = false }
-# nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-# nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-lp-data = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-serde-helpers = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+# nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+# nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-bandwidth-fetcher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul", default-features = false }
+# nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+# nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-lp-data = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-serde-helpers = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.22-istanbul" }
 
 nym-bridges = { git = "https://github.com/nymtech/nym-bridges", rev = "f808132033cd5c6e93b45441bec35d98474d6720" }
 nym-bridges-types = { git = "https://github.com/nymtech/nym-bridges", rev = "f808132033cd5c6e93b45441bec35d98474d6720" }

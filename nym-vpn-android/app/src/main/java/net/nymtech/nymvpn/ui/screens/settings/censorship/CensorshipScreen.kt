@@ -7,12 +7,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -21,10 +19,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.screens.settings.censorship.components.AmneziaSection
 import net.nymtech.nymvpn.ui.screens.settings.censorship.components.QuicSection
 import net.nymtech.nymvpn.ui.screens.settings.censorship.components.StealthApiSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -34,24 +30,16 @@ import nym_vpn_lib_types.BridgeMode
 
 @Composable
 fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hiltViewModel()) {
-	val bridgeTransportsEnabled by viewModel.bridgeTransportsEnabled.collectAsStateWithLifecycle()
 	CensorshipScreen(
 		bridgeMode = appUiState.settings.bridgeMode,
 		onBridgeModeSelected = { mode -> viewModel.onBridgeModeSelected(mode) },
-		bridgeTransportsEnabled = bridgeTransportsEnabled,
 		stealthModeEnabled = appUiState.vpnConfig.stealthMode,
 		onStealthModeEnable = { enabled -> viewModel.onStealthModeEnabled(enabled) },
 	)
 }
 
 @Composable
-fun CensorshipScreen(
-	bridgeMode: BridgeMode,
-	onBridgeModeSelected: (BridgeMode) -> Unit,
-	bridgeTransportsEnabled: Boolean = false,
-	stealthModeEnabled: Boolean = false,
-	onStealthModeEnable: (Boolean) -> Unit = {},
-) {
+fun CensorshipScreen(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) -> Unit, stealthModeEnabled: Boolean = false, onStealthModeEnable: (Boolean) -> Unit = {}) {
 	val scrollState = rememberScrollState()
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -73,17 +61,9 @@ fun CensorshipScreen(
 		QuicSection(
 			bridgeMode,
 			onBridgeModeSelected,
-			showBridgeFallback = bridgeTransportsEnabled,
-			shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp),
 			modifier = Modifier
 				.fillMaxWidth()
 				.padding(top = 24.dp),
-		)
-		AmneziaSection(
-			shape = RoundedCornerShape(0.dp, 0.dp, 8.dp, 8.dp),
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(top = 1.dp),
 		)
 		StealthApiSection(
 			isEnabled = stealthModeEnabled,

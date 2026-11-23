@@ -9,6 +9,7 @@ public struct TelemetryOptInCard: View {
     private let title: String
     private let subtitle: String
     @Binding private var isOn: Bool
+    private let isDisabled: Bool
     private let onInfo: () -> Void
 
     public init(
@@ -16,12 +17,14 @@ public struct TelemetryOptInCard: View {
         title: String,
         subtitle: String,
         isOn: Binding<Bool>,
+        isDisabled: Bool = false,
         onInfo: @escaping () -> Void
     ) {
         self.icon = icon
         self.title = title
         self.subtitle = subtitle
         self._isOn = isOn
+        self.isDisabled = isDisabled
         self.onInfo = onInfo
     }
 
@@ -55,6 +58,7 @@ public struct TelemetryOptInCard: View {
             Toggle("", isOn: $isOn)
                 .labelsHidden()
                 .tint(Color.Nym.primary)
+                .disabled(isDisabled)
                 .accessibilityLabel(Text(title))
         }
         .padding(16)

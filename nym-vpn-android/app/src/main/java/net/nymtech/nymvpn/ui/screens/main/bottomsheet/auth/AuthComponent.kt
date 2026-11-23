@@ -113,7 +113,7 @@ fun AuthComponent(
 		composable<AuthRoute.RedeemCode> {
 			val redeemCodeViewModel: RedeemCodeViewModel = hiltViewModel()
 			val redeemCodeUiState by redeemCodeViewModel.uiState.collectAsStateWithLifecycle()
-			val openAcceptedCode = rememberOpenAcceptedCode()
+			val openAcceptedCode = rememberOpenAcceptedCode(accountStored = false)
 			LaunchedEffect(Unit) { redeemCodeViewModel.accepted.collect(openAcceptedCode) }
 			RedeemCodeView(
 				uiState = redeemCodeUiState,
