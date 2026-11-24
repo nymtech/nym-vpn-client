@@ -321,7 +321,7 @@ impl NymVpnServiceCommandSender {
         Ok(self
             .send_and_wait(
                 VpnServiceCommand::CreateAccount,
-                ClientRequest::new(None, ()),
+                ClientRequest::new(None, None),
             )
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)

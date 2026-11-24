@@ -400,7 +400,7 @@ impl NymAccountController {
     /// Generate the account mnemonic locally and store it.
     pub async fn create_account(&self) -> Result<(), VpnError> {
         self.account_command_sender
-            .create_account_command()
+            .create_account_command(None)
             .await
             .map_err(VpnError::from)
     }

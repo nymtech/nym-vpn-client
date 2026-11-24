@@ -721,21 +721,13 @@ impl RpcClient {
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn create_account(&mut self) -> Result<AccountCommandResponse> {
+    pub async fn create_account(
+        &mut self,
+        freepass: Option<String>,
+    ) -> Result<AccountCommandResponse> {
         let response = self
             .0
-            .create_account(())
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-
-        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
-    }
-
-    pub async fn apply_freepass(&mut self, code: String) -> Result<AccountCommandResponse> {
-        let response = self
-            .0
-            .apply_freepass(code)
+            .create_account(proto::CreateAccountRequest { freepass })
             .await
             .map_err(Error::Rpc)?
             .into_inner();

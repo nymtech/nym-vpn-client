@@ -127,11 +127,14 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    #[instrument(skip(self))]
-    pub async fn create_account_command(&self) -> Result<(), AccountCommandError> {
+    #[instrument(skip(self, freepass))]
+    pub async fn create_account_command(
+        &self,
+        freepass: Option<String>,
+    ) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::CreateAccount(tx))
+            .send(AccountCommand::CreateAccount(tx, freepass))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)??;
         Ok(())

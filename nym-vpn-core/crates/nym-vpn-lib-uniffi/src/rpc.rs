@@ -347,17 +347,8 @@ impl RpcClient {
         }
     }
 
-    pub async fn create_account(&self) -> Result<()> {
-        let response = self.inner.clone().create_account().await?;
-        if let Some(err) = response.error {
-            Err(RpcError::from(Arc::new(err)))
-        } else {
-            Ok(())
-        }
-    }
-
-    pub async fn apply_freepass(&self, code: String) -> Result<()> {
-        let response = self.inner.clone().apply_freepass(code).await?;
+    pub async fn create_account(&self, freepass: Option<String>) -> Result<()> {
+        let response = self.inner.clone().create_account(freepass).await?;
         if let Some(err) = response.error {
             Err(RpcError::from(Arc::new(err)))
         } else {

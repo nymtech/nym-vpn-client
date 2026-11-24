@@ -93,22 +93,13 @@ extension GRPCManager {
         }
     }
 
-    public func createAccount() async throws {
+    public func createAccount(freepass: String? = nil) async throws {
         try await authorized { [weak self] in
             guard let rpcClient = await self?.rpcClient else {
                 throw AccountDaemonRefreshError.clientUnavailable
             }
-            try await rpcClient.createAccount()
+            try await rpcClient.createAccount(freepass: freepass)
         }
-    }
-
-    public func applyFreepass(code: String) async throws {
-        try await Task.detached { [weak self] in
-            guard let rpcClient = await self?.rpcClient else {
-                throw AccountDaemonRefreshError.clientUnavailable
-            }
-            try await rpcClient.applyFreepass(code: code)
-        }.value
     }
 
     public func redeemFreepass(code: String) async throws {

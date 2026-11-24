@@ -70,6 +70,7 @@ private extension FreepassManager {
         }
     }
 
+#if os(iOS)
     // An account unknown to the API is registered by redeem, with the pass.
     func applyToStoredAccount(_ code: String) async -> FreepassResult {
         let result = await call { _ = try await $0.applyFreepass(code: code) }
@@ -91,7 +92,6 @@ private extension FreepassManager {
         return result
     }
 
-#if os(iOS)
     // The Rust call can't be cancelled, so it's raced against the timeout.
     func createLocalAccount() async -> Bool {
         await withCheckedContinuation { continuation in
@@ -114,15 +114,13 @@ private extension FreepassManager {
         }
     }
 #elseif os(macOS)
+    func applyToStoredAccount(_ code: String) async -> FreepassResult {
+        await call { try await $0.redeemFreepass(code: code) }
+    }
+
     // The daemon asks the user to confirm, so there's no timeout.
-    func createLocalAccount() async -> Bool {
-        do {
-            try await grpcManager.createAccount()
-            return true
-        } catch {
-            logger.warning("Account creation failed: \(String(describing: type(of: error)))")
-            return false
-        }
+    func createAccount(_ code: String) async -> FreepassResult {
+        await call { try await $0.createAccount(freepass: code) }
     }
 #endif
 
