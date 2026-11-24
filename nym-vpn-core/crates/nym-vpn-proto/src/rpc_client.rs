@@ -197,6 +197,15 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_auto_connect(&mut self, auto_connect: bool) -> Result<()> {
+        self.0
+            .set_auto_connect(auto_connect)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_enable_custom_dns(&mut self, enable: bool) -> Result<()> {
         self.0
             .set_enable_custom_dns(enable)
