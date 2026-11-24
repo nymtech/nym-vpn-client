@@ -36,6 +36,8 @@ jobs:
               'wireguard/libwg/**/*.diff',
               'wireguard/libwg/**/*.mod',
               'wireguard/libwg/**/go.sum',
+              'wireguard/libwg/Android.mk',
+              'wireguard/libwg/build-android.sh',
               'wireguard/build-wireguard-go.sh'
             ) }}
 
