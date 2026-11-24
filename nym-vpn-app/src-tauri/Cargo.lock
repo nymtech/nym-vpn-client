@@ -3042,7 +3042,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -6385,7 +6385,7 @@ dependencies = [
 [[package]]
 name = "nym-bridges-types"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym-bridges?rev=5f31a3e4947ae28b4f256212d624fdcd7be56a5f#5f31a3e4947ae28b4f256212d624fdcd7be56a5f"
+source = "git+https://github.com/nymtech/nym-bridges?rev=b6c34b84b2d8e95864c21ab03ace554b5e675e72#b6c34b84b2d8e95864c21ab03ace554b5e675e72"
 dependencies = [
  "serde",
  "uniffi",
@@ -9554,7 +9554,7 @@ dependencies = [
  "once_cell",
  "socket2 0.6.5",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -10076,7 +10076,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -10168,7 +10168,7 @@ dependencies = [
  "security-framework 3.7.0",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -12251,10 +12251,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.3",
+ "getrandom 0.4.3",
  "once_cell",
  "rustix",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
