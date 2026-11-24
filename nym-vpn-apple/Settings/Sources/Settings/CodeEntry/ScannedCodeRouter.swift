@@ -7,9 +7,9 @@ final class ScannedCodeRouter: QRScanValidator {
     private let pairing: QRScanValidator
     private let freepass: QRScanValidator
 
-    init(pairing: QRScanValidator = PairingQrValidator(), freepass: QRScanValidator = FreepassCodeValidator()) {
-        self.pairing = pairing
-        self.freepass = freepass
+    init() {
+        pairing = PairingQrValidator()
+        freepass = FreepassCodeValidator()
     }
 
     func validate(_ contents: String) async throws -> QRScanValidation {
