@@ -38,7 +38,7 @@ jobs:
         id: cache
         with:
           path: build/lib
-          key: libwg-ios-go${{ env.GOLANG_VERSION }}-${{ hashFiles('.github/workflows/build-wireguard-go-ios.yml', 'wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: libwg-ios-go${{ env.GOLANG_VERSION }}-${{ hashFiles('.github/workflows/build-wireguard-go-ios.yml', 'wireguard/libwg/**/*.go', 'wireguard/libwg/**/*.diff', 'wireguard/libwg/**/*.mod', 'wireguard/libwg/**/*.h', 'wireguard/libwg/**/go.sum', 'wireguard/build-wireguard-go.sh') }}
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
