@@ -11,7 +11,6 @@ fun FreepassError.messageRes(): Int = when (this) {
 	FreepassError.RATE_LIMITED -> R.string.freepass_error_rate_limited
 	FreepassError.OFFLINE -> R.string.freepass_error_offline
 	FreepassError.SUBSCRIPTION_ACTIVE -> R.string.freepass_error_subscription_active
-	FreepassError.ACCOUNT_NOT_REGISTERED,
 	FreepassError.SERVER,
 	FreepassError.UNKNOWN,
 	-> R.string.freepass_error_generic
