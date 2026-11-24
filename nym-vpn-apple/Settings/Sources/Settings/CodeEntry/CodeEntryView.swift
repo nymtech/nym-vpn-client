@@ -16,12 +16,12 @@ public struct CodeEntryView: View {
     @ObservedObject private var pairingManager = PairingManager.shared
     @State private var step: Step
     @State private var isTypedEntryPresented = false
-    @State private var validator: ScannedCodeValidator
+    @State private var validator: ScannedCodeRouter
     @State private var redeemViewModel: RedeemCodeViewModel
 
     public init(startsWithScanner: Bool, onFinish: @escaping (CodeEntryOutcome) -> Void) {
         self.onFinish = onFinish
-        let validator = ScannedCodeValidator()
+        let validator = ScannedCodeRouter()
         _validator = State(wrappedValue: validator)
         _redeemViewModel = State(wrappedValue: RedeemCodeViewModel(validator: validator))
         _step = State(wrappedValue: startsWithScanner && QRScanner.isSupported ? .scanner : .typedEntry)

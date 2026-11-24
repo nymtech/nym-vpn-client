@@ -138,7 +138,7 @@ pub enum AccountCommandError {
     #[error("rate limited")]
     RateLimited,
 
-    /// The free pass code doesn't exist.
+    /// The free pass code is malformed, unknown or can't be redeemed.
     #[error("invalid free pass")]
     FreepassInvalid,
 

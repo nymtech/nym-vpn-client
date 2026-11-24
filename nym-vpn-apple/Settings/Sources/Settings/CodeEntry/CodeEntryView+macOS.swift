@@ -8,7 +8,7 @@ public struct CodeEntryView: View {
 
     public init(onFinish: @escaping (CodeEntryOutcome) -> Void) {
         self.onFinish = onFinish
-        _redeemViewModel = State(wrappedValue: RedeemCodeViewModel(validator: ScannedCodeValidator()))
+        _redeemViewModel = State(wrappedValue: RedeemCodeViewModel(validator: FreepassCodeValidator()))
     }
 
     public var body: some View {
