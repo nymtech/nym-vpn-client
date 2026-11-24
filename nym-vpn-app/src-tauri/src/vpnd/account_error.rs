@@ -81,6 +81,15 @@ impl From<lib::AccountCommandError> for BackendError {
                 BackendError::internal_with_detail("failed to derive pairing shared secret", e)
             }
             lib::AccountCommandError::RateLimited => BackendError::internal("rate limited", None),
+            lib::AccountCommandError::FreepassInvalid => {
+                BackendError::internal("invalid free pass", None)
+            }
+            lib::AccountCommandError::FreepassAlreadyRedeemed => {
+                BackendError::internal("free pass already redeemed", None)
+            }
+            lib::AccountCommandError::SubscriptionAlreadyActive => {
+                BackendError::internal("subscription already active", None)
+            }
         }
     }
 }

@@ -804,6 +804,9 @@ message AccountCommandError {
     bool no_pairing_shared_secret = 22;
     string pairing_deriving_shared_secret = 23;
     bool rate_limited = 24;
+    bool freepass_invalid = 25;
+    bool freepass_already_redeemed = 26;
+    bool subscription_already_active = 27;
   }
 }
 

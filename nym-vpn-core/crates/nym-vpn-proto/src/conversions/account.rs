@@ -84,6 +84,13 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
                 Self::PairingDerivingSharedSecret(err)
             }
             proto::account_command_error::ErrorDetail::RateLimited(_) => Self::RateLimited,
+            proto::account_command_error::ErrorDetail::FreepassInvalid(_) => Self::FreepassInvalid,
+            proto::account_command_error::ErrorDetail::FreepassAlreadyRedeemed(_) => {
+                Self::FreepassAlreadyRedeemed
+            }
+            proto::account_command_error::ErrorDetail::SubscriptionAlreadyActive(_) => {
+                Self::SubscriptionAlreadyActive
+            }
         })
     }
 }
@@ -234,6 +241,21 @@ impl From<AccountCommandError> for proto::AccountCommandError {
             },
             AccountCommandError::RateLimited => proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::RateLimited(true)),
+            },
+            AccountCommandError::FreepassInvalid => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::FreepassInvalid(
+                    true,
+                )),
+            },
+            AccountCommandError::FreepassAlreadyRedeemed => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::FreepassAlreadyRedeemed(true),
+                ),
+            },
+            AccountCommandError::SubscriptionAlreadyActive => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::SubscriptionAlreadyActive(true),
+                ),
             },
             // Reported as an `Unauthenticated` status instead.
             error @ AccountCommandError::UserPresenceRequired => proto::AccountCommandError {

@@ -116,6 +116,12 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountControllerError(details: "failed to derive pairing shared secret: \(details)")
         case .RateLimited:
             self = .accountControllerError(details: "rate limited")
+        case .FreepassInvalid:
+            self = .accountControllerError(details: "invalid free pass")
+        case .FreepassAlreadyRedeemed:
+            self = .accountControllerError(details: "free pass already redeemed")
+        case .SubscriptionAlreadyActive:
+            self = .accountControllerError(details: "subscription already active")
         case let .InitLogs(details: details):
             self = .initLogs(details: details)
         case let .DeeplinkError(details: details):

@@ -113,6 +113,15 @@ pub enum VpnError {
 
     #[error("rate limited")]
     RateLimited,
+
+    #[error("invalid free pass")]
+    FreepassInvalid,
+
+    #[error("free pass already redeemed")]
+    FreepassAlreadyRedeemed,
+
+    #[error("subscription already active")]
+    SubscriptionAlreadyActive,
 }
 
 impl From<HttpClientError> for VpnError {
@@ -167,6 +176,9 @@ impl From<AccountCommandError> for VpnError {
                 Self::PairingDerivingSharedSecret { details: err }
             }
             AccountCommandError::RateLimited => Self::RateLimited,
+            AccountCommandError::FreepassInvalid => Self::FreepassInvalid,
+            AccountCommandError::FreepassAlreadyRedeemed => Self::FreepassAlreadyRedeemed,
+            AccountCommandError::SubscriptionAlreadyActive => Self::SubscriptionAlreadyActive,
         }
     }
 }

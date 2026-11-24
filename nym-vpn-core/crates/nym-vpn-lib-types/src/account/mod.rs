@@ -136,6 +136,15 @@ pub enum AccountCommandError {
 
     #[error("rate limited")]
     RateLimited,
+
+    #[error("invalid free pass")]
+    FreepassInvalid,
+
+    #[error("free pass already redeemed")]
+    FreepassAlreadyRedeemed,
+
+    #[error("subscription already active")]
+    SubscriptionAlreadyActive,
 }
 
 impl AccountCommandError {
@@ -238,6 +247,13 @@ impl From<nym_vpn_api_client::error::VpnApiClientError> for AccountCommandError 
         }
         // TODO: Another example of losing information about the original error cause
         match NymErrorResponse::try_from(err) {
+            Ok(err) if err.is_freepass_invalid() => AccountCommandError::FreepassInvalid,
+            Ok(err) if err.is_freepass_already_redeemed() => {
+                AccountCommandError::FreepassAlreadyRedeemed
+            }
+            Ok(err) if err.is_subscription_already_active() => {
+                AccountCommandError::SubscriptionAlreadyActive
+            }
             Ok(err) => AccountCommandError::VpnApi(VpnApiError::Response(err.into())),
             Err(e) => AccountCommandError::Internal(e.to_string()),
         }

@@ -701,9 +701,29 @@ impl NymErrorResponse {
     }
 
     pub fn is_rate_limited(&self) -> bool {
+        self.message_id_ends_with(&["rate_limit_exceeded"])
+    }
+
+    pub fn is_freepass_invalid(&self) -> bool {
+        self.message_id_ends_with(&["redeem-freepass.invalid", "apply-freepass.invalid-code"])
+    }
+
+    pub fn is_freepass_already_redeemed(&self) -> bool {
+        self.message_id_ends_with(&[
+            "redeem-freepass.already-redeemed",
+            "apply-freepass.already-redeemed",
+        ])
+    }
+
+    pub fn is_subscription_already_active(&self) -> bool {
+        self.message_id_ends_with(&["create-subscription.subscription-already-exists"])
+    }
+
+    // The API prefixes message IDs with the service name.
+    fn message_id_ends_with(&self, ids: &[&str]) -> bool {
         self.message_id
             .as_deref()
-            .is_some_and(|id| id.ends_with("rate_limit_exceeded"))
+            .is_some_and(|message_id| ids.iter().any(|id| message_id.ends_with(id)))
     }
 }
 
