@@ -77,7 +77,7 @@ public final class PairingManager: ObservableObject {
             await manager.cancelActiveSession()
             do {
                 let confirmation = try await manager.credentialsManager.scannedPairingKey(publicKey)
-                manager.state = .waitingForApproval(pin: confirmation.pinCode, sessionId: confirmation.sessionId)
+                manager.state = .waitingForCode(sessionId: confirmation.sessionId)
                 return .success(confirmation.sessionId)
             } catch {
                 manager.state = .idle
@@ -150,13 +150,24 @@ private extension PairingManager {
         logger.info("Pairing event in \(state)")
         switch event.result {
         case let .pinCode(pin):
-            guard case let .showingCode(_, sessionId, _) = state else { return }
-            state = .confirmCode(pin: pin, sessionId: sessionId)
+            switch state {
+            case let .showingCode(_, sessionId, _):
+                state = .confirmCode(pin: pin, sessionId: sessionId)
+            case let .waitingForCode(sessionId):
+                state = .waitingForApproval(pin: pin, sessionId: sessionId)
+            default:
+                return
+            }
         case .storedMnemonic:
-            guard case .waitingForApproval = state else { return }
-            // Login processing registers this device.
-            await credentialsManager.closePairingController()
-            state = .signedIn
+            // The PIN is skipped if the other device approves before this one polls.
+            switch state {
+            case .waitingForCode, .waitingForApproval:
+                // Login processing registers this device.
+                await credentialsManager.closePairingController()
+                state = .signedIn
+            default:
+                return
+            }
         case .timedOut:
             await credentialsManager.closePairingController()
             state = .expired

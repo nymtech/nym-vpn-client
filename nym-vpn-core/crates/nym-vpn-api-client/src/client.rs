@@ -18,8 +18,8 @@ use nym_http_api_client::{
 };
 use nym_qr_pairing_requests::{
     NymVpnGetPairingSecretResponse, NymVpnPairingCheckResponse, NymVpnPairingResponse,
-    PairAccountRequestBody, PairingCheckRequestBody, SharePairSecretBody,
-    TryToGetSecretRequestBody, TryToPairRequestBody,
+    PairAccountRequestBody, PairingCheckRequestBody, PairingConfirmPinRequestBody,
+    SharePairSecretBody, TryToGetSecretRequestBody, TryToPairRequestBody,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use time::{
@@ -689,17 +689,51 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::CheckPairingAccount)
     }
 
+    pub async fn confirm_pin(
+        &self,
+        account: &VpnAccount,
+        qr_pub_key: &str,
+        enc_pin_code: Vec<u8>,
+        nonce: Vec<u8>,
+    ) -> Result<StatusOk> {
+        let request = PairingConfirmPinRequestBody {
+            account_id: account.id(),
+            pubkey: qr_pub_key.to_string(),
+            enc_pin_code,
+            nonce,
+        };
+
+        self.post_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::PAIRING,
+                routes::CONFIRM_PIN,
+            ],
+            &request,
+            Authorization::default().account(account),
+        )
+        .await
+        .inspect_err(|e| tracing::error!("Failed to confirm pairing account PIN: {e:?}"))
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::ConfirmPairingPinAccount)
+    }
+
     pub async fn try_to_pair_to_account(
         &self,
         remote_qr_pub_key: &str,
         local_qr_pub_key: &str,
-        pin_code: &str,
+        encrypted_pin_code: &[u8],
+        nonce: &[u8],
         token: &str,
     ) -> Result<NymVpnPairingResponse> {
         let request = TryToPairRequestBody {
             remote_pubkey: remote_qr_pub_key.to_string(),
             own_pubkey: local_qr_pub_key.to_string(),
-            pin_code: pin_code.to_string(),
+            encrypted_pin_code: encrypted_pin_code.to_vec(),
+            nonce: nonce.to_vec(),
             token: token.to_string(),
         };
 
