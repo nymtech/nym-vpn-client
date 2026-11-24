@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- QR sign-in: the scanning device shows the pairing code once the signed-in device confirms it got the same one (https://github.com/nymtech/nym-vpn-client/pull/7193)
+- QR sign-in: take PIN code from event stream instead of return value of library call (https://github.com/nymtech/nym-vpn-client/pull/7193)
 
 ## [2026.16.0] - 2026-11-18
 
