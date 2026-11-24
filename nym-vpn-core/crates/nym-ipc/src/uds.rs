@@ -23,35 +23,6 @@ pub struct Uds {
     inner: UnixListenerStream,
 }
 
-async fn ensure_no_other_listener(socket_path: &Path) -> Result<()> {
-    match UnixStream::connect(socket_path).await {
-        Ok(_) => Err(Error::new(
-            ErrorKind::AddrInUse,
-            format!(
-                "Another instance is already listening on {}",
-                socket_path.display()
-            ),
-        )),
-        Err(_) => Ok(()),
-    }
-}
-
-async fn remove_previous_socket_file(socket_path: &Path) {
-    match tokio::fs::remove_file(socket_path).await {
-        Ok(_) => tracing::info!(
-            "Removed previous command interface socket: {}",
-            socket_path.display()
-        ),
-        Err(err) if err.kind() == ErrorKind::NotFound => {}
-        Err(err) => {
-            tracing::error!(
-                "Failed to remove previous command interface socket: {:?}",
-                err
-            );
-        }
-    }
-}
-
 impl Drop for Uds {
     fn drop(&mut self) {
         if let Ok(()) = fs::remove_file(&self.socket_path) {
@@ -89,6 +60,35 @@ pub async fn incoming(
     };
 
     Ok(authentication::incoming(uds, auth_material))
+}
+
+async fn ensure_no_other_listener(socket_path: &Path) -> Result<()> {
+    match UnixStream::connect(socket_path).await {
+        Ok(_) => Err(Error::new(
+            ErrorKind::AddrInUse,
+            format!(
+                "Another instance is already listening on {}",
+                socket_path.display()
+            ),
+        )),
+        Err(_) => Ok(()),
+    }
+}
+
+async fn remove_previous_socket_file(socket_path: &Path) {
+    match tokio::fs::remove_file(socket_path).await {
+        Ok(_) => tracing::info!(
+            "Removed previous command interface socket: {}",
+            socket_path.display()
+        ),
+        Err(err) if err.kind() == ErrorKind::NotFound => {}
+        Err(err) => {
+            tracing::error!(
+                "Failed to remove previous command interface socket: {:?}",
+                err
+            );
+        }
+    }
 }
 
 #[cfg(test)]
