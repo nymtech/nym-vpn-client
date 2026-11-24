@@ -25,9 +25,8 @@ use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
     AccountControllerState, AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    NymVpnSubscription, QrPairingConfirmation, QrUrl, RegisterAccountRequest,
-    RegisterAccountResponse, StorableAccount, StoreAccountRequest, StoredAccountMode, TunnelEvent,
-    UserAgent, VpnAccountSummary,
+    QrPairingConfirmation, QrUrl, RegisterAccountRequest, RegisterAccountResponse, StorableAccount,
+    StoreAccountRequest, StoredAccountMode, TunnelEvent, UserAgent, VpnAccountSummary,
 };
 
 struct State {
@@ -333,10 +332,9 @@ impl NymAccountController {
             .map_err(VpnError::from)
     }
 
-    /// Redeems a free pass code on the signed-in account and returns the subscription it grants.
-    /// The account state is refreshed afterwards.
-    pub async fn apply_freepass(&self, code: String) -> Result<NymVpnSubscription, VpnError> {
-        let subscription = self.account_command_sender.apply_freepass(code).await?;
+    /// Redeems a free pass code on the signed-in account, then refreshes the account state.
+    pub async fn apply_freepass(&self, code: String) -> Result<(), VpnError> {
+        self.account_command_sender.apply_freepass(code).await?;
         if let Err(err) = self
             .account_command_sender
             .refresh_account_state(true)
@@ -344,7 +342,7 @@ impl NymAccountController {
         {
             tracing::warn!("Failed to refresh account after applying free pass: {err}");
         }
-        Ok(subscription)
+        Ok(())
     }
 
     /// Creates the stored account on the API with the free pass applied. The account state is

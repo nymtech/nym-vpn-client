@@ -56,10 +56,10 @@ use nym_vpn_lib_types::{
     DiagnosticRunParams, DnsServer, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags,
     Gateway, GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters,
     MixnetTrafficConfig, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork,
-    NymVpnSubscription, NymVpnUsage, ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl,
-    RecentGateways, RegistrationReport, StorableAccount, StoreAccountRequest, StoredAccountMode,
-    SystemMessage, TargetState, TentativeGateways, TunnelEvent, TunnelState, TunnelType,
-    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    NymVpnUsage, ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways,
+    RegistrationReport, StorableAccount, StoreAccountRequest, StoredAccountMode, SystemMessage,
+    TargetState, TentativeGateways, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -249,10 +249,7 @@ pub enum VpnServiceCommand {
     ),
     HandleSubscriptionPayment(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     IsTrialEligible(oneshot::Sender<Result<bool, AccountCommandError>>, ()),
-    ApplyFreepass(
-        oneshot::Sender<Result<NymVpnSubscription, AccountCommandError>>,
-        String,
-    ),
+    ApplyFreepass(oneshot::Sender<Result<(), AccountCommandError>>, String),
     RedeemFreepass(oneshot::Sender<Result<(), AccountCommandError>>, String),
     GetDeeplink(
         oneshot::Sender<Result<String, AccountCommandError>>,
@@ -2446,7 +2443,7 @@ impl NymVpnService {
 
     fn handle_apply_freepass(
         &self,
-        completion_tx: oneshot::Sender<Result<NymVpnSubscription, AccountCommandError>>,
+        completion_tx: oneshot::Sender<Result<(), AccountCommandError>>,
         code: String,
     ) {
         let account_command_tx = self.account_command_tx.clone();

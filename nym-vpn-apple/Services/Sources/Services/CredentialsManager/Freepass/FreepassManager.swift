@@ -73,7 +73,7 @@ private extension FreepassManager {
 #if os(iOS)
     // An account unknown to the API is registered by redeem, with the pass.
     func applyToStoredAccount(_ code: String) async -> FreepassResult {
-        let result = await call { _ = try await $0.applyFreepass(code: code) }
+        let result = await call { try await $0.applyFreepass(code: code) }
         guard result == .failed(.accountNotRegistered) else { return result }
         return await call { try await $0.redeemFreepass(code: code) }
     }

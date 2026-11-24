@@ -67,7 +67,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                         }
                     }
                     AccountCommand::StoreAccount(return_sender, storable_account) => {
-                        return if let Err(e) = handler::handle_store_account(shared_state, storable_account).await{
+                        return if let Err(e) = handler::handle_store_account(shared_state, storable_account).await {
                             return_sender.send(Err(e));
                             NextAccountControllerState::SameState(self)
                         } else {

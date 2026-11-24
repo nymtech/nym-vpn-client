@@ -1036,11 +1036,9 @@ impl NymVpnService for CommandInterface {
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
         let code = request.into_inner();
 
-        // The subscription arrives with the account refresh.
         let result = self
             .send_and_wait(VpnServiceCommand::ApplyFreepass, code)
-            .await?
-            .map(|_| ());
+            .await?;
 
         account_command_response(result)
     }

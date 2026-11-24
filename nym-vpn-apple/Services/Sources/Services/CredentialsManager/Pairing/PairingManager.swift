@@ -47,7 +47,7 @@ public final class PairingManager: ObservableObject {
             Task { @MainActor in await self?.endActiveSession() }
         }
 #elseif os(macOS)
-        eventsTask = Task { [weak self, events = GRPCManager.shared.pairingEvents] in
+        eventsTask = Task { [weak self, events = GRPCManager.shared.subscribeForPairingEvents()] in
             for await event in events {
                 await self?.serialized { await $0.onEvent(event) }
             }

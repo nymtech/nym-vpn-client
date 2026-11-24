@@ -61,7 +61,6 @@ extension CredentialsManager {
 import GRPCManager
 import NymVPNLib
 
-// The daemon owns the session, so there's no controller to close.
 extension CredentialsManager {
     func startPairing() async throws -> QrUrl {
         try await GRPCManager.shared.startPairing()
@@ -75,6 +74,7 @@ extension CredentialsManager {
         try await GRPCManager.shared.cancelPairingProcess()
     }
 
+    // The daemon owns the session, so there's no controller to close.
     func closePairingController() async {}
 }
 #endif

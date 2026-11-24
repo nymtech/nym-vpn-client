@@ -8,8 +8,8 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, NymVpnSubscription, QrPairingConfirmation, QrUrl,
-    RegisterAccountResponse, StorableAccount, StoredAccountMode, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, QrPairingConfirmation, QrUrl, RegisterAccountResponse,
+    StorableAccount, StoredAccountMode, VpnAccountSummary,
 };
 use tokio::sync::oneshot;
 
@@ -178,11 +178,8 @@ pub enum CommonCommand {
         String,
     ),
 
-    /// Redeems a free pass code on the account and returns the subscription it grants.
-    ApplyFreepass(
-        ReturnSender<NymVpnSubscription, AccountCommandError>,
-        String,
-    ),
+    /// Redeems a free pass code on the account. The subscription arrives with the next sync.
+    ApplyFreepass(ReturnSender<(), AccountCommandError>, String),
 
     /// Return the deeplink URL for the specfied deeplink kind and name
     GetDeeplink(
