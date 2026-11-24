@@ -24,24 +24,26 @@ thread_local! {
 /// Local authentication shared by the secure enclave keys and the protected keychain items.
 ///
 /// All operations requiring the authentication context run on a single worker thread. Clones
-/// share the worker and the authentication state, so that a single [`Self::unlock`] grants access
-/// to all of them.
+/// share the worker and the authentication state, so that a single [`Self::authorize`] grants
+/// access to all of them.
 #[derive(Clone)]
 pub struct LocalAuthentication {
     pool: LocalPoolHandle,
 }
 
-impl LocalAuthentication {
-    #[expect(clippy::new_without_default)]
-    pub fn new() -> Self {
+impl Default for LocalAuthentication {
+    fn default() -> Self {
         Self {
             pool: LocalPoolHandle::new(1),
         }
     }
+}
 
+impl LocalAuthentication {
     /// Authenticate the device owner once, so that items requiring user presence can be used
-    /// without prompting until [`Self::lock`] is called. The `reason` is shown to the user.
-    pub async fn unlock(&self, reason: &str) -> Result<()> {
+    /// without prompting until [`Self::deauthorize`] is called. Always prompts, replacing any
+    /// previously obtained authentication. The `reason` is shown to the user.
+    pub async fn authorize(&self, reason: &str) -> Result<()> {
         let reason = reason.to_owned();
         self.pool
             .spawn_pinned(move || async move { unlock_with_local_authentication(&reason).await })
@@ -49,8 +51,8 @@ impl LocalAuthentication {
             .map_err(|_| worker_panic())?
     }
 
-    /// Revoke the authentication obtained with [`Self::unlock`].
-    pub async fn lock(&self) -> Result<()> {
+    /// Revoke the authentication obtained with [`Self::authorize`].
+    pub async fn deauthorize(&self) -> Result<()> {
         self.run(|state| state.lock()).await
     }
 

@@ -135,7 +135,7 @@ mod tests {
     const TEST_SERVICE: &str = "net.nymtech.vpn.tests.keychain-keys";
 
     fn keychain_item(account: &str) -> KeychainItem {
-        Keychain::new(LocalAuthentication::new(), None).item(
+        Keychain::new(LocalAuthentication::default(), None).item(
             TEST_SERVICE,
             account,
             KeychainAccess::AfterFirstUnlock,

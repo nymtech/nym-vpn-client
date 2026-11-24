@@ -63,7 +63,7 @@ impl KeychainError {
 pub enum KeychainAccess {
     /// Accessible after the first unlock, so the tunnel can start while the device is locked.
     AfterFirstUnlock,
-    /// Readable only with the authentication obtained by [`LocalAuthentication::unlock`], and
+    /// Readable only with the authentication obtained by [`LocalAuthentication::authorize`], and
     /// only while the device is unlocked.
     UserPresence,
 }
@@ -330,7 +330,7 @@ mod tests {
     #[tokio::test]
     #[ignore = "requires keychain entitlements"]
     async fn sets_adds_and_deletes() {
-        let item = Keychain::new(LocalAuthentication::new(), None).item(
+        let item = Keychain::new(LocalAuthentication::default(), None).item(
             "net.nymtech.vpn.tests.keychain-item",
             "test",
             KeychainAccess::AfterFirstUnlock,

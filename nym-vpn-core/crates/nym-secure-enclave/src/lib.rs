@@ -44,7 +44,7 @@ pub use secure_enclave::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(target_os = "android", derive(uniffi::Error))]
+#[cfg_attr(any(target_os = "android", target_os = "ios"), derive(uniffi::Error))]
 pub enum SecureEnclaveError {
     #[error("Authentication failed")]
     AuthenticationFailed,
@@ -103,5 +103,5 @@ pub trait SecureEnclaveProvider {
     async fn lock(&self) -> Result<()>;
 }
 
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 uniffi::setup_scaffolding!();

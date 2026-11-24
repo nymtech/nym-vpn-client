@@ -18,7 +18,7 @@ zeroize.workspace = true
 tracing.workspace = true
 typed-builder.workspace = true
 
-[target.'cfg(target_os = "android")'.dependencies]
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
 uniffi.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]

@@ -171,11 +171,11 @@ impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
     }
 
     async fn unlock(&self, reason: &str) -> Result<()> {
-        self.auth.unlock(reason).await
+        self.auth.authorize(reason).await
     }
 
     async fn lock(&self) -> Result<()> {
-        self.auth.lock().await
+        self.auth.deauthorize().await
     }
 }
 

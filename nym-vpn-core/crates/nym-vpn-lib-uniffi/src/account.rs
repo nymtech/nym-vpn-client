@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor,
+    environment::NymEnvironment, error::VpnError,
+    local_authentication::shared_local_authentication, offline_monitor::NymOfflineMonitor,
     vpn_service::TunnelStatusListener,
 };
 
@@ -60,7 +61,7 @@ impl NymAccountController {
         let network_name = network_env.network_name();
         let storage_path = data_dir.join(&network_name);
         let keychain = nym_secure_enclave::Keychain::new(
-            nym_secure_enclave::LocalAuthentication::new(),
+            shared_local_authentication(),
             nym_vpn_lib::storage::KEYCHAIN_ACCESS_GROUP,
         );
         let storage_config = StorageConfig::builder()

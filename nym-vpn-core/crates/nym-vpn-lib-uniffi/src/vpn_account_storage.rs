@@ -26,7 +26,10 @@ use nym_vpn_store::{
     mnemonic::{MnemonicStorage, StoredMnemonic},
 };
 
-use crate::{NymEnvironment, VpnError, deeplink::NymDeeplinkMnemonic};
+use crate::{
+    NymEnvironment, VpnError, deeplink::NymDeeplinkMnemonic,
+    local_authentication::shared_local_authentication,
+};
 
 /// Raw API that directly accesses storage without going through the account controller.
 /// This API places the responsibility of ensuring the account controller is not running on
@@ -54,7 +57,7 @@ impl NymVpnAccountStorage {
         let network_name = environment.network_name();
         let storage_path = data_dir.join(&network_name);
         let keychain = nym_secure_enclave::Keychain::new(
-            nym_secure_enclave::LocalAuthentication::new(),
+            shared_local_authentication(),
             nym_vpn_lib::storage::KEYCHAIN_ACCESS_GROUP,
         );
         let storage_config = StorageConfig::builder()

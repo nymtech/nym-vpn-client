@@ -579,7 +579,7 @@ impl NymVpnService {
             .map_err(Error::PathsSetup)?;
 
         #[cfg(any(target_os = "ios", target_os = "macos"))]
-        let local_auth = nym_secure_enclave::LocalAuthentication::new();
+        let local_auth = nym_secure_enclave::LocalAuthentication::default();
         #[cfg(any(target_os = "ios", target_os = "macos"))]
         let keychain = nym_secure_enclave::Keychain::new(
             local_auth.clone(),

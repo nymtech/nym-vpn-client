@@ -12,7 +12,7 @@ pub struct Keychain {
 
 impl Keychain {
     /// Items requiring [`KeychainAccess::UserPresence`] are accessed with the authentication
-    /// obtained by [`LocalAuthentication::unlock`] on `auth`.
+    /// obtained by [`LocalAuthentication::authorize`] on `auth`.
     ///
     /// Processes sharing the items, such as an app and its network extension, must use the same
     /// `access_group`. Without one, items go to the default access group of the process.
