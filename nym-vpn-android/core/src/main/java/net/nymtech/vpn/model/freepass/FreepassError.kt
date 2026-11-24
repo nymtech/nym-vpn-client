@@ -19,7 +19,7 @@ enum class FreepassError {
 		prefixes = listOf(
 			"Error: invalid free pass" to INVALID_CODE,
 			"Error: free pass already redeemed" to ALREADY_REDEEMED,
-			"Error: subscription already active" to SUBSCRIPTION_ACTIVE,
+			"Error: recurring subscription active" to SUBSCRIPTION_ACTIVE,
 			"Error: rate limited" to RATE_LIMITED,
 		),
 	)

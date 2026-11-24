@@ -48,7 +48,7 @@ struct FreepassCodeTests {
     @Test func mapsCoreErrors() {
         #expect(FreepassError(VpnError.FreepassInvalid) == .invalidCode)
         #expect(FreepassError(VpnError.FreepassAlreadyRedeemed) == .alreadyRedeemed)
-        #expect(FreepassError(VpnError.SubscriptionAlreadyActive) == .subscriptionActive)
+        #expect(FreepassError(VpnError.RecurringSubscriptionActive) == .subscriptionActive)
         #expect(FreepassError(VpnError.RateLimited) == .rateLimited)
         #expect(FreepassError(VpnError.VpnApiTimeout) == .server)
     }

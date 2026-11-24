@@ -177,7 +177,7 @@ extension FreepassError {
             self = .invalidCode
         case .FreepassAlreadyRedeemed:
             self = .alreadyRedeemed
-        case .SubscriptionAlreadyActive:
+        case .RecurringSubscriptionActive:
             self = .subscriptionActive
         case .RateLimited:
             self = .rateLimited
@@ -200,7 +200,7 @@ extension FreepassError {
             self = .invalidCode
         case .FreepassAlreadyRedeemed:
             self = .alreadyRedeemed
-        case .SubscriptionAlreadyActive:
+        case .RecurringSubscriptionActive:
             self = .subscriptionActive
         case .RateLimited:
             self = .rateLimited

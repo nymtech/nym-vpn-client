@@ -806,7 +806,7 @@ message AccountCommandError {
     bool rate_limited = 24;
     bool freepass_invalid = 25;
     bool freepass_already_redeemed = 26;
-    bool subscription_already_active = 27;
+    bool recurring_subscription_active = 27;
   }
 }
 

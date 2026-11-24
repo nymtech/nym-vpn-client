@@ -120,8 +120,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountControllerError(details: "invalid free pass")
         case .FreepassAlreadyRedeemed:
             self = .accountControllerError(details: "free pass already redeemed")
-        case .SubscriptionAlreadyActive:
-            self = .accountControllerError(details: "subscription already active")
+        case .RecurringSubscriptionActive:
+            self = .accountControllerError(details: "recurring subscription active")
         case let .InitLogs(details: details):
             self = .initLogs(details: details)
         case let .DeeplinkError(details: details):

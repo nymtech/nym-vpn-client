@@ -227,6 +227,5 @@ impl VpnApiClientError {
         self.http_client_error()
             .and_then(HttpClientError::status_code)
             .is_some_and(|status| status.as_u16() == 429)
-            || crate::response::extract_error_response(self).is_some_and(|e| e.is_rate_limited())
     }
 }

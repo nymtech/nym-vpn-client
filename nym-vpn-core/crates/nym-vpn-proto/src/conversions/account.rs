@@ -88,8 +88,8 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::FreepassAlreadyRedeemed(_) => {
                 Self::FreepassAlreadyRedeemed
             }
-            proto::account_command_error::ErrorDetail::SubscriptionAlreadyActive(_) => {
-                Self::SubscriptionAlreadyActive
+            proto::account_command_error::ErrorDetail::RecurringSubscriptionActive(_) => {
+                Self::RecurringSubscriptionActive
             }
         })
     }
@@ -252,9 +252,9 @@ impl From<AccountCommandError> for proto::AccountCommandError {
                     proto::account_command_error::ErrorDetail::FreepassAlreadyRedeemed(true),
                 ),
             },
-            AccountCommandError::SubscriptionAlreadyActive => proto::AccountCommandError {
+            AccountCommandError::RecurringSubscriptionActive => proto::AccountCommandError {
                 error_detail: Some(
-                    proto::account_command_error::ErrorDetail::SubscriptionAlreadyActive(true),
+                    proto::account_command_error::ErrorDetail::RecurringSubscriptionActive(true),
                 ),
             },
             // Reported as an `Unauthenticated` status instead.

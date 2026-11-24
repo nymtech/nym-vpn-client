@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Account commands return `RateLimited`, `FreepassInvalid`, `FreepassAlreadyRedeemed` and `SubscriptionAlreadyActive` errors instead of raw vpn-api errors (https://github.com/nymtech/nym-vpn-client/pull/7197)
+- Account commands return `RateLimited`, `FreepassInvalid`, `FreepassAlreadyRedeemed` and `RecurringSubscriptionActive` errors instead of raw vpn-api errors (https://github.com/nymtech/nym-vpn-client/pull/7197)
 
 ### Fixed
 

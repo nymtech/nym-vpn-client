@@ -134,17 +134,21 @@ pub enum AccountCommandError {
     #[error("user presence required")]
     UserPresenceRequired,
 
+    /// The vpn-api refused the request because too many were sent.
     #[error("rate limited")]
     RateLimited,
 
+    /// The free pass code doesn't exist.
     #[error("invalid free pass")]
     FreepassInvalid,
 
+    /// The free pass code was already used.
     #[error("free pass already redeemed")]
     FreepassAlreadyRedeemed,
 
-    #[error("subscription already active")]
-    SubscriptionAlreadyActive,
+    /// The account has an active recurring subscription, so a free pass can't be applied.
+    #[error("recurring subscription active")]
+    RecurringSubscriptionActive,
 }
 
 impl AccountCommandError {
@@ -251,8 +255,8 @@ impl From<nym_vpn_api_client::error::VpnApiClientError> for AccountCommandError 
             Ok(err) if err.is_freepass_already_redeemed() => {
                 AccountCommandError::FreepassAlreadyRedeemed
             }
-            Ok(err) if err.is_subscription_already_active() => {
-                AccountCommandError::SubscriptionAlreadyActive
+            Ok(err) if err.is_recurring_subscription_active() => {
+                AccountCommandError::RecurringSubscriptionActive
             }
             Ok(err) => AccountCommandError::VpnApi(VpnApiError::Response(err.into())),
             Err(e) => AccountCommandError::Internal(e.to_string()),

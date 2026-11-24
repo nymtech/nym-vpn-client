@@ -87,8 +87,8 @@ impl From<lib::AccountCommandError> for BackendError {
             lib::AccountCommandError::FreepassAlreadyRedeemed => {
                 BackendError::internal("free pass already redeemed", None)
             }
-            lib::AccountCommandError::SubscriptionAlreadyActive => {
-                BackendError::internal("subscription already active", None)
+            lib::AccountCommandError::RecurringSubscriptionActive => {
+                BackendError::internal("recurring subscription active", None)
             }
         }
     }

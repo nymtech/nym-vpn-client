@@ -12,7 +12,7 @@ class FreepassErrorTest {
 		mapOf(
 			"Error: invalid free pass" to FreepassError.INVALID_CODE,
 			"Error: free pass already redeemed" to FreepassError.ALREADY_REDEEMED,
-			"Error: subscription already active" to FreepassError.SUBSCRIPTION_ACTIVE,
+			"Error: recurring subscription active" to FreepassError.SUBSCRIPTION_ACTIVE,
 			"Error: rate limited" to FreepassError.RATE_LIMITED,
 			apiError("Failed to redeem freepass", "redeem-freepass.failed") to FreepassError.SERVER,
 			"Error: vpn-api error\nCaused by: 500 Internal Server Error" to FreepassError.SERVER,
