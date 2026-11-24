@@ -244,10 +244,27 @@ async fn handle_apply_freepass<C: ConnectivityMonitor>(
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
-    let subscription = shared_state
+    let subscription = match shared_state
         .vpn_api_client
-        .apply_freepass(account, code)
-        .await?;
+        .apply_freepass(account, code.clone())
+        .await
+    {
+        Ok(subscription) => subscription,
+        // An account the API hasn't seen yet is registered by redeeming the pass instead.
+        Err(err) if err.is_account_not_found() => {
+            shared_state
+                .vpn_api_client
+                .redeem_freepass(account, code)
+                .await?;
+            shared_state
+                .vpn_api_client
+                .get_active_subscriptions(account)
+                .await?
+                .subscription
+                .ok_or_else(|| AccountCommandError::internal("No subscription after redeeming"))?
+        }
+        Err(err) => return Err(err.into()),
+    };
 
     Ok(NymVpnSubscription::try_from(&subscription)?)
 }
