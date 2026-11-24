@@ -83,6 +83,7 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err) => {
                 Self::PairingDerivingSharedSecret(err)
             }
+            proto::account_command_error::ErrorDetail::RateLimited(_) => Self::RateLimited,
         })
     }
 }
@@ -230,6 +231,9 @@ impl From<AccountCommandError> for proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::DeeplinkError(
                     message,
                 )),
+            },
+            AccountCommandError::RateLimited => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::RateLimited(true)),
             },
             // Reported as an `Unauthenticated` status instead.
             error @ AccountCommandError::UserPresenceRequired => proto::AccountCommandError {

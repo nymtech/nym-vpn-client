@@ -15,7 +15,7 @@ class FreepassErrorTest {
 			apiError("Freepass has already been redeemed", "redeem-freepass.already-redeemed") to FreepassError.ALREADY_REDEEMED,
 			apiError("Freepass has already been redeemed", "apply-freepass.already-redeemed") to FreepassError.ALREADY_REDEEMED,
 			apiError("An active recurring subscription already exists", "create-subscription.subscription-already-exists") to FreepassError.SUBSCRIPTION_ACTIVE,
-			apiError("Rate limit exceeded", "create-account.access_denied.rate_limit_exceeded") to FreepassError.RATE_LIMITED,
+			"Error: rate limited" to FreepassError.RATE_LIMITED,
 			apiError("Failed to redeem freepass", "redeem-freepass.failed") to FreepassError.SERVER,
 			"Error: vpn-api error\nCaused by: Account not found, message_id: None, code_reference_id: None" to FreepassError.ACCOUNT_NOT_REGISTERED,
 			"Error: vpn-api error\nCaused by: 500 Internal Server Error" to FreepassError.SERVER,

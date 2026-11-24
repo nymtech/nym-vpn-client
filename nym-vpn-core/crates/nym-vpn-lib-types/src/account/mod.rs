@@ -133,6 +133,9 @@ pub enum AccountCommandError {
 
     #[error("user presence required")]
     UserPresenceRequired,
+
+    #[error("rate limited")]
+    RateLimited,
 }
 
 impl AccountCommandError {
@@ -230,6 +233,9 @@ impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
 impl From<nym_vpn_api_client::error::VpnApiClientError> for AccountCommandError {
     fn from(err: nym_vpn_api_client::error::VpnApiClientError) -> Self {
         use nym_vpn_api_client::response::NymErrorResponse;
+        if err.is_rate_limited() {
+            return AccountCommandError::RateLimited;
+        }
         // TODO: Another example of losing information about the original error cause
         match NymErrorResponse::try_from(err) {
             Ok(err) => AccountCommandError::VpnApi(VpnApiError::Response(err.into())),

@@ -19,7 +19,6 @@ public enum FreepassError: Equatable, Sendable {
         ("redeem-freepass.already-redeemed", .alreadyRedeemed),
         ("apply-freepass.already-redeemed", .alreadyRedeemed),
         ("create-subscription.subscription-already-exists", .subscriptionActive),
-        ("rate_limit_exceeded", .rateLimited),
         // The auth middleware sends no messageId for an account the API hasn't seen yet.
         ("Account not found", .accountNotRegistered)
     ]

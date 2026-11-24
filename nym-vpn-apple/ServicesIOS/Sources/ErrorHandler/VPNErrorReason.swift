@@ -114,6 +114,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountControllerError(details: "pairing process has no shared secret yet")
         case let .PairingDerivingSharedSecret(details: details):
             self = .accountControllerError(details: "failed to derive pairing shared secret: \(details)")
+        case .RateLimited:
+            self = .accountControllerError(details: "rate limited")
         case let .InitLogs(details: details):
             self = .initLogs(details: details)
         case let .DeeplinkError(details: details):

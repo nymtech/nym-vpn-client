@@ -50,7 +50,6 @@ struct FreepassCodeTests {
             FreepassError.fromApi(messageId: "create-subscription.subscription-already-exists", message: "")
                 == .subscriptionActive
         )
-        #expect(FreepassError.fromApi(messageId: nil, message: "rate_limit_exceeded") == .rateLimited)
         #expect(FreepassError.fromApi(messageId: nil, message: "Account not found") == .accountNotRegistered)
         #expect(FreepassError.fromApi(messageId: "other", message: "Internal error") == .server)
     }

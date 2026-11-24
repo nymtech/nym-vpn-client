@@ -177,8 +177,10 @@ extension FreepassError {
         switch vpnError {
         case let .VpnApi(details: .Response(response)):
             self = .fromApi(messageId: response.messageId, message: response.message)
-        case let .VpnApi(details: .StatusCode(code: code, msg: message)):
-            self = code == 429 ? .rateLimited : .fromApi(messageId: nil, message: message)
+        case let .VpnApi(details: .StatusCode(code: _, msg: message)):
+            self = .fromApi(messageId: nil, message: message)
+        case .RateLimited:
+            self = .rateLimited
         case .VpnApi, .VpnApiTimeout, .UnexpectedVpnApiResponse:
             self = .server
         case .NetworkConnectionError:
@@ -196,8 +198,10 @@ extension FreepassError {
         switch accountError {
         case let .VpnApi(.Response(response)):
             self = .fromApi(messageId: response.messageId, message: response.message)
-        case let .VpnApi(.StatusCode(code: code, msg: message)):
-            self = code == 429 ? .rateLimited : .fromApi(messageId: nil, message: message)
+        case let .VpnApi(.StatusCode(code: _, msg: message)):
+            self = .fromApi(messageId: nil, message: message)
+        case .RateLimited:
+            self = .rateLimited
         case .VpnApi, .UnexpectedVpnApiResponse:
             self = .server
         case .Offline:

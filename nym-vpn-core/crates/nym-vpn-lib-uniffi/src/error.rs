@@ -110,6 +110,9 @@ pub enum VpnError {
 
     #[error("failed to link privy account: {details}")]
     LinkPrivyAccount { details: String },
+
+    #[error("rate limited")]
+    RateLimited,
 }
 
 impl From<HttpClientError> for VpnError {
@@ -163,6 +166,7 @@ impl From<AccountCommandError> for VpnError {
             AccountCommandError::PairingDerivingSharedSecret(err) => {
                 Self::PairingDerivingSharedSecret { details: err }
             }
+            AccountCommandError::RateLimited => Self::RateLimited,
         }
     }
 }

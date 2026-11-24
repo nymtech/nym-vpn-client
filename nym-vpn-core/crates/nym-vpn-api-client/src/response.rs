@@ -699,6 +699,12 @@ impl NymErrorResponse {
     pub fn is_account_not_found(&self) -> bool {
         self.status == "access_denied" && self.message == "Account not found"
     }
+
+    pub fn is_rate_limited(&self) -> bool {
+        self.message_id
+            .as_deref()
+            .is_some_and(|id| id.ends_with("rate_limit_exceeded"))
+    }
 }
 
 impl fmt::Display for NymErrorResponse {

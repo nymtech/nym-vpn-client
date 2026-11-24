@@ -24,9 +24,9 @@ enum class FreepassError {
 			"redeem-freepass.already-redeemed" to ALREADY_REDEEMED,
 			"apply-freepass.already-redeemed" to ALREADY_REDEEMED,
 			"create-subscription.subscription-already-exists" to SUBSCRIPTION_ACTIVE,
-			"rate_limit_exceeded" to RATE_LIMITED,
 			// The auth middleware sends no messageId for an account the API hasn't seen yet.
 			"Caused by: Account not found" to ACCOUNT_NOT_REGISTERED,
 		),
+		prefixes = listOf("Error: rate limited" to RATE_LIMITED),
 	)
 }

@@ -80,6 +80,7 @@ impl From<lib::AccountCommandError> for BackendError {
             lib::AccountCommandError::PairingDerivingSharedSecret(e) => {
                 BackendError::internal_with_detail("failed to derive pairing shared secret", e)
             }
+            lib::AccountCommandError::RateLimited => BackendError::internal("rate limited", None),
         }
     }
 }
