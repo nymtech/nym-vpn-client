@@ -296,13 +296,13 @@ private extension SettingsViewModel {
 
 // MARK: - Code entry -
 extension SettingsViewModel {
-    func handleCodeEntry(_ outcome: CodeEntryOutcome) {
+    func handleCodeEntry(_ outcome: FreepassOrPairingOutcome) {
         isCodeEntryPresented = false
         if outcome != .cancelled {
             path = NavigationPath()
         }
         Task { [credentialsManager, onSessionEvent] in
-            await CodeEntryOutcomeHandler.handle(
+            await FreepassOrPairingOutcomeHandler.handle(
                 outcome,
                 credentialsManager: credentialsManager,
                 sendSessionEvent: { onSessionEvent?($0) }

@@ -1,12 +1,12 @@
 #if os(macOS)
 import SwiftUI
 
-public struct CodeEntryView: View {
-    private let onFinish: (CodeEntryOutcome) -> Void
+public struct FreepassCodeEntryView: View {
+    private let onFinish: (FreepassOrPairingOutcome) -> Void
 
     @State private var redeemViewModel: RedeemCodeViewModel
 
-    public init(onFinish: @escaping (CodeEntryOutcome) -> Void) {
+    public init(onFinish: @escaping (FreepassOrPairingOutcome) -> Void) {
         self.onFinish = onFinish
         _redeemViewModel = State(wrappedValue: RedeemCodeViewModel(validator: FreepassCodeValidator()))
     }

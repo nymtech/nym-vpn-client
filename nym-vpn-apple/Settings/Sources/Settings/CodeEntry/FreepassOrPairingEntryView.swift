@@ -4,14 +4,14 @@ import CredentialsManager
 import Theme
 import UIComponents
 
-public struct CodeEntryView: View {
+public struct FreepassOrPairingEntryView: View {
     private enum Step {
         case scanner
         case typedEntry
         case pairing
     }
 
-    private let onFinish: (CodeEntryOutcome) -> Void
+    private let onFinish: (FreepassOrPairingOutcome) -> Void
 
     @ObservedObject private var pairingManager = PairingManager.shared
     @State private var step: Step
@@ -19,7 +19,7 @@ public struct CodeEntryView: View {
     @State private var validator: ScannedCodeRouter
     @State private var redeemViewModel: RedeemCodeViewModel
 
-    public init(startsWithScanner: Bool, onFinish: @escaping (CodeEntryOutcome) -> Void) {
+    public init(startsWithScanner: Bool, onFinish: @escaping (FreepassOrPairingOutcome) -> Void) {
         self.onFinish = onFinish
         let validator = ScannedCodeRouter()
         _validator = State(wrappedValue: validator)
@@ -41,7 +41,7 @@ public struct CodeEntryView: View {
     }
 }
 
-private extension CodeEntryView {
+private extension FreepassOrPairingEntryView {
     @ViewBuilder
     var content: some View {
         switch step {

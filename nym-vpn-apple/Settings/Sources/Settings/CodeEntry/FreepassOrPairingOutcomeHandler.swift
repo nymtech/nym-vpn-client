@@ -5,9 +5,9 @@ import SnackbarManager
 import Theme
 
 @MainActor
-public enum CodeEntryOutcomeHandler {
+public enum FreepassOrPairingOutcomeHandler {
     public static func handle(
-        _ outcome: CodeEntryOutcome,
+        _ outcome: FreepassOrPairingOutcome,
         credentialsManager: CredentialsManager,
         sendSessionEvent: @escaping (SessionEvent) -> Void
     ) async {
