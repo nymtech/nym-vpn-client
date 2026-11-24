@@ -71,11 +71,9 @@ private extension FreepassManager {
     }
 
 #if os(iOS)
-    // An account unknown to the API is registered by redeem, with the pass.
+    // Core registers an account the API doesn't know yet.
     func applyToStoredAccount(_ code: String) async -> FreepassResult {
-        let result = await call { _ = try await $0.applyFreepass(code: code) }
-        guard result == .failed(.accountNotRegistered) else { return result }
-        return await call { try await $0.redeemFreepass(code: code) }
+        await call { _ = try await $0.applyFreepass(code: code) }
     }
 
     func createAccount(_ code: String) async -> FreepassResult {
@@ -175,10 +173,14 @@ extension FreepassError {
             return
         }
         switch vpnError {
-        case let .VpnApi(details: .Response(response)):
-            self = .fromApi(messageId: response.messageId, message: response.message)
-        case let .VpnApi(details: .StatusCode(code: code, msg: message)):
-            self = code == 429 ? .rateLimited : .fromApi(messageId: nil, message: message)
+        case .FreepassInvalid:
+            self = .invalidCode
+        case .FreepassAlreadyRedeemed:
+            self = .alreadyRedeemed
+        case .RecurringSubscriptionActive:
+            self = .subscriptionActive
+        case .RateLimited:
+            self = .rateLimited
         case .VpnApi, .VpnApiTimeout, .UnexpectedVpnApiResponse:
             self = .server
         case .NetworkConnectionError:
@@ -194,10 +196,14 @@ extension FreepassError {
             return
         }
         switch accountError {
-        case let .VpnApi(.Response(response)):
-            self = .fromApi(messageId: response.messageId, message: response.message)
-        case let .VpnApi(.StatusCode(code: code, msg: message)):
-            self = code == 429 ? .rateLimited : .fromApi(messageId: nil, message: message)
+        case .FreepassInvalid:
+            self = .invalidCode
+        case .FreepassAlreadyRedeemed:
+            self = .alreadyRedeemed
+        case .RecurringSubscriptionActive:
+            self = .subscriptionActive
+        case .RateLimited:
+            self = .rateLimited
         case .VpnApi, .UnexpectedVpnApiResponse:
             self = .server
         case .Offline:

@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [macOS] Add `CreateAccount` (with an optional free pass) and `RedeemFreepass` daemon RPCs, and expose pairing in the uniffi `RpcClient` (https://github.com/nymtech/nym-vpn-client/pull/7178)
 
+### Changed
+
+- Account commands return `RateLimited`, `FreepassInvalid`, `FreepassAlreadyRedeemed` and `RecurringSubscriptionActive` errors instead of raw vpn-api errors (https://github.com/nymtech/nym-vpn-client/pull/7197)
+
 ### Fixed
 
 - [Linux] The `nym-vpnd` deb package no longer depends on `polkit-1-auth-agent`, so installing it on a system without a desktop doesn't pull in a graphical polkit agent. The dependency moved to the `nym-vpn-app` deb package. On a headless install, run `nym-vpnc` as root or add your user to the `nym-vpn` group (https://github.com/nymtech/nym-vpn-client/pull/7175)
