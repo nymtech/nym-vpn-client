@@ -123,6 +123,11 @@ import ConnectionTypes
         didSet { isStealthApiEnabledPublisher = isStealthApiEnabled }
     }
 
+    @AppStorage(AppSettingKey.transportPreference.rawValue)
+    public var transportPreference: TransportPreferenceSetting = .auto {
+        didSet { transportPreferencePublisher = transportPreference }
+    }
+
     @AppStorage(AppSettingKey.customDnsIsEnabled.rawValue)
     public var isCustomDnsEnabled = false {
         didSet { isCustomDnsEnabledPublisher = isCustomDnsEnabled }
@@ -187,6 +192,7 @@ import ConnectionTypes
     @Published public var isCredentialImportedPublisher: Bool
     @Published public var bridgeModePublisher: BridgeModeSetting
     @Published public var isStealthApiEnabledPublisher: Bool
+    @Published public var transportPreferencePublisher: TransportPreferenceSetting
     @Published public var isCustomDnsEnabledPublisher: Bool
     @Published public var customDnsPublisher: [String]
     @Published public var isIPv6TrafficEnabledPublisher: Bool
@@ -202,6 +208,7 @@ import ConnectionTypes
         self.isCredentialImportedPublisher = false
         self.bridgeModePublisher = .off
         self.isStealthApiEnabledPublisher = false
+        self.transportPreferencePublisher = .auto
         self.isCustomDnsEnabledPublisher = false
         self.customDnsPublisher = []
         self.isIPv6TrafficEnabledPublisher = true
@@ -222,6 +229,7 @@ import ConnectionTypes
         self.isCredentialImportedPublisher = self.isCredentialImported
         self.bridgeModePublisher = self.bridgeMode
         self.isStealthApiEnabledPublisher = self.isStealthApiEnabled
+        self.transportPreferencePublisher = self.transportPreference
         self.isCustomDnsEnabledPublisher = self.isCustomDnsEnabled
         self.customDnsPublisher = self.customDns
         self.isIPv6TrafficEnabledPublisher = self.isIPv6TrafficEnabled
@@ -273,6 +281,7 @@ public enum AppSettingKey: String {
     case quic
     case bridgeMode
     case stealthApi
+    case transportPreference
     case lanBypass
     case passphraseStored
     case connectionConfig

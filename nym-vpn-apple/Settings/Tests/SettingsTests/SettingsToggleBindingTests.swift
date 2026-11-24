@@ -28,4 +28,16 @@ final class SettingsToggleBindingTests: XCTestCase {
         ConnectionManager.shared.setLanBypassEnabled(false)
         XCTAssertFalse(settings.isLanBypassEnabled)
     }
+
+    func testSetTransportPreferenceUpdatesAppSettings() {
+        let settings = AppSettings.shared
+        let prior = settings.transportPreference
+        defer { settings.transportPreference = prior }
+
+        ConnectionManager.shared.setTransportPreference(.quic)
+        XCTAssertEqual(settings.transportPreference, .quic)
+
+        ConnectionManager.shared.setTransportPreference(.auto)
+        XCTAssertEqual(settings.transportPreference, .auto)
+    }
 }

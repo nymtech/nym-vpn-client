@@ -74,6 +74,22 @@ jobs:
           winget list GnuWin32.Make || winget install --disable-interactivity --accept-source-agreements --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
+      - name: Install Strawberry Perl
+        run: |
+          winget list StrawberryPerl.StrawberryPerl || winget install --disable-interactivity --accept-source-agreements --id StrawberryPerl.StrawberryPerl
+          echo "C:\Strawberry\perl\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
+
+      - name: Check MSVC version
+        run: |
+          $minimum = [version]'14.44'
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          $version = [version](Get-Content "$vs\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt").Trim()
+          echo "MSVC toolset: $version"
+          if ($version -lt $minimum) {
+            echo "::error::MSVC $version is older than $minimum, update Visual Studio 2022 to 17.14 or newer"
+            exit 1
+          }
+
       - name: Install cargo-get
         uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:

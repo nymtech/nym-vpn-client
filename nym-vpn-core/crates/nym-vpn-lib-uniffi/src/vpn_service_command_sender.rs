@@ -6,15 +6,15 @@ use std::sync::Arc;
 use nym_common::ErrorExt;
 use nym_vpn_lib::service::{
     AccountLinksError, ClientRequest, GeoExclusionConfigError, ListGatewaysError,
-    SetCustomDnsError, VpnServiceCommand,
+    SetCustomDnsError, SetTransportPreferenceError, VpnServiceCommand,
 };
 use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
-    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, NymVpnSubscription,
-    ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways,
+    BridgeTransport, DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags,
+    FrontingMode, Gateway, GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig,
+    NymVpnSubscription, ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways,
     RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, StoredAccountMode,
     SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
@@ -28,6 +28,7 @@ enum NymVpnServiceCommandInnerError {
     AccountLinks(#[source] AccountLinksError),
     GeoExclusionConfig(#[source] GeoExclusionConfigError),
     SetCustomDns(#[source] SetCustomDnsError),
+    SetTransportPreference(#[source] SetTransportPreferenceError),
 }
 
 impl NymVpnServiceCommandInnerError {
@@ -39,6 +40,7 @@ impl NymVpnServiceCommandInnerError {
             Self::AccountLinks(err) => err.display_chain(),
             Self::GeoExclusionConfig(err) => err.display_chain(),
             Self::SetCustomDns(err) => err.display_chain(),
+            Self::SetTransportPreference(err) => err.display_chain(),
         }
     }
 }
@@ -52,6 +54,7 @@ impl std::fmt::Display for NymVpnServiceCommandInnerError {
             Self::AccountLinks(err) => write!(f, "{}", err),
             Self::GeoExclusionConfig(err) => write!(f, "{}", err),
             Self::SetCustomDns(err) => write!(f, "{}", err),
+            Self::SetTransportPreference(err) => write!(f, "{}", err),
         }
     }
 }
@@ -199,6 +202,19 @@ impl NymVpnServiceCommandSender {
     pub async fn set_fronting_mode(&self, fronting_mode: FrontingMode) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::SetFrontingMode, fronting_mode)
             .await
+    }
+
+    pub async fn set_transport_preference(
+        &self,
+        transport_preference: Option<BridgeTransport>,
+    ) -> Result<()> {
+        Ok(self
+            .send_and_wait(
+                VpnServiceCommand::SetTransportPreference,
+                transport_preference,
+            )
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::SetTransportPreference)?)
     }
 
     pub async fn set_disable_ipv6(&self, disable_ipv6: bool) -> Result<()> {

@@ -12,12 +12,12 @@ use tokio_util::sync::CancellationToken;
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType,
-    GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, PrivyDerivationMessage, Profile, QrUrl, RecentGateways, Socks5Settings,
-    Socks5Status, SplitApp, SplitTunnelExcludedProcessList, StoreAccountRequest, StoredAccountMode,
-    SystemMessage, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig,
-    VpnServiceInfo,
+    BridgeTransport, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
+    GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice,
+    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Profile, QrUrl, RecentGateways,
+    Socks5Settings, Socks5Status, SplitApp, SplitTunnelExcludedProcessList, StoreAccountRequest,
+    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::authorization_token::AuthorizationToken;
@@ -175,6 +175,17 @@ impl RpcClient {
 
     pub async fn set_fronting_mode(&self, fronting_mode: FrontingMode) -> Result<()> {
         self.inner.clone().set_fronting_mode(fronting_mode).await?;
+        Ok(())
+    }
+
+    pub async fn set_transport_preference(
+        &self,
+        transport_preference: Option<BridgeTransport>,
+    ) -> Result<()> {
+        self.inner
+            .clone()
+            .set_transport_preference(transport_preference)
+            .await?;
         Ok(())
     }
 
