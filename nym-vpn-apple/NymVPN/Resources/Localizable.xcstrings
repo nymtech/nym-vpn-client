@@ -3779,6 +3779,72 @@
         }
       }
     },
+    "censorship.transport.auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Auto"
+          }
+        }
+      }
+    },
+    "censorship.transport.quic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "QUIC"
+          }
+        }
+      }
+    },
+    "censorship.transport.ssh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "SSH"
+          }
+        }
+      }
+    },
+    "censorship.transport.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Pin the bridge transport, or let NymVPN pick automatically."
+          }
+        }
+      }
+    },
+    "censorship.transport.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bridge transport"
+          }
+        }
+      }
+    },
+    "censorship.transport.tls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "TLS"
+          }
+        }
+      }
+    },
     "censorship.stealhapi.link" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32794,6 +32860,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn't confirm it's you. Try again."
+          }
+        }
+      }
+    },
+    "censorship.transport.autoModeDisclaimer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Auto only uses a bridge if the direct connection fails, so your pin has no effect unless that happens."
           }
         }
       }

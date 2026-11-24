@@ -80,6 +80,10 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_ad_blocking: value.enable_ad_blocking,
             enable_conflict_detection: value.enable_conflict_detection,
             fronting_mode,
+            transport_preference: value
+                .transport_preference
+                .and_then(|t| proto::BridgeTransport::try_from(t).ok())
+                .map(nym_vpn_lib_types::BridgeTransport::from),
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
             residential_exit: value.residential_exit,
@@ -120,6 +124,9 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             enable_ad_blocking: value.enable_ad_blocking,
             enable_conflict_detection: value.enable_conflict_detection,
             fronting_mode: proto::FrontingModes::from(value.fronting_mode).into(),
+            transport_preference: value
+                .transport_preference
+                .map(|t| proto::BridgeTransport::from(t) as i32),
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
             residential_exit: value.residential_exit,
@@ -218,6 +225,26 @@ impl From<proto::FrontingModes> for nym_vpn_lib_types::FrontingMode {
             proto::FrontingModes::Off => nym_vpn_lib_types::FrontingMode::Off,
             proto::FrontingModes::OnRetry => nym_vpn_lib_types::FrontingMode::OnRetry,
             proto::FrontingModes::Always => nym_vpn_lib_types::FrontingMode::Always,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::BridgeTransport> for proto::BridgeTransport {
+    fn from(value: nym_vpn_lib_types::BridgeTransport) -> Self {
+        match value {
+            nym_vpn_lib_types::BridgeTransport::Quic => proto::BridgeTransport::Quic,
+            nym_vpn_lib_types::BridgeTransport::Tls => proto::BridgeTransport::Tls,
+            nym_vpn_lib_types::BridgeTransport::Ssh => proto::BridgeTransport::Ssh,
+        }
+    }
+}
+
+impl From<proto::BridgeTransport> for nym_vpn_lib_types::BridgeTransport {
+    fn from(val: proto::BridgeTransport) -> Self {
+        match val {
+            proto::BridgeTransport::Quic => nym_vpn_lib_types::BridgeTransport::Quic,
+            proto::BridgeTransport::Tls => nym_vpn_lib_types::BridgeTransport::Tls,
+            proto::BridgeTransport::Ssh => nym_vpn_lib_types::BridgeTransport::Ssh,
         }
     }
 }

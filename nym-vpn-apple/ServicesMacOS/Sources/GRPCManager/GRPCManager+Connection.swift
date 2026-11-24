@@ -50,6 +50,10 @@ extension GRPCManager {
         try await rpcClient?.setFrontingMode(frontingMode: enabled ? .always : .onRetry)
     }
 
+    public func setTransportPreference(_ preference: TransportPreferenceSetting) async throws {
+        try await rpcClient?.setTransportPreference(transportPreference: preference.bridgeTransport)
+    }
+
     public func setProfile(_ profile: ConnectionProfile) async throws {
         try await rpcClient?.setProfile(profile: profile.toCoreProfile())
     }

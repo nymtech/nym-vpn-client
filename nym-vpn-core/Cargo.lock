@@ -5737,8 +5737,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bridges"
-version = "0.3.0"
-source = "git+https://github.com/nymtech/nym-bridges?rev=f808132033cd5c6e93b45441bec35d98474d6720#f808132033cd5c6e93b45441bec35d98474d6720"
+version = "0.4.0"
+source = "git+https://github.com/nymtech/nym-bridges?rev=b6c34b84b2d8e95864c21ab03ace554b5e675e72#b6c34b84b2d8e95864c21ab03ace554b5e675e72"
 dependencies = [
  "anyhow",
  "base64 0.23.1",
@@ -5766,6 +5766,7 @@ dependencies = [
  "slab",
  "socket2 0.5.10",
  "thiserror 2.0.21",
+ "time",
  "tinyvec",
  "tokio",
  "tokio-rustls 0.26.6",
@@ -5779,8 +5780,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bridges-types"
-version = "0.3.0"
-source = "git+https://github.com/nymtech/nym-bridges?rev=f808132033cd5c6e93b45441bec35d98474d6720#f808132033cd5c6e93b45441bec35d98474d6720"
+version = "0.4.0"
+source = "git+https://github.com/nymtech/nym-bridges?rev=b6c34b84b2d8e95864c21ab03ace554b5e675e72#b6c34b84b2d8e95864c21ab03ace554b5e675e72"
 dependencies = [
  "serde",
  "ts-rs",

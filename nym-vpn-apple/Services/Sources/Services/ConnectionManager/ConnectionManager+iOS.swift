@@ -142,6 +142,7 @@ extension ConnectionManager {
             isStatisticsEnabled: appSettings.isStatisticsEnabled,
             bridgeMode: appSettings.bridgeMode,
             isStealthApiEnabled: appSettings.isStealthApiEnabled,
+            transportPreference: appSettings.transportPreference,
             isLanBypassEnabled: appSettings.isLanBypassEnabled,
             isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
             isTwoHopEnabled: connectionType == .wireguard,

@@ -9,7 +9,9 @@ use crate::vpnd::node::Node;
 use super::mixnet_config::{MixnetTrafficConfig, MixnetTrafficDefaults};
 
 use crate::vpnd::gateway::GatewaySelectionAlgorithmConfig;
-use crate::vpnd::tunnel::{BridgeMode, FrontingMode, GeoExclusionSettings, SplitTunnelSettings};
+use crate::vpnd::tunnel::{
+    BridgeMode, BridgeTransport, FrontingMode, GeoExclusionSettings, SplitTunnelSettings,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "camelCase")]
@@ -27,6 +29,7 @@ pub struct VpndConfig {
     pub bridge_mode: BridgeMode,
     pub netstack: bool,
     pub fronting_mode: FrontingMode,
+    pub transport_preference: Option<BridgeTransport>,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
     pub mixnet_traffic: MixnetTrafficConfig,
@@ -65,6 +68,7 @@ impl VpndConfig {
             bridge_mode: config.bridge_mode.into(),
             netstack: config.netstack,
             fronting_mode: config.fronting_mode.into(),
+            transport_preference: config.transport_preference.map(BridgeTransport::from),
             min_gateway_vpn_performance: config.min_gateway_vpn_performance,
             residential_exit: config.residential_exit,
             mixnet_traffic: config.mixnet_traffic.into(),

@@ -12,9 +12,9 @@ use tokio::runtime::Runtime;
 
 #[cfg(not(target_os = "android"))]
 use nym_vpn_lib_types::{
-    BridgeMode, CustomDnsSettings, EntryPoint, ExitPoint, FrontingMode, GatewayIndependence,
-    GatewaySelectionAlgorithmConfig, GeoExclusionSettings, MixnetTrafficConfig,
-    NetworkStatisticsConfig, Profile, SplitTunnelSettings, VpnServiceConfig,
+    BridgeMode, BridgeTransport, CustomDnsSettings, EntryPoint, ExitPoint, FrontingMode,
+    GatewayIndependence, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
+    MixnetTrafficConfig, NetworkStatisticsConfig, Profile, SplitTunnelSettings, VpnServiceConfig,
 };
 use nym_vpn_lib_types::{DiagnosticRunParams, PrivyDerivationMessage, UserAgent};
 
@@ -109,6 +109,8 @@ pub struct VPNConfig {
 
     #[cfg(not(target_os = "android"))]
     pub fronting_mode: FrontingMode,
+    #[cfg(not(target_os = "android"))]
+    pub transport_preference: Option<BridgeTransport>,
 
     /// Custom DNS used when enabled and not empty.
     #[cfg(not(target_os = "android"))]
@@ -148,6 +150,7 @@ impl VPNConfig {
             enable_ad_blocking: self.enable_ad_blocking,
             enable_conflict_detection: false,
             fronting_mode: self.fronting_mode,
+            transport_preference: self.transport_preference,
 
             // Always true on mobile platforms
             netstack: true,
