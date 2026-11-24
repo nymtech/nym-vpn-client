@@ -137,6 +137,7 @@ pub enum VpnServiceCommand {
         Option<nym_vpn_lib_types::BridgeTransport>,
     ),
     SetResidentialExit(oneshot::Sender<()>, bool),
+    SetAutoConnect(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(
         oneshot::Sender<Result<(), SetCustomDnsError>>,
@@ -913,6 +914,11 @@ impl NymVpnService {
             self.services_shutdown_token.child_token(),
         ));
 
+        if self.config_manager.config().auto_connect {
+            tracing::info!("Auto-connect is enabled, connecting");
+            self.set_target_state(TargetState::Secured).await;
+        }
+
         loop {
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {
@@ -1189,6 +1195,10 @@ impl NymVpnService {
             }
             VpnServiceCommand::SetResidentialExit(tx, residential_exit) => {
                 self.handle_set_residential_exit(residential_exit).await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetAutoConnect(tx, auto_connect) => {
+                self.handle_set_auto_connect(auto_connect).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetEnableCustomDns(tx, enable_custom_dns) => {
@@ -1604,6 +1614,10 @@ impl NymVpnService {
             .await;
         self.update_tunnel_settings_with_throttle();
         Ok(())
+    }
+
+    async fn handle_set_auto_connect(&mut self, auto_connect: bool) {
+        self.config_manager.set_auto_connect(auto_connect).await;
     }
 
     async fn handle_set_residential_exit(&mut self, residential_exit: bool) {

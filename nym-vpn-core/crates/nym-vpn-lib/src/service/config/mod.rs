@@ -269,6 +269,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             geo_exclusion,
             gateway_selection_algorithm_config,
             gateway_independence,
+            auto_connect: value.auto_connect,
         };
 
         Ok(VpnServiceConfigExt::V16(v16))
