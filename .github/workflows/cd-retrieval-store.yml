@@ -101,3 +101,9 @@ jobs:
           RETRIEVAL_STORE_CA_CERT: ${{ secrets.RETRIEVAL_STORE_CA_CERT }}
           VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
           ALLOW_SHRINK: ${{ inputs.allow_shrink && '1' || '' }}
+
+      # The MCP route reads the store, so production serves the new shards at
+      # once. A failure turns this run red and blocks nothing else.
+      - name: Check that production serves the shards
+        if: steps.release.outputs.stale != '1'
+        run: node_modules/.bin/retrieval-mcp-check https://nym.com/docs/api/mcp mcp-probes.json
