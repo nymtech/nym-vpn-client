@@ -8,6 +8,11 @@
 //   node index.mts --dry-run       walk, chunk and check the gates; write nothing
 //   RETRIEVAL_STORE_WRITE_URL=... RETRIEVAL_STORE_CA_CERT="$(cat ca.pem)" VOYAGE_API_KEY=... node index.mts
 //
+// RETRIEVAL_SOURCE_DIR is the checkout to index (default: this repository) and
+// RETRIEVAL_SOURCE_REF the git ref its links point at (default: develop). The
+// store write indexes a release: the tag's checkout, with links at the tag.
+// RETRIEVAL_SOURCE_REV is the commit recorded on the shards.
+//
 // RETRIEVAL_STORE_CA_CERT is the PEM text of the CA that signed the store's
 // certificate. The URL then carries no sslmode or sslrootcert (storeConnection).
 //
@@ -25,8 +30,8 @@ import { indexShard, storeConnection } from '@nymproject/retrieval-indexer/store
 import { assertNoSilentDrops, assertRootsYieldChunks, collectMarkdownPages, collectSourceFiles } from '@nymproject/retrieval-indexer/walk';
 
 const REPO = 'nym-vpn-client';
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const GITHUB = `https://github.com/nymtech/${REPO}/blob/develop`;
+const REPO_ROOT = path.resolve(process.env.RETRIEVAL_SOURCE_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), '../..'));
+const GITHUB = `https://github.com/nymtech/${REPO}/blob/${process.env.RETRIEVAL_SOURCE_REF || 'develop'}`;
 // wireguard holds the Nym-maintained Go netstack and forwarders (libwg).
 // nym-vpn-windows is C++, which the package does not chunk, so it would add no chunks.
 const ROOTS = ['nym-vpn-core', 'nym-vpn-app', 'nym-vpn-android', 'nym-vpn-apple', 'wireguard'];
@@ -81,7 +86,7 @@ async function main(): Promise<void> {
         provider: voyageProvider({ apiKey, model }),
         concurrency: 2,
         maxShrink: process.env.ALLOW_SHRINK === '1' ? undefined : MAX_SHRINK,
-        sourceRev: process.env.GITHUB_SHA ?? null,
+        sourceRev: process.env.RETRIEVAL_SOURCE_REV || process.env.GITHUB_SHA || null,
       });
       console.log(`${REPO}/${modality} (${model}): ${stats.total} chunks, ${stats.embedded} embedded, ${stats.unchanged} unchanged, ${stats.deleted} deleted`);
     }
