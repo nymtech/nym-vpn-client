@@ -126,7 +126,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    #[instrument(skip(self, freepass))]
+    #[instrument(skip_all)]
     pub async fn create_account_command(
         &self,
         freepass: Option<String>,
