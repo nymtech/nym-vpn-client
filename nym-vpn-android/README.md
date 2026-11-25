@@ -80,3 +80,14 @@ To create a debug build with fresh native core build (useful for when there are 
 ./gradlew assembleFdroidDebug
 ```
 
+### Override the VPN API URL
+
+For development, the core can be built against a different VPN API server. Add the URL to `nym-vpn-android/local.properties`:
+
+```properties
+nym.vpnApiUrlOverride=https://example.com/api
+```
+
+Alternatively, set the `NYM_VPN_API_URL_OVERRIDE` environment variable, which takes precedence over `local.properties`.
+
+The URL is baked into the native core at compile time, so the core is rebuilt when it changes. The build log warns with `Building with NYM_VPN_API_URL_OVERRIDE=...` whenever an override is active. Remove the property or leave it empty to use the default VPN API.

@@ -3779,6 +3779,72 @@
         }
       }
     },
+    "censorship.transport.auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Auto"
+          }
+        }
+      }
+    },
+    "censorship.transport.quic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "QUIC"
+          }
+        }
+      }
+    },
+    "censorship.transport.ssh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "SSH"
+          }
+        }
+      }
+    },
+    "censorship.transport.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Pin the bridge transport, or let NymVPN pick automatically."
+          }
+        }
+      }
+    },
+    "censorship.transport.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bridge transport"
+          }
+        }
+      }
+    },
+    "censorship.transport.tls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "TLS"
+          }
+        }
+      }
+    },
     "censorship.stealhapi.link" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20808,6 +20874,17 @@
         }
       }
     },
+    "pairing.waitingForCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for your other device…"
+          }
+        }
+      }
+    },
     "passohrase.loseSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32622,6 +32699,61 @@
         }
       }
     },
+    "welcomeOptIns.diagnostics.handling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Otherwise it stays on this device. You choose when to send it to support. Changes apply the next time you connect."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.shares" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "More detail on what the app is doing\nAdded to error reports only if \"Your app errors & crashes\" is on"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Helps us fix connection problems"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.testFlight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Always on in TestFlight builds."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.diagnostics.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your troubleshooting detail"
+          }
+        }
+      }
+    },
     "welcomeOptIns.monitoring.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32728,6 +32860,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn't confirm it's you. Try again."
+          }
+        }
+      }
+    },
+    "censorship.transport.autoModeDisclaimer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Auto only uses a bridge if the direct connection fails, so your pin has no effect unless that happens."
           }
         }
       }

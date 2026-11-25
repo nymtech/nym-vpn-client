@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2026.16.0] - TBD
+### Changed
+- QR sign-in: take PIN code from event stream instead of return value of library call (https://github.com/nymtech/nym-vpn-client/pull/7193)
+
+### Fixed
+- Home screen: the selected connection mode now has an outline in the brand colour, so it is clear which one is on, also in dark mode
+
+## [2026.16.0] - 2026-11-18
 
 ### Added
 - Sign in by scanning a QR code from a signed-in device (https://github.com/nymtech/nym-vpn-client/pull/7085)

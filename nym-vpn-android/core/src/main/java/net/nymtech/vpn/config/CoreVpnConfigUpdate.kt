@@ -2,6 +2,7 @@ package net.nymtech.vpn.config
 
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.BridgeMode
+import nym_vpn_lib_types.BridgeTransport
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.Profile
@@ -24,6 +25,7 @@ sealed class CoreVpnConfigUpdate {
 	data class SetNetworkStatsEnabled(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetAdBlockingEnabled(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetStealthMode(val value: Boolean) : CoreVpnConfigUpdate()
+	data class SetTransportPreference(val value: BridgeTransport?) : CoreVpnConfigUpdate()
 	data class SetNodeFamiliesNotificationsEnabled(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetGeoExclusionEnabled(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetGeoExclusionPort(val value: Int) : CoreVpnConfigUpdate()

@@ -14,7 +14,7 @@ use super::{
     events::{ConflictDetected, DiagnosticsSuggestedReason, MixnetEvent},
     gateway::{Gateway, GatewayType, RecentGateways, parse_gateways},
     tentative_gateways::TentativeGateways,
-    tunnel::{BridgeMode, FrontingMode, Profile, SplitApp, TunnelState},
+    tunnel::{BridgeMode, BridgeTransport, FrontingMode, Profile, SplitApp, TunnelState},
 };
 
 use anyhow::Result;
@@ -418,6 +418,19 @@ impl VpndClient {
 
         vpnd.set_fronting_mode(mode.into())
             .or_else(async |e| self.handle_rpc_error("set_fronting_mode", e).await)
+            .await
+    }
+
+    /// Pin bridge connections to one transport, or clear back to automatic fallback
+    #[instrument(skip_all)]
+    pub async fn set_transport_preference(
+        &self,
+        transport: Option<BridgeTransport>,
+    ) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_transport_preference(transport.map(Into::into))
+            .or_else(async |e| self.handle_rpc_error("set_transport_preference", e).await)
             .await
     }
 

@@ -1,6 +1,7 @@
 #if os(iOS)
 import Combine
 import NetworkExtension
+import os
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
@@ -13,6 +14,11 @@ import TunnelStatus
 
 // MARK: - Setup -
 extension ConnectionManager {
+    static let configLogger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "NymVPN",
+        category: "ConnectionManager.config"
+    )
+
     func setupTunnelManagerObservers() {
         tunnelsManager.$isLoaded
             .receive(on: DispatchQueue.main)
@@ -28,6 +34,19 @@ extension ConnectionManager {
             .sink { [weak self] tunnel in
                 MainActor.assumeIsolated {
                     self?.activeTunnel = tunnel
+                }
+            }
+            .store(in: &cancellables)
+
+        // The tunnel reads the error-reporting opt-in from the persisted config whenever it starts,
+        // including on-demand restarts, so rewrite the config when the setting changes.
+        appSettings.$isErrorReportingOnPublisher
+            .dropFirst()
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.persistConfigIfPresent()
                 }
             }
             .store(in: &cancellables)
@@ -123,6 +142,7 @@ extension ConnectionManager {
             isStatisticsEnabled: appSettings.isStatisticsEnabled,
             bridgeMode: appSettings.bridgeMode,
             isStealthApiEnabled: appSettings.isStealthApiEnabled,
+            transportPreference: appSettings.transportPreference,
             isLanBypassEnabled: appSettings.isLanBypassEnabled,
             isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
             isTwoHopEnabled: connectionType == .wireguard,
@@ -167,6 +187,21 @@ extension ConnectionManager {
     }
 
     func fetchConnectionConfig() async {}
+
+    /// Rewrites the persisted tunnel config only if one exists; before the first connect there is nothing to update.
+    /// On failure the previous value stays in place until the next successful save (every connect saves).
+    func persistConfigIfPresent() {
+        guard MixnetConfigStorage.exists() else { return }
+        do {
+            if !MixnetConfigStorage.save(try generateConfig()) {
+                Self.configLogger.error("Failed to persist tunnel config after error-reporting change")
+            }
+        } catch {
+            Self.configLogger.error(
+                "Failed to generate tunnel config after error-reporting change: \(error.localizedDescription, privacy: .public)"
+            )
+        }
+    }
 
     @MainActor
     func sendAfterPersistingConfig(_ message: TunnelProviderMessage) async throws {

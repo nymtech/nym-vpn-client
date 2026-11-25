@@ -39,8 +39,8 @@ impl Command {
             Command::Pair { pub_key } => {
                 let response = rpc_client.scanned_key(pub_key).await?;
                 println!(
-                    "Pairing process {} needs confirmation for PIN: {}",
-                    response.session_id, response.pin_code
+                    "Pairing process {} awaits confirmation",
+                    response.session_id
                 );
                 Ok(())
             }
