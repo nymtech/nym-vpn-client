@@ -8,7 +8,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -20,7 +19,6 @@ import net.nymtech.nymvpn.util.extensions.truncateWithEllipsis
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -57,10 +55,7 @@ class VpnQuickTile :
 		lifecycleScope.launch {
 			if (!backendManager.isMnemonicStored()) return@launch setUnavailable()
 
-			backendManager.stateFlow.catch { error ->
-				Timber.Forest.e(error, "Error collecting VPN state flow in tile")
-				setUnavailable()
-			}.collect {
+			backendManager.stateFlow.collect {
 				updateTileForState(it.tunnelState)
 			}
 		}
