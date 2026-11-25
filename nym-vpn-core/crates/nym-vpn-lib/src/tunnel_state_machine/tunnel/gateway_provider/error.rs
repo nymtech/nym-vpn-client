@@ -36,4 +36,7 @@ pub enum GatewayProviderError {
 
     #[error("auto is not possible when device geo location information is missing")]
     NeedsDeviceLocation,
+
+    #[error("internal error: {0}")]
+    Internal(String),
 }

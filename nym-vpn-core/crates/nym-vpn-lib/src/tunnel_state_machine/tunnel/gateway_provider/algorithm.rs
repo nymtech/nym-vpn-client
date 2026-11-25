@@ -3,16 +3,45 @@
 
 use nym_gateway_directory::{BlacklistedGateways, Location};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
 
-use crate::tunnel_state_machine::{
-    TunnelSettings,
-    tunnel::gateway_provider::{
-        GatewayProviderEventSender, SelectionResultSender, gateway_cache::GatewayCache,
-        geo_ip::GeoIpProvider, selector::select_gateways,
+use crate::{
+    GatewayProviderError,
+    tunnel_state_machine::{
+        TunnelSettings,
+        tunnel::gateway_provider::{
+            GatewayProviderEventSender, SelectionResult, SelectionResultSender,
+            gateway_cache::GatewayCache, geo_ip::GeoIpProvider, selector::select_gateways,
+        },
     },
 };
+
+enum AlgorithmRequest {
+    LatestSelection(oneshot::Sender<SelectionResult>),
+}
+
+pub struct AlgorithmHandler {
+    req_tx: mpsc::UnboundedSender<AlgorithmRequest>,
+}
+
+impl AlgorithmHandler {
+    fn new(req_tx: mpsc::UnboundedSender<AlgorithmRequest>) -> Self {
+        Self { req_tx }
+    }
+
+    pub async fn get_algorithm_latest_selection(&self) -> SelectionResult {
+        let (tx, rx) = oneshot::channel();
+        self.req_tx
+            .send(AlgorithmRequest::LatestSelection(tx))
+            .map_err(|err| {
+                GatewayProviderError::Internal(format!("selection algorithm shut down: {err:?}"))
+            })?;
+        rx.await.map_err(|err| {
+            GatewayProviderError::Internal(format!("selection algorithm doesn't respond: {err:?}"))
+        })?
+    }
+}
 
 #[derive(Clone)]
 pub struct SelectAndSend {
@@ -51,6 +80,8 @@ async fn continuous_select<C: GatewayCache>(
 }
 
 pub struct SelectionAlgorithm<C: GatewayCache> {
+    req_tx: mpsc::UnboundedSender<AlgorithmRequest>,
+    req_rx: mpsc::UnboundedReceiver<AlgorithmRequest>,
     tunnel_settings_rx: mpsc::Receiver<SelectAndSend>,
     gateway_provider_event_sender_rx: mpsc::Receiver<GatewayProviderEventSender>,
     gateway_cache: C,
@@ -70,7 +101,10 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
         wg_keys_db: WireguardKeysDb,
         shutdown_token: CancellationToken,
     ) -> Self {
+        let (req_tx, req_rx) = mpsc::unbounded_channel();
         Self {
+            req_tx,
+            req_rx,
             tunnel_settings_rx,
             gateway_provider_event_sender_rx,
             gateway_cache,
@@ -79,6 +113,10 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
             wg_keys_db,
             shutdown_token,
         }
+    }
+
+    pub fn handler(&self) -> AlgorithmHandler {
+        AlgorithmHandler::new(self.req_tx.clone())
     }
 
     pub async fn run(
