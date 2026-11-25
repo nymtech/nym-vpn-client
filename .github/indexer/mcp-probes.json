@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "name": "nym-vpn-client",
+  "probes": [
+    { "group": "Index coverage", "label": "nym-vpn-core: the tunnel state machine", "tool": "search_code", "args": { "query": "TunnelSettings tunnel_type_used ResolverConfig", "topK": 8 }, "path": { "repo": "nymtech/nym-vpn-client", "path": "nym-vpn-core" } },
+    { "group": "Index coverage", "label": "nym-vpn-app: the desktop app's daemon commands", "tool": "search_code", "args": { "query": "tauri command daemon_status feature_flags VpndClient", "topK": 8 }, "path": { "repo": "nymtech/nym-vpn-client", "path": "nym-vpn-app" } },
+    { "group": "Index coverage", "label": "nym-vpn-android: the Kotlin tunnel controller", "tool": "search_code", "args": { "query": "VpnTunController Kotlin", "topK": 8 }, "path": { "repo": "nymtech/nym-vpn-client", "path": "nym-vpn-android" } },
+    { "group": "Index coverage", "label": "nym-vpn-apple: the Swift packet tunnel provider", "tool": "search_code", "args": { "query": "PacketTunnelProvider startTunnel", "topK": 8 }, "path": { "repo": "nymtech/nym-vpn-client", "path": "nym-vpn-apple" } },
+    { "group": "Index coverage", "label": "wireguard: the libwg netstack in Go", "tool": "search_code", "args": { "query": "libwg netstack forwarders udp tcp", "topK": 8 }, "path": { "repo": "nymtech/nym-vpn-client", "path": "wireguard" } },
+    { "group": "Retrieval", "label": "search_docs reaches the desktop app build guide", "tool": "search_docs", "args": { "query": "NymVPN desktop app build from source", "topK": 6 }, "path": { "repo": "nymtech/nym-vpn-client", "path": "nym-vpn-app" } },
+    { "group": "Retrieval", "label": "vpn code links point at a release tag", "tool": "search_code", "args": { "query": "PacketTunnelProvider startTunnel", "topK": 3 }, "match": "github\\.com/nymtech/nym-vpn-client/blob/nym-vpn-v[0-9]" }
+  ]
+}

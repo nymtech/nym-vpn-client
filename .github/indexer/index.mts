@@ -20,6 +20,7 @@
 // embeds only the chunks that changed since the last one. The walks read the
 // working tree, so untracked files in a local checkout are included.
 
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
@@ -42,9 +43,26 @@ const DOCS_MODEL = 'voyage-3-large';
 // broken walk cannot empty part of the public index. ALLOW_SHRINK=1 lets an
 // intended large removal through.
 const MAX_SHRINK = 0.2;
+// The probe file that the post-write step and retrieval-indexer's mcp-checks run
+// against the live MCP server. Each root needs a path probe.
+const PROBE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), 'mcp-probes.json');
+
+function assertRootsHaveProbes(): void {
+  const { probes } = JSON.parse(readFileSync(PROBE_FILE, 'utf-8')) as { probes: { path?: { repo: string; path: string } }[] };
+  const paths = probes.filter((p) => p.path?.repo === `nymtech/${REPO}`).map((p) => p.path!.path);
+  const under = (p: string, root: string) => p === root || p.startsWith(`${root}/`);
+  const unprobed = ROOTS.filter((root) => !paths.some((p) => under(p, root)));
+  const orphaned = paths.filter((p) => !ROOTS.some((root) => under(p, root)));
+  const problems = [
+    unprobed.length ? `add a path probe for ${unprobed.join(', ')}` : '',
+    orphaned.length ? `these probes point outside ROOTS: ${orphaned.join(', ')}` : '',
+  ].filter(Boolean);
+  if (problems.length) throw new Error(`mcp-probes.json: ${problems.join('; ')}`);
+}
 
 async function main(): Promise<void> {
   const dryRun = process.argv.includes('--dry-run');
+  assertRootsHaveProbes();
 
   const { files, oversized, dropped } = collectSourceFiles(REPO_ROOT, ROOTS);
   assertNoSilentDrops(dropped);
