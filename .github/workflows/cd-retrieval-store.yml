@@ -70,5 +70,6 @@ jobs:
         run: node index.mts
         env:
           RETRIEVAL_STORE_WRITE_URL: ${{ secrets.RETRIEVAL_STORE_WRITE_URL }}
+          RETRIEVAL_STORE_CA_CERT: ${{ secrets.RETRIEVAL_STORE_CA_CERT }}
           VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
           ALLOW_SHRINK: ${{ inputs.allow_shrink && '1' || '' }}

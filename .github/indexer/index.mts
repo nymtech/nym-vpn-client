@@ -1,12 +1,15 @@
 // Writes the nym-vpn-client code and docs shards to the public retrieval store,
 // which the Nym docs MCP route searches alongside the nym shards (search_code and
 // search_docs). The docs shard is the repository's own Markdown files. The store,
-// its roles and its CI setup are described in the nym repository:
-// documentation/MCP-STORE.md and documentation/MCP-STORE-SETUP.md.
+// its roles and its CI setup are described in the nym repository's
+// documentation/MCP-STORE.md.
 //
 // Run from .github/indexer:
 //   node index.mts --dry-run       walk, chunk and check the gates; write nothing
-//   RETRIEVAL_STORE_WRITE_URL=... VOYAGE_API_KEY=... node index.mts
+//   RETRIEVAL_STORE_WRITE_URL=... RETRIEVAL_STORE_CA_CERT="$(cat ca.pem)" VOYAGE_API_KEY=... node index.mts
+//
+// RETRIEVAL_STORE_CA_CERT is the PEM text of the CA that signed the store's
+// certificate. The URL then carries no sslmode or sslrootcert (storeConnection).
 //
 // The store skips a chunk whose id and content hash it already holds, so a run
 // embeds only the chunks that changed since the last one. The walks read the
@@ -18,7 +21,7 @@ import pg from 'pg';
 import { chunkPages } from '@nymproject/retrieval-indexer/chunker';
 import { chunkCodeFile } from '@nymproject/retrieval-indexer/code-chunker';
 import { voyageProvider } from '@nymproject/retrieval-indexer/embed';
-import { indexShard } from '@nymproject/retrieval-indexer/store';
+import { indexShard, storeConnection } from '@nymproject/retrieval-indexer/store';
 import { assertNoSilentDrops, assertRootsYieldChunks, collectMarkdownPages, collectSourceFiles } from '@nymproject/retrieval-indexer/walk';
 
 const REPO = 'nym-vpn-client';
@@ -59,7 +62,7 @@ async function main(): Promise<void> {
   if (!url || !apiKey) throw new Error('index: set RETRIEVAL_STORE_WRITE_URL and VOYAGE_API_KEY, or pass --dry-run');
 
   // One client, not a pool: a write run is one transaction on one connection.
-  const db = new pg.Client({ connectionString: url });
+  const db = new pg.Client(storeConnection(url, process.env.RETRIEVAL_STORE_CA_CERT));
   await db.connect();
   try {
     // Waiting for the store lock while another producer writes is correct; a

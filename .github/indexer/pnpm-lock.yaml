@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@nymproject/retrieval-indexer':
-        specifier: github:nymtech/retrieval-indexer#v0.2.1
-        version: https://codeload.github.com/nymtech/retrieval-indexer/tar.gz/85570087944706d0d95f51a48594b88922909906
+        specifier: github:nymtech/retrieval-indexer#v0.4.0
+        version: https://codeload.github.com/nymtech/retrieval-indexer/tar.gz/c8240572c07152f89580a80a1fb6016fb1825f16
       pg:
         specifier: ^8.23.1
         version: 8.23.1
@@ -27,9 +27,9 @@ importers:
 
 packages:
 
-  '@nymproject/retrieval-indexer@https://codeload.github.com/nymtech/retrieval-indexer/tar.gz/85570087944706d0d95f51a48594b88922909906':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/nymtech/retrieval-indexer/tar.gz/85570087944706d0d95f51a48594b88922909906}
-    version: 0.2.1
+  '@nymproject/retrieval-indexer@https://codeload.github.com/nymtech/retrieval-indexer/tar.gz/c8240572c07152f89580a80a1fb6016fb1825f16':
+    resolution: {gitHosted: true, integrity: sha512-Wnj+GQ2cOAh3LYkRye7DaOFn8xdXQHPZBLUG/iWFgiOTngFvDnbXxh1nnehI7AnUXr6k6gD/L7ogioMy9rPrCA==, tarball: https://codeload.github.com/nymtech/retrieval-indexer/tar.gz/c8240572c07152f89580a80a1fb6016fb1825f16}
+    version: 0.4.0
     engines: {node: '>=20'}
 
   '@types/node@24.19.2':
@@ -212,7 +212,7 @@ packages:
 
 snapshots:
 
-  '@nymproject/retrieval-indexer@https://codeload.github.com/nymtech/retrieval-indexer/tar.gz/85570087944706d0d95f51a48594b88922909906':
+  '@nymproject/retrieval-indexer@https://codeload.github.com/nymtech/retrieval-indexer/tar.gz/c8240572c07152f89580a80a1fb6016fb1825f16':
     dependencies:
       github-slugger: 2.0.0
       gray-matter: 4.0.3
