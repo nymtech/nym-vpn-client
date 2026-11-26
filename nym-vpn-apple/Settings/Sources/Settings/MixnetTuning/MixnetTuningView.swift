@@ -17,10 +17,9 @@ struct MixnetTuningView: View {
         mixnetDefaults.allBackgroundTraffic()
     }
     private var continuousTrafficOptions: [ContinuousTrafficSendingRate] {
-        // Reversed so the faster (2 Mbps) end sits on the LEFT of the slider, matching the
-        // "Faster" label and the delay slider's "drag-left = faster" direction. All access is
-        // by index/firstIndex, so reversing here flips the slider without affecting the daemon value.
-        Array(mixnetDefaults.allContinuousTraffic().reversed())
+        // Slowest rate (0.7 Mbps) on the left, fastest (2 Mbps) on the right: a higher rate is a
+        // denser cover stream, so "+ Anonymity" sits on the right as on the other tuning sliders.
+        mixnetDefaults.allContinuousTraffic()
     }
 
     @EnvironmentObject private var appSettings: AppSettings
@@ -266,16 +265,16 @@ private extension MixnetTuningView {
             Text("mixnetTuning.sendTraffic.on".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         } else {
-            Text("⚠️ \("mixnetTuning.sendTraffic.off".localizedString)")
+            Text("mixnetTuning.sendTraffic.off".localizedString)
                 .nymText(color: Color.Nym.warning, style: .Body.Small.regular)
         }
         Spacer()
             .frame(height: 16)
         HStack(spacing: 0) {
-            Text("mixnetTuning.faster".localizedString)
+            Text("mixnetTuning.lessData".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
-            Text("mixnetTuning.slower".localizedString)
+            Text("mixnetTuning.anonymityPlus".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         }
         Spacer()
@@ -293,17 +292,14 @@ private extension MixnetTuningView {
         Spacer()
             .frame(height: 16)
         HStack(spacing: 0) {
-            Text("2 Mbps")
-                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
-                .multilineTextAlignment(.center)
-            Spacer()
-            Text("1 Mbps")
-                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
-                .multilineTextAlignment(.center)
-            Spacer()
-            Text("0.7 Mbps")
-                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
-                .multilineTextAlignment(.center)
+            ForEach(Array(continuousTrafficOptions.enumerated()), id: \.offset) { index, option in
+                if index > 0 {
+                    Spacer()
+                }
+                Text("\(option.uiThroughput) Mbps")
+                    .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
+                    .multilineTextAlignment(.center)
+            }
         }
         .opacity(isSendTrafficContinuouslyOn ? 1 : 0.5)
         Spacer()
@@ -317,7 +313,7 @@ private extension MixnetTuningView {
             Spacer()
                 .frame(height: 16)
             if mixingDelayIndex == 0 {
-                Text("⚠️ \("mixnetTuning.mixingDelay.off".localizedString)")
+                Text("mixnetTuning.mixingDelay.off".localizedString)
                     .nymText(color: Color.Nym.warning, style: .Body.Small.regular)
             } else {
                 Text("mixnetTuning.mixingDelay.on".localizedString)

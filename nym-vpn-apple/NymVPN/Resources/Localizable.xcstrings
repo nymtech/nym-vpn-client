@@ -18568,13 +18568,13 @@
         }
       }
     },
-    "mixnetTuning.slower" : {
+    "mixnetTuning.lessData" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Slower"
+            "value" : "Less data"
           }
         }
       }
