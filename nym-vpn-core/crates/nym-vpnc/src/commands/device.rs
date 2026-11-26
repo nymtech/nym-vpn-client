@@ -11,10 +11,6 @@ use crate::table_style::TableStyle;
 
 #[derive(Debug, Clone, clap::Args)]
 pub struct Args {
-    /// Table style output.
-    #[arg(global = true, long, value_enum, default_value_t)]
-    pub table_style: TableStyle,
-
     #[command(subcommand)]
     pub command: Option<Command>,
 }
@@ -52,7 +48,7 @@ impl Args {
                 };
 
                 let mut table = Table::new(devices.into_iter().map(DeviceModel::from));
-                self.table_style.apply_style(&mut table);
+                TableStyle::from_env().apply_style(&mut table);
 
                 println!("{table}");
 

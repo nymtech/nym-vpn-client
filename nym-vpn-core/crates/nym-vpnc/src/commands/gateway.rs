@@ -16,10 +16,6 @@ use crate::{
 
 #[derive(Debug, Clone, clap::Args)]
 pub struct Args {
-    /// Table style output.
-    #[arg(global = true, long, value_enum, default_value_t)]
-    pub table_style: TableStyle,
-
     #[command(subcommand)]
     pub command: Command,
 }
@@ -224,7 +220,7 @@ impl Args {
             .map(|gateway| GatewayModel::new(gateway, gw_type))
             .collect::<Vec<_>>();
         let mut table = Table::new(models);
-        self.table_style.apply_style(&mut table);
+        TableStyle::from_env().apply_style(&mut table);
         println!("{table}");
 
         Ok(())
@@ -249,7 +245,7 @@ impl Args {
             .map(|gateway| GatewayModel::new(gateway, gw_type))
             .collect::<Vec<_>>();
         let mut table = Table::new(models);
-        self.table_style.apply_style(&mut table);
+        TableStyle::from_env().apply_style(&mut table);
         println!("{table}");
 
         Ok(())
@@ -280,7 +276,7 @@ impl Args {
             .map(|gateway| GatewayModel::new(gateway, gw_type))
             .collect::<Vec<_>>();
         let mut table = Table::new(models);
-        self.table_style.apply_style(&mut table);
+        TableStyle::from_env().apply_style(&mut table);
         println!("{table}");
 
         println!(
@@ -297,7 +293,7 @@ impl Args {
             .map(|gateway| GatewayModel::new(gateway, gw_type))
             .collect::<Vec<_>>();
         let mut table = Table::new(models);
-        self.table_style.apply_style(&mut table);
+        TableStyle::from_env().apply_style(&mut table);
         println!("{table}");
 
         Ok(())

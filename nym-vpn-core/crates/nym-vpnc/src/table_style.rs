@@ -4,6 +4,9 @@
 use clap::ValueEnum;
 use tabled::{Table, settings::Style};
 
+/// Environment variable used to select the table style.
+const TABLE_STYLE_ENV: &str = "TABLE_STYLE";
+
 /// Table style output.
 #[derive(Debug, Default, Copy, Clone, ValueEnum)]
 pub enum TableStyle {
@@ -23,6 +26,15 @@ pub enum TableStyle {
 }
 
 impl TableStyle {
+    /// Returns the table style set by the `TABLE_STYLE` environment variable, or the default
+    /// style when it's unset or invalid.
+    pub fn from_env() -> Self {
+        std::env::var(TABLE_STYLE_ENV)
+            .ok()
+            .and_then(|value| Self::from_str(&value, true).ok())
+            .unwrap_or_default()
+    }
+
     pub fn apply_style(&self, table: &mut Table) {
         match self {
             TableStyle::Psql => table.with(Style::psql()),

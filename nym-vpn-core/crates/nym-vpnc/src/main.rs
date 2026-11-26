@@ -17,8 +17,6 @@ use tokio_stream::{Stream, StreamExt};
 use nym_vpn_lib_types::{PairingResult, TunnelEvent, TunnelState, VpnServiceInfo};
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::table_style::TableStyle;
-
 #[tokio::main]
 async fn main() -> Result<()> {
     ProgramArgs::parse().command.execute().await
@@ -27,10 +25,6 @@ async fn main() -> Result<()> {
 #[derive(Parser, Debug)]
 #[clap(version, about)]
 pub struct ProgramArgs {
-    /// Table style output.
-    #[arg(global = true, long, value_enum, default_value_t)]
-    pub table_style: TableStyle,
-
     #[command(subcommand)]
     pub command: Command,
 }
