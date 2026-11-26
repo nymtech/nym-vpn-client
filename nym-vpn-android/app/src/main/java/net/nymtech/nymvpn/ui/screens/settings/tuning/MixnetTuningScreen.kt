@@ -65,21 +65,18 @@ fun MixnetTuningScreen(appUiState: AppUiState, viewModel: MixnetTuningViewModel 
 		}
 	}
 
-	val internetSpeedString = stringResource(R.string.mixnet_tuning_internet_speed)
-
-	val speedStr = remember(uiState.continuousTrafficEnabled, uiState.calculatedSpeedMbps) {
-		if (!uiState.continuousTrafficEnabled) {
-			internetSpeedString
-		} else {
-			String.format(Locale.US, "Up to %.1f Mbps", uiState.calculatedSpeedMbps)
-		}
+	// "1 Mbps", not "1.0 Mbps", to match the slider labels and the other apps
+	val mbps = uiState.calculatedSpeedMbps
+	val mbpsText = if (mbps % 1f == 0f) mbps.toInt().toString() else String.format(Locale.US, "%.1f", mbps)
+	val speedStr = if (uiState.continuousTrafficEnabled) {
+		stringResource(R.string.mixnet_tuning_speed_up_to, mbpsText)
+	} else {
+		stringResource(R.string.mixnet_tuning_internet_speed)
 	}
 
-	val latencyStr = remember(uiState.calculatedLatencyMs) {
-		// Rounding ((val + 9) / 10) * 10
-		val roundedLatency = ((uiState.calculatedLatencyMs + 9) / 10).toInt() * 10
-		"At least $roundedLatency ms"
-	}
+	// Rounding ((val + 9) / 10) * 10
+	val roundedLatency = ((uiState.calculatedLatencyMs + 9) / 10).toInt() * 10
+	val latencyStr = stringResource(R.string.mixnet_tuning_latency_at_least, roundedLatency)
 
 	MixnetTuningScreen(
 		speed = speedStr,
@@ -101,7 +98,7 @@ fun MixnetTuningScreen(appUiState: AppUiState, viewModel: MixnetTuningViewModel 
 		onDelayValueChange = viewModel::onDelayValueChange,
 
 		saveButtonEnabled = uiState.hasUnsavedChanges,
-		showRestoreButton = !uiState.isCurrentStateDefault,
+		restoreButtonEnabled = !uiState.isCurrentStateDefault,
 
 		onSaveSettingsClick = viewModel::onSaveSettingsClick,
 		onRestoreDefaultClick = viewModel::onRestoreDefaultClick,
@@ -125,7 +122,7 @@ fun MixnetTuningScreen(
 	delayDefaultValue: Float,
 	onDelayValueChange: (Float) -> Unit,
 	saveButtonEnabled: Boolean,
-	showRestoreButton: Boolean,
+	restoreButtonEnabled: Boolean,
 	onSaveSettingsClick: () -> Unit,
 	onRestoreDefaultClick: () -> Unit,
 ) {
@@ -143,6 +140,12 @@ fun MixnetTuningScreen(
 			.padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight())
 			.navigationBarsPadding(),
 	) {
+		Text(
+			text = stringResource(R.string.mixnet_tuning_description),
+			style = MaterialTheme.typography.bodyMedium,
+			color = MaterialTheme.colorScheme.onBackground,
+		)
+
 		PerformanceSection(speed = speed, latency = latency)
 
 		SendTrafficSection(
@@ -199,22 +202,22 @@ fun MixnetTuningScreen(
 			shape = RoundedCornerShape(12.dp),
 		)
 
-		if (showRestoreButton) {
-			OutlineStyledButton(
-				onClick = onRestoreDefaultClick,
-				content = {
-					Text(
-						text = stringResource(R.string.mixnet_tuning_restore_button),
-						style = MaterialTheme.typography.titleMedium,
-					)
-				},
-				borderColor = MaterialTheme.colorScheme.onBackground,
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(48.dp.scaledHeight()),
-				shape = RoundedCornerShape(12.dp),
-			)
-		}
+		// Always shown, greyed out while everything is at its default (as on Apple and desktop)
+		OutlineStyledButton(
+			onClick = onRestoreDefaultClick,
+			enabled = restoreButtonEnabled,
+			content = {
+				Text(
+					text = stringResource(R.string.mixnet_tuning_restore_button),
+					style = MaterialTheme.typography.titleMedium,
+				)
+			},
+			borderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = if (restoreButtonEnabled) 1f else 0.38f),
+			modifier = Modifier
+				.fillMaxWidth()
+				.height(48.dp.scaledHeight()),
+			shape = RoundedCornerShape(12.dp),
+		)
 	}
 }
 
@@ -223,7 +226,7 @@ fun MixnetTuningScreen(
 internal fun PreviewMixnetTuningScreen() {
 	NymVPNTheme(Theme.default()) {
 		MixnetTuningScreen(
-			speed = "Up to 1.0 Mbps",
+			speed = "Up to 1 Mbps",
 			latency = "At least 690 ms",
 			continuousTrafficEnabled = true,
 			onContinuousTrafficEnable = {},
@@ -238,7 +241,7 @@ internal fun PreviewMixnetTuningScreen() {
 			delayDefaultValue = 15f,
 			onDelayValueChange = {},
 			saveButtonEnabled = false,
-			showRestoreButton = true,
+			restoreButtonEnabled = true,
 			onSaveSettingsClick = {},
 			onRestoreDefaultClick = {},
 		)

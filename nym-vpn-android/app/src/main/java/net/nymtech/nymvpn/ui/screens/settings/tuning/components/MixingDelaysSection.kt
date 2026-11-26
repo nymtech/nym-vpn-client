@@ -95,7 +95,7 @@ fun MixingDelaysSection(delayValue: Float, valueRange: ClosedFloatingPointRange<
 						stringResource(R.string.mixnet_tuning_delays_current, currentInt.toString())
 					},
 					style = MaterialTheme.typography.bodyMedium,
-					color = if (isDefault) MaterialTheme.colorScheme.primary else LocalNymColors.current.currentValueIndicator,
+					color = MaterialTheme.colorScheme.primary,
 					modifier = Modifier.weight(1f),
 					textAlign = TextAlign.Center,
 				)

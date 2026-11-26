@@ -591,6 +591,9 @@
 	<string name="mixnet_tuning_current_speed">Packet rate</string>
 	<string name="mixnet_tuning_current_latency">Latency</string>
 	<string name="mixnet_tuning_internet_speed">Up to internet speed</string>
+	<string name="mixnet_tuning_speed_up_to">Up to %1$s Mbps</string>
+	<string name="mixnet_tuning_latency_at_least">At least %1$d ms</string>
+	<string name="mixnet_tuning_description">Customize your mixnet traffic patterns.</string>
 	<string name="mixnet_tuning_current_description">Expected round-trip latency (RTT) on a standard network</string>
 	<string name="mixnet_tuning_traffic_title">Send continuous traffic</string>
 	<string name="mixnet_tuning_traffic_off_title">Background cover traffic rate</string>
