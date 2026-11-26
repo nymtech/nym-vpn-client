@@ -8,6 +8,7 @@ mod bridge_redial;
 mod custom_dns;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod dns_handler;
+mod dns_options_resolver;
 mod entry_blame;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod gateway_ext;
@@ -58,12 +59,11 @@ use crate::{
     default_dns_servers::DefaultDnsServers, mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
-use custom_dns::DnsServerExt;
 pub(crate) use custom_dns::dns_servers_from_hickory_config;
+#[cfg(not(target_os = "android"))]
+use dns_options_resolver::DnsOptionsResolver;
 
 use hickory_resolver::config::NameServerConfig;
-#[cfg(not(target_os = "ios"))]
-use hickory_resolver::config::ProtocolConfig;
 use nym_bandwidth_controller::{
     error::BandwidthControllerError, requests::BandwidthControllerRequestSender,
 };
@@ -265,120 +265,6 @@ impl TunnelSettings {
                 types
             }
         }
-    }
-
-    pub fn resolver_config(&self, default_dns_servers: &DefaultDnsServers) -> ResolverConfig {
-        let mut config = match self.dns {
-            DnsOptions::Default => default_dns_servers.get_dns_servers(),
-            DnsOptions::Custom(ref dns_servers) => {
-                if dns_servers.is_empty() {
-                    default_dns_servers.get_dns_servers()
-                } else {
-                    dns_servers
-                        .iter()
-                        .map(|ns| ns.to_name_server_config())
-                        .collect()
-                }
-            }
-        };
-        config.retain(|ns| ns.ip.is_ipv4() || (ns.ip.is_ipv6() && self.enable_ipv6));
-        ResolverConfig(config)
-    }
-
-    /// Returns IP addresses of the DNS servers suitable for Android DNS configuration.
-    ///
-    /// If Private DNS is enabled, these IPs will be probed for DoT before falling back to UDP/TCP.
-    #[cfg(target_os = "android")]
-    pub fn android_tunnel_dns(&self, default_dns_servers: &DefaultDnsServers) -> Vec<IpAddr> {
-        let defaults = || {
-            let mut seen = HashSet::new();
-            default_dns_servers
-                .get_dns_servers()
-                .iter()
-                .filter(|ns| {
-                    // Android only supports TCP/UDP 53 and TLS (853)
-                    ns.connections.iter().any(|conn| {
-                        matches!(
-                            conn.protocol,
-                            ProtocolConfig::Tls { .. } | ProtocolConfig::Udp | ProtocolConfig::Tcp
-                        )
-                    })
-                })
-                .map(|ns| ns.ip)
-                .filter(|ip| seen.insert(*ip))
-                .collect()
-        };
-
-        let mut addrs: Vec<IpAddr> = match self.dns {
-            DnsOptions::Default => defaults(),
-            DnsOptions::Custom(ref dns_servers) => {
-                if dns_servers.is_empty() {
-                    defaults()
-                } else {
-                    let mut seen = HashSet::new();
-                    dns_servers
-                        .iter()
-                        .filter(|dns_server| {
-                            // Android only supports TCP/UDP 53 and TLS (853)
-                            matches!(dns_server, DnsServer::Tls { .. } | DnsServer::Plain { .. })
-                        })
-                        .map(|dns_server| dns_server.address())
-                        .filter(|ip| seen.insert(*ip))
-                        .collect()
-                }
-            }
-        };
-        addrs.retain(|v| v.is_ipv4() || (v.is_ipv6() && self.enable_ipv6));
-        addrs
-    }
-
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    pub fn allowed_dns_endpoints(
-        &self,
-        default_dns_servers: &DefaultDnsServers,
-    ) -> Vec<nym_firewall::Endpoint> {
-        match self.dns {
-            DnsOptions::Custom(ref dns_servers) => {
-                if dns_servers.is_empty() {
-                    self.allowed_default_dns_endpoints(default_dns_servers)
-                } else {
-                    dns_servers
-                        .iter()
-                        .filter(|dns_server| {
-                            let ip = dns_server.address();
-                            ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6)
-                        })
-                        .flat_map(|dns_server| dns_server.firewall_endpoints())
-                        .collect()
-                }
-            }
-            DnsOptions::Default => self.allowed_default_dns_endpoints(default_dns_servers),
-        }
-    }
-
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    pub fn allowed_default_dns_endpoints(
-        &self,
-        default_dns_servers: &DefaultDnsServers,
-    ) -> Vec<nym_firewall::Endpoint> {
-        default_dns_servers
-            .get_dns_servers()
-            .iter()
-            .filter(|ns| ns.ip.is_ipv4() || (ns.ip.is_ipv6() && self.enable_ipv6))
-            .flat_map(|ns| {
-                ns.connections.iter().map(|conn| {
-                    let proto = match conn.protocol {
-                        ProtocolConfig::Udp
-                        | ProtocolConfig::H3 { .. }
-                        | ProtocolConfig::Quic { .. } => nym_firewall::TransportProtocol::Udp,
-                        ProtocolConfig::Tcp
-                        | ProtocolConfig::Https { .. }
-                        | ProtocolConfig::Tls { .. } => nym_firewall::TransportProtocol::Tcp,
-                    };
-                    nym_firewall::Endpoint::new(ns.ip, conn.port, proto)
-                })
-            })
-            .collect::<Vec<_>>()
     }
 
     pub fn diff(&self, other: &Self) -> TunnelSettingsDiff {
@@ -867,6 +753,15 @@ pub struct SharedState {
 }
 
 impl SharedState {
+    #[cfg(not(target_os = "android"))]
+    fn dns_options_resolver(&self) -> DnsOptionsResolver<'_> {
+        DnsOptionsResolver::new(
+            &self.tunnel_settings.dns,
+            self.tunnel_settings.enable_ipv6,
+            &self.default_dns_servers,
+        )
+    }
+
     /// Update default DNS servers based on user location and exit gateway and apply them to the
     /// shared HTTP resolver.
     fn update_default_dns_servers(&self, exit_gateway: Option<&Gateway>) {

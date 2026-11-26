@@ -205,8 +205,8 @@ impl ConnectingState {
                 api_endpoints,
                 // Allow default DNS servers when connecting since those are used by http/client
                 dns_servers: shared_state
-                    .tunnel_settings
-                    .allowed_default_dns_endpoints(&shared_state.default_dns_servers),
+                    .dns_options_resolver()
+                    .allowed_default_dns_endpoints(),
                 tunnel_interface: None,
                 #[cfg(target_os = "macos")]
                 redirect_interface,
@@ -692,8 +692,8 @@ impl ConnectingState {
             self.firewall_policy_params.lp_entry_endpoints =
                 gateways.entry_gateway().lp_endpoints();
             self.firewall_policy_params.dns_servers = shared_state
-                .tunnel_settings
-                .allowed_default_dns_endpoints(&shared_state.default_dns_servers);
+                .dns_options_resolver()
+                .allowed_default_dns_endpoints();
             Self::set_firewall_policy(shared_state, &self.firewall_policy_params)
         };
         self.selected_gateways = Some(*gateways);
