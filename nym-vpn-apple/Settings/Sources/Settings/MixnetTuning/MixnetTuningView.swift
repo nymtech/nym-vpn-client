@@ -223,6 +223,15 @@ private extension MixnetTuningView {
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
                 .frame(height: 16)
+            HStack(spacing: 0) {
+                Text("mixnetTuning.faster".localizedString)
+                    .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
+                Spacer()
+                Text("mixnetTuning.anonymityPlus".localizedString)
+                    .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
+            }
+            Spacer()
+                .frame(height: 16)
             coverTrafficSliderSection
                 .disabled(!isBackgroundCoverOn)
                 .opacity(isBackgroundCoverOn ? 1 : 0.5)
@@ -233,15 +242,6 @@ private extension MixnetTuningView {
     }
 
     @ViewBuilder var coverTrafficSliderSection: some View {
-        HStack(spacing: 0) {
-            Text("mixnetTuning.faster".localizedString)
-                .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
-            Spacer()
-            Text("mixnetTuning.anonymityPlus".localizedString)
-                .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
-        }
-        Spacer()
-            .frame(height: 16)
         Slider(value: snapping($coverTrafficIndex), in: 0.0...Double(coverTrafficOptions.count - 1))
             .tint(Color.Nym.primary)
             .accessibilityLabel("mixnetTuning.backgroundCoverTrafficState.title".localizedString)
@@ -409,9 +409,11 @@ private extension MixnetTuningView {
             isDisabled: $isSaveButtonDisabled
         )
         .onTapGesture {
+            guard !isSaveButtonDisabled else { return }
             saveSettings()
         }
         .accessibilityAction {
+            guard !isSaveButtonDisabled else { return }
             saveSettings()
         }
         Spacer()
@@ -422,12 +424,14 @@ private extension MixnetTuningView {
             height: 42,
             isDisabled: $isRestoreButtonDisabled
         )
-            .onTapGesture {
-                resetToDefaults()
-            }
-            .accessibilityAction {
-                resetToDefaults()
-            }
+        .onTapGesture {
+            guard !isRestoreButtonDisabled else { return }
+            resetToDefaults()
+        }
+        .accessibilityAction {
+            guard !isRestoreButtonDisabled else { return }
+            resetToDefaults()
+        }
     }
 }
 
