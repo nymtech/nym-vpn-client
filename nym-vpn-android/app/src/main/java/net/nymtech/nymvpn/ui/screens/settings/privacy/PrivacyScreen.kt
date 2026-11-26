@@ -76,6 +76,9 @@ fun PrivacyScreen(
 			.padding(top = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
+		NetworkStatsSection(statsEnabled, onNetworkStatsEnable, onInfo = { infoKind = it })
+		MonitoringSection(sentryEnabled, onMonitoringEnable, onInfo = { infoKind = it })
+
 		SettingsGroup(
 			items = listOf(
 				SelectionItem(
@@ -104,7 +107,7 @@ fun PrivacyScreen(
 					leading = {
 						SettingsIcon(
 							Icons.Outlined.MonitorHeart,
-							stringResource(R.string.local_logs),
+							stringResource(R.string.privacy_diagnostic_tool),
 						)
 					},
 					trailing = {
@@ -119,8 +122,6 @@ fun PrivacyScreen(
 				),
 			),
 		)
-		NetworkStatsSection(statsEnabled, onNetworkStatsEnable, onInfo = { infoKind = it })
-		MonitoringSection(sentryEnabled, onMonitoringEnable, onInfo = { infoKind = it })
 	}
 
 	infoKind?.let { kind ->

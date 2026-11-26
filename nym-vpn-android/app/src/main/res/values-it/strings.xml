@@ -253,7 +253,6 @@
 	<string name="settings_notifications_title">Notifiche</string>
 	<string name="settings_power_managment_title">Gestione dell\'alimentazione</string>
 	<string name="settings_shortcuts_title">Collegamenti rapidi all’app</string>
-	<string name="settings_logs_title">Log e dati</string>
 	<string name="settings_legal_title">Note legali</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Alcuni intervalli di IP specifici si connettono direttamente</string>

@@ -257,7 +257,6 @@
 	<string name="settings_notifications_title">Уведомления</string>
 	<string name="settings_power_managment_title">Управление энергопотреблением</string>
 	<string name="settings_shortcuts_title">Ярлыки приложений</string>
-	<string name="settings_logs_title">Логи &amp; данные</string>
 	<string name="settings_legal_title">Юридическая информация</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Определённые IP-диапазоны подключаются напрямую</string>

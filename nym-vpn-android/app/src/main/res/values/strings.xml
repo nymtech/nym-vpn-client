@@ -271,7 +271,6 @@
 	<string name="settings_notifications_title">Notifications</string>
 	<string name="settings_power_managment_title">Power management</string>
 	<string name="settings_shortcuts_title">App shortcuts</string>
-	<string name="settings_logs_title">Logs &amp; data</string>
 	<string name="settings_legal_title">Legal</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Specific IP ranges connect directly</string>

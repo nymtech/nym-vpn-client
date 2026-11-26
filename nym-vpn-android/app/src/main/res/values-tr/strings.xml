@@ -251,7 +251,6 @@
 	<string name="settings_notifications_title">Bildirimler</string>
 	<string name="settings_power_managment_title">Güç yönetimi</string>
 	<string name="settings_shortcuts_title">Uygulama kısayolları</string>
-	<string name="settings_logs_title">Günlükler ve veri</string>
 	<string name="settings_legal_title">Yasal</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Belirli IP aralıkları doğrudan bağlanır</string>

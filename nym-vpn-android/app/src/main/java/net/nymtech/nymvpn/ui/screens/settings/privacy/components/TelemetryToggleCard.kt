@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings.privacy.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Analytics
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -19,16 +22,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.TelemetryInfoKind
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
+import net.nymtech.nymvpn.ui.screens.settings.components.SettingsIcon
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 /**
  * Shared card for a telemetry opt-in toggle on the Data & privacy screen:
- * title + info button, subtitle, an optional warning line, and a switch. Used by
+ * leading icon (same as onboarding), title + info button, subtitle, an optional
+ * warning line, and a switch. Used by
  * the connection (network stats) and monitoring (crash reports) sections so they
  * don't each duplicate the layout.
  */
@@ -55,6 +62,9 @@ fun TelemetryToggleCard(
 			horizontalArrangement = Arrangement.SpaceBetween,
 			verticalAlignment = Alignment.CenterVertically,
 		) {
+			Box(modifier = Modifier.padding(end = 16.dp.scaledWidth())) {
+				SettingsIcon(kind.icon(), title)
+			}
 			Column(modifier = Modifier.weight(1f)) {
 				Row(verticalAlignment = Alignment.CenterVertically) {
 					Text(
@@ -93,4 +103,9 @@ fun TelemetryToggleCard(
 			)
 		}
 	}
+}
+
+private fun TelemetryInfoKind.icon(): ImageVector = when (this) {
+	TelemetryInfoKind.CONNECTION -> Icons.Outlined.Analytics
+	TelemetryInfoKind.MONITORING -> Icons.Outlined.BugReport
 }

@@ -251,7 +251,6 @@
 	<string name="settings_notifications_title">বিজ্ঞপ্তি</string>
 	<string name="settings_power_managment_title">বিদ্যুৎ ব্যবস্থাপনা</string>
 	<string name="settings_shortcuts_title">অ্যাপ শর্টকাট</string>
-	<string name="settings_logs_title">লগস &amp; ডেটা</string>
 	<string name="settings_legal_title">আইনি</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">নির্দিষ্ট আইপি পরিসর সরাসরি সংযুক্ত করে</string>

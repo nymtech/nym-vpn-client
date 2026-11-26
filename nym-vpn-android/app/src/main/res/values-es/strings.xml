@@ -253,7 +253,6 @@
 	<string name="settings_notifications_title">Notificaciones</string>
 	<string name="settings_power_managment_title">Gestión de energía</string>
 	<string name="settings_shortcuts_title">Atajos de aplicación</string>
-	<string name="settings_logs_title">Registros &amp; datos</string>
 	<string name="settings_legal_title">Legal</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Ciertos rangos de IP se conectan directamente</string>

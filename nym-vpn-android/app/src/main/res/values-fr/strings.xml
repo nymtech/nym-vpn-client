@@ -251,7 +251,6 @@
 	<string name="settings_notifications_title">Notifications</string>
 	<string name="settings_power_managment_title">Gestion de l\'alimentation</string>
 	<string name="settings_shortcuts_title">Raccourcis de l\'application</string>
-	<string name="settings_logs_title">Logs &amp; données</string>
 	<string name="settings_legal_title">Mentions légales</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Certaines plages d\'adresses IP se connectent directement</string>

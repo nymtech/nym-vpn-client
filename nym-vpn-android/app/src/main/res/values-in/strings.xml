@@ -250,7 +250,6 @@
 	<string name="settings_notifications_title">Pemberitahuan</string>
 	<string name="settings_power_managment_title">Pengelolaan daya</string>
 	<string name="settings_shortcuts_title">Pintasan aplikasi</string>
-	<string name="settings_logs_title">Catatan &amp; data</string>
 	<string name="settings_legal_title">Hukum</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Rentang IP tertentu terhubung secara langsung</string>

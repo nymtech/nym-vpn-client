@@ -249,7 +249,6 @@
 	<string name="settings_notifications_title">Thông báo</string>
 	<string name="settings_power_managment_title">Quản lý năng lượng</string>
 	<string name="settings_shortcuts_title">Phím tắt ứng dụng</string>
-	<string name="settings_logs_title">Nhật ký &amp; dữ liệu</string>
 	<string name="settings_legal_title">Pháp lý</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Các dải IP cụ thể kết nối trực tiếp</string>

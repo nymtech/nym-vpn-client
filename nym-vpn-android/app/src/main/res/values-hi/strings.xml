@@ -251,7 +251,6 @@
 	<string name="settings_notifications_title">सूचनाएं</string>
 	<string name="settings_power_managment_title">पावर प्रबंधन</string>
 	<string name="settings_shortcuts_title">ऐप शॉर्टकट</string>
-	<string name="settings_logs_title">लॉग &amp; डेटा</string>
 	<string name="settings_legal_title">कानूनी</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">विशिष्ट IP रेंज सीधे कनेक्ट करती हैं</string>

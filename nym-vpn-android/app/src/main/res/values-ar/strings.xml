@@ -261,7 +261,6 @@
 	<string name="settings_notifications_title">الإشعارات</string>
 	<string name="settings_power_managment_title">إدارة الطاقة</string>
 	<string name="settings_shortcuts_title">اختصارات التطبيق</string>
-	<string name="settings_logs_title">السجلّات &amp; والبيانات</string>
 	<string name="settings_legal_title">قانوني</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">تتصل نطاقات IP محددة مباشرةً</string>

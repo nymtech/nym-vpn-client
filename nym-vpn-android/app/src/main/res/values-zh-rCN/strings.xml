@@ -251,7 +251,6 @@
 	<string name="settings_notifications_title">通知</string>
 	<string name="settings_power_managment_title">电量管理</string>
 	<string name="settings_shortcuts_title">应用快捷方式</string>
-	<string name="settings_logs_title">日志和数据</string>
 	<string name="settings_legal_title">法律</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">特定 IP 范围直接连接</string>
