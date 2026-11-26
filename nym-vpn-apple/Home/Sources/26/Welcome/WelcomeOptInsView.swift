@@ -1,5 +1,8 @@
 import SwiftUI
 import AppSettings
+#if os(macOS)
+import ConfigurationManager
+#endif
 import Constants
 import ImpactGenerator
 import Theme
@@ -40,7 +43,17 @@ public struct WelcomeOptInsView: View {
         // SentryManager observes this publisher; AppStorage alone would not reach it until relaunch.
         .onChange(of: isErrorReportingOn) {
             appSettings.isErrorReportingOnPublisher = isErrorReportingOn
+#if os(macOS)
+            syncTelemetryConsentToDaemon()
+#endif
         }
+#if os(macOS)
+        // The daemon keeps its own defaults until told, so onboarding has to send the
+        // choices just as Settings does.
+        .onChange(of: isStatisticsEnabled) {
+            syncTelemetryConsentToDaemon()
+        }
+#endif
         .sheet(item: $infoContent) { content in
             TelemetryInfoSheet(content: content) {
                 infoContent = nil
@@ -119,6 +132,14 @@ private extension WelcomeOptInsView {
             handlingKey: "welcomeOptIns.monitoring.handling"
         )
     }
+
+#if os(macOS)
+    func syncTelemetryConsentToDaemon() {
+        Task {
+            await ConfigurationManager.shared.syncTelemetryConsent()
+        }
+    }
+#endif
 
     var continueButton: some View {
         NymButton("welcome.continue".localizedString, style: .primary) {

@@ -159,11 +159,16 @@ import PathManager
 
 #if os(macOS)
         // The daemon may not be reachable yet when the app starts, so ask again once it is.
+        // The daemon keeps its own data-sharing defaults until told, so resend the user's
+        // choices on every (re)connect too.
         grpcManager.$isServing
             .removeDuplicates()
             .filter { $0 }
             .sink { [weak self] _ in
                 self?.updateCompatibilityVersions()
+                Task { @MainActor in
+                    await self?.syncTelemetryConsent()
+                }
             }
             .store(in: &cancellables)
 #endif
@@ -288,9 +293,6 @@ private extension ConfigurationManager {
         )
         logger.info("Configured environment: \(currentEnvString)")
         lastConfiguredEnvString = currentEnvString
-#else
-        try? await updateErrorReportingIfNeeded()
-        try? await updateNetworkStatisticsIfNeeded()
 #endif
         updateAccountLinks()
         updateCompatibilityVersions()
@@ -334,3 +336,24 @@ private extension ConfigurationManager {
     }
 #endif
 }
+
+#if os(macOS)
+// MARK: - Data-sharing consent (macOS daemon) -
+public extension ConfigurationManager {
+    /// Sends the data-sharing choices to the daemon. A no-op until the daemon is connected;
+    /// the `isServing` observer in `setup()` sends them on every connect, including at launch.
+    func syncTelemetryConsent() async {
+        guard grpcManager.isServing else { return }
+        do {
+            try await updateErrorReportingIfNeeded()
+        } catch {
+            logger.error("Failed to sync error reporting to daemon: \(error.localizedDescription)")
+        }
+        do {
+            try await updateNetworkStatisticsIfNeeded()
+        } catch {
+            logger.error("Failed to sync network statistics to daemon: \(error.localizedDescription)")
+        }
+    }
+}
+#endif
