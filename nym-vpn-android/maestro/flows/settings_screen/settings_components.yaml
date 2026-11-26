@@ -44,9 +44,9 @@ tags:
 
 - scrollUntilVisible:
     element:
-      text: "Logs & data"
+      text: "Data, privacy & logs"
     direction: DOWN
-- assertVisible: "Logs & data"
+- assertVisible: "Data, privacy & logs"
 
 - scrollUntilVisible:
     element:
