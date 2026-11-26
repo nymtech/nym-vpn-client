@@ -44,31 +44,6 @@ function DataAndPrivacy() {
 
   return (
     <PageAnim className="mt-2 flex h-full flex-col gap-6">
-      <SettingsGroup
-        settings={[
-          {
-            title: t('logs.title'),
-            leadingIcon: 'sort',
-            trailing: (
-              <MsIcon icon="chevron_right" className="text-text-primary" />
-            ),
-            onClick: () => navigate(routes.logs),
-          },
-        ]}
-      />
-      <SettingsGroup
-        settings={[
-          {
-            title: t('diagnostic.title'),
-            leadingIcon: 'monitor_heart',
-            trailing: (
-              <MsIcon icon="chevron_right" className="text-text-primary" />
-            ),
-            onClick: () => navigate(routes.diagnostic),
-          },
-        ]}
-      />
-
       {/* Telemetry opt-ins — identical to the onboarding screen */}
       <SettingsGroup
         settings={[
@@ -120,6 +95,31 @@ function DataAndPrivacy() {
               />
             ),
             'data-testid': 'data-privacy-monitoring-option',
+          },
+        ]}
+      />
+
+      <SettingsGroup
+        settings={[
+          {
+            title: t('logs.title'),
+            leadingIcon: 'sort',
+            trailing: (
+              <MsIcon icon="chevron_right" className="text-text-primary" />
+            ),
+            onClick: () => navigate(routes.logs),
+          },
+        ]}
+      />
+      <SettingsGroup
+        settings={[
+          {
+            title: t('diagnostic.title'),
+            leadingIcon: 'monitor_heart',
+            trailing: (
+              <MsIcon icon="chevron_right" className="text-text-primary" />
+            ),
+            onClick: () => navigate(routes.diagnostic),
           },
         ]}
       />
