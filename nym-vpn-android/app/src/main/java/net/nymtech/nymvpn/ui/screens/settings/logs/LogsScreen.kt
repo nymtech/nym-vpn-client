@@ -70,21 +70,9 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 /** What the screen shows. The logging level itself is set on Data, privacy & logs. */
-data class LogsViewState(
-	val logsEnabled: Boolean,
-	val showLive: Boolean,
-	val selectedTab: Int,
-	val currentLogs: List<LogMessage>,
-	val currentScrollState: LazyListState,
-)
+data class LogsViewState(val logsEnabled: Boolean, val showLive: Boolean, val selectedTab: Int, val currentLogs: List<LogMessage>, val currentScrollState: LazyListState)
 
-class LogsActions(
-	val onShare: () -> Unit,
-	val onSave: () -> Unit,
-	val onDelete: () -> Unit,
-	val onToggleLive: () -> Unit,
-	val onSelectTab: (Int) -> Unit,
-)
+class LogsActions(val onShare: () -> Unit, val onSave: () -> Unit, val onDelete: () -> Unit, val onToggleLive: () -> Unit, val onSelectTab: (Int) -> Unit)
 
 @Composable
 fun LogsScreen(appUiState: AppUiState, viewModel: LogsViewModel = hiltViewModel()) {

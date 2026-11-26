@@ -192,5 +192,4 @@ class LogsViewModel @Inject constructor(
 			Timber.tag(TAG).e(t, "LogsSaveToUriFailed")
 		}
 	}
-
 }
