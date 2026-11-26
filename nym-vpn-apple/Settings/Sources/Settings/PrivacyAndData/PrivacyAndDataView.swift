@@ -113,17 +113,13 @@ private extension PrivacyAndDataView {
 #endif
 
     func diagnosticToolSection() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.diagnosticTool".localizedString,
-                systemImageName: "waveform.path.ecg.rectangle",
-                position: SettingsListItemPosition(isFirst: true, isLast: true),
-                action: {
-                    navigateToDiagnosticTool()
-                }
-            )
-        )
+        GenericButton(title: "settings.diagnosticTool.run".localizedString)
+            .onTapGesture {
+                navigateToDiagnosticTool()
+            }
+            .accessibilityAction {
+                navigateToDiagnosticTool()
+            }
     }
 
     func statisticsSection() -> some View {

@@ -26962,6 +26962,17 @@
         }
       }
     },
+    "settings.diagnosticTool.rerun" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Re-run diagnostics"
+          }
+        }
+      }
+    },
     "settings.diagnosticTool.run" : {
       "extractionState" : "manual",
       "localizations" : {
