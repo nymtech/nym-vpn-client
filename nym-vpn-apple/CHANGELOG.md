@@ -12,10 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS: Sign in by scanning a QR code from a signed-in device (https://github.com/nymtech/nym-vpn-client/pull/7122)
 - iOS: Redeem a free pass by scanning or typing a code, from Welcome, the plan screen or Settings (https://github.com/nymtech/nym-vpn-client/pull/7122)
 - iOS: Reusable QR scanner in UIComponents for on-device scanning (https://github.com/nymtech/nym-vpn-client/pull/7122)
+- macOS: Redeem a free pass from Settings, whether signed in or out (https://github.com/nymtech/nym-vpn-client/pull/7178)
+- macOS: Pair a device from Account & Devices by showing a QR code and confirming the PIN (https://github.com/nymtech/nym-vpn-client/pull/7178)
 
 ### Changed
 
 - iOS: Debug logging is now "Your troubleshooting detail" in Data, privacy & logs, with an info sheet explaining what it does (https://github.com/nymtech/nym-vpn-client/pull/7138)
+- iOS, macOS: Free pass errors come from the core instead of matching API responses in the app (https://github.com/nymtech/nym-vpn-client/pull/7197)
 - _pending changelog_
 
 ### Fixed

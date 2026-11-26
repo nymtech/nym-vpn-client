@@ -3,14 +3,14 @@
 
 use std::{
     fs,
-    io::Result,
+    io::{Error, ErrorKind, Result},
     os::unix::fs::PermissionsExt,
-    path::PathBuf,
+    path::{Path, PathBuf},
     pin::Pin,
     task::{Context, Poll},
 };
 
-use tokio::net::UnixListener;
+use tokio::net::{UnixListener, UnixStream};
 use tokio_stream::{Stream, wrappers::UnixListenerStream};
 
 use crate::{
@@ -21,22 +21,6 @@ use crate::{
 pub struct Uds {
     socket_path: PathBuf,
     inner: UnixListenerStream,
-}
-
-async fn remove_previous_socket_file(socket_path: &std::path::Path) {
-    match tokio::fs::remove_file(socket_path).await {
-        Ok(_) => tracing::info!(
-            "Removed previous command interface socket: {}",
-            socket_path.display()
-        ),
-        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
-        Err(err) => {
-            tracing::error!(
-                "Failed to remove previous command interface socket: {:?}",
-                err
-            );
-        }
-    }
 }
 
 impl Drop for Uds {
@@ -62,6 +46,8 @@ pub async fn incoming(
     socket_path: PathBuf,
     auth_material: AuthenticationMaterial,
 ) -> Result<impl Stream<Item = Result<Transport>>> {
+    ensure_no_other_listener(&socket_path).await?;
+
     // Remove previous socket file in case if the daemon crashed in the prior run and could not clean up the socket file.
     remove_previous_socket_file(&socket_path).await;
     tracing::info!("Starting socket listener on: {}", socket_path.display());
@@ -74,4 +60,67 @@ pub async fn incoming(
     };
 
     Ok(authentication::incoming(uds, auth_material))
+}
+
+async fn ensure_no_other_listener(socket_path: &Path) -> Result<()> {
+    match UnixStream::connect(socket_path).await {
+        Ok(_) => Err(Error::new(
+            ErrorKind::AddrInUse,
+            format!(
+                "Another instance is already listening on {}",
+                socket_path.display()
+            ),
+        )),
+        Err(_) => Ok(()),
+    }
+}
+
+async fn remove_previous_socket_file(socket_path: &Path) {
+    match tokio::fs::remove_file(socket_path).await {
+        Ok(_) => tracing::info!(
+            "Removed previous command interface socket: {}",
+            socket_path.display()
+        ),
+        Err(err) if err.kind() == ErrorKind::NotFound => {}
+        Err(err) => {
+            tracing::error!(
+                "Failed to remove previous command interface socket: {:?}",
+                err
+            );
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn rejects_socket_with_active_listener() {
+        let dir = tempfile::tempdir().unwrap();
+        let socket_path = dir.path().join("test.sock");
+        let _listener = UnixListener::bind(&socket_path).unwrap();
+
+        let err = ensure_no_other_listener(&socket_path).await.unwrap_err();
+        assert_eq!(err.kind(), ErrorKind::AddrInUse);
+    }
+
+    #[tokio::test]
+    async fn accepts_stale_socket_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let socket_path = dir.path().join("test.sock");
+        drop(UnixListener::bind(&socket_path).unwrap());
+        assert!(socket_path.exists());
+
+        ensure_no_other_listener(&socket_path).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn accepts_missing_socket_file() {
+        let dir = tempfile::tempdir().unwrap();
+
+        ensure_no_other_listener(&dir.path().join("test.sock"))
+            .await
+            .unwrap();
+    }
 }

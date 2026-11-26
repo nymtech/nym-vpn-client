@@ -9,22 +9,16 @@ public struct CompatibleVersions {
 
 extension GRPCManager {
     public func fetchCompatibleVersions() async throws -> CompatibleVersions {
-        try await Task.detached { [weak self] in
-            guard let result = try await self?.rpcClient?.getAppCompatibility() else {
-                return CompatibleVersions(macOS: nil, core: nil, policy: "dismissible", policies: [:])
-            }
-            return CompatibleVersions(
-                macOS: result.network?.macos,
-                core: result.network?.core,
-                policy: result.appUpdatePolicy,
-                policies: result.appUpdatePolicies
-            )
-        }.value
+        let result = try await client.getAppCompatibility()
+        return CompatibleVersions(
+            macOS: result.network?.macos,
+            core: result.network?.core,
+            policy: result.appUpdatePolicy,
+            policies: result.appUpdatePolicies
+        )
     }
 
     public func fetchFeatureFlags() async throws -> FeatureFlags? {
-        try await Task.detached { [weak self] in
-            try await self?.rpcClient?.getFeatureFlags()
-        }.value
+        try await client.getFeatureFlags()
     }
 }

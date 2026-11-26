@@ -6,7 +6,7 @@ import net.nymtech.qrscanner.QrScanValidator
 import net.nymtech.qrscanner.model.QrScanValidation
 import javax.inject.Inject
 
-class ScannedCodeValidator @Inject constructor(private val pairingQrValidator: PairingQrValidator, private val freepassCodeValidator: FreepassCodeValidator) : QrScanValidator {
+class ScannedCodeRouter @Inject constructor(private val pairingQrValidator: PairingQrValidator, private val freepassCodeValidator: FreepassCodeValidator) : QrScanValidator {
 
 	override suspend fun validate(contents: String): QrScanValidation = when (ScannedQrCode.parse(contents)) {
 		is ScannedQrCode.Pairing -> pairingQrValidator.validate(contents)

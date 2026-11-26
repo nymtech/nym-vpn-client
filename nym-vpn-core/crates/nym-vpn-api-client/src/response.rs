@@ -699,6 +699,33 @@ impl NymErrorResponse {
     pub fn is_account_not_found(&self) -> bool {
         self.status == "access_denied" && self.message == "Account not found"
     }
+
+    pub fn is_freepass_invalid(&self) -> bool {
+        self.has_message_id(&[
+            "nym-vpn-website.public-api.redeem-freepass.invalid",
+            "nym-vpn-website.public-api.apply-freepass.invalid-code",
+        ])
+    }
+
+    pub fn is_freepass_already_redeemed(&self) -> bool {
+        self.has_message_id(&[
+            "nym-vpn-website.public-api.redeem-freepass.already-redeemed",
+            "nym-vpn-website.public-api.apply-freepass.already-redeemed",
+        ])
+    }
+
+    pub fn is_recurring_subscription_active(&self) -> bool {
+        self.has_message_id(&[
+            "nym-vpn-website.public-api.create-subscription.subscription-already-exists",
+        ])
+    }
+
+    // Each error type shares one message ID; its `code_reference_id` differs per code path.
+    fn has_message_id(&self, ids: &[&str]) -> bool {
+        self.message_id
+            .as_deref()
+            .is_some_and(|message_id| ids.contains(&message_id))
+    }
 }
 
 impl fmt::Display for NymErrorResponse {

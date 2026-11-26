@@ -14,7 +14,7 @@ espressoCore = "3.7.0"
 lottieCompose = "6.7.1"
 materialIconsExtended = "1.7.8"
 navigationCompose = "2.10.2"
-hiltNavigationCompose = "1.4.0"
+hiltLifecycleViewmodelCompose = "1.4.0"
 lifecycle-compose = "2.11.0"
 activityCompose = "1.13.0"
 appcompat = "1.8.0"
@@ -99,7 +99,7 @@ hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltA
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroid" }
 
 #navigation
-androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+androidx-hilt-lifecycle-viewmodel-compose = { module = "androidx.hilt:hilt-lifecycle-viewmodel-compose", version.ref = "hiltLifecycleViewmodelCompose" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-window-core-android = { group = "androidx.window", name = "window-core-android", version.ref = "windowCoreAndroid" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }

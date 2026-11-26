@@ -203,6 +203,16 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_auto_connect(&mut self, auto_connect: bool) -> bool {
+        if self.config.auto_connect == auto_connect {
+            false
+        } else {
+            self.config.auto_connect = auto_connect;
+            self.save_config_and_send_event().await;
+            true
+        }
+    }
+
     pub async fn set_enable_custom_dns(&mut self, enable_custom_dns: bool) -> bool {
         if self.config.custom_dns.enabled == enable_custom_dns {
             false

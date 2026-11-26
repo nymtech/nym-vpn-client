@@ -294,6 +294,16 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_auto_connect(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
+        let auto_connect = request.into_inner();
+
+        self.send_and_wait(VpnServiceCommand::SetAutoConnect, auto_connect)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set auto-connect: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_enable_custom_dns(
         &self,
         request: tonic::Request<bool>,
@@ -1009,6 +1019,35 @@ impl NymVpnService for CommandInterface {
                 VpnServiceCommand::DeeplinkStoreAccount,
                 ClientRequest::new(client, deeplink_callback_url),
             )
+            .await?;
+
+        account_command_response(result)
+    }
+
+    async fn create_account(
+        &self,
+        request: tonic::Request<proto::CreateAccountRequest>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let freepass = request.get_ref().freepass.clone();
+
+        let result = self
+            .send_and_wait(
+                VpnServiceCommand::CreateAccount,
+                client_request(&request, freepass),
+            )
+            .await?;
+
+        account_command_response(result)
+    }
+
+    async fn redeem_freepass(
+        &self,
+        request: tonic::Request<String>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let code = request.into_inner();
+
+        let result = self
+            .send_and_wait(VpnServiceCommand::ApplyFreepass, code)
             .await?;
 
         account_command_response(result)

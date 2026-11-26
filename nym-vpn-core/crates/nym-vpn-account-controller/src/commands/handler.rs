@@ -79,9 +79,19 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
 
 pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
+    freepass: Option<String>,
 ) -> Result<(), AccountCommandError> {
     let (vpn_account, mnemonic) =
         VpnAccount::generate_new().map_err(AccountCommandError::internal)?;
+
+    // Redeemed before storing, so a rejected free pass leaves no account behind.
+    if let Some(code) = freepass {
+        shared_state
+            .vpn_api_client
+            .redeem_freepass(&vpn_account, code)
+            .await?;
+        tracing::debug!("Free pass redeemed, account registered with API");
+    }
 
     let (tx, rx) = ReturnSender::new();
     shared_state

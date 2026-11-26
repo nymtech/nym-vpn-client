@@ -1,3 +1,4 @@
+import NymVPNLib
 import Testing
 @testable import CredentialsManager
 
@@ -43,17 +44,15 @@ struct FreepassCodeTests {
         #expect(FreepassCode.parse(contents) == nil)
     }
 
-    @Test func mapsApiMessages() {
-        #expect(FreepassError.fromApi(messageId: "redeem-freepass.invalid", message: "") == .invalidCode)
-        #expect(FreepassError.fromApi(messageId: "apply-freepass.already-redeemed", message: "") == .alreadyRedeemed)
-        #expect(
-            FreepassError.fromApi(messageId: "create-subscription.subscription-already-exists", message: "")
-                == .subscriptionActive
-        )
-        #expect(FreepassError.fromApi(messageId: nil, message: "rate_limit_exceeded") == .rateLimited)
-        #expect(FreepassError.fromApi(messageId: nil, message: "Account not found") == .accountNotRegistered)
-        #expect(FreepassError.fromApi(messageId: "other", message: "Internal error") == .server)
+#if os(iOS)
+    @Test func mapsCoreErrors() {
+        #expect(FreepassError(VpnError.FreepassInvalid) == .invalidCode)
+        #expect(FreepassError(VpnError.FreepassAlreadyRedeemed) == .alreadyRedeemed)
+        #expect(FreepassError(VpnError.RecurringSubscriptionActive) == .subscriptionActive)
+        #expect(FreepassError(VpnError.RateLimited) == .rateLimited)
+        #expect(FreepassError(VpnError.VpnApiTimeout) == .server)
     }
+#endif
 
     @Test func finalErrorsAreNotRetried() {
         #expect(FreepassError.invalidCode.isFinal)
