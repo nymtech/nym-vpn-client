@@ -44,9 +44,6 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
-/** The three data choices shown on this screen, read from settings and the core config. */
-data class PrivacyChoices(val statsEnabled: Boolean, val sentryEnabled: Boolean, val loggingLevel: LoggingLevel)
-
 @Composable
 fun PrivacyScreen(appUiState: AppUiState, viewModel: PrivacyViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
