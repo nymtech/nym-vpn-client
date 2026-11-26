@@ -25,11 +25,12 @@ pub fn fronted_http_client_builder(
     timeout: Option<Duration>,
 ) -> Result<ClientBuilder, VpnApiClientError> {
     let has_front = urls.iter().any(|url| url.has_front());
-    // one attempt per host and per front, so a request can reach a plain relay behind fronted hosts
+    // one attempt per host and per front, the first attempt is not a retry
     let retries: usize = urls
         .iter()
         .map(|url| 1 + url.fronts().map_or(0, <[_]>::len))
-        .sum();
+        .sum::<usize>()
+        .saturating_sub(1);
 
     let mut builder = ClientBuilder::new_with_urls(urls)
         .map_err(Box::new)
