@@ -2,35 +2,30 @@ import NymVPNLib
 
 extension GRPCManager {
     public func setErrorReporting(_ isEnabled: Bool) async throws {
-        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
         if isEnabled {
-            try await rpcClient.enableSentry()
+            try await client.enableSentry()
         } else {
-            try await rpcClient.disableSentry()
+            try await client.disableSentry()
         }
     }
 
     public func setNetworkStatistics(_ isEnabled: Bool) async throws {
-        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
-        try await rpcClient.networkStatsSetEnabled(enabled: isEnabled)
+        try await client.networkStatsSetEnabled(enabled: isEnabled)
     }
 
     public func isErrorReportingEnabled() async throws -> Bool {
-        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
-        return try await rpcClient.isSentryEnabled()
+        try await client.isSentryEnabled()
     }
 
     public func isNetworkStatisticsEnabled() async throws -> Bool {
-        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
-        return try await rpcClient.getConfig().networkStats.enabled
+        try await client.getConfig().networkStats.enabled
     }
 
     public func needFullDiskAccess() async throws -> Bool {
-        guard let rpcClient else { return false }
-        return try await rpcClient.needFullDiskPermissions()
+        try await client.needFullDiskPermissions()
     }
 
     public func runDiagnostic() async throws -> String? {
-        try await rpcClient?.runDiagnostic()
+        try await client.runDiagnostic()
     }
 }

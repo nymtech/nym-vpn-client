@@ -4,26 +4,14 @@ import TunnelStatus
 
 extension GRPCManager {
     public func gateways(for type: NodeType) async throws -> [GatewayNode] {
-        try await Task.detached { [weak self] in
-            guard let result = try await self?.rpcClient?.listGateways(gwType: type.convertToGatewayType())
-            else {
-                return []
-            }
-
-            return result.compactMap {
-                GatewayNode(with: $0)
-            }
-        }.value
+        try await client.listGateways(gwType: type.convertToGatewayType()).compactMap { GatewayNode(with: $0) }
     }
 
     /// Gateways the daemon last connected through, most recent first.
     public func recentGateways(
         for tunnelType: ConnectionTunnelType
     ) async throws -> (entry: [GatewayNode], exit: [GatewayNode]) {
-        guard let recents = try await rpcClient?.getRecentGateways(tunnelType: tunnelType.rpcValue)
-        else {
-            return ([], [])
-        }
+        let recents = try await client.getRecentGateways(tunnelType: tunnelType.rpcValue)
         return (recents.entry.compactMap { GatewayNode(with: $0) }, recents.exit.compactMap { GatewayNode(with: $0) })
     }
 }
