@@ -32760,7 +32760,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your troubleshooting detail"
+            "value" : "Your debug logs"
           }
         }
       }
