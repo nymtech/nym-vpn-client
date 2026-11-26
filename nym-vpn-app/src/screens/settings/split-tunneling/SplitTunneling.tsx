@@ -259,24 +259,12 @@ function SplitTunneling() {
         />
       )}
 
-      {/* Description */}
-      <p className="text-text-secondary text-sm">
-        {os === 'linux'
-          ? t('split-tunneling.description-linux')
-          : t('split-tunneling.description-windows')}
-      </p>
-
       {/* Exclude warning */}
       <p className="text-status-warning bg-surface-elev/40 rounded-lg p-3 text-sm">
-        {t('split-tunneling.exclude-warning')}
+        {os === 'linux'
+          ? t('split-tunneling.exclude-warning-linux')
+          : t('split-tunneling.exclude-warning-windows')}
       </p>
-
-      {/* DNS warning */}
-      {(enabled || os === 'linux') && (
-        <p className="text-status-warning bg-surface-elev/40 rounded-lg p-3 text-sm">
-          {t('split-tunneling.dns-warning')}
-        </p>
-      )}
 
       {/* Exclude a custom app via native file dialog */}
       {(enabled || os === 'linux') && (
