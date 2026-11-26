@@ -4,6 +4,7 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -209,6 +210,7 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override fun getState(): Tunnel.State = serviceConnectionManager.apiFlow.value?.getState() ?: Tunnel.State.Down
 
+	@OptIn(ExperimentalCoroutinesApi::class)
 	private fun observeVpnServiceEvents() {
 		eventReducer.observe(
 			scope = applicationScope,

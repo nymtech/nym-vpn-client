@@ -294,6 +294,16 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_auto_connect(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
+        let auto_connect = request.into_inner();
+
+        self.send_and_wait(VpnServiceCommand::SetAutoConnect, auto_connect)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set auto-connect: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_enable_custom_dns(
         &self,
         request: tonic::Request<bool>,

@@ -5,6 +5,7 @@ pub mod account;
 pub mod ad_block;
 #[cfg(target_os = "macos")]
 pub mod authorization;
+pub mod auto_connect;
 pub mod device;
 pub mod diagnostic;
 pub mod dns;

@@ -92,6 +92,21 @@ updates:
         update-types:
           - "patch"
   - package-ecosystem: npm
+    directory: /.github/indexer
+    assignees:
+      - "mfahampshire"
+    schedule:
+      interval: weekly
+    ignore:
+      # a git tag pin, re-pinned by hand with each package release
+      - dependency-name: "@nymproject/retrieval-indexer"
+    groups:
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+  - package-ecosystem: npm
     directory: /nym-vpn-app
     multi-ecosystem-group: tauri
     patterns:

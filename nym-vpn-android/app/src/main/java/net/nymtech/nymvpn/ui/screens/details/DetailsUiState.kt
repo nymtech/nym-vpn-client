@@ -1,11 +1,11 @@
 package net.nymtech.nymvpn.ui.screens.details
 
 import net.nymtech.nymvpn.util.extensions.isQuicSupported
+import net.nymtech.nymvpn.util.extensions.toDisplayCountry
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.NodeIdentity
 import nym_vpn_lib_types.Score
-import java.util.Locale
 
 data class DetailsUiState(
 	val identity: NodeIdentity = "",
@@ -31,7 +31,7 @@ data class DetailsUiState(
 ) {
 	companion object {
 		fun from(gateway: NymGateway): DetailsUiState {
-			val country = Locale(gateway.twoLetterCountryISO.orEmpty(), gateway.twoLetterCountryISO.orEmpty()).displayCountry
+			val country = toDisplayCountry(gateway.twoLetterCountryISO.orEmpty())
 			return DetailsUiState(
 				identity = gateway.identity,
 				name = gateway.name,

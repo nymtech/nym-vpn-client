@@ -98,11 +98,11 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
+import net.nymtech.vpn.util.extensions.countryLocale
 import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewayType
-import java.util.Locale
 
 @Composable
 fun ServerScreen(
@@ -529,7 +529,7 @@ private fun SearchResultRow(
 	modifier: Modifier = Modifier,
 ) {
 	val gateway = row.gateway
-	val locale = gateway.twoLetterCountryISO?.let { Locale("", it) }
+	val locale = gateway.twoLetterCountryISO?.let(::countryLocale)
 
 	SurfaceSelectionGroupButton(
 		items = listOf(

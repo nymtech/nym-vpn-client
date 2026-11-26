@@ -10,8 +10,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -100,9 +98,6 @@ fun NymVPNTheme(theme: Theme, content: @Composable () -> Unit) {
 	if (!view.isInEditMode) {
 		SideEffect {
 			val window = view.context.findActivity()?.window ?: return@SideEffect
-			WindowCompat.setDecorFitsSystemWindows(window, false)
-			window.navigationBarColor = Color.Transparent.toArgb()
-			window.statusBarColor = Color.Transparent.toArgb()
 			WindowCompat.getInsetsController(window, window.decorView).apply {
 				isAppearanceLightStatusBars = !isDark
 				isAppearanceLightNavigationBars = !isDark

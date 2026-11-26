@@ -1,0 +1,109 @@
+name: cd-retrieval-store
+
+# Writes the nym-vpn-client code and docs shards to the public retrieval store that the Nym
+# docs MCP route searches (nym repository: documentation/MCP-STORE.md). The
+# indexer lives in .github/indexer.
+#
+# The shards hold the newest published release, with links at its tag: a run
+# on a published nym-vpn-v* release, or a dispatch (tag input, default the
+# latest release). A run for a tag that is not the newest release writes
+# nothing, so a late run cannot put older code over newer code. The indexer
+# runs from the workflow's own branch and indexes the tag's checkout.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to index, for example nym-vpn-v2026.16.1 (default the latest release). It must be the newest release
+        type: string
+        default: ""
+      allow_shrink:
+        description: Let the shard lose more than 20% of its rows in this run (an intended removal)
+        type: boolean
+        default: false
+
+# Two runs on one shard must not overlap: the second fails with "another run
+# changed it while this one was embedding". This queues a new run behind the one
+# in progress, and a newer pending run replaces an older pending one.
+concurrency:
+  group: retrieval-store
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  write:
+    # The repository variable turns writes on once the store and its secrets
+    # exist. A job-level `if` can read variables, not secrets. Pre-releases and
+    # other release series do not write.
+    if: >-
+      vars.RETRIEVAL_STORE_ENABLED == '1' && (github.event_name == 'workflow_dispatch' ||
+      (startsWith(github.event.release.tag_name, 'nym-vpn-v') && !github.event.release.prerelease))
+    runs-on: arc-linux-latest
+    # A hang anywhere (the embedding service, the store) frees the slot after this.
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: .github/indexer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The token is not needed (the repository is public), and install scripts run later.
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Check that the tag is the newest release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          node --input-type=module -e '
+            const res = await fetch(`${process.env.GITHUB_API_URL}/repos/${process.env.GITHUB_REPOSITORY}/releases/latest`, {
+              headers: { authorization: `Bearer ${process.env.GH_TOKEN}`, accept: "application/vnd.github+json" },
+            });
+            if (!res.ok) throw new Error(`could not read the latest release: HTTP ${res.status}`);
+            const latest = (await res.json()).tag_name;
+            const tag = process.env.TAG || latest;
+            const out = [`tag=${tag}`];
+            if (!tag.startsWith("nym-vpn-v")) throw new Error(`${tag} is not a nym-vpn-v* release`);
+            if (tag !== latest) {
+              console.log(`::notice::${tag} is not the newest release (${latest}), so this run does not write the store.`);
+              out.push("stale=1");
+            }
+            (await import("node:fs")).appendFileSync(process.env.GITHUB_OUTPUT, out.join("\n") + "\n");
+          '
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.release.outputs.stale != '1'
+        with:
+          ref: ${{ steps.release.outputs.tag }}
+          path: source
+          persist-credentials: false
+      # The pnpm version comes from packageManager in package.json.
+      - name: Enable pnpm
+        if: steps.release.outputs.stale != '1'
+        run: corepack enable
+      - name: Install the indexer
+        if: steps.release.outputs.stale != '1'
+        run: pnpm install --frozen-lockfile
+      # Each secret is set only on the step that uses it, not on the job, so it is
+      # not in the environment of the install or the third-party actions.
+      - name: Write the store
+        if: steps.release.outputs.stale != '1'
+        run: RETRIEVAL_SOURCE_REV="$(git -C "$RETRIEVAL_SOURCE_DIR" rev-parse HEAD)" node index.mts
+        env:
+          RETRIEVAL_SOURCE_DIR: ${{ github.workspace }}/source
+          RETRIEVAL_SOURCE_REF: ${{ steps.release.outputs.tag }}
+          RETRIEVAL_STORE_WRITE_URL: ${{ secrets.RETRIEVAL_STORE_WRITE_URL }}
+          RETRIEVAL_STORE_CA_CERT: ${{ secrets.RETRIEVAL_STORE_CA_CERT }}
+          VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+          ALLOW_SHRINK: ${{ inputs.allow_shrink && '1' || '' }}
+
+      # The MCP route reads the store, so production serves the new shards at
+      # once. A failure turns this run red and blocks nothing else.
+      - name: Check that production serves the shards
+        if: steps.release.outputs.stale != '1'
+        run: node_modules/.bin/retrieval-mcp-check https://nym.com/docs/api/mcp mcp-probes.json
