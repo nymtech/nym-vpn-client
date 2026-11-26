@@ -11,9 +11,15 @@ private final class FakeDaemon: TelemetryConsentDaemon {
     var readDelay: Duration = .zero
     /// Number of upcoming writes of a setting that fail.
     var failingWrites: [TelemetryConsentSetting: Int] = [:]
+    /// Number of upcoming reads of a setting that fail.
+    var failingReads: [TelemetryConsentSetting: Int] = [:]
     private(set) var writes: [(TelemetryConsentSetting, Bool)] = []
 
     func read(_ setting: TelemetryConsentSetting) async throws -> Bool {
+        if let failures = failingReads[setting], failures > 0 {
+            failingReads[setting] = failures - 1
+            throw FakeError.rejected
+        }
         let value = values[setting] ?? false
         if readDelay > .zero { try await Task.sleep(for: readDelay) }
         return value
@@ -235,6 +241,88 @@ struct TelemetryConsentCoordinatorTests {
 
         await coordinator.daemonConnected().value // fails again, retries once more
         try await Task.sleep(for: .milliseconds(150))
+        #expect(daemon.values[.networkStatistics] == false)
+        #expect(store.pending[.networkStatistics] == false)
+    }
+
+    // A daemon drop can fail the write and the recovery read before `isConnected` turns false.
+    // (The other ordering is `aChoiceThatFailsWhileDisconnectedIsSentOnReconnect`.)
+    @Test(arguments: TelemetryConsentSetting.allCases)
+    func aChoiceSurvivesAFailedWriteAndRecoveryRead(setting: TelemetryConsentSetting) async throws {
+        let daemon = FakeDaemon()
+        daemon.failingWrites[setting] = 1
+        daemon.failingReads[setting] = 1
+        let store = FakeStore(onboardingAnswered: true, pending: false)
+        store.values[setting] = true
+        let coordinator = makeCoordinator(daemon, store)
+
+        await coordinator.userChanged(setting, to: false).value
+        #expect(store.values[setting] == false)
+        #expect(store.pending[setting] == true)
+
+        try await Task.sleep(for: .milliseconds(150)) // the retry delivers it
+        #expect(daemon.values[setting] == false)
+        #expect(store.pending[setting] == false)
+    }
+
+    @Test func aFailedWriteOfAnUndeliveredChoiceIsRetried() async throws {
+        let daemon = FakeDaemon()
+        daemon.failingWrites[.networkStatistics] = 1
+        let store = FakeStore(onboardingAnswered: true, pending: true)
+        let coordinator = makeCoordinator(daemon, store)
+
+        await coordinator.userChanged(.networkStatistics, to: false).value
+        try await Task.sleep(for: .milliseconds(150))
+
+        #expect(daemon.values[.networkStatistics] == false)
+        #expect(store.pending[.networkStatistics] == false)
+    }
+
+    @Test func twoFailedWritesInARowShowTheDaemonsValue() async {
+        let daemon = FakeDaemon()
+        daemon.failingWrites[.errorReporting] = 2
+        let store = FakeStore(onboardingAnswered: true, pending: false)
+        store.values[.errorReporting] = true
+        let coordinator = makeCoordinator(daemon, store)
+
+        let first = coordinator.userChanged(.errorReporting, to: false)
+        let second = coordinator.userChanged(.errorReporting, to: false)
+        await first.value
+        await second.value
+
+        #expect(daemon.values[.errorReporting] == true)
+        #expect(store.values[.errorReporting] == true)
+        #expect(store.pending[.errorReporting] == false)
+    }
+
+    @Test func aRecoveryReadDoesNotOverwriteANewerChange() async {
+        let daemon = FakeDaemon()
+        daemon.failingWrites[.networkStatistics] = 1
+        daemon.readDelay = .milliseconds(80)
+        let store = FakeStore(onboardingAnswered: true, pending: false)
+        store.values[.networkStatistics] = true
+        let coordinator = makeCoordinator(daemon, store)
+
+        let failed = coordinator.userChanged(.networkStatistics, to: false)
+        try? await Task.sleep(for: .milliseconds(20)) // the recovery read is in flight
+        let newer = coordinator.userChanged(.networkStatistics, to: false)
+        await failed.value
+        await newer.value
+
+        #expect(daemon.values[.networkStatistics] == false)
+        #expect(store.values[.networkStatistics] == false)
+    }
+
+    @Test func aBurstOfFailuresDoesNotUseUpTheRetries() async throws {
+        let daemon = FakeDaemon()
+        daemon.failingWrites[.networkStatistics] = 3
+        let store = FakeStore(onboardingAnswered: true, pending: true)
+        let coordinator = makeCoordinator(daemon, store, retryDelays: [.milliseconds(40), .milliseconds(40)])
+
+        await coordinator.daemonConnected().value // failure 1 schedules a retry
+        await coordinator.daemonConfigChanged().value // failure 2 while that retry waits
+        try await Task.sleep(for: .milliseconds(250)) // retry: failure 3, then the last retry succeeds
+
         #expect(daemon.values[.networkStatistics] == false)
         #expect(store.pending[.networkStatistics] == false)
     }

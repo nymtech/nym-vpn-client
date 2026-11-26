@@ -98,9 +98,8 @@ final class TelemetryConsentCoordinator {
         }
     }
 
-    /// The user flipped a toggle. Shown at once. If the daemon rejects it, the toggle shows the
-    /// daemon's value again; if the daemon has gone away, the choice is kept and sent when it
-    /// reconnects.
+    /// The user flipped a toggle. Shown at once. If the write fails and the daemon's value can be
+    /// read, the toggle shows it; otherwise the choice is kept and delivered later.
     @discardableResult
     func userChanged(_ setting: TelemetryConsentSetting, to isEnabled: Bool) -> Task<Void, Never> {
         store.setValue(setting, isEnabled)
@@ -117,11 +116,8 @@ final class TelemetryConsentCoordinator {
                 failed = true
             }
             queuedWrites[setting, default: 1] -= 1
-            guard failed else { return }
-            if daemon.isConnected {
-                await mirror([setting])
-            } else {
-                store.setPendingForDaemon(setting, true)
+            if failed {
+                await recoverFromFailedWrite(setting)
             }
         }
     }
@@ -166,17 +162,42 @@ private extension TelemetryConsentCoordinator {
         }
     }
 
+    /// After a failed user write: show the daemon's value if it can be read, otherwise keep the
+    /// user's choice for delivery. A daemon drop can fail both the write and the read while
+    /// `isConnected` is still true, so a failed read must not drop the choice.
+    func recoverFromFailedWrite(_ setting: TelemetryConsentSetting) async {
+        if daemon.isConnected, !store.isPendingForDaemon(setting) {
+            do {
+                let isEnabled = try await daemon.read(setting)
+                // A write queued meanwhile is newer than this value.
+                if canMirror(setting), isEnabled != store.value(setting) {
+                    store.setValue(setting, isEnabled)
+                }
+                return
+            } catch {
+                log("Failed to read \(setting) from daemon: \(error)")
+            }
+        }
+        store.setPendingForDaemon(setting, true)
+        if daemon.isConnected {
+            scheduleRetry()
+        }
+    }
+
+    /// At most one retry waits at a time, and it delivers every pending choice; further failures
+    /// meanwhile neither reschedule it nor use up the budget.
     func scheduleRetry() {
+        guard retryTask == nil else { return }
         guard retryAttempt < retryDelays.count else {
             log("Giving up on delivering data-sharing choices until the daemon reconnects")
             return
         }
         let delay = retryDelays[retryAttempt]
         retryAttempt += 1
-        retryTask?.cancel()
         retryTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: delay)
-            guard !Task.isCancelled, let self else { return }
+            guard let self else { return }
+            retryTask = nil
             enqueue { [weak self] in
                 await self?.deliverPending()
                 await self?.mirror(TelemetryConsentSetting.allCases)
