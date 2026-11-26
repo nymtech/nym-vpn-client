@@ -560,7 +560,6 @@
 	<string name="mixnet_tuning_delays_default">پیش‌فرض\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">جاری\n%1$s میلی‌ثانیه</string>
 	<string name="mixnet_tuning_slider_faster_label">سریع‌تر</string>
-	<string name="mixnet_tuning_slider_slower_label">کندتر</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ ناشناس‌بودن</string>
 	<string name="mixnet_tuning_link_text">دربارهٔ تنظیم میکس‌نت بیشتر بیاموزید</string>
 	<string name="mixnet_tuning_save_button">ذخیره تنظیمات سفارشی</string>

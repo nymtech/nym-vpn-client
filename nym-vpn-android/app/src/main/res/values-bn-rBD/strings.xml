@@ -558,7 +558,6 @@
 	<string name="mixnet_tuning_delays_default">ডিফল্ট\n১৫ ms</string>
 	<string name="mixnet_tuning_delays_current">বর্তমান\n%1$s ms</string>
 	<string name="mixnet_tuning_slider_faster_label">দ্রুততর</string>
-	<string name="mixnet_tuning_slider_slower_label">ধীর</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ অজ্ঞাতনামা</string>
 	<string name="mixnet_tuning_link_text">মিক্সনেট টিউনিং সম্পর্কে আরও জানুন</string>
 	<string name="mixnet_tuning_save_button">কাস্টম সেটিংস সংরক্ষণ করুন</string>

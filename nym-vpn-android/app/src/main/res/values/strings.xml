@@ -612,7 +612,7 @@
 	<string name="mixnet_tuning_delays_default">Default\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Current\n%1$s ms</string>
 	<string name="mixnet_tuning_slider_faster_label">Faster</string>
-	<string name="mixnet_tuning_slider_slower_label">Slower</string>
+	<string name="mixnet_tuning_slider_less_data_label">Less data</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Anonymity</string>
 	<string name="mixnet_tuning_link_text">Learn more about mixnet tuning</string>
 	<string name="mixnet_tuning_link" translatable="false">https://nym.com/features/mixnet-tuning</string>

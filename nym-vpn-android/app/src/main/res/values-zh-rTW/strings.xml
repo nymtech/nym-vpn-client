@@ -556,7 +556,6 @@
 	<string name="mixnet_tuning_delays_default">默認\n15 毫秒</string>
 	<string name="mixnet_tuning_delays_current">當前\n%1$s 毫秒</string>
 	<string name="mixnet_tuning_slider_faster_label">更快</string>
-	<string name="mixnet_tuning_slider_slower_label">較慢</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ 匿名性</string>
 	<string name="mixnet_tuning_link_text">瞭解更多關於自定義混合網絡參數的信息</string>
 	<string name="mixnet_tuning_save_button">保存自定義設置</string>

@@ -558,7 +558,6 @@
 	<string name="mixnet_tuning_delays_default">Par défaut\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Actuel\n%1$s ms</string>
 	<string name="mixnet_tuning_slider_faster_label">Plus rapide</string>
-	<string name="mixnet_tuning_slider_slower_label">Plus lent</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Anonymat</string>
 	<string name="mixnet_tuning_link_text">En savoir plus sur le réglage de Mixnet</string>
 	<string name="mixnet_tuning_save_button">Enregistrer les paramètres personnalisés</string>

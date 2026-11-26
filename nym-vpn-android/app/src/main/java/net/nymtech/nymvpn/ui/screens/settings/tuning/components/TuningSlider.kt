@@ -30,6 +30,7 @@ fun TuningSlider(
 	interactionSource: MutableInteractionSource,
 	modifier: Modifier = Modifier,
 	steps: Int = 0,
+	enabled: Boolean = true,
 ) {
 	val state = remember(steps, valueRange) { SliderState(value = value, steps = steps, trackRange = valueRange) }
 	state.value = value
@@ -39,6 +40,7 @@ fun TuningSlider(
 		onValueChange = onValueChange,
 		interactionSource = interactionSource,
 		modifier = modifier.fillMaxWidth(),
+		enabled = enabled,
 		thumb = {
 			SliderDefaults.Thumb(
 				interactionSource = interactionSource,
@@ -65,7 +67,7 @@ fun TuningSlider(
  * A [TuningSlider] that snaps to one of [items], reporting the selected item rather than a raw Float.
  */
 @Composable
-fun <T> DiscreteTuningSlider(items: List<T>, selected: T, onSelectedChange: (T) -> Unit, interactionSource: MutableInteractionSource, modifier: Modifier = Modifier) {
+fun <T> DiscreteTuningSlider(items: List<T>, selected: T, onSelectedChange: (T) -> Unit, interactionSource: MutableInteractionSource, modifier: Modifier = Modifier, enabled: Boolean = true) {
 	val selectedIndex = items.indexOf(selected).coerceAtLeast(0)
 	TuningSlider(
 		value = selectedIndex.toFloat(),
@@ -74,8 +76,12 @@ fun <T> DiscreteTuningSlider(items: List<T>, selected: T, onSelectedChange: (T) 
 		steps = items.size - 2,
 		interactionSource = interactionSource,
 		modifier = modifier,
+		enabled = enabled,
 	)
 }
+
+/** Dims a tuning slider and its labels while its toggle is off (matches Apple's 0.5 opacity). */
+fun sliderAlpha(enabled: Boolean): Float = if (enabled) 1f else 0.5f
 
 /** The start / end labels shown above a tuning slider (default "Faster" / "+ Anonymity"). */
 @Composable

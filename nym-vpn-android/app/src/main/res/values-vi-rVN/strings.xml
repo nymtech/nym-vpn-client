@@ -554,7 +554,6 @@
 	<string name="mixnet_tuning_delays_default">Mặc định\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Hiện tại\n%1$s ms</string>
 	<string name="mixnet_tuning_slider_faster_label">Nhanh hơn</string>
-	<string name="mixnet_tuning_slider_slower_label">Chậm hơn</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Tính ẩn danh</string>
 	<string name="mixnet_tuning_link_text">Tìm hiểu thêm về các thông số tinh chỉnh mixnet</string>
 	<string name="mixnet_tuning_save_button">Lưu cài đặt tùy chỉnh</string>

@@ -559,7 +559,6 @@
 	<string name="mixnet_tuning_delays_default">डिफ़ॉल्ट\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">वर्तमान\n%1$s मिलीसेकंड</string>
 	<string name="mixnet_tuning_slider_faster_label">तेज़</string>
-	<string name="mixnet_tuning_slider_slower_label">धीमा</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ गुमनामी</string>
 	<string name="mixnet_tuning_link_text">मिक्सनेट ट्यूनिंग के बारे में और जानें</string>
 	<string name="mixnet_tuning_save_button">कस्टम सेटिंग्स सेव करें</string>
