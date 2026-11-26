@@ -30,9 +30,11 @@ public final class FreepassManager {
             await previous?.value
             switch await isAccountStored() {
             case true:
-                return await redeemForStoredAccount(code)
+                // Core registers an account the API doesn't know yet.
+                return await call { try await $0.redeemFreepass(code: code) }
             case false:
-                return await redeemForNewAccount(code)
+                // A rejected code leaves no account.
+                return await call { try await $0.createAccount(freepass: code) }
             case nil:
                 return FreepassResult.failed(.unknown)
             }
@@ -64,16 +66,6 @@ private extension FreepassManager {
             logger.warning("Account lookup failed: \(String(describing: type(of: error)))")
             return nil
         }
-    }
-
-    // Core registers an account the API doesn't know yet.
-    func redeemForStoredAccount(_ code: String) async -> FreepassResult {
-        await call { try await $0.redeemFreepass(code: code) }
-    }
-
-    // A rejected code leaves no account.
-    func redeemForNewAccount(_ code: String) async -> FreepassResult {
-        await call { try await $0.createAccount(freepass: code) }
     }
 
     func call(_ body: (AccountClient) async throws -> Void) async -> FreepassResult {
