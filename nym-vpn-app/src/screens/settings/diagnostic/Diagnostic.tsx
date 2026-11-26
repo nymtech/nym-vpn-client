@@ -11,14 +11,14 @@ function Diagnostic() {
 
   // Starts true: the run begins as soon as the page opens
   const [diagnosticRunning, setDiagnosticRunning] = useState(true);
-  const [diagnosticFailed, setDiagnosticFailed] = useState(false);
   const [diagnosticResult, setDiagnosticResult] = useState<string | null>(null);
+  // Every finished run leaves either a report or nothing, so failure is derived, not stored
+  const diagnosticFailed = !diagnosticRunning && !diagnosticResult;
   const [shareLoading, setShareLoading] = useState(false);
   const startedRef = useRef(false);
 
   const handleRunDiagnostic = useCallback(async () => {
     setDiagnosticRunning(true);
-    setDiagnosticFailed(false);
     setDiagnosticResult(null);
     try {
       const report = await invoke('run_diagnostic', {
@@ -32,7 +32,6 @@ function Diagnostic() {
       setDiagnosticResult(JSON.stringify(report, null, 2));
     } catch (error) {
       console.error('failed to run diagnostic', error);
-      setDiagnosticFailed(true);
     } finally {
       setDiagnosticRunning(false);
     }
@@ -64,15 +63,19 @@ function Diagnostic() {
     <PageAnim className="flex h-full flex-col">
       <div className="flex min-h-0 flex-1 flex-col gap-6">
         {diagnosticRunning && (
-          <div className="flex justify-center pt-6">
+          <div
+            className="flex justify-center pt-6"
+            role="status"
+            aria-label={t('diagnostic.running')}
+          >
             <Spinner />
           </div>
         )}
         {!diagnosticRunning && (
           <Button onClick={handleRunDiagnostic}>{t('diagnostic.rerun')}</Button>
         )}
-        {!diagnosticRunning && diagnosticFailed && (
-          <p className="text-text-secondary text-sm">
+        {diagnosticFailed && (
+          <p className="text-text-secondary text-sm" role="alert">
             {t('diagnostic.failed')}
           </p>
         )}

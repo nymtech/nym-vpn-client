@@ -305,6 +305,7 @@
     "title": "Diagnostic tool",
     "run": "Run diagnostics",
     "rerun": "Re-run diagnostics",
+    "running": "Running diagnostics",
     "share": "Share report",
     "report-title": "Diagnostic report",
     "failed": "Failed to run diagnostics. Please try again."
