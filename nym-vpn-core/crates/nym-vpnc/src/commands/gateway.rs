@@ -11,7 +11,9 @@ use nym_vpn_lib_types::{
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::{
-    boolean_option::BooleanOption, display_helpers::display_on_off, table_style::TableStyle,
+    boolean_option::BooleanOption,
+    display_helpers::{Rows, display_on_off},
+    table_style::TableStyle,
 };
 
 #[derive(Debug, Clone, clap::Args)]
@@ -161,12 +163,11 @@ impl Args {
         match self.command {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
-                println!("Entry point: {:?}", config.entry_point);
-                println!("Exit point: {:?}", config.exit_point);
-                println!(
-                    "Residential exit: {}",
-                    display_on_off(config.residential_exit)
-                );
+                Rows::new()
+                    .row("Entry", display_entry_point(&config.entry_point))
+                    .row("Exit", display_exit_point(&config.exit_point))
+                    .row("Residential exit", display_on_off(config.residential_exit))
+                    .print();
                 Ok(())
             }
             Command::Set(args) => {
@@ -214,7 +215,7 @@ impl Args {
             })
             .await?;
 
-        println!("Gateways available for: {gw_type:?} ({})", gateways.len());
+        println!("{} gateways ({}):", gw_type.display_name(), gateways.len());
         let models = gateways
             .into_iter()
             .map(|gateway| GatewayModel::new(gateway, gw_type))
@@ -237,7 +238,8 @@ impl Args {
         let gateways = rpc_client.list_filtered_gateways(gateway_filters).await?;
 
         println!(
-            "Filtered gateways available for: {gw_type:?} ({})",
+            "Filtered {} gateways ({}):",
+            gw_type.display_name().to_lowercase(),
             gateways.len()
         );
         let models = gateways
@@ -263,7 +265,8 @@ impl Args {
             .await?;
 
         println!(
-            "Recent entry gateways for:  {tunnel_type:?} ({})",
+            "Recent {} entry gateways ({}):",
+            tunnel_type.display_name(),
             recent_gateways.entry.len(),
         );
         let gw_type = match tunnel_type {
@@ -279,8 +282,10 @@ impl Args {
         TableStyle::from_env().apply_style(&mut table);
         println!("{table}");
 
+        println!();
         println!(
-            "Recent exit gateways for:  {tunnel_type:?} ({})",
+            "Recent {} exit gateways ({}):",
+            tunnel_type.display_name(),
             recent_gateways.exit.len(),
         );
         let gw_type = match tunnel_type {
@@ -399,6 +404,16 @@ pub enum GatewayType {
     Wg,
 }
 
+impl GatewayType {
+    fn display_name(self) -> &'static str {
+        match self {
+            GatewayType::MixnetEntry => "Mixnet entry",
+            GatewayType::MixnetExit => "Mixnet exit",
+            GatewayType::Wg => "WireGuard",
+        }
+    }
+}
+
 impl From<GatewayType> for nym_vpn_lib_types::GatewayType {
     fn from(value: GatewayType) -> Self {
         match value {
@@ -415,6 +430,15 @@ pub enum TunnelType {
     Mixnet,
     /// Wireguard tunnel
     Wg,
+}
+
+impl TunnelType {
+    fn display_name(self) -> &'static str {
+        match self {
+            TunnelType::Mixnet => "Mixnet",
+            TunnelType::Wg => "WireGuard",
+        }
+    }
 }
 
 impl From<TunnelType> for nym_vpn_lib_types::TunnelType {
@@ -500,5 +524,47 @@ impl GatewayModel {
                 .join(","),
             build_version: gateway.build_version.unwrap_or("N/A".to_owned()),
         }
+    }
+}
+
+fn display_entry_point(entry_point: &EntryPoint) -> String {
+    match entry_point {
+        EntryPoint::Gateway { identity } => format!("gateway {identity}"),
+        EntryPoint::Country {
+            two_letter_iso_country_code,
+        } => format!("country {two_letter_iso_country_code}"),
+        EntryPoint::Region { region } => format!("region {region}"),
+        EntryPoint::Random => "random".to_owned(),
+        EntryPoint::Auto {
+            exclude_user_country,
+        } => display_auto(exclude_user_country.then_some("your jurisdiction")),
+    }
+}
+
+fn display_exit_point(exit_point: &ExitPoint) -> String {
+    match exit_point {
+        ExitPoint::Address { address } => format!("address {address}"),
+        ExitPoint::Gateway { identity } => format!("gateway {identity}"),
+        ExitPoint::Country {
+            two_letter_iso_country_code,
+        } => format!("country {two_letter_iso_country_code}"),
+        ExitPoint::Region { region } => format!("region {region}"),
+        ExitPoint::Random => "random".to_owned(),
+        ExitPoint::Auto {
+            exclude_entry_point_country,
+            exclude_user_country,
+        } => display_auto(match (exclude_entry_point_country, exclude_user_country) {
+            (true, true) => Some("your and the entry gateway's jurisdictions"),
+            (true, false) => Some("the entry gateway's jurisdiction"),
+            (false, true) => Some("your jurisdiction"),
+            (false, false) => None,
+        }),
+    }
+}
+
+fn display_auto(excluded: Option<&str>) -> String {
+    match excluded {
+        Some(excluded) => format!("auto, excluding {excluded}"),
+        None => "auto".to_owned(),
     }
 }

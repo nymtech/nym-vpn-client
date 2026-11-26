@@ -5,6 +5,8 @@ use anyhow::Result;
 
 use nym_vpn_proto::rpc_client::RpcClient;
 
+use crate::display_helpers::Rows;
+
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
     /// Start pairing this account via QR code
@@ -30,16 +32,16 @@ impl Command {
         match self {
             Command::Start => {
                 let response = rpc_client.start_pairing().await?;
-                println!(
-                    "Pairing process {} started with URL: {}",
-                    response.session_id, response.url
-                );
+                Rows::new()
+                    .row("Pairing session", response.session_id)
+                    .row("URL", response.url)
+                    .print();
                 Ok(())
             }
             Command::Pair { pub_key } => {
                 let response = rpc_client.scanned_key(pub_key).await?;
                 println!(
-                    "Pairing process {} awaits confirmation",
+                    "Pairing session {} is waiting for confirmation",
                     response.session_id
                 );
                 Ok(())
@@ -51,7 +53,7 @@ impl Command {
             }
             Command::Cancel => {
                 rpc_client.cancel_pairing_process().await?;
-                println!("Pairing process cancelled");
+                println!("Pairing cancelled");
                 Ok(())
             }
         }

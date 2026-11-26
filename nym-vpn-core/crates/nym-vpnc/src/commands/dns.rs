@@ -9,7 +9,10 @@ use nym_vpn_lib_types::{DnsServer, PlainDnsProtocol};
 use nym_vpn_proto::rpc_client::RpcClient;
 use url::{Host, Url};
 
-use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
+use crate::{
+    boolean_option::BooleanOption,
+    display_helpers::{Rows, display_on_off},
+};
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -115,18 +118,13 @@ impl CustomCommand {
         match self {
             CustomCommand::Get => {
                 let config = rpc_client.get_config().await?;
-                println!(
-                    "Custom DNS: {}",
-                    if config.custom_dns.enabled {
-                        "enabled"
-                    } else {
-                        "disabled"
-                    }
-                );
-
-                for dns_server in config.custom_dns.dns_servers {
-                    println!("{dns_server}");
-                }
+                Rows::new()
+                    .row("Custom DNS", display_on_off(config.custom_dns.enabled))
+                    .list(
+                        "Servers",
+                        config.custom_dns.dns_servers.iter().map(display_dns_server),
+                    )
+                    .print();
                 Ok(())
             }
             CustomCommand::Enable => {
@@ -159,11 +157,12 @@ impl DefaultCommand {
     pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
         match self {
             DefaultCommand::Get => {
+                let config = rpc_client.get_config().await?;
                 let default_dns = rpc_client.get_default_dns().await?;
-                println!("Default DNS:");
-                for dns_server in default_dns {
-                    println!("{}", dns_server)
-                }
+                Rows::new()
+                    .row("Quad9", display_on_off(config.default_dns.enable_quad9))
+                    .list("Servers", default_dns.iter().map(display_dns_server))
+                    .print();
                 Ok(())
             }
             DefaultCommand::Quad9 { subcommand } => subcommand.execute(rpc_client).await,
@@ -185,6 +184,68 @@ impl Quad9Command {
             }
         }
     }
+}
+
+/// Formats a DNS server as a URL accepted by `dns custom set --url`. Plain DNS over UDP and TCP
+/// has no URL scheme, so it's shown as `udp+tcp://`.
+fn display_dns_server(dns_server: &DnsServer) -> String {
+    let (scheme, address, port, query_path, server_name) = match dns_server {
+        DnsServer::Plain {
+            address,
+            port,
+            ip_proto,
+        } => {
+            let scheme = match ip_proto {
+                PlainDnsProtocol::Udp => "udp",
+                PlainDnsProtocol::Tcp => "tcp",
+                PlainDnsProtocol::UdpAndTcp => "udp+tcp",
+            };
+            (scheme, address, port, None, None)
+        }
+        DnsServer::Tls {
+            address,
+            port,
+            server_name,
+        } => ("tls", address, port, None, Some(server_name)),
+        DnsServer::Https {
+            address,
+            port,
+            server_name,
+            query_path,
+        } => (
+            "https",
+            address,
+            port,
+            query_path.as_ref(),
+            Some(server_name),
+        ),
+        DnsServer::Quic {
+            address,
+            port,
+            server_name,
+        } => ("quic", address, port, None, Some(server_name)),
+        DnsServer::Http3 {
+            address,
+            port,
+            server_name,
+            query_path,
+        } => ("h3", address, port, query_path.as_ref(), Some(server_name)),
+    };
+
+    let mut url = match address {
+        IpAddr::V4(address) => format!("{scheme}://{address}"),
+        IpAddr::V6(address) => format!("{scheme}://[{address}]"),
+    };
+    if let Some(port) = port {
+        url.push_str(&format!(":{port}"));
+    }
+    if let Some(query_path) = query_path {
+        url.push_str(query_path);
+    }
+    if let Some(server_name) = server_name {
+        url.push_str(&format!("#{server_name}"));
+    }
+    url
 }
 
 const URL_ARG: &str = "url";
@@ -784,6 +845,22 @@ mod tests {
                 })
                 .collect()
         })
+    }
+
+    #[test]
+    fn displays_servers_as_parsable_urls() {
+        for url in [
+            "udp://1.1.1.1",
+            "tcp://1.1.1.1:5353",
+            "tls://1.1.1.1:853#cloudflare-dns.com",
+            "https://8.8.8.8/dns-query#dns.google",
+            "quic://[2606:4700:4700::1111]#cloudflare-dns.com",
+            "h3://1.0.0.1:8443/dns-query#cloudflare-dns.com",
+        ] {
+            assert_eq!(display_dns_server(&parse(url)), url);
+        }
+
+        assert_eq!(display_dns_server(&plain("9.9.9.9")), "udp+tcp://9.9.9.9");
     }
 
     #[test]

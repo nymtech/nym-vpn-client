@@ -23,14 +23,12 @@ impl Command {
         match self {
             Command::Get => {
                 let network_name = rpc_client.get_info().await?.nym_network.network_name;
-                println!("Current network: {network_name}");
+                println!("Network: {network_name}");
                 Ok(())
             }
             Command::Set { network_name } => {
                 rpc_client.set_network(network_name).await?;
-                println!(
-                    "Network changed. You have to restart the daemon for the changes to take effect."
-                );
+                println!("Restart nym-vpnd to apply the change");
                 Ok(())
             }
         }

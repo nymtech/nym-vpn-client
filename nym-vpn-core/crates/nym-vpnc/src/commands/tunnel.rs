@@ -8,7 +8,7 @@ use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::{
     boolean_option::BooleanOption,
-    display_helpers::{self, display_on_off},
+    display_helpers::{Rows, display_on_off},
 };
 use clap::builder::ValueParser;
 
@@ -197,77 +197,74 @@ fn print_config(config: &VpnServiceConfig) {
     let mixnet_traffic = &config.mixnet_traffic;
     let gateway_independence = &config.gateway_independence;
 
-    print_row("IPv6", display_on_off(!config.disable_ipv6));
-    print_row("Two-hop", display_on_off(config.enable_two_hop));
-    print_row("Netstack", display_on_off(config.netstack));
-    print_row("Bridge mode", display_bridge_mode(config.bridge_mode));
-    print_row(
-        "Transport preference",
-        display_transport_preference(config.transport_preference),
-    );
-    print_row(
-        "Geo location",
-        display_on_off(
-            config
-                .gateway_selection_algorithm_config
-                .enable_geo_location,
-        ),
-    );
-    print_row(
-        "Gateway independence",
-        display_on_off(gateway_independence.active()),
-    );
-    print_row(
-        "  Different node family",
-        display_on_off(gateway_independence.different_node_family),
-    );
-    print_row(
-        "  Different ASN",
-        display_on_off(gateway_independence.different_asn),
-    );
-    print_row(
-        "  Different subnet",
-        display_on_off(gateway_independence.different_subnet),
-    );
-    print_row(
-        "  Notifications",
-        display_on_off(gateway_independence.enable_notifications),
-    );
-
-    println!();
-    println!("Mixnet traffic:");
-    print_row(
-        "  Loop cover stream delay",
-        &display_optional(mixnet_traffic.poisson_parameter_for_loop_cover_stream, "ms"),
-    );
-    print_row(
-        "  Average packet delay",
-        &display_optional(mixnet_traffic.average_packet_delay, "ms"),
-    );
-    print_row(
-        "  Message sending delay",
-        &display_optional(mixnet_traffic.message_sending_average_delay, "ms"),
-    );
-    print_row(
-        "  Real traffic Poisson rate",
-        display_on_off(!mixnet_traffic.disable_poisson_rate),
-    );
-    print_row(
-        "  Background cover traffic",
-        display_on_off(!mixnet_traffic.disable_background_cover_traffic),
-    );
-    print_row(
-        "  Min mixnode performance",
-        &display_optional(mixnet_traffic.min_mixnode_performance, "%"),
-    );
-    print_row(
-        "  Min gateway performance",
-        &display_optional(mixnet_traffic.min_gateway_mixnet_performance, "%"),
-    );
-}
-
-fn print_row(label: &str, value: &str) {
-    display_helpers::print_row(29, label, value);
+    Rows::new()
+        .row("IPv6", display_on_off(!config.disable_ipv6))
+        .row("Two-hop", display_on_off(config.enable_two_hop))
+        .row("Netstack", display_on_off(config.netstack))
+        .row("Bridge mode", display_bridge_mode(config.bridge_mode))
+        .row(
+            "Transport preference",
+            display_transport_preference(config.transport_preference),
+        )
+        .row(
+            "Geo location",
+            display_on_off(
+                config
+                    .gateway_selection_algorithm_config
+                    .enable_geo_location,
+            ),
+        )
+        .row(
+            "Gateway independence",
+            display_on_off(gateway_independence.active()),
+        )
+        .row(
+            "  Different node family",
+            display_on_off(gateway_independence.different_node_family),
+        )
+        .row(
+            "  Different ASN",
+            display_on_off(gateway_independence.different_asn),
+        )
+        .row(
+            "  Different subnet",
+            display_on_off(gateway_independence.different_subnet),
+        )
+        .row(
+            "  Notifications",
+            display_on_off(gateway_independence.enable_notifications),
+        )
+        .blank()
+        .section("Mixnet traffic")
+        .row(
+            "  Loop cover stream delay",
+            display_optional(mixnet_traffic.poisson_parameter_for_loop_cover_stream, "ms"),
+        )
+        .row(
+            "  Average packet delay",
+            display_optional(mixnet_traffic.average_packet_delay, "ms"),
+        )
+        .row(
+            "  Message sending delay",
+            display_optional(mixnet_traffic.message_sending_average_delay, "ms"),
+        )
+        .row(
+            "  Real traffic Poisson rate",
+            display_on_off(!mixnet_traffic.disable_poisson_rate),
+        )
+        .row(
+            "  Background cover traffic",
+            display_on_off(!mixnet_traffic.disable_background_cover_traffic),
+        )
+        .row(
+            "  Min mixnode performance",
+            display_optional(mixnet_traffic.min_mixnode_performance, "%"),
+        )
+        .row(
+            "  Min gateway performance",
+            display_optional(mixnet_traffic.min_gateway_mixnet_performance, "%"),
+        )
+        .print();
 }
 
 fn display_bridge_mode(bridge_mode: BridgeMode) -> &'static str {

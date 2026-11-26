@@ -6,7 +6,7 @@ use clap::builder::ValueParserFactory;
 
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::boolean_option::BooleanOption;
+use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -26,14 +26,7 @@ impl Command {
         match self {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
-                println!(
-                    "Ad blocking: {}",
-                    if config.enable_ad_blocking {
-                        "on"
-                    } else {
-                        "off"
-                    }
-                );
+                println!("Ad blocking: {}", display_on_off(config.enable_ad_blocking));
                 Ok(())
             }
             Command::Set { enabled } => {

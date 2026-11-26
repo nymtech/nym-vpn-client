@@ -5,7 +5,7 @@ use anyhow::anyhow;
 use nym_favorites::FavoritesManager;
 use nym_vpn_lib_types::NodeIdentity;
 
-use crate::fs::app_data_dir;
+use crate::{display_helpers::Rows, fs::app_data_dir};
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum FavoriteSelector {
@@ -79,8 +79,11 @@ impl Command {
         let mut favorites_manager = FavoritesManager::new(data_dir).await;
         match self {
             Command::Get => {
-                let current_favorites = favorites_manager.get_favorites();
-                println!("Favorites:\n{current_favorites}");
+                let favorites = favorites_manager.get_favorites();
+                Rows::new()
+                    .list("Entry", favorites.entry.iter().map(display_favorite))
+                    .list("Exit", favorites.exit.iter().map(display_favorite))
+                    .print();
                 return Ok(());
             }
             Command::SetEntry(selector) => {
@@ -105,5 +108,15 @@ impl Command {
             }
         }
         Ok(())
+    }
+}
+
+fn display_favorite(favorite: &nym_vpn_lib_types::FavoriteSelector) -> String {
+    match favorite {
+        nym_vpn_lib_types::FavoriteSelector::Gateway { identity } => format!("gateway {identity}"),
+        nym_vpn_lib_types::FavoriteSelector::Country {
+            two_letter_iso_country_code,
+        } => format!("country {two_letter_iso_country_code}"),
+        nym_vpn_lib_types::FavoriteSelector::Region { region } => format!("region {region}"),
     }
 }

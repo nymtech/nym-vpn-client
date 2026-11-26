@@ -11,6 +11,9 @@ use nym_vpn_proto::rpc_client::RpcClient;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::boolean_option::BooleanOption;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::display_helpers::display_on_off;
+use crate::display_helpers::{Rows, display_yes_no};
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -67,44 +70,30 @@ impl Command {
         match self {
             Command::Get => {
                 let is_supported = rpc_client.is_split_tunnel_supported().await?;
-                println!(
-                    "Split-tunnel is {}",
-                    if is_supported {
-                        "supported"
-                    } else {
-                        "not supported"
-                    }
-                );
+                let mut rows = Rows::new();
+                rows.row("Supported", display_yes_no(is_supported));
 
                 #[cfg(any(target_os = "macos", target_os = "windows"))]
                 let config = rpc_client.get_config().await?;
                 #[cfg(any(target_os = "macos", target_os = "windows"))]
-                println!(
-                    "Split-tunnel: {}",
-                    if config.split_tunnel.enabled {
-                        "enabled"
-                    } else {
-                        "disabled"
-                    }
-                );
+                rows.row("Split tunnel", display_on_off(config.split_tunnel.enabled));
 
                 #[cfg(target_os = "macos")]
                 {
                     let needs_fda = rpc_client.need_full_disk_permissions().await?;
-                    println!(
-                        "Full disk access: {}",
-                        if needs_fda { "disallowed" } else { "allowed" }
+                    rows.row(
+                        "Full disk access",
+                        if needs_fda { "required" } else { "granted" },
                     );
                 }
 
                 #[cfg(any(target_os = "macos", target_os = "windows"))]
-                {
-                    println!("Apps excluded from VPN tunnel:");
-                    for app in config.split_tunnel.apps {
-                        println!("- {}", app.path);
-                    }
-                }
+                rows.list(
+                    "Excluded apps",
+                    config.split_tunnel.apps.into_iter().map(|app| app.path),
+                );
 
+                rows.print();
                 Ok(())
             }
             #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -149,23 +138,21 @@ impl Command {
                 let proc_list = rpc_client.get_split_tunnel_excluded_processes().await?;
 
                 if proc_list.processes.is_empty() {
-                    println!("No excluded processes");
+                    println!("Excluded processes: none");
                 } else {
-                    println!("Excluded processes: {}", proc_list.processes.len());
-                    println!();
-
+                    println!("Excluded processes:");
                     for proc in proc_list.processes {
-                        println!("- pid: {}", proc.pid);
+                        #[cfg(target_os = "linux")]
+                        println!("  - {}", proc.pid);
 
                         #[cfg(target_os = "macos")]
                         {
-                            println!("  path: {}", proc.exec_path.display());
+                            println!("  - {} {}", proc.pid, proc.exec_path.display());
                             if proc.exec_path != proc.responsible_exec_path {
                                 println!(
-                                    "  responsible process: {}",
+                                    "    responsible process: {}",
                                     proc.responsible_exec_path.display()
                                 );
-                                println!();
                             }
                         }
                     }

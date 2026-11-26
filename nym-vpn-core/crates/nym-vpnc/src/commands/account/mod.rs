@@ -5,7 +5,7 @@ use anyhow::Result;
 use nym_vpn_lib_types::{DeeplinkClient, DeeplinkKind, GetDeeplinkParams, StoreAccountRequest};
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::display_helpers;
+use crate::display_helpers::Rows;
 
 mod pairing;
 mod summary;
@@ -94,15 +94,17 @@ impl Command {
                 let account_mode = rpc_client.get_account_mode().await?;
                 let account_state = rpc_client.get_account_state().await?;
 
-                print_row("Identity", account_id.as_deref().unwrap_or("unset"));
+                let mut rows = Rows::new();
+                rows.row("Identity", account_id.as_deref().unwrap_or("unset"));
                 if canonical_account_id != account_id {
-                    print_row(
+                    rows.row(
                         "Canonical identity",
                         canonical_account_id.as_deref().unwrap_or("unset"),
                     );
                 }
-                print_row("Mode", summary::display_account_mode(account_mode));
-                print_row("State", &account_state.to_string());
+                rows.row("Mode", summary::display_account_mode(account_mode))
+                    .row("State", summary::display_account_state(&account_state))
+                    .print();
                 Ok(())
             }
             Command::Set { secret, location } => {
@@ -116,82 +118,58 @@ impl Command {
                 let response = rpc_client.store_account(request).await?;
 
                 if let Some(err) = response.error {
-                    println!("Failed to set account: {err}");
                     return Err(err.into());
-                } else {
-                    println!("Account set successfully. Welcome to NymVPN!");
                 }
-
+                println!("Account set");
                 Ok(())
             }
             Command::Forget => {
                 let response = rpc_client.forget_account().await?;
                 if let Some(err) = response.error {
-                    println!("Failed to forget account: {err}");
                     return Err(err.into());
-                } else {
-                    println!("Account forgotten successfully");
                 }
+                println!("Account forgotten");
                 Ok(())
             }
             Command::RotateKeys => {
                 let response = rpc_client.rotate_keys().await?;
                 if let Some(err) = response.error {
-                    println!("Failed to rotate keys: {err}");
                     return Err(err.into());
-                } else {
-                    println!("Keys rotated successfully");
                 }
+                println!("Keys rotated");
                 Ok(())
             }
             Command::Links { locale } => {
                 let account_links = rpc_client.get_account_links(locale).await?;
 
-                println!("Sign up: {}", account_links.sign_up);
-                println!("Sign in: {}", account_links.sign_in);
+                let mut rows = Rows::new();
+                rows.row("Sign up", account_links.sign_up)
+                    .row("Sign in", account_links.sign_in);
                 if let Some(account_url) = account_links.account {
-                    println!("Account: {account_url}");
+                    rows.row("Account", account_url);
                 }
-
+                rows.print();
                 Ok(())
             }
             Command::Balance => {
                 let response = rpc_client.account_balance().await?;
-                match response.result {
-                    Err(err) => {
-                        println!("Failed to get account balance: {err}");
-                        return Err(err.into());
-                    }
-                    Ok(balance) => println!(
-                        "account balance: {}",
-                        balance
-                            .into_iter()
-                            .map(|c| c.to_string())
-                            .collect::<Vec<String>>()
-                            .join(", ")
-                    ),
-                }
+                let balance = response.result?;
+                Rows::new().list("Balance", balance).print();
                 Ok(())
             }
             Command::ObtainTicketbooks { source: _ } => {
                 // Note: source is currently ignored; backend always uses smartcontract blockchain for tickets.
-                println!(
-                    "Ensuring presence of enough tickets for each type. this might take a while..."
-                );
+                println!("Obtaining ticketbooks, this may take a while...");
                 let response = rpc_client.decentralised_obtain_ticketbooks().await?;
                 if let Some(err) = response.error {
-                    println!("Failed to obtain ticketbooks: {err}");
                     return Err(err.into());
-                } else {
-                    println!("Enough ticketbooks are present for all types!");
                 }
-
+                println!("Ticketbooks obtained");
                 Ok(())
             }
             Command::RestockTicketbooks => {
-                println!("Triggering a restock of low ticketbooks...");
                 rpc_client.restock_ticketbooks().await?;
-                println!("Restock scheduled.");
+                println!("Ticketbook restock scheduled");
                 Ok(())
             }
             Command::Refresh { force } => {
@@ -199,13 +177,13 @@ impl Command {
                 Ok(())
             }
             Command::AvailableTickets => {
-                let response = rpc_client.get_available_tickets().await?;
-                println!("{response:#?}");
+                let tickets = rpc_client.get_available_tickets().await?;
+                summary::print_available_tickets(&tickets);
                 Ok(())
             }
             Command::Usage => {
-                let response = rpc_client.get_account_usage().await?;
-                println!("{response:#?}");
+                let usage = rpc_client.get_account_usage().await?;
+                summary::print_usage(&usage);
                 Ok(())
             }
             Command::Summary => {
@@ -227,11 +205,9 @@ impl Command {
             Command::StoreDeeplink { url } => {
                 let response = rpc_client.deeplink_store_account(url).await?;
                 if let Some(err) = response.error {
-                    println!("Failed to store deeplink account: {err}");
                     return Err(err.into());
-                } else {
-                    println!("Deeplink account stored successfully");
                 }
+                println!("Account set");
                 Ok(())
             }
             Command::Pairing { subcommand } => subcommand.execute(rpc_client).await,
@@ -269,8 +245,4 @@ impl std::fmt::Display for AccountLocation {
             AccountLocation::Blockchain => write!(f, "blockchain"),
         }
     }
-}
-
-fn print_row(label: &str, value: &str) {
-    display_helpers::print_row(20, label, value);
 }

@@ -35,8 +35,7 @@ impl Command {
                 } else {
                     rpc_client.disable_sentry().await?;
                 }
-                println!("Sentry integration: {enable}");
-                println!("You have to restart the daemon for the changes to take effect");
+                println!("Restart nym-vpnd to apply the change");
                 Ok(())
             }
         }

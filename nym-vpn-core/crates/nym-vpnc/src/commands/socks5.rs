@@ -2,9 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::{Result, anyhow};
-use nym_vpn_lib_types::{ExitPoint, HttpRpcSettings, NodeIdentity, Recipient, Socks5Settings};
+use nym_vpn_lib_types::{
+    ExitPoint, HttpRpcSettings, NodeIdentity, Recipient, Socks5Settings, Socks5State,
+};
 use nym_vpn_proto::rpc_client::RpcClient;
 use std::net::SocketAddr;
+
+use crate::display_helpers::Rows;
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -53,20 +57,21 @@ impl Command {
             }
             Command::Status => {
                 let status = rpc_client.get_socks5_status().await?;
-                println!("State: {:?}", status.state);
-                println!(
-                    "SOCKS5 Listen Address: {:?}",
-                    status.socks5_settings.listen_address
-                );
-                println!(
-                    "HTTP RPC Listen Address: {:?}",
-                    status.http_rpc_settings.listen_address
-                );
-                println!(
-                    "Error: {}",
-                    status.error_message.unwrap_or_else(|| "None".to_string())
-                );
-                println!("Active Connections: {}", status.active_connections);
+                let mut rows = Rows::new();
+                rows.row("State", display_socks5_state(&status.state))
+                    .row(
+                        "SOCKS5 address",
+                        display_optional_address(status.socks5_settings.listen_address),
+                    )
+                    .row(
+                        "HTTP RPC address",
+                        display_optional_address(status.http_rpc_settings.listen_address),
+                    )
+                    .row("Active connections", status.active_connections);
+                if let Some(error_message) = status.error_message {
+                    rows.row("Error", error_message);
+                }
+                rows.print();
                 Ok(())
             }
         }
@@ -134,4 +139,17 @@ impl EnableArgs {
             Err(anyhow!("No exit point specified"))
         }
     }
+}
+
+fn display_socks5_state(state: &Socks5State) -> &'static str {
+    match state {
+        Socks5State::Disabled => "disabled",
+        Socks5State::Idle => "idle",
+        Socks5State::Connected => "connected",
+        Socks5State::Error => "error",
+    }
+}
+
+fn display_optional_address(address: Option<SocketAddr>) -> String {
+    address.map_or_else(|| "none".to_owned(), |address| address.to_string())
 }

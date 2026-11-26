@@ -7,7 +7,7 @@ use tabled::Table;
 use nym_vpn_lib_types::{NymVpnDevice, NymVpnDeviceStatus};
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::table_style::TableStyle;
+use crate::{display_helpers::display_rfc3339, table_style::TableStyle};
 
 #[derive(Debug, Clone, clap::Args)]
 pub struct Args {
@@ -35,9 +35,7 @@ impl Args {
         match self.command.unwrap_or(Command::Get) {
             Command::Get => {
                 let identity = rpc_client.get_device_identity().await?;
-                if let Some(identity) = identity {
-                    println!("Device identity: {identity}");
-                }
+                println!("Device identity: {}", identity.as_deref().unwrap_or("none"));
                 Ok(())
             }
             Command::List { only_active } => {
@@ -58,7 +56,7 @@ impl Args {
                 rpc_client
                     .reset_device_identity(seed.map(|v| v.into_bytes()))
                     .await?;
-                println!("Device identity has been reset");
+                println!("Device identity reset");
                 Ok(())
             }
         }
@@ -84,13 +82,14 @@ impl From<NymVpnDevice> for DeviceModel {
     fn from(device: NymVpnDevice) -> Self {
         DeviceModel {
             device_identity_key: device.device_identity_key,
-            created_on_utc: device.created_on_utc,
-            last_updated_utc: device.last_updated_utc,
+            created_on_utc: display_rfc3339(&device.created_on_utc),
+            last_updated_utc: display_rfc3339(&device.last_updated_utc),
             status: match device.status {
-                NymVpnDeviceStatus::Active => "Active".to_string(),
-                NymVpnDeviceStatus::Inactive => "Inactive".to_string(),
-                NymVpnDeviceStatus::DeleteMe => "Deleted".to_string(),
-            },
+                NymVpnDeviceStatus::Active => "active",
+                NymVpnDeviceStatus::Inactive => "inactive",
+                NymVpnDeviceStatus::DeleteMe => "pending deletion",
+            }
+            .to_owned(),
         }
     }
 }

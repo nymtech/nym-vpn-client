@@ -5,7 +5,10 @@ use anyhow::Result;
 use clap::builder::ValueParserFactory;
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::boolean_option::BooleanOption;
+use crate::{
+    boolean_option::BooleanOption,
+    display_helpers::{Rows, display_on_off},
+};
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -52,17 +55,17 @@ impl Command {
         match self {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
-                let a = &config.geo_exclusion;
-                println!(
-                    "Geo Exclusion enabled:    {}",
-                    if a.enabled { "yes" } else { "no" }
-                );
-                println!("Listen port:      {}", a.listen_port);
-                if a.excluded_countries.is_empty() {
-                    println!("Excluded countries: (none)");
+                let geo_exclusion = &config.geo_exclusion;
+                let excluded_countries = if geo_exclusion.excluded_countries.is_empty() {
+                    "none".to_owned()
                 } else {
-                    println!("Excluded countries: {}", a.excluded_countries.join(", "));
-                }
+                    geo_exclusion.excluded_countries.join(", ")
+                };
+                Rows::new()
+                    .row("Geo exclusion", display_on_off(geo_exclusion.enabled))
+                    .row("Listen port", geo_exclusion.listen_port)
+                    .row("Excluded countries", excluded_countries)
+                    .print();
                 Ok(())
             }
             Command::Set { subcommand } => subcommand.execute(rpc_client).await,

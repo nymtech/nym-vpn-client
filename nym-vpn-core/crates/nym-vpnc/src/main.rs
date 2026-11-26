@@ -14,8 +14,15 @@ use clap::{ArgAction, CommandFactory, Parser};
 use clap_complete::Shell;
 use tokio_stream::{Stream, StreamExt};
 
-use nym_vpn_lib_types::{PairingResult, TunnelEvent, TunnelState, VpnServiceInfo};
+use nym_vpn_lib_types::{
+    ApiUrl, DenomDetailsOwned, PairingResult, TunnelEvent, TunnelState, VpnServiceInfo,
+};
 use nym_vpn_proto::rpc_client::RpcClient;
+
+use crate::{
+    display_helpers::{Rows, display_date_time},
+    table_style::TableStyle,
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -23,7 +30,7 @@ async fn main() -> Result<()> {
 }
 
 #[derive(Parser, Debug)]
-#[clap(version, about)]
+#[clap(version, about, after_long_help = TableStyle::env_help())]
 pub struct ProgramArgs {
     #[command(subcommand)]
     pub command: Command,
@@ -258,13 +265,13 @@ impl Command {
                 };
 
                 if let Some(state) = &current_state {
-                    println!("{state}");
+                    println!("State: {state}");
                 }
 
                 if matches!(current_state, Some(TunnelState::Connected { .. })) {
                     Ok(())
                 } else {
-                    println!("Waiting until connected or failed");
+                    println!("Waiting for the tunnel to connect...");
                     Self::wait_until_connected(stream).await
                 }
             }
@@ -285,8 +292,8 @@ impl Command {
 
         match stream {
             Some(stream) => {
-                println!("{}", rpc_client.get_tunnel_state().await?);
-                println!("Waiting until reconnected or failed");
+                println!("State: {}", rpc_client.get_tunnel_state().await?);
+                println!("Waiting for the tunnel to reconnect...");
                 Self::wait_until_connected(stream).await
             }
             None => Ok(()),
@@ -303,7 +310,7 @@ impl Command {
             let TunnelEvent::NewState(new_state) = event? else {
                 continue;
             };
-            println!("{new_state}");
+            println!("State: {new_state}");
 
             match new_state {
                 TunnelState::Connected { .. } => {
@@ -311,13 +318,13 @@ impl Command {
                 }
                 TunnelState::Offline { reconnect } => {
                     if reconnect {
-                        println!("Device is offline. Waiting for network connectivity.");
+                        println!("Offline, waiting for network connectivity...");
                     } else {
                         bail!("Device is offline");
                     }
                 }
                 TunnelState::Error(reason) => {
-                    bail!("Tunnel entered error state {reason:?}");
+                    bail!("Tunnel entered error state: {reason}");
                 }
                 _ => {}
             }
@@ -336,7 +343,7 @@ impl Command {
         match stream {
             Some(stream) => {
                 let current_state = rpc_client.get_tunnel_state().await?;
-                println!("{current_state}");
+                println!("State: {current_state}");
 
                 if matches!(
                     current_state,
@@ -344,7 +351,7 @@ impl Command {
                 ) {
                     Ok(())
                 } else {
-                    println!("Waiting until disconnected");
+                    println!("Waiting for the tunnel to disconnect...");
                     Self::wait_until_disconnected(stream).await
                 }
             }
@@ -362,11 +369,11 @@ impl Command {
             let TunnelEvent::NewState(new_state) = event? else {
                 continue;
             };
-            println!("{new_state}");
+            println!("State: {new_state}");
 
             match new_state {
                 TunnelState::Disconnected | TunnelState::Offline { .. } => break Ok(()),
-                TunnelState::Error(reason) => bail!("Tunnel entered error state: {reason:?}"),
+                TunnelState::Error(reason) => bail!("Tunnel entered error state: {reason}"),
                 _ => {}
             }
         }
@@ -397,14 +404,14 @@ impl Command {
                     // The Display impl hides the secrets, but pairing from the CLI needs them
                     match event.result {
                         PairingResult::PinCode(pin_code) => println!(
-                            "Pairing process {session_id}: check that the other device shows PIN {pin_code}"
+                            "Pairing session {session_id}: check that the other device shows PIN {pin_code}"
                         ),
                         PairingResult::StoredMnemonic => {
                             println!(
-                                "Pairing process {session_id}: received and stored the account mnemonic"
+                                "Pairing session {session_id}: received and stored the account mnemonic"
                             )
                         }
-                        result => println!("Pairing process {session_id}: {result}"),
+                        result => println!("Pairing session {session_id}: {result}"),
                     }
                 }
                 _ => {}
@@ -421,154 +428,98 @@ impl Command {
     }
 
     fn print_service_info(service_info: VpnServiceInfo) {
-        println!("nym-vpnd:");
-        println!("  version: {}", service_info.version);
-        println!(
-            "  build_timestamp (utc): {}",
-            service_info
-                .build_timestamp
-                .map(|s| s.to_string())
-                .unwrap_or_default()
-        );
-        println!("  triple: {}", service_info.triple);
-        println!("  platform: {}", service_info.platform);
-        println!("  git_commit: {}", service_info.git_commit);
-        println!();
-        println!("nym_network:");
-        println!("  network_name: {}", service_info.nym_network.network_name);
-        println!("  chain_details:");
-        println!(
-            "    bech32_account_prefix: {}",
-            service_info.nym_network.chain_details.bech32_account_prefix
-        );
-        println!("    mix_denom:");
-        println!(
-            "      base: {}",
-            service_info.nym_network.chain_details.mix_denom.base
-        );
-        println!(
-            "      display: {}",
-            service_info.nym_network.chain_details.mix_denom.display
-        );
-        println!(
-            "      display_exponent: {}",
-            service_info
-                .nym_network
-                .chain_details
-                .mix_denom
-                .display_exponent
-        );
-        println!("    stake_denom:");
-        println!(
-            "      base: {}",
-            service_info.nym_network.chain_details.stake_denom.base
-        );
-        println!(
-            "      display: {}",
-            service_info.nym_network.chain_details.stake_denom.display
-        );
-        println!(
-            "      display_exponent: {}",
-            service_info
-                .nym_network
-                .chain_details
-                .stake_denom
-                .display_exponent
-        );
+        let network = &service_info.nym_network;
+        let chain = &network.chain_details;
+        let contracts = &network.contracts;
 
-        println!("  validators:");
-        for validator in &service_info.nym_network.endpoints {
-            println!("    nyxd_url: {}", validator.nyxd_url);
-            println!("    api_url: {}", or_not_set(&validator.api_url));
-            println!(
-                "    websocket_url: {}",
-                or_not_set(&validator.websocket_url)
-            );
-        }
-
-        println!("  nym_contracts:");
-        println!(
-            "    mixnet_contract_address: {}",
-            or_not_set(&service_info.nym_network.contracts.mixnet_contract_address)
-        );
-        println!(
-            "    vesting_contract_address: {}",
-            or_not_set(&service_info.nym_network.contracts.vesting_contract_address)
-        );
-        println!(
-            "    ecash_contract_address: {}",
-            or_not_set(&service_info.nym_network.contracts.ecash_contract_address)
-        );
-        println!(
-            "    group_contract_address: {}",
-            or_not_set(&service_info.nym_network.contracts.group_contract_address)
-        );
-        println!(
-            "    multisig_contract_address: {}",
-            or_not_set(&service_info.nym_network.contracts.multisig_contract_address)
-        );
-        println!(
-            "    coconut_dkg_contract_address: {}",
-            or_not_set(
-                &service_info
-                    .nym_network
-                    .contracts
-                    .coconut_dkg_contract_address
+        let mut rows = Rows::new();
+        rows.section("Daemon")
+            .row("  Version", &service_info.version)
+            .row(
+                "  Built",
+                service_info
+                    .build_timestamp
+                    .map_or_else(|| "unknown".to_owned(), display_date_time),
             )
-        );
-        {
-            let nym_api_urls = service_info.nym_network.networking.nym_api_urls;
-            if !nym_api_urls.is_empty() {
-                println!("  nym_api_urls:");
-            }
-            for nym_api_url in nym_api_urls {
-                println!("    - url: {}", nym_api_url.url);
-                match nym_api_url.front_hosts {
-                    Some(fronts) => {
-                        println!(
-                            "      fronts: {}",
-                            fronts.into_iter().collect::<Vec<String>>().join(", ")
-                        );
-                    }
-                    None => println!("      fronts: (unset)"),
-                }
-            }
-        }
-        println!("  nym_vpn_api_urls:");
-        for nym_vpn_api_url in service_info.nym_network.networking.nym_vpn_api_urls {
-            println!("    - url: {}", nym_vpn_api_url.url);
-            match nym_vpn_api_url.front_hosts {
-                Some(fronts) => {
-                    println!(
-                        "      fronts: {}",
-                        fronts.into_iter().collect::<Vec<String>>().join(", ")
-                    );
-                }
-                None => println!("      fronts: (unset)"),
-            }
-        }
-
-        println!();
-        println!("nym_vpn_network:");
-        println!("  nym_vpn_api_urls:");
-        for nym_vpn_api_url in service_info.nym_vpn_network.nym_vpn_api_urls {
-            println!("    - url: {}", nym_vpn_api_url.url);
-            match nym_vpn_api_url.front_hosts {
-                Some(fronts) => {
-                    println!(
-                        "      fronts: {}",
-                        fronts.into_iter().collect::<Vec<String>>().join(", ")
-                    );
-                }
-                None => println!("      fronts: (unset)"),
-            }
-        }
+            .row("  Target", &service_info.triple)
+            .row("  Platform", &service_info.platform)
+            .row("  Git commit", &service_info.git_commit)
+            .blank()
+            .section("Nym network")
+            .row("  Name", &network.network_name)
+            .row("  Account prefix", &chain.bech32_account_prefix)
+            .row("  Mix denom", display_denom(&chain.mix_denom))
+            .row("  Stake denom", display_denom(&chain.stake_denom))
+            .list(
+                "  Validators",
+                network.endpoints.iter().map(|validator| {
+                    format!(
+                        "{} (API: {}, websocket: {})",
+                        validator.nyxd_url,
+                        or_none(&validator.api_url),
+                        or_none(&validator.websocket_url)
+                    )
+                }),
+            )
+            .section("  Contracts")
+            .row("    Mixnet", or_none(&contracts.mixnet_contract_address))
+            .row("    Vesting", or_none(&contracts.vesting_contract_address))
+            .row(
+                "    Performance",
+                or_none(&contracts.performance_contract_address),
+            )
+            .row("    Ecash", or_none(&contracts.ecash_contract_address))
+            .row("    Group", or_none(&contracts.group_contract_address))
+            .row(
+                "    Multisig",
+                or_none(&contracts.multisig_contract_address),
+            )
+            .row(
+                "    Coconut DKG",
+                or_none(&contracts.coconut_dkg_contract_address),
+            )
+            .list(
+                "  Nym API URLs",
+                network.networking.nym_api_urls.iter().map(display_api_url),
+            )
+            .list(
+                "  NymVPN API URLs",
+                network
+                    .networking
+                    .nym_vpn_api_urls
+                    .iter()
+                    .map(display_api_url),
+            )
+            .blank()
+            .section("NymVPN network")
+            .list(
+                "  NymVPN API URLs",
+                service_info
+                    .nym_vpn_network
+                    .nym_vpn_api_urls
+                    .iter()
+                    .map(display_api_url),
+            )
+            .print();
     }
 }
 
-pub fn or_not_set<T: ToString + Clone>(value: &Option<T>) -> String {
-    value
-        .clone()
-        .map(|v| v.to_string())
-        .unwrap_or("not set".to_string())
+fn or_none(value: &Option<String>) -> &str {
+    value.as_deref().unwrap_or("none")
+}
+
+fn display_denom(denom: &DenomDetailsOwned) -> String {
+    format!(
+        "{} (display: {}, exponent: {})",
+        denom.base, denom.display, denom.display_exponent
+    )
+}
+
+fn display_api_url(api_url: &ApiUrl) -> String {
+    match api_url.front_hosts.as_deref() {
+        Some(front_hosts) if !front_hosts.is_empty() => {
+            format!("{} (fronts: {})", api_url.url, front_hosts.join(", "))
+        }
+        _ => api_url.url.clone(),
+    }
 }
