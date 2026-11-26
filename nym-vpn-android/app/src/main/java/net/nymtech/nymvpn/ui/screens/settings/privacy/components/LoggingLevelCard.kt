@@ -91,7 +91,7 @@ fun LoggingLevelCard(level: LoggingLevel, onLevelChange: (LoggingLevel) -> Unit)
 					color = MaterialTheme.colorScheme.onBackground,
 				)
 				// Only DEBUG needs a restart: the core reads its log level when it starts.
-				if (level == LoggingLevel.DETAILED) {
+				if (level == LoggingLevel.DEBUG) {
 					Text(
 						text = stringResource(R.string.privacy_error_reports_restart),
 						style = MaterialTheme.typography.bodySmall,

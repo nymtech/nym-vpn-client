@@ -24,6 +24,6 @@ class PrivacyViewModel @Inject constructor(private val vpnConfigRepository: VpnC
 
 	fun onLoggingLevelChange(level: LoggingLevel) = viewModelScope.launch {
 		settingsRepository.setLogsEnabled(level != LoggingLevel.OFF)
-		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetDebugLog(level == LoggingLevel.DETAILED))
+		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetDebugLog(level == LoggingLevel.DEBUG))
 	}
 }

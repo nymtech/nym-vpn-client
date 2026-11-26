@@ -528,13 +528,13 @@
 	<string name="logs_tab_tunnel">Tunnel</string>
 	<string name="logs_tab_library">Library</string>
 	<string name="logs_empty_placeholder">No logs yet</string>
-	<string name="logs_level_title">Your logs</string>
+	<string name="logs_level_title">Your app logs</string>
 	<string name="logs_level_off">Off</string>
 	<string name="logs_level_standard">Standard</string>
-	<string name="logs_level_detailed">Detailed</string>
+	<string name="logs_level_debug">Debug</string>
 	<string name="logs_level_off_description">Nothing is recorded. If something goes wrong, Support has nothing to look at.</string>
 	<string name="logs_level_standard_description">Keeps a record of what the app does, on this device only. Nym never has access.</string>
-	<string name="logs_level_detailed_description">Adds detail for troubleshooting. Uses more battery, and logs can grow up to 10x larger.</string>
+	<string name="logs_level_debug_description">Adds detail for troubleshooting. Uses more battery, and logs can grow up to 10x larger.</string>
 	<string name="logs_share_logs">Share logs</string>
 	<string name="logs_save_logs">Save logs</string>
 	<string name="logs_show_live">Show live logs</string>

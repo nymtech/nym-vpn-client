@@ -11,13 +11,13 @@ import net.nymtech.nymvpn.R
 enum class LoggingLevel(@StringRes val labelRes: Int, @StringRes val descriptionRes: Int) {
 	OFF(R.string.logs_level_off, R.string.logs_level_off_description),
 	STANDARD(R.string.logs_level_standard, R.string.logs_level_standard_description),
-	DETAILED(R.string.logs_level_detailed, R.string.logs_level_detailed_description),
+	DEBUG(R.string.logs_level_debug, R.string.logs_level_debug_description),
 	;
 
 	companion object {
 		fun from(logsEnabled: Boolean, debugEnabled: Boolean): LoggingLevel = when {
 			!logsEnabled -> OFF
-			debugEnabled -> DETAILED
+			debugEnabled -> DEBUG
 			else -> STANDARD
 		}
 	}
