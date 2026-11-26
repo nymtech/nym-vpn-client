@@ -1,14 +1,8 @@
 import NymVPNLib
 
-public enum DaemonSettingError: Error {
-    case notConnected
-}
-
 extension GRPCManager {
-    /// Throws `DaemonSettingError.notConnected` rather than returning silently, so a caller
-    /// never mistakes "not sent" for "sent".
     public func setErrorReporting(_ isEnabled: Bool) async throws {
-        guard let rpcClient else { throw DaemonSettingError.notConnected }
+        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
         if isEnabled {
             try await rpcClient.enableSentry()
         } else {
@@ -17,17 +11,17 @@ extension GRPCManager {
     }
 
     public func setNetworkStatistics(_ isEnabled: Bool) async throws {
-        guard let rpcClient else { throw DaemonSettingError.notConnected }
+        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
         try await rpcClient.networkStatsSetEnabled(enabled: isEnabled)
     }
 
     public func isErrorReportingEnabled() async throws -> Bool {
-        guard let rpcClient else { throw DaemonSettingError.notConnected }
+        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
         return try await rpcClient.isSentryEnabled()
     }
 
     public func isNetworkStatisticsEnabled() async throws -> Bool {
-        guard let rpcClient else { throw DaemonSettingError.notConnected }
+        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
         return try await rpcClient.getConfig().networkStats.enabled
     }
 

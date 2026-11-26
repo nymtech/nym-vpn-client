@@ -169,19 +169,13 @@ import PathManager
             .filter { $0 }
             .sink { [weak self] _ in
                 self?.updateCompatibilityVersions()
-                // The Task hop matters: @Published emits before `isServing` is stored, and the
-                // consent coordinator checks it.
-                Task { @MainActor in
-                    self?.telemetryConsent.daemonConnected()
-                }
+                self?.telemetryConsent.daemonConnected()
             }
             .store(in: &cancellables)
 
         grpcManager.configChanged
             .sink { [weak self] in
-                Task { @MainActor in
-                    self?.telemetryConsent.daemonConfigChanged()
-                }
+                self?.telemetryConsent.daemonConfigChanged()
             }
             .store(in: &cancellables)
 #endif
@@ -341,16 +335,12 @@ private extension ConfigurationManager {
 }
 
 #if os(macOS)
-// MARK: - Data-sharing consent (macOS daemon) -
-// nym-vpnd is the source of truth; `TelemetryConsentCoordinator` keeps the toggles and the
-// daemon in agreement.
+// MARK: - Data-sharing consent -
 public extension ConfigurationManager {
-    /// The user flipped a data-sharing toggle in Settings.
     func userChangedTelemetryConsent(_ setting: TelemetryConsentSetting, to isEnabled: Bool) {
         telemetryConsent.userChanged(setting, to: isEnabled)
     }
 
-    /// The user tapped Continue on the onboarding opt-in screen.
     func submitOnboardingTelemetryConsent() {
         telemetryConsent.onboardingAnswered()
     }
@@ -364,6 +354,8 @@ private final class GRPCTelemetryConsentDaemon: TelemetryConsentDaemon {
         self.grpcManager = grpcManager
     }
 
+    // Read only from the coordinator's queued work: inside an `$isServing` sink it would still
+    // be false, because @Published emits before storing the new value.
     var isConnected: Bool { grpcManager.isServing }
 
     func read(_ setting: TelemetryConsentSetting) async throws -> Bool {

@@ -78,3 +78,14 @@ public struct TelemetryOptInCard: View {
         )
     }
 }
+
+public extension TelemetryOptInCard {
+    /// On macOS nym-vpnd starts its own error reporting only when it launches.
+    static var errorReportingRestartNote: String? {
+#if os(macOS)
+        "welcomeOptIns.monitoring.restartNote".localizedString
+#else
+        nil
+#endif
+    }
+}

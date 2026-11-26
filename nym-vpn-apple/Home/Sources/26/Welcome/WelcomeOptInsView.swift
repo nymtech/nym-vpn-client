@@ -1,8 +1,5 @@
 import SwiftUI
 import AppSettings
-#if os(macOS)
-import ConfigurationManager
-#endif
 import Constants
 import ImpactGenerator
 import Theme
@@ -99,7 +96,7 @@ private extension WelcomeOptInsView {
                 icon: "ladybug",
                 title: "welcomeOptIns.monitoring.title".localizedString,
                 subtitle: "welcomeOptIns.monitoring.subtitle".localizedString,
-                note: errorReportingNote,
+                note: TelemetryOptInCard.errorReportingRestartNote,
                 isOn: $isErrorReportingOn,
                 onInfo: { infoContent = monitoringInfo() }
             )
@@ -124,23 +121,9 @@ private extension WelcomeOptInsView {
         )
     }
 
-    /// On macOS the daemon starts its own error reporting only when it launches.
-    var errorReportingNote: String? {
-#if os(macOS)
-        return "settings.privacyAndData.errorReportingRestartNote".localizedString
-#else
-        return nil
-#endif
-    }
-
     var continueButton: some View {
         NymButton("welcome.continue".localizedString, style: .primary) {
             ImpactGenerator.shared.softImpact()
-#if os(macOS)
-            // Onboarding asks rather than mirrors: send the answers to the daemon (now, or on
-            // the next connect), so the opt-ins never start pre-checked from the daemon default.
-            ConfigurationManager.shared.submitOnboardingTelemetryConsent()
-#endif
             onContinue()
         }
     }

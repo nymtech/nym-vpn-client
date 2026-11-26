@@ -17,8 +17,7 @@ public struct PrivacyAndDataView: View {
     @Binding private var path: NavigationPath
     @State private var infoContent: TelemetryInfoContent?
 #if os(macOS)
-    /// Set once the daemon has been unreachable for a few seconds, so the normal
-    /// connect at launch and quick reconnects don't flash "Daemon not running".
+    /// Set after a grace period, so the connect at launch doesn't flash "Daemon not running".
     @State private var isDaemonUnreachable = false
 #endif
 
@@ -34,16 +33,14 @@ public struct PrivacyAndDataView: View {
                 diagnosticToolSection()
                 Spacer()
                     .frame(height: 24)
-                // On macOS the daemon holds these values; without it, or before onboarding has
-                // been answered, there is nothing true to show.
-                if canShowDataSharingToggles {
-                    statisticsSection()
-                    Spacer()
-                        .frame(height: 24)
-                    errorReportingSection()
-                } else if showsDaemonNotRunning {
-                    daemonNotRunningSection()
-                }
+#if os(macOS)
+                daemonDataSharingSection()
+#else
+                dataSharingSection(
+                    statistics: $appSettings.isStatisticsEnabled,
+                    errorReporting: $appSettings.isErrorReportingOn
+                )
+#endif
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
             .padding(.horizontal, 16)
@@ -146,23 +143,23 @@ private extension PrivacyAndDataView {
         )
     }
 
-    func statisticsSection() -> some View {
+    @ViewBuilder
+    func dataSharingSection(statistics: Binding<Bool>, errorReporting: Binding<Bool>) -> some View {
         TelemetryOptInCard(
             icon: "chart.bar",
             title: "welcomeOptIns.connection.title".localizedString,
             subtitle: "welcomeOptIns.connection.subtitle".localizedString,
-            isOn: statisticsBinding,
+            isOn: statistics,
             onInfo: { infoContent = connectionInfo() }
         )
-    }
-
-    func errorReportingSection() -> some View {
+        Spacer()
+            .frame(height: 24)
         TelemetryOptInCard(
             icon: "ladybug",
             title: "welcomeOptIns.monitoring.title".localizedString,
             subtitle: "welcomeOptIns.monitoring.subtitle".localizedString,
-            note: errorReportingNote,
-            isOn: errorReportingBinding,
+            note: TelemetryOptInCard.errorReportingRestartNote,
+            isOn: errorReporting,
             onInfo: { infoContent = monitoringInfo() }
         )
     }
@@ -203,75 +200,39 @@ private extension PrivacyAndDataView {
     }
 }
 
-// MARK: - Data-sharing state -
-// On macOS nym-vpnd is the source of truth: the toggles show its values (mirrored into
-// AppSettings by ConfigurationManager) and send only the user's own changes.
-private extension PrivacyAndDataView {
-    var canShowDataSharingToggles: Bool {
 #if os(macOS)
-        return grpcManager.isServing && appSettings.welcomeScreenDidDisplay
-#else
-        return true
-#endif
-    }
-
-    var showsDaemonNotRunning: Bool {
-#if os(macOS)
-        return isDaemonUnreachable
-#else
-        return false
-#endif
-    }
-
-    var statisticsBinding: Binding<Bool> {
-#if os(macOS)
-        return Binding(
-            get: { appSettings.isStatisticsEnabled },
-            set: { ConfigurationManager.shared.userChangedTelemetryConsent(.networkStatistics, to: $0) }
-        )
-#else
-        return $appSettings.isStatisticsEnabled
-#endif
-    }
-
-    var errorReportingBinding: Binding<Bool> {
-#if os(macOS)
-        return Binding(
-            get: { appSettings.isErrorReportingOn },
-            set: { ConfigurationManager.shared.userChangedTelemetryConsent(.errorReporting, to: $0) }
-        )
-#else
-        return $appSettings.isErrorReportingOn
-#endif
-    }
-
-    /// The daemon starts its own error reporting only when it launches.
-    var errorReportingNote: String? {
-#if os(macOS)
-        return "settings.privacyAndData.errorReportingRestartNote".localizedString
-#else
-        return nil
-#endif
-    }
-}
-
-// MARK: - Daemon not running (macOS) -
+// MARK: - Data-sharing (macOS) -
+// nym-vpnd owns these settings, so without it, or before onboarding has asked, there are no
+// toggles to show.
 private extension PrivacyAndDataView {
     @ViewBuilder
-    func daemonNotRunningSection() -> some View {
-#if os(macOS)
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "daemonInstall.title".localizedString,
-                systemImageName: "exclamationmark.triangle",
-                position: SettingsListItemPosition(isFirst: true, isLast: true),
-                action: {
-                    impactGenerator.softImpact()
-                    path.append(SettingLink.daemonEnable)
-                }
+    func daemonDataSharingSection() -> some View {
+        if grpcManager.isServing && appSettings.welcomeScreenDidDisplay {
+            dataSharingSection(
+                statistics: consentBinding(.networkStatistics, \.isStatisticsEnabled),
+                errorReporting: consentBinding(.errorReporting, \.isErrorReportingOn)
             )
+        } else if isDaemonUnreachable {
+            SettingsListItem(
+                viewModel: SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "daemonInstall.title".localizedString,
+                    systemImageName: "exclamationmark.triangle",
+                    position: SettingsListItemPosition(isFirst: true, isLast: true),
+                    action: {
+                        impactGenerator.softImpact()
+                        path.append(SettingLink.daemonEnable)
+                    }
+                )
+            )
+        }
+    }
+
+    func consentBinding(_ setting: TelemetryConsentSetting, _ value: KeyPath<AppSettings, Bool>) -> Binding<Bool> {
+        Binding(
+            get: { appSettings[keyPath: value] },
+            set: { ConfigurationManager.shared.userChangedTelemetryConsent(setting, to: $0) }
         )
-#endif
     }
 }
+#endif

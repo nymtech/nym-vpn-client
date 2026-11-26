@@ -102,15 +102,13 @@ import ConnectionTypes
         didSet { serverFamilyRemindersEnabledPublisher = serverFamilyRemindersEnabled }
     }
 
-    // iOS passes this into the tunnel config at connect. On macOS nym-vpnd is the source of truth
-    // and this mirrors it (see ConfigurationManager's telemetry consent extension).
+    // iOS passes this into the tunnel config at connect. On macOS it mirrors nym-vpnd's value.
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = false
 
 #if os(macOS)
-    /// Data-sharing choices the daemon hasn't received yet: the onboarding answers, or the
-    /// one-time migration for installs from before the daemon became the source of truth
-    /// (hence the `true` default). Each is cleared once that value reaches the daemon.
+    /// Set while the daemon hasn't received this choice yet. Defaults to `true` so installs from
+    /// before nym-vpnd owned these settings send their saved choice once.
     @AppStorage(AppSettingKey.statisticsPendingForDaemon.rawValue)
     public var isStatisticsPendingForDaemon = true
 

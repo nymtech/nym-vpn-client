@@ -1,46 +1,68 @@
+#if os(macOS)
 import Foundation
 import Testing
 @testable import ConfigurationManager
+
+/// Holds whatever calls `pass()` until the test calls `release()`.
+@MainActor
+private final class Gate {
+    private var held: [CheckedContinuation<Void, Never>] = []
+    private var watchers: [CheckedContinuation<Void, Never>] = []
+
+    func pass() async {
+        await withCheckedContinuation { continuation in
+            held.append(continuation)
+            watchers.forEach { $0.resume() }
+            watchers = []
+        }
+    }
+
+    /// Returns once something is held.
+    func reached() async {
+        guard held.isEmpty else { return }
+        await withCheckedContinuation { watchers.append($0) }
+    }
+
+    func release() {
+        let released = held
+        held = []
+        released.forEach { $0.resume() }
+    }
+}
+
+private enum FakeError: Error { case rejected }
 
 @MainActor
 private final class FakeDaemon: TelemetryConsentDaemon {
     var isConnected = true
     var values: [TelemetryConsentSetting: Bool] = [.networkStatistics: true, .errorReporting: true]
-    /// Delay for the next write of a setting, consumed in order.
-    var writeDelays: [TelemetryConsentSetting: [Duration]] = [:]
-    var readDelay: Duration = .zero
-    /// Number of upcoming writes of a setting that fail.
     var failingWrites: [TelemetryConsentSetting: Int] = [:]
-    /// Number of upcoming reads of a setting that fail.
     var failingReads: [TelemetryConsentSetting: Int] = [:]
-    private(set) var writes: [(TelemetryConsentSetting, Bool)] = []
+    /// Each holds the next read or write of its setting.
+    var readGates: [TelemetryConsentSetting: Gate] = [:]
+    var writeGates: [TelemetryConsentSetting: Gate] = [:]
+    private(set) var writeCount = 0
 
     func read(_ setting: TelemetryConsentSetting) async throws -> Bool {
-        if let failures = failingReads[setting], failures > 0 {
-            failingReads[setting] = failures - 1
-            throw FakeError.rejected
-        }
+        if consume(&failingReads, setting) { throw FakeError.rejected }
         let value = values[setting] ?? false
-        if readDelay > .zero { try await Task.sleep(for: readDelay) }
+        await readGates.removeValue(forKey: setting)?.pass()
         return value
     }
 
     func write(_ setting: TelemetryConsentSetting, _ isEnabled: Bool) async throws {
-        if var delays = writeDelays[setting], !delays.isEmpty {
-            let delay = delays.removeFirst()
-            writeDelays[setting] = delays
-            try await Task.sleep(for: delay)
-        }
-        if let failures = failingWrites[setting], failures > 0 {
-            failingWrites[setting] = failures - 1
-            throw FakeError.rejected
-        }
-        writes.append((setting, isEnabled))
+        await writeGates.removeValue(forKey: setting)?.pass()
+        if consume(&failingWrites, setting) { throw FakeError.rejected }
+        writeCount += 1
         values[setting] = isEnabled
     }
-}
 
-private enum FakeError: Error { case rejected }
+    private func consume(_ counts: inout [TelemetryConsentSetting: Int], _ setting: TelemetryConsentSetting) -> Bool {
+        guard let count = counts[setting], count > 0 else { return false }
+        counts[setting] = count - 1
+        return true
+    }
+}
 
 @MainActor
 private final class FakeStore: TelemetryConsentStore {
@@ -59,32 +81,51 @@ private final class FakeStore: TelemetryConsentStore {
     func setPendingForDaemon(_ setting: TelemetryConsentSetting, _ isPending: Bool) { pending[setting] = isPending }
 }
 
+@Suite
 @MainActor
 struct TelemetryConsentCoordinatorTests {
+    enum ReadRace: CaseIterable { case onConnect, afterFailedWrite }
+    enum DaemonDrop: CaseIterable { case beforeTheWrite, duringTheWrite }
+
+    /// Retries run without delay unless `retryGate` holds them.
     private func makeCoordinator(
         _ daemon: FakeDaemon,
         _ store: FakeStore,
-        retryDelays: [Duration] = [.milliseconds(20)]
+        retryDelays: [Duration] = [.zero],
+        retryGate: Gate? = nil
     ) -> TelemetryConsentCoordinator {
-        TelemetryConsentCoordinator(daemon: daemon, store: store, retryDelays: retryDelays, log: { _ in })
+        TelemetryConsentCoordinator(
+            daemon: daemon,
+            store: store,
+            retryDelays: retryDelays,
+            sleep: { _ in await retryGate?.pass() },
+            log: { _ in }
+        )
     }
 
-    // Pending is true before onboarding in practice; `pending: false` pins mirror()'s own check.
+    private func runScheduledRetry(_ coordinator: TelemetryConsentCoordinator, _ gate: Gate) async throws {
+        let retry = try #require(coordinator.scheduledRetry)
+        await gate.reached()
+        gate.release()
+        await retry.value
+    }
+
     @Test(arguments: [true, false])
-    func beforeOnboardingConnectSendsAndMirrorsNothing(pending: Bool) async {
+    func nothingIsSentOrMirroredBeforeOnboarding(pending: Bool) async {
         let daemon = FakeDaemon()
         let store = FakeStore(onboardingAnswered: false, pending: pending)
         let coordinator = makeCoordinator(daemon, store)
 
         await coordinator.daemonConnected().value
+        await coordinator.daemonConfigChanged().value
 
-        #expect(daemon.writes.isEmpty)
+        #expect(daemon.writeCount == 0)
         #expect(store.values[.networkStatistics] == false)
     }
 
     @Test func onboardingAnswersAreDelivered() async {
         let daemon = FakeDaemon()
-        let store = FakeStore(onboardingAnswered: false, pending: false)
+        let store = FakeStore(onboardingAnswered: true, pending: false)
         store.values[.errorReporting] = true
         let coordinator = makeCoordinator(daemon, store)
 
@@ -101,41 +142,72 @@ struct TelemetryConsentCoordinatorTests {
         let coordinator = makeCoordinator(daemon, store)
 
         await coordinator.daemonConnected().value
-        #expect(daemon.values[.networkStatistics] == false)
-        #expect(daemon.values[.errorReporting] == false)
-        #expect(daemon.writes.count == 2)
+        #expect(daemon.values == [.networkStatistics: false, .errorReporting: false])
 
         daemon.values[.networkStatistics] = true // changed by another client
         await coordinator.daemonConnected().value
-        #expect(daemon.writes.count == 2)
+        #expect(daemon.writeCount == 2)
         #expect(store.values[.networkStatistics] == true)
     }
 
-    @Test func failedDeliveryAttemptsBothAndRetriesWhileConnected() async throws {
+    @Test func aFailedDeliveryIsRetriedWithoutBlockingTheOtherSetting() async throws {
         let daemon = FakeDaemon()
         daemon.failingWrites[.networkStatistics] = 1
         let store = FakeStore(onboardingAnswered: true, pending: true)
-        let coordinator = makeCoordinator(daemon, store)
+        let retryGate = Gate()
+        let coordinator = makeCoordinator(daemon, store, retryGate: retryGate)
 
         await coordinator.daemonConnected().value
         #expect(daemon.values[.errorReporting] == false)
         #expect(store.pending[.networkStatistics] == true)
 
-        try await Task.sleep(for: .milliseconds(200))
+        try await runScheduledRetry(coordinator, retryGate)
         #expect(daemon.values[.networkStatistics] == false)
         #expect(store.pending[.networkStatistics] == false)
     }
 
+    @Test func failuresWhileARetryWaitsDoNotUseUpTheBudget() async throws {
+        let daemon = FakeDaemon()
+        daemon.failingWrites[.networkStatistics] = 3
+        let store = FakeStore(onboardingAnswered: true, pending: true)
+        let retryGate = Gate()
+        let coordinator = makeCoordinator(daemon, store, retryDelays: [.zero, .zero], retryGate: retryGate)
+
+        await coordinator.daemonConnected().value
+        await coordinator.daemonConfigChanged().value
+        try await runScheduledRetry(coordinator, retryGate)
+        try await runScheduledRetry(coordinator, retryGate)
+
+        #expect(daemon.values[.networkStatistics] == false)
+    }
+
+    @Test func aReconnectRestoresTheRetryBudget() async throws {
+        let daemon = FakeDaemon()
+        daemon.failingWrites[.networkStatistics] = 3
+        let store = FakeStore(onboardingAnswered: true, pending: true)
+        let retryGate = Gate()
+        let coordinator = makeCoordinator(daemon, store, retryGate: retryGate)
+
+        await coordinator.daemonConnected().value
+        try await runScheduledRetry(coordinator, retryGate)
+        #expect(coordinator.scheduledRetry == nil)
+
+        await coordinator.daemonConnected().value
+        try await runScheduledRetry(coordinator, retryGate)
+        #expect(daemon.values[.networkStatistics] == false)
+    }
+
     @Test func userWritesReachTheDaemonInOrder() async {
         let daemon = FakeDaemon()
-        daemon.writeDelays[.errorReporting] = [.milliseconds(80), .zero]
+        let firstWrite = Gate()
+        daemon.writeGates[.errorReporting] = firstWrite
         let store = FakeStore(onboardingAnswered: true, pending: false)
         let coordinator = makeCoordinator(daemon, store)
 
-        // The first write is slow: without ordering the second would land first and the
-        // first would then overwrite it.
         let first = coordinator.userChanged(.errorReporting, to: true)
+        await firstWrite.reached()
         let second = coordinator.userChanged(.errorReporting, to: false)
+        firstWrite.release()
         await first.value
         await second.value
 
@@ -143,142 +215,51 @@ struct TelemetryConsentCoordinatorTests {
         #expect(store.values[.errorReporting] == false)
     }
 
-    @Test func aReadDoesNotOverwriteANewerUserChange() async {
+    @Test(arguments: ReadRace.allCases)
+    func aReadDoesNotOverwriteANewerChange(_ race: ReadRace) async {
         let daemon = FakeDaemon()
-        daemon.readDelay = .milliseconds(80)
+        let read = Gate()
+        daemon.readGates[.networkStatistics] = read
         let store = FakeStore(onboardingAnswered: true, pending: false)
+        store.values[.networkStatistics] = true
         let coordinator = makeCoordinator(daemon, store)
 
-        // Reads run statistics (0-80 ms) then error reporting (80-160 ms); change mid-read.
-        let connect = coordinator.daemonConnected()
-        try? await Task.sleep(for: .milliseconds(100))
-        let change = coordinator.userChanged(.errorReporting, to: false)
-        await connect.value
-        await change.value
+        let reading: Task<Void, Never>
+        switch race {
+        case .onConnect:
+            reading = coordinator.daemonConnected()
+        case .afterFailedWrite:
+            daemon.failingWrites[.networkStatistics] = 1
+            reading = coordinator.userChanged(.networkStatistics, to: false)
+        }
+        await read.reached()
+        let newer = coordinator.userChanged(.networkStatistics, to: false)
+        read.release()
+        await reading.value
+        await newer.value
 
-        #expect(store.values[.errorReporting] == false)
-        #expect(daemon.values[.errorReporting] == false)
+        #expect(daemon.values[.networkStatistics] == false)
+        #expect(store.values[.networkStatistics] == false)
     }
 
     @Test func aChangeToOneSettingDoesNotDiscardTheOthersRead() async {
         let daemon = FakeDaemon()
-        daemon.readDelay = .milliseconds(80)
+        let read = Gate()
+        daemon.readGates[.errorReporting] = read
         let store = FakeStore(onboardingAnswered: true, pending: false)
         let coordinator = makeCoordinator(daemon, store)
 
         let connect = coordinator.daemonConnected()
-        try? await Task.sleep(for: .milliseconds(100)) // error-reporting read in flight
+        await read.reached()
         let change = coordinator.userChanged(.networkStatistics, to: false)
+        read.release()
         await connect.value
         await change.value
 
         #expect(store.values[.errorReporting] == true)
     }
 
-    @Test func aFailedWriteShowsTheDaemonsValue() async {
-        let daemon = FakeDaemon()
-        daemon.failingWrites[.networkStatistics] = 1
-        let store = FakeStore(onboardingAnswered: true, pending: false)
-        store.values[.networkStatistics] = true
-        let coordinator = makeCoordinator(daemon, store)
-
-        await coordinator.userChanged(.networkStatistics, to: false).value
-
-        #expect(daemon.values[.networkStatistics] == true)
-        #expect(store.values[.networkStatistics] == true)
-    }
-
-    @Test func beforeOnboardingAConfigChangeSendsNothing() async {
-        let daemon = FakeDaemon()
-        let store = FakeStore(onboardingAnswered: false, pending: true)
-        let coordinator = makeCoordinator(daemon, store)
-
-        // The daemon emits this on any config save, e.g. a server change during onboarding.
-        await coordinator.daemonConfigChanged().value
-
-        #expect(daemon.writes.isEmpty)
-    }
-
-    @Test func aSuccessfulUserWriteEndsAPendingDelivery() async {
-        let daemon = FakeDaemon()
-        let store = FakeStore(onboardingAnswered: true, pending: true)
-        let coordinator = makeCoordinator(daemon, store)
-
-        await coordinator.userChanged(.networkStatistics, to: false).value
-        #expect(store.pending[.networkStatistics] == false)
-
-        daemon.values[.networkStatistics] = true // changed by another client
-        await coordinator.daemonConfigChanged().value
-        #expect(store.values[.networkStatistics] == true)
-    }
-
-    @Test func aChoiceThatFailsWhileDisconnectedIsSentOnReconnect() async {
-        let daemon = FakeDaemon()
-        daemon.isConnected = false
-        daemon.failingWrites[.networkStatistics] = 1
-        let store = FakeStore(onboardingAnswered: true, pending: false)
-        store.values[.networkStatistics] = true
-        let coordinator = makeCoordinator(daemon, store)
-
-        await coordinator.userChanged(.networkStatistics, to: false).value
-        #expect(store.pending[.networkStatistics] == true)
-
-        daemon.isConnected = true
-        await coordinator.daemonConnected().value
-        #expect(daemon.values[.networkStatistics] == false)
-        #expect(store.values[.networkStatistics] == false)
-    }
-
-    @Test func aReconnectRestoresTheRetryBudget() async throws {
-        let daemon = FakeDaemon()
-        daemon.failingWrites[.networkStatistics] = 3
-        let store = FakeStore(onboardingAnswered: true, pending: true)
-        let coordinator = makeCoordinator(daemon, store) // one retry per connect
-
-        await coordinator.daemonConnected().value // fails, retries once
-        try await Task.sleep(for: .milliseconds(150)) // the retry fails too; gives up
-        #expect(store.pending[.networkStatistics] == true)
-
-        await coordinator.daemonConnected().value // fails again, retries once more
-        try await Task.sleep(for: .milliseconds(150))
-        #expect(daemon.values[.networkStatistics] == false)
-        #expect(store.pending[.networkStatistics] == false)
-    }
-
-    // A daemon drop can fail the write and the recovery read before `isConnected` turns false.
-    // (The other ordering is `aChoiceThatFailsWhileDisconnectedIsSentOnReconnect`.)
-    @Test(arguments: TelemetryConsentSetting.allCases)
-    func aChoiceSurvivesAFailedWriteAndRecoveryRead(setting: TelemetryConsentSetting) async throws {
-        let daemon = FakeDaemon()
-        daemon.failingWrites[setting] = 1
-        daemon.failingReads[setting] = 1
-        let store = FakeStore(onboardingAnswered: true, pending: false)
-        store.values[setting] = true
-        let coordinator = makeCoordinator(daemon, store)
-
-        await coordinator.userChanged(setting, to: false).value
-        #expect(store.values[setting] == false)
-        #expect(store.pending[setting] == true)
-
-        try await Task.sleep(for: .milliseconds(150)) // the retry delivers it
-        #expect(daemon.values[setting] == false)
-        #expect(store.pending[setting] == false)
-    }
-
-    @Test func aFailedWriteOfAnUndeliveredChoiceIsRetried() async throws {
-        let daemon = FakeDaemon()
-        daemon.failingWrites[.networkStatistics] = 1
-        let store = FakeStore(onboardingAnswered: true, pending: true)
-        let coordinator = makeCoordinator(daemon, store)
-
-        await coordinator.userChanged(.networkStatistics, to: false).value
-        try await Task.sleep(for: .milliseconds(150))
-
-        #expect(daemon.values[.networkStatistics] == false)
-        #expect(store.pending[.networkStatistics] == false)
-    }
-
-    @Test func twoFailedWritesInARowShowTheDaemonsValue() async {
+    @Test func failedWritesEndOnTheDaemonsValue() async {
         let daemon = FakeDaemon()
         daemon.failingWrites[.errorReporting] = 2
         let store = FakeStore(onboardingAnswered: true, pending: false)
@@ -295,35 +276,56 @@ struct TelemetryConsentCoordinatorTests {
         #expect(store.pending[.errorReporting] == false)
     }
 
-    @Test func aRecoveryReadDoesNotOverwriteANewerChange() async {
+    @Test(arguments: DaemonDrop.allCases, TelemetryConsentSetting.allCases)
+    func aChoiceSurvivesADaemonDrop(_ drop: DaemonDrop, _ setting: TelemetryConsentSetting) async {
         let daemon = FakeDaemon()
-        daemon.failingWrites[.networkStatistics] = 1
-        daemon.readDelay = .milliseconds(80)
+        daemon.failingWrites[setting] = 1
+        switch drop {
+        case .beforeTheWrite:
+            daemon.isConnected = false
+        case .duringTheWrite:
+            daemon.failingReads[setting] = 1 // still reported as connected
+        }
         let store = FakeStore(onboardingAnswered: true, pending: false)
-        store.values[.networkStatistics] = true
-        let coordinator = makeCoordinator(daemon, store)
+        store.values[setting] = true
+        let retryGate = Gate()
+        let coordinator = makeCoordinator(daemon, store, retryGate: retryGate)
 
-        let failed = coordinator.userChanged(.networkStatistics, to: false)
-        try? await Task.sleep(for: .milliseconds(20)) // the recovery read is in flight
-        let newer = coordinator.userChanged(.networkStatistics, to: false)
-        await failed.value
-        await newer.value
+        await coordinator.userChanged(setting, to: false).value
+        #expect(store.pending[setting] == true)
 
-        #expect(daemon.values[.networkStatistics] == false)
-        #expect(store.values[.networkStatistics] == false)
+        daemon.isConnected = true
+        await coordinator.daemonConnected().value
+        #expect(daemon.values[setting] == false)
+        #expect(store.values[setting] == false)
+        retryGate.release()
     }
 
-    @Test func aBurstOfFailuresDoesNotUseUpTheRetries() async throws {
+    @Test func aFailedWriteOfAnUndeliveredChoiceIsRetried() async throws {
         let daemon = FakeDaemon()
-        daemon.failingWrites[.networkStatistics] = 3
+        daemon.failingWrites[.networkStatistics] = 1
         let store = FakeStore(onboardingAnswered: true, pending: true)
-        let coordinator = makeCoordinator(daemon, store, retryDelays: [.milliseconds(40), .milliseconds(40)])
+        let retryGate = Gate()
+        let coordinator = makeCoordinator(daemon, store, retryGate: retryGate)
 
-        await coordinator.daemonConnected().value // failure 1 schedules a retry
-        await coordinator.daemonConfigChanged().value // failure 2 while that retry waits
-        try await Task.sleep(for: .milliseconds(250)) // retry: failure 3, then the last retry succeeds
+        await coordinator.userChanged(.networkStatistics, to: false).value
+        try await runScheduledRetry(coordinator, retryGate)
 
         #expect(daemon.values[.networkStatistics] == false)
         #expect(store.pending[.networkStatistics] == false)
     }
+
+    @Test func aSuccessfulUserWriteEndsAPendingDelivery() async {
+        let daemon = FakeDaemon()
+        let store = FakeStore(onboardingAnswered: true, pending: true)
+        let coordinator = makeCoordinator(daemon, store)
+
+        await coordinator.userChanged(.networkStatistics, to: false).value
+        #expect(store.pending[.networkStatistics] == false)
+
+        daemon.values[.networkStatistics] = true // changed by another client
+        await coordinator.daemonConfigChanged().value
+        #expect(store.values[.networkStatistics] == true)
+    }
 }
+#endif

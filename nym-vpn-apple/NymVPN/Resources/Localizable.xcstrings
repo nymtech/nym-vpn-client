@@ -28372,17 +28372,6 @@
         }
       }
     },
-    "settings.privacyAndData.errorReportingRestartNote" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The VPN service's error reports start after you restart your Mac."
-          }
-        }
-      }
-    },
     "settings.profiles.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32816,6 +32805,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Handled by Sentry, a third-party service. Nym never sees your IP."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.monitoring.restartNote" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The VPN service's error reports start after you restart your Mac."
           }
         }
       }
