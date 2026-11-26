@@ -24,16 +24,21 @@ public struct PrivacyAndDataView: View {
             Spacer()
                 .frame(height: 24)
             VStack(spacing: 0) {
-                logsSection()
-                Spacer()
-                    .frame(height: 24)
-                diagnosticToolSection()
-                Spacer()
-                    .frame(height: 24)
                 statisticsSection()
                 Spacer()
                     .frame(height: 24)
                 errorReportingSection()
+                Spacer()
+                    .frame(height: 24)
+#if os(iOS)
+                diagnosticsSection()
+                Spacer()
+                    .frame(height: 24)
+#endif
+                logsSection()
+                Spacer()
+                    .frame(height: 24)
+                diagnosticToolSection()
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
             .padding(.horizontal, 16)
@@ -67,13 +72,7 @@ private extension PrivacyAndDataView {
         )
     }
 
-    @ViewBuilder
     func logsSection() -> some View {
-#if os(iOS)
-        diagnosticsSection()
-        Spacer()
-            .frame(height: 24)
-#endif
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .arrow,
