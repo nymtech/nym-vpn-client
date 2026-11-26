@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- A failed diagnostic run no longer leaves the page empty; it now shows "Failed to run diagnostics. Please try again." (https://github.com/nymtech/nym-vpn-client/pull/7243)
+- A failed diagnostic run no longer fails silently; it now shows "Failed to run diagnostics. Please try again." (https://github.com/nymtech/nym-vpn-client/pull/7243)
 
 ## [2026.16.1] - 2026-11-19
 

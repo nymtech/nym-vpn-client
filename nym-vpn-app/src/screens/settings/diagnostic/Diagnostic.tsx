@@ -15,6 +15,9 @@ function Diagnostic() {
   const diagnosticFailed = !diagnosticRunning && !diagnosticResult;
   const [shareLoading, setShareLoading] = useState(false);
   const startedRef = useRef(false);
+  // Re-run unmounts while a run is going, so focus goes back to it when a re-run ends
+  const rerunRef = useRef<HTMLButtonElement>(null);
+  const refocusRerunRef = useRef(false);
 
   const handleRunDiagnostic = useCallback(async () => {
     setDiagnosticRunning(true);
@@ -42,6 +45,17 @@ function Diagnostic() {
     startedRef.current = true;
     handleRunDiagnostic();
   }, [handleRunDiagnostic]);
+
+  useEffect(() => {
+    if (diagnosticRunning || !refocusRerunRef.current) return;
+    refocusRerunRef.current = false;
+    rerunRef.current?.focus();
+  }, [diagnosticRunning]);
+
+  const handleRerun = () => {
+    refocusRerunRef.current = true;
+    handleRunDiagnostic();
+  };
 
   const handleShareReport = async () => {
     if (!diagnosticResult) return;
@@ -71,7 +85,9 @@ function Diagnostic() {
           </div>
         )}
         {!diagnosticRunning && (
-          <Button onClick={handleRunDiagnostic}>{t('diagnostic.rerun')}</Button>
+          <Button ref={rerunRef} onClick={handleRerun}>
+            {t('diagnostic.rerun')}
+          </Button>
         )}
         {diagnosticFailed && (
           <p className="text-text-secondary text-sm" role="alert">
