@@ -14,7 +14,7 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
     BridgeTransport, DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags,
     FrontingMode, Gateway, GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig,
-    NymVpnSubscription, ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways,
+    ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways,
     RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, StoredAccountMode,
     SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
@@ -337,7 +337,7 @@ impl NymVpnServiceCommandSender {
         Ok(self
             .send_and_wait(
                 VpnServiceCommand::CreateAccount,
-                ClientRequest::new(None, ()),
+                ClientRequest::new(None, None),
             )
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
@@ -467,9 +467,8 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
-    /// Redeems a free pass code on the signed-in account and returns the subscription it grants.
-    /// The account state is refreshed afterwards.
-    pub async fn apply_freepass(&self, code: String) -> Result<NymVpnSubscription> {
+    /// Redeems a free pass code on the signed-in account, then refreshes the account state.
+    pub async fn apply_freepass(&self, code: String) -> Result<()> {
         Ok(self
             .send_and_wait(VpnServiceCommand::ApplyFreepass, code)
             .await?

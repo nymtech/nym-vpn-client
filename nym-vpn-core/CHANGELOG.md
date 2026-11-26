@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [macOS] Add `CreateAccount` (with an optional free pass) and `RedeemFreepass` daemon RPCs, and expose pairing in the uniffi `RpcClient` (https://github.com/nymtech/nym-vpn-client/pull/7178)
+
+### Changed
+
+- `apply_freepass` no longer returns the subscription, and registers an account the VPN API doesn't know yet (https://github.com/nymtech/nym-vpn-client/pull/7178)
+- Account commands return `RateLimited`, `FreepassInvalid`, `FreepassAlreadyRedeemed` and `RecurringSubscriptionActive` errors instead of raw vpn-api errors (https://github.com/nymtech/nym-vpn-client/pull/7197)
+
+### Fixed
+
 - Add setting to auto connect the tunnel as soon as the VPN service starts but only if account is set. Auto-connects once account is set at runtime too. See `nym-vpnc auto-connect -h` for more info (https://github.com/nymtech/nym-vpn-client/pull/7199)
 
 ### Changed

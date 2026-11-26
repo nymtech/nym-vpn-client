@@ -35,6 +35,8 @@ let kRpcReconnectDelay = Duration.seconds(5)
     @Published public var networkName: String?
     @Published public var daemonVersion = "unknown"
 
+    var pairingSubscribers: [UUID: AsyncStream<PairingEvent>.Continuation] = [:]
+
     public var userAgent: UserAgent {
         UserAgent(
             application: AppVersionProvider.app,
@@ -100,8 +102,8 @@ private extension GRPCManager {
             break
         case .conflictDetected:
             break
-        case .pairing:
-            break
+        case let .pairing(event):
+            pairingSubscribers.values.forEach { $0.yield(event) }
         }
     }
 

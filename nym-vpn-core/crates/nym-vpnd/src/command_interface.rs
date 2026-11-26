@@ -1024,6 +1024,35 @@ impl NymVpnService for CommandInterface {
         account_command_response(result)
     }
 
+    async fn create_account(
+        &self,
+        request: tonic::Request<proto::CreateAccountRequest>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let freepass = request.get_ref().freepass.clone();
+
+        let result = self
+            .send_and_wait(
+                VpnServiceCommand::CreateAccount,
+                client_request(&request, freepass),
+            )
+            .await?;
+
+        account_command_response(result)
+    }
+
+    async fn redeem_freepass(
+        &self,
+        request: tonic::Request<String>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let code = request.into_inner();
+
+        let result = self
+            .send_and_wait(VpnServiceCommand::ApplyFreepass, code)
+            .await?;
+
+        account_command_response(result)
+    }
+
     async fn start_pairing(
         &self,
         request: tonic::Request<()>,

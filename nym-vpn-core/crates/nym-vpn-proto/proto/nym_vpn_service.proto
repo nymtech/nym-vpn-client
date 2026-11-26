@@ -804,6 +804,10 @@ message AccountCommandError {
     bool pairing_session_id_mismatch = 21;
     bool no_pairing_shared_secret = 22;
     string pairing_deriving_shared_secret = 23;
+    bool rate_limited = 24;
+    bool freepass_invalid = 25;
+    bool freepass_already_redeemed = 26;
+    bool recurring_subscription_active = 27;
   }
 }
 
@@ -914,6 +918,11 @@ message RefreshAccountStateRequest {
 
 message AccountCommandResponse {
   optional AccountCommandError error = 1;
+}
+
+message CreateAccountRequest {
+  // Redeemed first; the account is stored only if that succeeds
+  optional string freepass = 1;
 }
 
 message BalanceList {
@@ -1465,6 +1474,12 @@ service NymVpnService {
 
   // Login using a deeplink callback URL
   rpc DeeplinkStoreAccount(google.protobuf.StringValue) returns (AccountCommandResponse) {}
+
+  // Create and store a new account with a generated recovery phrase
+  rpc CreateAccount(CreateAccountRequest) returns (AccountCommandResponse) {}
+
+  // Redeem a free pass for the stored account
+  rpc RedeemFreepass(google.protobuf.StringValue) returns (AccountCommandResponse) {}
 
   // Pair a device with this account using a QR encoded URL
   rpc StartPairing(google.protobuf.Empty) returns (QrUrlResponse) {}
