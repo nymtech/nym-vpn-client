@@ -278,7 +278,7 @@
     "title": "Data, privacy & logs",
     "monitoring-restart-note": "Changes will apply after app and daemon restart.",
     "troubleshooting": {
-      "title": "Your troubleshooting detail",
+      "title": "Your debug logs",
       "desc": "Helps us fix connection problems"
     }
   },
