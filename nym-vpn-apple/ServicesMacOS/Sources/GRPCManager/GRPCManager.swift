@@ -37,6 +37,8 @@ let kRpcReconnectDelay = Duration.seconds(5)
     /// Fires each time the daemon reports that its config changed; read the values you need.
     public let configChanged = PassthroughSubject<Void, Never>()
 
+    var pairingSubscribers: [UUID: AsyncStream<PairingEvent>.Continuation] = [:]
+
     public var userAgent: UserAgent {
         UserAgent(
             application: AppVersionProvider.app,
@@ -102,8 +104,8 @@ private extension GRPCManager {
             break
         case .conflictDetected:
             break
-        case .pairing:
-            break
+        case let .pairing(event):
+            pairingSubscribers.values.forEach { $0.yield(event) }
         }
     }
 

@@ -195,7 +195,8 @@ location = "BE"
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "auto_connect": false
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Country {
@@ -278,7 +279,8 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "auto_connect": false
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
@@ -440,7 +442,8 @@ exit_point = "Random"
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "auto_connect": false
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Random;
@@ -467,6 +470,7 @@ async fn test_service_config_migrate_from_v1() {
 
     let json_latest_content = r#"{
   "version": "v16",
+  "auto_connect": false,
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -560,6 +564,7 @@ async fn test_service_config_migrate_from_v2() {
 
     let json_latest_content = r#"{
   "version": "v16",
+  "auto_connect": false,
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -664,6 +669,7 @@ async fn test_service_config_migrate_from_v3() {
 
     let json_latest_content = r#"{
   "version": "v16",
+  "auto_connect": false,
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -791,6 +797,7 @@ async fn test_service_config_migrate_from_v4() {
 
     let json_latest_content = r#"{
   "version": "v16",
+  "auto_connect": false,
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -923,6 +930,7 @@ async fn test_service_config_migrate_from_v5() {
 
     let json_latest_content = r#"{
   "version": "v16",
+  "auto_connect": false,
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1045,6 +1053,7 @@ async fn test_service_config_migrate_from_v6() {
 
     let json_latest_content = r#"{
   "version": "v16",
+  "auto_connect": false,
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1293,6 +1302,7 @@ async fn test_service_config_serialize_full() {
         residential_exit: true,
         fronting_mode: nym_vpn_lib_types::FrontingMode::OnRetry,
         transport_preference: Some(nym_vpn_lib_types::BridgeTransport::Tls),
+        auto_connect: true,
         custom_dns: nym_vpn_lib_types::CustomDnsSettings {
             enabled: true,
             dns_servers: vec![
@@ -1408,6 +1418,7 @@ async fn test_service_config_migrate_from_v7() {
 
     let json_latest_content = r#"{
   "version": "v16",
+  "auto_connect": false,
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1517,6 +1528,7 @@ async fn test_service_config_migrate_from_v8() {
 
     let json_latest_content = r#"{
   "version": "v16",
+  "auto_connect": false,
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1639,6 +1651,7 @@ async fn test_service_config_migrate_from_v9() {
 
     let json_latest_content = r#"{
   "version": "v16",
+  "auto_connect": false,
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1766,6 +1779,7 @@ async fn test_service_config_migrate_from_v13() {
 
     let json_latest_content = r#"{
   "version": "v16",
+  "auto_connect": false,
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1893,6 +1907,7 @@ async fn test_service_config_migrate_from_v14() {
     let json_latest_content = format!(
         r#"{{
   "version": "v16",
+  "auto_connect": false,
   "entry_point": "random",
   "exit_point": "random",
   "custom_dns": {{

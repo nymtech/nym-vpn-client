@@ -106,9 +106,9 @@ class LogcatStreamReader(private val pid: Int, private val fileManager: LogFileM
 					if (line.isBlank()) return@forEach
 					val parsed = LogMessage.tryFromThreadtime(line)
 					if (parsed != null) {
-						if (pending != null && shouldMerge(pending!!, parsed)) {
-							pending = pending!!.copy(
-								message = pending!!.message + "\n" + parsed.message.trimEnd(),
+						if (pending != null && shouldMerge(pending, parsed)) {
+							pending = pending.copy(
+								message = pending.message + "\n" + parsed.message.trimEnd(),
 							)
 						} else {
 							flushPending(pending) { emit(it) }
@@ -118,7 +118,7 @@ class LogcatStreamReader(private val pid: Int, private val fileManager: LogFileM
 					}
 
 					pending = if (pending != null) {
-						appendContinuation(pending!!, line)
+						appendContinuation(pending, line)
 					} else {
 						LogMessage.system(line)
 					}

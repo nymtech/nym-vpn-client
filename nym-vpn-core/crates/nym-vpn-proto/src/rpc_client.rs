@@ -197,6 +197,15 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_auto_connect(&mut self, auto_connect: bool) -> Result<()> {
+        self.0
+            .set_auto_connect(auto_connect)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_enable_custom_dns(&mut self, enable: bool) -> Result<()> {
         self.0
             .set_enable_custom_dns(enable)
@@ -728,6 +737,31 @@ impl RpcClient {
         let response = self
             .0
             .deeplink_store_account(deeplink_callback_url)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn create_account(
+        &mut self,
+        freepass: Option<String>,
+    ) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .create_account(proto::CreateAccountRequest { freepass })
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn redeem_freepass(&mut self, code: String) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .redeem_freepass(code)
             .await
             .map_err(Error::Rpc)?
             .into_inner();

@@ -22,7 +22,11 @@ extension GRPCManager {
 
     public func isAccountStored() async throws -> Bool {
         try await Task.detached { [weak self] in
-            try await self?.rpcClient?.isAccountStored() ?? false
+            // Throws without the daemon, so it's never read as no account.
+            guard let rpcClient = await self?.rpcClient else {
+                throw AccountDaemonRefreshError.clientUnavailable
+            }
+            return try await rpcClient.isAccountStored()
         }.value
     }
 
@@ -87,6 +91,24 @@ extension GRPCManager {
         try await authorized { [weak self] in
             try await self?.rpcClient?.deeplinkStoreAccount(deeplinkCallbackUrl: callbackURLString)
         }
+    }
+
+    public func createAccount(freepass: String? = nil) async throws {
+        try await authorized { [weak self] in
+            guard let rpcClient = await self?.rpcClient else {
+                throw AccountDaemonRefreshError.clientUnavailable
+            }
+            try await rpcClient.createAccount(freepass: freepass)
+        }
+    }
+
+    public func redeemFreepass(code: String) async throws {
+        try await Task.detached { [weak self] in
+            guard let rpcClient = await self?.rpcClient else {
+                throw AccountDaemonRefreshError.clientUnavailable
+            }
+            try await rpcClient.redeemFreepass(code: code)
+        }.value
     }
 
     public func handleSubscriptionPayment() async throws {

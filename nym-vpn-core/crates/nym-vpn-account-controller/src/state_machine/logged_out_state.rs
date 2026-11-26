@@ -56,13 +56,18 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
             Some(command) = command_rx.recv() => {
                 // Intentionally no command grouping for clarity
                 match command {
-                    AccountCommand::CreateAccount(return_sender) => {
-                        return_sender.send(handler::handle_create_account(shared_state).await);
-                        shared_state.qr_pairing_handler.cancel_get_pairing_secret();
-                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
+                    AccountCommand::CreateAccount(return_sender, freepass) => {
+                        return if let Err(e) = handler::handle_create_account(shared_state, freepass).await {
+                            return_sender.send(Err(e));
+                            NextAccountControllerState::SameState(self)
+                        } else {
+                            return_sender.send(Ok(()));
+                            shared_state.qr_pairing_handler.cancel_get_pairing_secret();
+                            NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await)
+                        }
                     }
                     AccountCommand::StoreAccount(return_sender, storable_account) => {
-                        return if let Err(e) = handler::handle_store_account(shared_state, storable_account).await{
+                        return if let Err(e) = handler::handle_store_account(shared_state, storable_account).await {
                             return_sender.send(Err(e));
                             NextAccountControllerState::SameState(self)
                         } else {

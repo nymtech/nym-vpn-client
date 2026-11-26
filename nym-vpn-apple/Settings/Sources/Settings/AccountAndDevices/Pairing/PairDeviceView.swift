@@ -1,11 +1,10 @@
-#if os(iOS)
 import SwiftUI
 import CredentialsManager
 import ImpactGenerator
 import Theme
 import UIComponents
 
-/// Callers verify device auth before presenting it.
+/// The presenter starts the session and verifies device auth on iOS; dismissal cancels it.
 struct PairDeviceView: View {
     @ObservedObject var pairingManager: PairingManager
     let onClose: () -> Void
@@ -34,13 +33,12 @@ struct PairDeviceView: View {
         }
         // An accidental swipe would end the session the other device is joining.
         .interactiveDismissDisabled(isSessionLive)
+#if os(iOS)
         .hidesWhenCaptured()
-        .task {
-            await pairingManager.startShowingCode()
-        }
-        .onDisappear {
-            Task { await pairingManager.cancel() }
-        }
+#elseif os(macOS)
+        // A fixed size, so the sheet doesn't jump between states.
+        .frame(width: 420, height: 560)
+#endif
     }
 }
 
@@ -178,4 +176,3 @@ private extension Duration {
         return String(format: "%d:%02d", seconds / 60, seconds % 60)
     }
 }
-#endif

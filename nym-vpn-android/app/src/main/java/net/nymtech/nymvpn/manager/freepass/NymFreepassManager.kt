@@ -40,12 +40,8 @@ class NymFreepassManager @Inject constructor(private val connectionManager: VpnS
 		null
 	}
 
-	// A local account is registered on the API only on first connect, so redeem registers it with the pass.
-	private suspend fun applyToStoredAccount(code: String): FreepassResult {
-		val result = connectionManager.withApiResult(FreepassError, FreepassResult::Failed) { it.applyFreepass(code) }
-		if (result != FreepassResult.Failed(FreepassError.ACCOUNT_NOT_REGISTERED)) return result
-		return connectionManager.withApiResult(FreepassError, FreepassResult::Failed) { it.redeemFreepass(code) }
-	}
+	// Core registers an account the API doesn't know yet.
+	private suspend fun applyToStoredAccount(code: String): FreepassResult = connectionManager.withApiResult(FreepassError, FreepassResult::Failed) { it.applyFreepass(code) }
 
 	private suspend fun createAccount(code: String): FreepassResult {
 		val created = try {

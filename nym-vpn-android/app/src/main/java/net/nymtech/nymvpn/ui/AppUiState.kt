@@ -168,7 +168,6 @@ data class AppUiState(
 		is EntryPoint.Region -> entryPointGateway?.serverLocationOnRegionSelection()?.let(StringValue::DynamicString)
 		is EntryPoint.Auto -> autoLocation(entry.excludeUserCountry)
 		is EntryPoint.Random -> StringValue.StringResource(R.string.node_location_random)
-		else -> null
 	}
 
 	val exitPointLocation: StringValue? = when (val exit = effectiveExitPoint) {
