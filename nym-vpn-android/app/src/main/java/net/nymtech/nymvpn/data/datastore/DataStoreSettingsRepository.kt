@@ -43,7 +43,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val mixnetDisablePoisson = booleanPreferencesKey("MIXNET_DISABLE_POISSON")
 
 	// Saved on its own so the cover switch no longer copies the continuous traffic switch.
-	// Absent for configs saved before this key existed: fall back to the old shared value.
+	// Absent for configs saved before this key existed: fall back to the old shared value,
+	// so nothing changes on upgrade.
 	private val mixnetDisableBackgroundCover = booleanPreferencesKey("MIXNET_DISABLE_BACKGROUND_COVER")
 
 	override suspend fun getTheme(): Theme = dataStoreManager.getFromStore(theme)?.let {
@@ -209,11 +210,14 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setMixnetTrafficConfig(config: MixnetTrafficConfig) {
-		config.poissonParameterForLoopCoverStream?.let { dataStoreManager.saveToDataStore(mixnetPoissonRate, it.toInt()) }
-		config.averagePacketDelay?.let { dataStoreManager.saveToDataStore(mixnetAvgPacketDelay, it.toInt()) }
-		config.messageSendingAverageDelay?.let { dataStoreManager.saveToDataStore(mixnetMsgSendingDelay, it.toInt()) }
-		dataStoreManager.saveToDataStore(mixnetDisablePoisson, config.disablePoissonRate)
-		dataStoreManager.saveToDataStore(mixnetDisableBackgroundCover, config.disableBackgroundCoverTraffic)
+		// One transaction: the cover key falls back to the continuous flag, so both must land together.
+		dataStoreManager.edit { prefs ->
+			config.poissonParameterForLoopCoverStream?.let { prefs[mixnetPoissonRate] = it.toInt() }
+			config.averagePacketDelay?.let { prefs[mixnetAvgPacketDelay] = it.toInt() }
+			config.messageSendingAverageDelay?.let { prefs[mixnetMsgSendingDelay] = it.toInt() }
+			prefs[mixnetDisablePoisson] = config.disablePoissonRate
+			prefs[mixnetDisableBackgroundCover] = config.disableBackgroundCoverTraffic
+		}
 	}
 
 	override val settingsFlow: Flow<Settings> =

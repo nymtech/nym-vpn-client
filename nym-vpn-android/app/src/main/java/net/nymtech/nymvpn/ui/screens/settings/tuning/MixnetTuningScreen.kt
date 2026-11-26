@@ -65,7 +65,7 @@ fun MixnetTuningScreen(appUiState: AppUiState, viewModel: MixnetTuningViewModel 
 		}
 	}
 
-	// "1 Mbps", not "1.0 Mbps", to match the slider labels and the other apps
+	// Whole numbers drop the ".0", and the separator is "." in every locale, as on Apple and desktop
 	val mbps = uiState.calculatedSpeedMbps
 	val mbpsText = if (mbps % 1f == 0f) mbps.toInt().toString() else String.format(Locale.US, "%.1f", mbps)
 	val speedStr = if (uiState.continuousTrafficEnabled) {
@@ -76,7 +76,7 @@ fun MixnetTuningScreen(appUiState: AppUiState, viewModel: MixnetTuningViewModel 
 
 	// Rounding ((val + 9) / 10) * 10
 	val roundedLatency = ((uiState.calculatedLatencyMs + 9) / 10).toInt() * 10
-	val latencyStr = stringResource(R.string.mixnet_tuning_latency_at_least, roundedLatency)
+	val latencyStr = stringResource(R.string.mixnet_tuning_latency_at_least, roundedLatency.toString())
 
 	MixnetTuningScreen(
 		speed = speedStr,

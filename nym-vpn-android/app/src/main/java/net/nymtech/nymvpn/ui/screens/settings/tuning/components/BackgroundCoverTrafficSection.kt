@@ -83,18 +83,23 @@ fun BackgroundCoverTrafficSection(enabled: Boolean, onEnable: (enabled: Boolean)
 			}
 
 			DiscreteRateLabels(
-				labels = listOf(
-					stringResource(R.string.mixnet_tuning_traffic_off_low),
-					stringResource(R.string.mixnet_tuning_traffic_off_balanced),
-					stringResource(R.string.mixnet_tuning_traffic_off_medium),
-					stringResource(R.string.mixnet_tuning_traffic_off_high),
-				),
+				labels = RATES.map { rateLabel(it) },
 				selectedIndex = RATES.indexOf(rate),
 				modifier = Modifier.alpha(sliderAlpha(enabled)),
 			)
 		}
 	}
 }
+
+@Composable
+private fun rateLabel(rate: BackgroundCoverTrafficRate): String = stringResource(
+	when (rate) {
+		BackgroundCoverTrafficRate.MS200 -> R.string.mixnet_tuning_traffic_off_low
+		BackgroundCoverTrafficRate.MS40 -> R.string.mixnet_tuning_traffic_off_balanced
+		BackgroundCoverTrafficRate.MS20 -> R.string.mixnet_tuning_traffic_off_medium
+		BackgroundCoverTrafficRate.MS10 -> R.string.mixnet_tuning_traffic_off_high
+	},
+)
 
 @Composable
 @Preview

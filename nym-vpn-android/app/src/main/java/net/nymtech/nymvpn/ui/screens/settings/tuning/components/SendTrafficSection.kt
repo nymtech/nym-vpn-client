@@ -86,17 +86,22 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 			}
 
 			DiscreteRateLabels(
-				labels = listOf(
-					stringResource(R.string.mixnet_tuning_traffic_on_low),
-					stringResource(R.string.mixnet_tuning_traffic_on_balanced),
-					stringResource(R.string.mixnet_tuning_traffic_on_high),
-				),
+				labels = RATES.map { rateLabel(it) },
 				selectedIndex = RATES.indexOf(trafficRate),
 				modifier = Modifier.alpha(sliderAlpha(trafficEnabled)),
 			)
 		}
 	}
 }
+
+@Composable
+private fun rateLabel(rate: ContinuousTrafficSendingRate): String = stringResource(
+	when (rate) {
+		ContinuousTrafficSendingRate.MS30 -> R.string.mixnet_tuning_traffic_on_low
+		ContinuousTrafficSendingRate.MS20 -> R.string.mixnet_tuning_traffic_on_balanced
+		ContinuousTrafficSendingRate.MS10 -> R.string.mixnet_tuning_traffic_on_high
+	},
+)
 
 @Composable
 @Preview
