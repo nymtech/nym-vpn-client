@@ -18766,6 +18766,17 @@
         }
       }
     },
+    "mixnetTuning.upToInternetSpeed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up to internet speed"
+          }
+        }
+      }
+    },
     "mixnetTunning.expectedPerformance.title" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -16,6 +16,14 @@ struct MixnetTuningView: View {
     private var coverTrafficOptions: [BackgroundCoverTrafficRate] {
         mixnetDefaults.allBackgroundTraffic()
     }
+    private var defaultConfig: MixnetTuningConfig {
+        MixnetTuningConfig(
+            backgroundTraffic: mixnetDefaults.defaultBackgroundTraffic(),
+            continuousTraffic: mixnetDefaults.defaultContinuousTraffic(),
+            dissablePoissonRate: mixnetDefaults.defaultDisablePoissionRate(),
+            averagePacketDelay: Int(mixnetDefaults.defaultMixingDelay().defaultValue)
+        )
+    }
     private var continuousTrafficOptions: [ContinuousTrafficSendingRate] {
         // Slowest rate (0.7 Mbps) on the left, fastest (2 Mbps) on the right: a higher rate is a
         // denser cover stream, so "+ Anonymity" sits on the right as on the other tuning sliders.
@@ -34,6 +42,7 @@ struct MixnetTuningView: View {
     @State private var isSendTrafficContinuouslyOn = false
     @State private var isBackgroundCoverOn = true
     @State private var isSaveButtonDisabled = false
+    @State private var isRestoreButtonDisabled = true
 
     @State private var config: MixnetTuningConfig?
 
@@ -55,20 +64,20 @@ struct MixnetTuningView: View {
             isBackgroundCoverOn = !oldConfig.disableBackgroundCoverTraffic
 
             updateLatencyRTT()
-            updateIsSaveButtonEnabled()
+            updateButtonStates()
         }
 
         .onChange(of: coverTrafficIndex) { _, newValue in
             config?.backgroundTraffic = coverTrafficOptions[Int(newValue)]
-            updateIsSaveButtonEnabled()
+            updateButtonStates()
         }
         .onChange(of: continuousTrafficIndex) { _, newValue in
             config?.continuousTraffic = continuousTrafficOptions[Int(newValue)]
-            updateIsSaveButtonEnabled()
+            updateButtonStates()
         }
         .onChange(of: mixingDelayIndex) { _, newValue in
             config?.averagePacketDelay = Int(newValue)
-            updateIsSaveButtonEnabled()
+            updateButtonStates()
         }
     }
 
@@ -125,7 +134,9 @@ private extension MixnetTuningView {
                 .frame(height: 12)
             performanceCell(
                 title: "mixnetTuning.packetRate".localizedString,
-                subtitle: "\("mixnetTuning.upTo".localizedString) \(continuousTrafficMbps.uiThroughput) Mbps"
+                subtitle: isSendTrafficContinuouslyOn
+                    ? "\("mixnetTuning.upTo".localizedString) \(continuousTrafficMbps.uiThroughput) Mbps"
+                    : "mixnetTuning.upToInternetSpeed".localizedString
             )
             separatorLine()
             performanceCell(
@@ -176,7 +187,7 @@ private extension MixnetTuningView {
         )
         .onChange(of: isSendTrafficContinuouslyOn) {
             config?.disablePoissonRate = !isSendTrafficContinuouslyOn
-            updateIsSaveButtonEnabled()
+            updateButtonStates()
         }
     }
 
@@ -202,7 +213,7 @@ private extension MixnetTuningView {
         )
         .onChange(of: isBackgroundCoverOn) {
             config?.disableBackgroundCoverTraffic = !isBackgroundCoverOn
-            updateIsSaveButtonEnabled()
+            updateButtonStates()
         }
     }
 
@@ -361,12 +372,12 @@ private extension MixnetTuningView {
                 .multilineTextAlignment(.center)
             Spacer()
             if mixingDelayIndex != Double(defaultDelay.defaultValue) {
-                Text("\("mixnetTuning.current".localizedString)\n \(Int(mixingDelayIndex)) ms")
-                    .nymText(color: Color.Nym.info, style: .Body.Medium.regular)
+                Text("\("mixnetTuning.current".localizedString)\n\(Int(mixingDelayIndex)) ms")
+                    .nymText(color: Color.Nym.primary, style: .Body.Medium.regular)
                     .multilineTextAlignment(.center)
             } else {
                 Text("\("mixnetTuning.default".localizedString)\n\(defaultDelay.defaultValue) ms")
-                    .nymText(color: Color.Nym.info, style: .Body.Medium.regular)
+                    .nymText(color: Color.Nym.primary, style: .Body.Medium.regular)
                     .multilineTextAlignment(.center)
             }
             Spacer()
@@ -405,7 +416,12 @@ private extension MixnetTuningView {
         }
         Spacer()
             .frame(height: 24)
-        GenericButton(title: "mixnetTuning.reset".localizedString, style: .primaryBorderOnly, height: 42)
+        GenericButton(
+            title: "mixnetTuning.reset".localizedString,
+            style: .primaryBorderOnly,
+            height: 42,
+            isDisabled: $isRestoreButtonDisabled
+        )
             .onTapGesture {
                 resetToDefaults()
             }
@@ -511,8 +527,9 @@ private extension MixnetTuningView {
         latency = ((latencyRaw + 5) / 10) * 10
     }
 
-    func updateIsSaveButtonEnabled() {
+    func updateButtonStates() {
         isSaveButtonDisabled = connectionManager.connectionConfig.mixnetTuningConfig == config
+        isRestoreButtonDisabled = config == defaultConfig
     }
 }
 
@@ -527,7 +544,7 @@ private extension MixnetTuningView {
     func saveSettings() {
         guard let config else { return }
         connectionManager.setMixnetTuningConfig(config)
-        updateIsSaveButtonEnabled()
+        updateButtonStates()
 
         SnackbarManager.shared.enqueue(
             SnackbarItem(
