@@ -144,7 +144,7 @@ export default function TopBar() {
         },
       },
       '/settings/data-privacy/logs': {
-        title: t('logs'),
+        title: t('logs.title', { ns: 'settings' }),
         leftIcon: 'keyboard_arrow_left',
         rightComponent: <ActionMenu />,
         handleLeftNav: () => {

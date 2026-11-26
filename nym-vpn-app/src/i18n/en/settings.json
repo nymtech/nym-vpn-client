@@ -94,9 +94,6 @@
     "title": "Logs (stored locally)",
     "app": "App logs",
     "daemon": "Daemon logs",
-    "debug-logging": {
-      "title": "Enable debug logging"
-    },
     "actions": {
       "delete": {
         "action-button": "Delete",
@@ -279,7 +276,11 @@
   },
   "privacy": {
     "title": "Data, privacy & logs",
-    "monitoring-restart-note": "Changes will apply after app and daemon restart."
+    "monitoring-restart-note": "Changes will apply after app and daemon restart.",
+    "troubleshooting": {
+      "title": "Your troubleshooting detail",
+      "desc": "Helps us fix connection problems"
+    }
   },
   "account": {
     "planValidUntil": "Plan valid until {{date}}",
