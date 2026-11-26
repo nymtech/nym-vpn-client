@@ -45,6 +45,7 @@ function ContinuousTrafficSlider({
         step={1}
         disabled={disabled}
         ariaLabel={t('mixnet-tuning.continuous-traffic.title')}
+        ariaValueText={(index) => items[index]?.label ?? String(index)}
         labels={items.map((item, index) => (
           <Button
             key={item.value}

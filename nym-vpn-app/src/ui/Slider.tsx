@@ -15,6 +15,8 @@ export type SliderProps = {
   className?: string;
   valueIndicator?: boolean;
   ariaLabel?: string;
+  // what screen readers announce for a value; defaults to the raw number
+  ariaValueText?: (value: number) => string;
   disabled?: boolean;
 };
 
@@ -30,6 +32,7 @@ function Slider({
   valueIndicator,
   className,
   ariaLabel,
+  ariaValueText,
   disabled,
 }: SliderProps) {
   const { t, i18n } = useTranslation('common');
@@ -100,7 +103,9 @@ function Slider({
               />
               <HuSlider.Thumb
                 aria-label={ariaLabel}
-                getAriaValueText={(_formattedValue, val) => val.toString()}
+                getAriaValueText={(_formattedValue, val) =>
+                  ariaValueText ? ariaValueText(val) : val.toString()
+                }
                 className={clsx([
                   'group border-text-tertiary dark:border-text-secondary active:bg-surface-bg hover:bg-surface-bg focus:ring-brand-primary block h-6 w-6 rounded-full border bg-white shadow-md focus:ring-2 focus:outline-none',
                   'transition-[inset] duration-300 ease-out',

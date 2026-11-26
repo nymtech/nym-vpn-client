@@ -47,6 +47,13 @@ function BackgroundCoverSlider({
         step={1}
         disabled={disabled}
         ariaLabel={t('mixnet-tuning.background-cover.title')}
+        ariaValueText={(index) =>
+          items[index]
+            ? t(
+                `mixnet-tuning.background-cover.${items[index].label}.label`,
+              ).replace('\n', ' ')
+            : String(index)
+        }
         labels={items.map((item, index) => (
           <Button
             onClick={() => setValue(index)}
