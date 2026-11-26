@@ -4,6 +4,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.vpn.model.account.CreateAccountError
+import net.nymtech.vpn.model.account.CreateAccountResult
 import net.nymtech.vpn.model.freepass.FreepassError
 import net.nymtech.vpn.model.freepass.FreepassResult
 import timber.log.Timber
@@ -17,8 +19,11 @@ class NymFreepassManager @Inject constructor(private val backendManager: Backend
 
 	override suspend fun redeem(code: String): FreepassResult = mutex.withLock {
 		when (isAccountStored()) {
-			true -> backendManager.redeemFreepassForStoredAccount(code)
-			false -> backendManager.redeemFreepassForNewAccount(code)
+			true -> backendManager.redeemFreepass(code)
+			false -> when (val result = backendManager.createAccount(freepass = code)) {
+				CreateAccountResult.Created -> FreepassResult.Redeemed
+				is CreateAccountResult.Failed -> FreepassResult.Failed(result.error.toFreepassError())
+			}
 			null -> FreepassResult.Failed(FreepassError.UNKNOWN)
 		}
 	}
@@ -30,6 +35,16 @@ class NymFreepassManager @Inject constructor(private val backendManager: Backend
 	} catch (e: Exception) {
 		Timber.tag(TAG).w("Account lookup failed: %s", e::class.java.simpleName)
 		null
+	}
+
+	private fun CreateAccountError.toFreepassError(): FreepassError = when (this) {
+		CreateAccountError.FREEPASS_INVALID -> FreepassError.INVALID_CODE
+		CreateAccountError.FREEPASS_ALREADY_REDEEMED -> FreepassError.ALREADY_REDEEMED
+		CreateAccountError.SUBSCRIPTION_ACTIVE -> FreepassError.SUBSCRIPTION_ACTIVE
+		CreateAccountError.RATE_LIMITED -> FreepassError.RATE_LIMITED
+		CreateAccountError.OFFLINE -> FreepassError.OFFLINE
+		CreateAccountError.SERVER -> FreepassError.SERVER
+		CreateAccountError.UNKNOWN -> FreepassError.UNKNOWN
 	}
 
 	private companion object {

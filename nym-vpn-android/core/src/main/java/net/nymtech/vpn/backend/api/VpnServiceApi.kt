@@ -10,6 +10,7 @@ import net.nymtech.vpn.model.config.ConfigResult
 import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
+import net.nymtech.vpn.model.account.CreateAccountResult
 import net.nymtech.vpn.model.freepass.FreepassResult
 import net.nymtech.vpn.model.pairing.PairingCommandResult
 import nym_vpn_lib_types.AccountControllerState
@@ -55,7 +56,7 @@ interface VpnServiceApi {
 
 	suspend fun getStoredMnemonic(): String
 
-	suspend fun createAccount()
+	suspend fun createAccount(freepass: String? = null): CreateAccountResult
 
 	suspend fun registerAccount(token: String?): String
 	suspend fun refreshAccount()
@@ -89,6 +90,5 @@ interface VpnServiceApi {
 	suspend fun verifiedPairingPin(sessionId: UInt): PairingCommandResult<Unit>
 	suspend fun cancelPairing(): PairingCommandResult<Unit>
 
-	suspend fun redeemFreepassForNewAccount(code: String): FreepassResult
-	suspend fun redeemFreepassForStoredAccount(code: String): FreepassResult
+	suspend fun redeemFreepass(code: String): FreepassResult
 }
