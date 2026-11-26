@@ -58,6 +58,7 @@ pub struct VpnServiceConfig {
     pub geo_exclusion: GeoExclusionSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
     pub gateway_independence: GatewayIndependence,
+    pub auto_connect: bool,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -99,6 +100,7 @@ impl fmt::Display for VpnServiceConfig {
             self.gateway_selection_algorithm_config
         )?;
         writeln!(f, "gateway independence: {}", self.gateway_independence)?;
+        writeln!(f, "auto_connect: {}", self.auto_connect)?;
 
         Ok(())
     }
@@ -132,6 +134,7 @@ impl Default for VpnServiceConfig {
             geo_exclusion: GeoExclusionSettings::default(),
             gateway_selection_algorithm_config: Default::default(),
             gateway_independence: Default::default(),
+            auto_connect: false,
         }
     }
 }

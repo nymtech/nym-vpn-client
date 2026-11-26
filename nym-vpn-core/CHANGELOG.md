@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add setting to auto connect the tunnel as soon as the VPN service starts but only if account is set. Auto-connects once account is set at runtime too. See `nym-vpnc auto-connect -h` for more info (https://github.com/nymtech/nym-vpn-client/pull/7199)
+
 ### Changed
 
 - Pin the QR pairing PIN to the devices' public keys (https://github.com/nymtech/nym-vpn-client/pull/7193)
