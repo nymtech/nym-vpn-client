@@ -3,6 +3,7 @@ import Combine
 import NetworkExtension
 import os
 import AppSettings
+import Logging
 import ConfigurationManager
 import ConnectionTypes
 import NymLogger
@@ -14,14 +15,12 @@ import TunnelStatus
 
 // MARK: - Setup -
 extension ConnectionManager {
-    static let configLogger = Logger(
+    static let configLogger = os.Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "NymVPN",
         category: "ConnectionManager.config"
     )
-    static let diagnosticLogger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "NymVPN",
-        category: "ConnectionManager.diagnostic"
-    )
+    // swift-log, not os.Logger: only swift-log reaches the log files people share from Logs.
+    static let diagnosticLogger = Logging.Logger(label: "ConnectionManager.diagnostic")
 
     func setupTunnelManagerObservers() {
         tunnelsManager.$isLoaded
@@ -232,7 +231,7 @@ extension ConnectionManager {
                 environment: environment
             )
         } catch {
-            Self.diagnosticLogger.error("Diagnostic run failed: \(error.localizedDescription, privacy: .public)")
+            Self.diagnosticLogger.error("Diagnostic run failed: \(error.localizedDescription)")
             return nil
         }
     }

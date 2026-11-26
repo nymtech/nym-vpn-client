@@ -159,6 +159,9 @@ private extension DiagnosticToolView {
             await MainActor.run {
                 reportText = formatJSON(result)
                 isLoading = false
+                // The spinner is swapped out with no focus change, so tell VoiceOver how the run ended.
+                let outcome = reportText == nil ? "settings.diagnosticTool.failed" : "settings.diagnosticTool.report"
+                AccessibilityNotification.Announcement(outcome.localizedString).post()
             }
         }
     }

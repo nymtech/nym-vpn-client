@@ -41,6 +41,8 @@ public struct PrivacyAndDataView: View {
                         .frame(height: 24)
                     diagnosticToolSection()
                 }
+                // The screen ignores the bottom safe area, so leave room for the home indicator.
+                .padding(.bottom, 40)
             }
             .scrollIndicators(.never)
             .frame(maxWidth: MagicNumbers.maxWidth)
