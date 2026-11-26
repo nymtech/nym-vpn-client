@@ -97,7 +97,6 @@ impl<'a> DnsOptionsResolver<'a> {
         }
     }
 
-    /// Returns
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     pub fn allowed_default_dns_endpoints(&self) -> Vec<nym_firewall::Endpoint> {
         self.default_dns_servers
