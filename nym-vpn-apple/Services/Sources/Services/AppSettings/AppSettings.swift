@@ -108,11 +108,14 @@ import ConnectionTypes
     public var isStatisticsEnabled = false
 
 #if os(macOS)
-    /// A data-sharing choice the daemon hasn't received yet: the onboarding answers, or the
+    /// Data-sharing choices the daemon hasn't received yet: the onboarding answers, or the
     /// one-time migration for installs from before the daemon became the source of truth
-    /// (hence the `true` default). Cleared once both values reach the daemon.
-    @AppStorage(AppSettingKey.telemetryConsentPendingForDaemon.rawValue)
-    public var isTelemetryConsentPendingForDaemon = true
+    /// (hence the `true` default). Each is cleared once that value reaches the daemon.
+    @AppStorage(AppSettingKey.statisticsPendingForDaemon.rawValue)
+    public var isStatisticsPendingForDaemon = true
+
+    @AppStorage(AppSettingKey.errorReportingPendingForDaemon.rawValue)
+    public var isErrorReportingPendingForDaemon = true
 #endif
 
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
@@ -286,7 +289,8 @@ public enum AppSettingKey: String {
     case ipv6TrafficIsEnabled
     case statistics
     case statisticsConnectionCount
-    case telemetryConsentPendingForDaemon
+    case statisticsPendingForDaemon
+    case errorReportingPendingForDaemon
     case dismissedAppUpdateFloor
     case quic
     case bridgeMode

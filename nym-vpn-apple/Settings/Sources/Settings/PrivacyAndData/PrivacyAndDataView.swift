@@ -16,6 +16,11 @@ public struct PrivacyAndDataView: View {
 #endif
     @Binding private var path: NavigationPath
     @State private var infoContent: TelemetryInfoContent?
+#if os(macOS)
+    /// Set once the daemon has been unreachable for a few seconds, so the normal
+    /// connect at launch and quick reconnects don't flash "Daemon not running".
+    @State private var isDaemonUnreachable = false
+#endif
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -29,14 +34,15 @@ public struct PrivacyAndDataView: View {
                 diagnosticToolSection()
                 Spacer()
                     .frame(height: 24)
-                // On macOS the daemon holds these values; without it there is nothing true to show.
-                if isDaemonUnavailable {
-                    daemonNotRunningSection()
-                } else {
+                // On macOS the daemon holds these values; without it, or before onboarding has
+                // been answered, there is nothing true to show.
+                if canShowDataSharingToggles {
                     statisticsSection()
                     Spacer()
                         .frame(height: 24)
                     errorReportingSection()
+                } else if showsDaemonNotRunning {
+                    daemonNotRunningSection()
                 }
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
@@ -55,6 +61,15 @@ public struct PrivacyAndDataView: View {
                 infoContent = nil
             }
         }
+#if os(macOS)
+        .task(id: grpcManager.isServing) {
+            isDaemonUnreachable = false
+            guard !grpcManager.isServing else { return }
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled, !grpcManager.isServing else { return }
+            isDaemonUnreachable = true
+        }
+#endif
     }
 
     public init(path: Binding<NavigationPath>) {
@@ -192,9 +207,17 @@ private extension PrivacyAndDataView {
 // On macOS nym-vpnd is the source of truth: the toggles show its values (mirrored into
 // AppSettings by ConfigurationManager) and send only the user's own changes.
 private extension PrivacyAndDataView {
-    var isDaemonUnavailable: Bool {
+    var canShowDataSharingToggles: Bool {
 #if os(macOS)
-        return !grpcManager.isServing
+        return grpcManager.isServing && appSettings.welcomeScreenDidDisplay
+#else
+        return true
+#endif
+    }
+
+    var showsDaemonNotRunning: Bool {
+#if os(macOS)
+        return isDaemonUnreachable
 #else
         return false
 #endif
@@ -204,9 +227,7 @@ private extension PrivacyAndDataView {
 #if os(macOS)
         return Binding(
             get: { appSettings.isStatisticsEnabled },
-            set: { isOn in
-                Task { await ConfigurationManager.shared.setNetworkStatistics(isOn) }
-            }
+            set: { ConfigurationManager.shared.userChangedTelemetryConsent(.networkStatistics, to: $0) }
         )
 #else
         return $appSettings.isStatisticsEnabled
@@ -217,16 +238,14 @@ private extension PrivacyAndDataView {
 #if os(macOS)
         return Binding(
             get: { appSettings.isErrorReportingOn },
-            set: { isOn in
-                Task { await ConfigurationManager.shared.setErrorReporting(isOn) }
-            }
+            set: { ConfigurationManager.shared.userChangedTelemetryConsent(.errorReporting, to: $0) }
         )
 #else
         return $appSettings.isErrorReportingOn
 #endif
     }
 
-    /// The daemon starts error reporting only when it launches.
+    /// The daemon starts its own error reporting only when it launches.
     var errorReportingNote: String? {
 #if os(macOS)
         return "settings.privacyAndData.errorReportingRestartNote".localizedString

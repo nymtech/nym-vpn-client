@@ -21,15 +21,14 @@ extension GRPCManager {
         try await rpcClient.networkStatsSetEnabled(enabled: isEnabled)
     }
 
-    /// The daemon's error-reporting setting, or `nil` when not connected.
-    public func isErrorReportingEnabled() async throws -> Bool? {
-        try await rpcClient?.isSentryEnabled()
+    public func isErrorReportingEnabled() async throws -> Bool {
+        guard let rpcClient else { throw DaemonSettingError.notConnected }
+        return try await rpcClient.isSentryEnabled()
     }
 
-    /// The daemon's network-statistics setting, or `nil` when not connected or unreadable.
-    public func isNetworkStatisticsEnabled() async -> Bool? {
-        guard let config = try? await rpcClient?.getConfig() else { return nil }
-        return config.networkStats.enabled
+    public func isNetworkStatisticsEnabled() async throws -> Bool {
+        guard let rpcClient else { throw DaemonSettingError.notConnected }
+        return try await rpcClient.getConfig().networkStats.enabled
     }
 
     public func needFullDiskAccess() async throws -> Bool {

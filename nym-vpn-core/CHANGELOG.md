@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Pin the QR pairing PIN to the devices' public keys (https://github.com/nymtech/nym-vpn-client/pull/7193)
-- _pending changelog_
+- Network statistics are off by default; configs saved without a choice migrate to off (https://github.com/nymtech/nym-vpn-client/pull/7231)
 
 ## [2026.16.0] - 2026-11-18
 

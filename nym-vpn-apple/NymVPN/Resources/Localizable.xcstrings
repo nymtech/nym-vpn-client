@@ -28378,7 +28378,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Turning this on takes effect after you restart your Mac."
+            "value" : "The VPN service's error reports start after you restart your Mac."
           }
         }
       }

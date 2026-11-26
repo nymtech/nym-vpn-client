@@ -124,7 +124,7 @@ private extension WelcomeOptInsView {
         )
     }
 
-    /// On macOS the daemon starts error reporting only when it launches.
+    /// On macOS the daemon starts its own error reporting only when it launches.
     var errorReportingNote: String? {
 #if os(macOS)
         return "settings.privacyAndData.errorReportingRestartNote".localizedString
@@ -139,7 +139,7 @@ private extension WelcomeOptInsView {
 #if os(macOS)
             // Onboarding asks rather than mirrors: send the answers to the daemon (now, or on
             // the next connect), so the opt-ins never start pre-checked from the daemon default.
-            Task { await ConfigurationManager.shared.submitOnboardingTelemetryConsent() }
+            ConfigurationManager.shared.submitOnboardingTelemetryConsent()
 #endif
             onContinue()
         }

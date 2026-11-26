@@ -16,12 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - iOS: Debug logging is now "Your troubleshooting detail" in Data, privacy & logs, with an info sheet explaining what it does (https://github.com/nymtech/nym-vpn-client/pull/7138)
+- macOS: "Your connection quality" and "Your app errors & crashes" show the VPN service's own settings, are asked during onboarding, and show "Daemon not running" when the service can't be reached (https://github.com/nymtech/nym-vpn-client/pull/7231)
 
 ### Fixed
 
 - Home screen: the selected connection mode now has an outline in the brand colour, so it is clear which one is on, also in dark mode
 - iOS: The VPN connection's error reporting follows the "Your app errors & crashes" setting (https://github.com/nymtech/nym-vpn-client/pull/7138)
-- _pending changelog_
+- macOS: "Your connection quality" and "Your app errors & crashes" choices now reliably reach the VPN service, including from onboarding and after it reconnects (https://github.com/nymtech/nym-vpn-client/pull/7231)
 
 ## [2026.16.0] - 2026-11-18
 
