@@ -22,7 +22,7 @@ import kotlin.coroutines.cancellation.CancellationException
  *
  * Borrowed from this [Stack Overflow question](https://stackoverflow.com/questions/51022533/kotlin-chunk-sequence-based-on-size-and-time).
  */
-@OptIn(ObsoleteCoroutinesApi::class)
+@OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 fun <T> ReceiveChannel<T>.chunked(scope: CoroutineScope, size: Int, time: Duration) = scope.produce<List<T>> {
 	while (true) { // this loop goes over each chunk
 		val chunk = ConcurrentLinkedQueue<T>() // current chunk
@@ -49,7 +49,7 @@ fun <T> ReceiveChannel<T>.chunked(scope: CoroutineScope, size: Int, time: Durati
 	}
 }
 
-@OptIn(DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 fun <T> Flow<T>.chunked(size: Int, time: Duration) = channelFlow {
 	coroutineScope {
 		val channel = asChannel(this@chunked).chunked(this, size, time)
