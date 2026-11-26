@@ -55,7 +55,6 @@ async fn respond(line: &str, rpc_client: RpcClient) -> Result<bool> {
         Command::Disconnect { wait } => Command::disconnect(rpc_client, wait).await?,
         Command::Status { listen } => Command::status(rpc_client, listen).await?,
         Command::Info => Command::info(rpc_client).await?,
-        Command::GetConfig => Command::get_config(rpc_client).await?,
         Command::Gateway(args) => args.execute(rpc_client).await?,
         Command::Tunnel { subcommand } => subcommand.execute(rpc_client).await?,
         Command::Lan { subcommand } => subcommand.execute(rpc_client).await?,

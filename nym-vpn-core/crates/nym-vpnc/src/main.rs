@@ -76,10 +76,6 @@ pub enum Command {
     /// Get info about the current client. Things like version and network details.
     Info,
 
-    /// Get the current VPN service configuration.
-    #[clap(hide = true)]
-    GetConfig,
-
     /// Manage entry and exit gateway nodes, list available gateways
     Gateway(commands::gateway::Args),
 
@@ -210,7 +206,6 @@ impl Command {
             Command::Disconnect { wait } => Self::disconnect(rpc_client.await?, wait).await,
             Command::Status { listen } => Self::status(rpc_client.await?, listen).await,
             Command::Info => Self::info(rpc_client.await?).await,
-            Command::GetConfig => Self::get_config(rpc_client.await?).await,
             Command::Gateway(args) => args.execute(rpc_client.await?).await,
             Command::Tunnel { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Lan { subcommand } => subcommand.execute(rpc_client.await?).await,
@@ -428,12 +423,6 @@ impl Command {
     async fn info(mut rpc_client: RpcClient) -> Result<()> {
         let service_info = rpc_client.get_info().await?;
         Self::print_service_info(service_info);
-        Ok(())
-    }
-
-    async fn get_config(mut rpc_client: RpcClient) -> Result<()> {
-        let config = rpc_client.get_config().await?;
-        println!("{config:#?}");
         Ok(())
     }
 
