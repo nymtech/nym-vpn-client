@@ -619,6 +619,7 @@
 	<string name="mixnet_tuning_restore_button">Restore default settings</string>
 	<!-- Diagnostic screen -->
 	<string name="diagnostic_run_button">Run diagnostics</string>
+	<string name="diagnostic_rerun_button">Re-run diagnostics</string>
 	<string name="diagnostic_share_button">Share report</string>
 	<string name="diagnostic_report_title">Diagnostic report</string>
 	<string name="diagnostic_copy_report">Copy report</string>

@@ -20,7 +20,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,9 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
-import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
+import net.nymtech.nymvpn.ui.screens.settings.diagnostic.components.RunDiagnosticsButton
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.rememberCopyToClipboard
@@ -78,24 +77,20 @@ fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShare
 			.padding(top = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-		MainStyledButton(
-			onClick = onRunClick,
-			enabled = !uiState.isLoading,
-			content = {
-				if (uiState.isLoading) {
-					SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.diagnostic_run_button))
-				} else {
-					Text(
-						text = stringResource(R.string.diagnostic_run_button),
-						style = MaterialTheme.typography.titleMedium,
-					)
-				}
-			},
-			modifier = Modifier
-				.fillMaxWidth()
-				.height(48.dp.scaledHeight()),
-			shape = RoundedCornerShape(12.dp),
-		)
+		if (uiState.isLoading) {
+			Box(
+				contentAlignment = Alignment.Center,
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 24.dp.scaledHeight()),
+			) {
+				CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+			}
+		}
+
+		if (!uiState.isLoading) {
+			RunDiagnosticsButton(onClick = onRunClick, labelRes = R.string.diagnostic_rerun_button)
+		}
 
 		uiState.report?.let {
 			OutlineStyledButton(

@@ -22,11 +22,16 @@ import javax.inject.Inject
 @HiltViewModel
 class DiagnosticViewModel @Inject constructor(private val backendManager: BackendManager, @IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
 
-	private val _uiState = MutableStateFlow(DiagnosticUiState())
+	// Starts loading: the run begins as soon as the screen opens, so the first frame is the spinner.
+	private val _uiState = MutableStateFlow(DiagnosticUiState(isLoading = true))
 	val uiState: StateFlow<DiagnosticUiState> = _uiState.asStateFlow()
 
+	init {
+		runDiagnostics()
+	}
+
 	fun runDiagnostics() = viewModelScope.launch(ioDispatcher) {
-		_uiState.update { it.copy(isLoading = true, error = null) }
+		_uiState.update { it.copy(isLoading = true, error = null, report = null) }
 		runCatching {
 			backendManager.runDiagnostic()
 		}.onSuccess { report ->

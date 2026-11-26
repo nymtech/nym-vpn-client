@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
-import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +29,7 @@ import net.nymtech.nymvpn.ui.screens.settings.components.SettingsArrowIcon
 import net.nymtech.nymvpn.ui.screens.settings.components.SettingsGroup
 import net.nymtech.nymvpn.ui.screens.settings.components.SettingsIcon
 import net.nymtech.nymvpn.ui.screens.settings.components.SettingsTitle
+import net.nymtech.nymvpn.ui.screens.settings.diagnostic.components.RunDiagnosticsButton
 import net.nymtech.nymvpn.ui.screens.settings.privacy.components.MonitoringSection
 import net.nymtech.nymvpn.ui.screens.settings.privacy.components.NetworkStatsSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -101,27 +101,7 @@ fun PrivacyScreen(
 			),
 		)
 
-		SettingsGroup(
-			items = listOf(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							Icons.Outlined.MonitorHeart,
-							stringResource(R.string.privacy_diagnostic_tool),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(
-							stringResource(R.string.privacy_diagnostic_tool),
-						)
-					},
-					onClick = onDiagnosticClick,
-				),
-			),
-		)
+		RunDiagnosticsButton(onClick = onDiagnosticClick)
 	}
 
 	infoKind?.let { kind ->
