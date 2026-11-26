@@ -10,7 +10,8 @@ use nym_credential_proxy_requests::api::v1::ticketbook::models::{
     MasterVerificationKeyResponse, PartialVerificationKeysResponse,
 };
 use nym_http_api_client::{
-    ApiClient, Client, HttpClientError, NO_PARAMS, Params, PathSegments, Url, UserAgent,
+    ApiClient, ApiClientCore, Client, HttpClientError, NO_PARAMS, Params, PathSegments, Url,
+    UserAgent,
     reqwest::{
         RequestBuilder,
         header::{DATE, HeaderMap},
@@ -212,7 +213,7 @@ impl VpnApiClient {
             .inner
             .create_get_request(path, NO_PARAMS)?
             .with_authorization(authorization, remote_time);
-        let response = request.send().await?;
+        let response = self.inner.send(request).await?;
         nym_http_api_client::parse_response(response, false).await
     }
 
@@ -284,7 +285,7 @@ impl VpnApiClient {
             .create_post_request(path, NO_PARAMS, json_body)?
             .with_authorization(authorization, remote_time);
 
-        let response = request.send().await?;
+        let response = self.inner.send(request).await?;
         nym_http_api_client::parse_response(response, false).await
     }
 
@@ -317,7 +318,7 @@ impl VpnApiClient {
             .inner
             .create_delete_request(path, NO_PARAMS)?
             .with_authorization(authorization, remote_time);
-        let response = request.send().await?;
+        let response = self.inner.send(request).await?;
         nym_http_api_client::parse_response(response, false).await
     }
 
@@ -350,7 +351,7 @@ impl VpnApiClient {
             .inner
             .create_patch_request(path, NO_PARAMS, json_body)?
             .with_authorization(authorization, remote_time);
-        let response = request.send().await?;
+        let response = self.inner.send(request).await?;
         nym_http_api_client::parse_response(response, false).await
     }
 
@@ -1714,6 +1715,28 @@ mod tests {
             },
             calls,
         )
+    }
+
+    #[tokio::test]
+    async fn authorized_request_rotates_to_next_host_when_first_is_blocked() {
+        use wiremock::{Mock, MockServer, ResponseTemplate, matchers::path};
+
+        let server = MockServer::start().await;
+        Mock::given(path("/ok"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(true))
+            .mount(&server)
+            .await;
+        let blocked = Url::new(format!("http://[::1]:{}", server.address().port()), None).unwrap();
+        let relay = Url::new(server.uri(), None).unwrap();
+        let (mut client, _) = test_client(device_time());
+        client.inner = fronted_http_client(vec![blocked, relay], None, None).unwrap();
+
+        let ok: bool = client
+            .get_query(&["ok"], Authorization::default(), None)
+            .await
+            .unwrap();
+
+        assert!(ok);
     }
 
     fn headers_with_date(date: &str) -> HeaderMap {
