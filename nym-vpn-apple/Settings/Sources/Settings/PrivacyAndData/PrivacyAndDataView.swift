@@ -1,9 +1,7 @@
 import SwiftUI
 import AppSettings
 import ImpactGenerator
-#if os(iOS)
-import ConfigurationManager
-#elseif os(macOS)
+#if os(macOS)
 import GRPCManager
 #endif
 import Theme
@@ -24,16 +22,20 @@ public struct PrivacyAndDataView: View {
             Spacer()
                 .frame(height: 24)
             VStack(spacing: 0) {
+                // Same toggles, in the same order, as the onboarding opt-in screen.
+                VStack(spacing: NymSpacing.small) {
+                    statisticsSection()
+                    errorReportingSection()
+#if os(iOS)
+                    DiagnosticsOptInCard(onInfo: { infoContent = $0 })
+#endif
+                }
+                Spacer()
+                    .frame(height: 24)
                 logsSection()
                 Spacer()
                     .frame(height: 24)
                 diagnosticToolSection()
-                Spacer()
-                    .frame(height: 24)
-                statisticsSection()
-                Spacer()
-                    .frame(height: 24)
-                errorReportingSection()
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
             .padding(.horizontal, 16)
@@ -67,17 +69,12 @@ private extension PrivacyAndDataView {
         )
     }
 
-    @ViewBuilder
     func logsSection() -> some View {
-#if os(iOS)
-        diagnosticsSection()
-        Spacer()
-            .frame(height: 24)
-#endif
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .arrow,
-                title: "logs".localizedString,
+                title: "settings.privacyAndData.viewLogs".localizedString,
+                subtitle: "settings.privacyAndData.viewLogs.subtitle".localizedString,
                 imageName: "logs",
                 position: SettingsListItemPosition(isFirst: true, isLast: true),
                 action: {
@@ -87,37 +84,11 @@ private extension PrivacyAndDataView {
         )
     }
 
-#if os(iOS)
-    func diagnosticsSection() -> some View {
-        // TestFlight builds always log at debug level, so show the toggle locked on.
-        let isTestFlight = ConfigurationManager.shared.isTestFlight
-        return TelemetryOptInCard(
-            icon: "stethoscope",
-            title: "welcomeOptIns.diagnostics.title".localizedString,
-            subtitle: isTestFlight
-                ? "welcomeOptIns.diagnostics.testFlight".localizedString
-                : "welcomeOptIns.diagnostics.subtitle".localizedString,
-            isOn: isTestFlight ? .constant(true) : $appSettings.isDebugLogsOn,
-            isDisabled: isTestFlight,
-            onInfo: { infoContent = diagnosticsInfo() }
-        )
-    }
-
-    func diagnosticsInfo() -> TelemetryInfoContent {
-        .telemetry(
-            id: "diagnostics",
-            sharesKey: "welcomeOptIns.diagnostics.shares",
-            neverKey: nil,
-            handlingKey: "welcomeOptIns.diagnostics.handling"
-        )
-    }
-#endif
-
     func diagnosticToolSection() -> some View {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .arrow,
-                title: "settings.diagnosticTool".localizedString,
+                title: "settings.privacyAndData.runDiagnostics".localizedString,
                 systemImageName: "waveform.path.ecg.rectangle",
                 position: SettingsListItemPosition(isFirst: true, isLast: true),
                 action: {

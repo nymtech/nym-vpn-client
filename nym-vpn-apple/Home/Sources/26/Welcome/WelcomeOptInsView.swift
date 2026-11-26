@@ -2,6 +2,9 @@ import SwiftUI
 import AppSettings
 import Constants
 import ImpactGenerator
+#if os(iOS)
+import Settings
+#endif
 import Theme
 import UIComponents
 
@@ -99,6 +102,9 @@ private extension WelcomeOptInsView {
                 isOn: $isErrorReportingOn,
                 onInfo: { infoContent = monitoringInfo() }
             )
+#if os(iOS)
+            DiagnosticsOptInCard(onInfo: { infoContent = $0 })
+#endif
         }
     }
 

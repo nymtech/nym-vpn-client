@@ -9,22 +9,25 @@ public struct TelemetryOptInCard: View {
     private let title: String
     private let subtitle: String
     @Binding private var isOn: Bool
-    private let isDisabled: Bool
+    private let isLocked: Bool
     private let onInfo: () -> Void
 
+    /// `isLocked` ignores taps but keeps the normal switch colours, so a locked-on
+    /// toggle matches its neighbours (`.disabled` would fade it). Pass a constant
+    /// binding with it.
     public init(
         icon: String,
         title: String,
         subtitle: String,
         isOn: Binding<Bool>,
-        isDisabled: Bool = false,
+        isLocked: Bool = false,
         onInfo: @escaping () -> Void
     ) {
         self.icon = icon
         self.title = title
         self.subtitle = subtitle
         self._isOn = isOn
-        self.isDisabled = isDisabled
+        self.isLocked = isLocked
         self.onInfo = onInfo
     }
 
@@ -58,7 +61,7 @@ public struct TelemetryOptInCard: View {
             Toggle("", isOn: $isOn)
                 .labelsHidden()
                 .tint(Color.Nym.primary)
-                .disabled(isDisabled)
+                .allowsHitTesting(!isLocked)
                 .accessibilityLabel(Text(title))
         }
         .padding(16)
