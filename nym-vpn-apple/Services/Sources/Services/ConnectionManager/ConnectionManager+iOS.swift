@@ -18,6 +18,10 @@ extension ConnectionManager {
         subsystem: Bundle.main.bundleIdentifier ?? "NymVPN",
         category: "ConnectionManager.config"
     )
+    static let diagnosticLogger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "NymVPN",
+        category: "ConnectionManager.diagnostic"
+    )
 
     func setupTunnelManagerObservers() {
         tunnelsManager.$isLoaded
@@ -213,16 +217,24 @@ extension ConnectionManager {
 
     @MainActor
     public func runDiagnostic() async -> String? {
-        guard let environment = ConfigurationManager.shared.networkEnv else { return nil }
-        return try? await NymVPNLib.runDiagnostic(
-            params: DiagnosticRunParams(
-                gateway: nil,
-                skipDns: false,
-                skipHttp: false,
-                skipHybridTransport: false
-            ),
-            environment: environment
-        )
+        guard let environment = ConfigurationManager.shared.networkEnv else {
+            Self.diagnosticLogger.error("Diagnostic run skipped: no network environment")
+            return nil
+        }
+        do {
+            return try await NymVPNLib.runDiagnostic(
+                params: DiagnosticRunParams(
+                    gateway: nil,
+                    skipDns: false,
+                    skipHttp: false,
+                    skipHybridTransport: false
+                ),
+                environment: environment
+            )
+        } catch {
+            Self.diagnosticLogger.error("Diagnostic run failed: \(error.localizedDescription, privacy: .public)")
+            return nil
+        }
     }
 }
 
