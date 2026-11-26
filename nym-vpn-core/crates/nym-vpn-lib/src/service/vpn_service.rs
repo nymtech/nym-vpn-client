@@ -83,6 +83,7 @@ use crate::tunnel_provider::OSTunProvider;
 use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
     DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
+    VpnTopologyServiceHandle,
     config::GlobalConfig,
     gateway_directory::{
         self, GatewayCache, GatewayCacheHandle, GatewayClient, GatewayMinPerformance,
@@ -137,6 +138,7 @@ pub enum VpnServiceCommand {
         Option<nym_vpn_lib_types::BridgeTransport>,
     ),
     SetResidentialExit(oneshot::Sender<()>, bool),
+    SetAutoConnect(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(
         oneshot::Sender<Result<(), SetCustomDnsError>>,
@@ -412,6 +414,9 @@ pub struct NymVpnService {
 
     // Bandwidth controller handle
     bandwidth_controller_handle: JoinHandle<()>,
+
+    // Topology service handle
+    topology_service: VpnTopologyServiceHandle,
 
     // Topology service join handle
     topology_service_join_handle: JoinHandle<()>,
@@ -750,11 +755,6 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         );
 
-        let cloned_topology_service = topology_service.clone();
-        tokio::spawn(async move {
-            let _ = cloned_topology_service.fetch().await;
-        });
-
         let (discovery_refresher_event_tx, discovery_refresher_event_rx) =
             mpsc::unbounded_channel();
         let (discovery_refresher_command_tx, discovery_refresher_command_rx) =
@@ -873,6 +873,7 @@ impl NymVpnService {
             account_controller_handle,
             statistics_controller_handle,
             bandwidth_controller_handle,
+            topology_service,
             topology_service_join_handle,
             config_manager,
             command_sender,
@@ -912,6 +913,11 @@ impl NymVpnService {
             self.tunnel_state.subscribe(),
             self.services_shutdown_token.child_token(),
         ));
+
+        if !self.auto_connect().await {
+            // Refresh topology only if auto-connect is disabled
+            self.fetch_initial_topology();
+        }
 
         loop {
             tokio::select! {
@@ -1017,6 +1023,41 @@ impl NymVpnService {
         tracing::info!("Exiting vpn service run loop");
 
         Ok(())
+    }
+
+    /// Returns true if auto-connect is enabled and account is set.
+    async fn should_auto_connect(&self) -> bool {
+        if self.config_manager.config().auto_connect {
+            self.account_command_tx
+                .get_account_id()
+                .await
+                .map(|account_id| account_id.is_some())
+                .unwrap_or_else(|err| {
+                    tracing::error!("Failed to get account id for auto-connect: {err}");
+                    false
+                })
+        } else {
+            false
+        }
+    }
+
+    /// Returns true if auto-connect was issued
+    async fn auto_connect(&mut self) -> bool {
+        if self.should_auto_connect().await {
+            tracing::info!("Auto-connect is enabled, connecting");
+            self.set_target_state(TargetState::Secured).await;
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Initiate mixnet topology fetch in background
+    fn fetch_initial_topology(&self) {
+        let cloned_topology_service = self.topology_service.clone();
+        tokio::spawn(async move {
+            let _ = cloned_topology_service.fetch().await;
+        });
     }
 
     async fn set_target_state(&mut self, new_state: TargetState) -> bool {
@@ -1189,6 +1230,10 @@ impl NymVpnService {
             }
             VpnServiceCommand::SetResidentialExit(tx, residential_exit) => {
                 self.handle_set_residential_exit(residential_exit).await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetAutoConnect(tx, auto_connect) => {
+                self.handle_set_auto_connect(auto_connect).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetEnableCustomDns(tx, enable_custom_dns) => {
@@ -1604,6 +1649,10 @@ impl NymVpnService {
             .await;
         self.update_tunnel_settings_with_throttle();
         Ok(())
+    }
+
+    async fn handle_set_auto_connect(&mut self, auto_connect: bool) {
+        self.config_manager.set_auto_connect(auto_connect).await;
     }
 
     async fn handle_set_residential_exit(&mut self, residential_exit: bool) {
@@ -2182,7 +2231,22 @@ impl NymVpnService {
         self.ensure_authorized(client)?;
         let account = StorableAccount::try_from(store_request)
             .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
-        self.account_command_tx.store_account(account).await
+
+        self.set_account(account).await?;
+        Ok(())
+    }
+
+    /// Set account, auto-connect the tunnel if enabled.
+    async fn set_account(&mut self, account: StorableAccount) -> Result<(), AccountCommandError> {
+        self.account_command_tx.store_account(account).await?;
+
+        // Auto connect once user logged in
+        if self.should_auto_connect().await {
+            tracing::info!("Auto-connect is enabled, connecting");
+            self.set_target_state(TargetState::Secured).await;
+        }
+
+        Ok(())
     }
 
     async fn handle_get_stored_mnemonic(
@@ -2559,7 +2623,7 @@ impl NymVpnService {
     }
 
     async fn handle_deeplink_store_account(
-        &self,
+        &mut self,
         deeplink_url: String,
         client: Option<Client>,
     ) -> Result<(), AccountCommandError> {
@@ -2575,9 +2639,7 @@ impl NymVpnService {
         };
 
         match deeplink_mnemonic.kind {
-            DeeplinkKind::Privy | DeeplinkKind::CreateAccount => {
-                self.account_command_tx.store_account(account).await
-            }
+            DeeplinkKind::Privy | DeeplinkKind::CreateAccount => self.set_account(account).await,
             DeeplinkKind::PrivyLink => self.account_command_tx.link_account(account).await,
             _ => Err(AccountCommandError::DeeplinkError(
                 "Invalid deeplink kind".to_string(),

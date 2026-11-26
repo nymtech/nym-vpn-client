@@ -161,7 +161,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                     },
                     AccountCommand::VpnApiFirewallUp(return_sender) => {
                        shared_state.set_firewall_state(true);
-                        return_sender.send(Ok(()));
+                       return_sender.send(Ok(()));
                     },
 
                     AccountCommand::Common(common_command) => {

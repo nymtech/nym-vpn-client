@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add setting to auto connect the tunnel as soon as the VPN service starts but only if account is set. Auto-connects once account is set at runtime too. See `nym-vpnc auto-connect -h` for more info (https://github.com/nymtech/nym-vpn-client/pull/7199)
+
 ### Fixed
 
 - [Linux] The `nym-vpnd` deb package no longer depends on `polkit-1-auth-agent`, so installing it on a system without a desktop doesn't pull in a graphical polkit agent. The dependency moved to the `nym-vpn-app` deb package. On a headless install, run `nym-vpnc` as root or add your user to the `nym-vpn` group (https://github.com/nymtech/nym-vpn-client/pull/7175)
