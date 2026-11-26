@@ -4,6 +4,9 @@ use crate::error::VpnApiClientError;
 use nym_http_api_client::{Client, ClientBuilder, FrontPolicy, FrontingConfig, Url, UserAgent};
 use nym_network_defaults::ApiUrl;
 
+// plain, plain, then a front: the rotation position persists across calls
+const REQUEST_RETRIES: usize = 2;
+
 pub fn fronted_http_client(
     urls: Vec<Url>,
     user_agent: Option<UserAgent>,
@@ -25,12 +28,6 @@ pub fn fronted_http_client_builder(
     timeout: Option<Duration>,
 ) -> Result<ClientBuilder, VpnApiClientError> {
     let has_front = urls.iter().any(|url| url.has_front());
-    // one attempt per host and per front, the first attempt is not a retry
-    let retries: usize = urls
-        .iter()
-        .map(|url| 1 + url.fronts().map_or(0, <[_]>::len))
-        .sum::<usize>()
-        .saturating_sub(1);
 
     let mut builder = ClientBuilder::new_with_urls(urls)
         .map_err(Box::new)
@@ -61,7 +58,7 @@ pub fn fronted_http_client_builder(
         builder = builder.with_fronting(Some(FrontPolicy::ConfiguredRetry(config)));
     }
 
-    Ok(builder.with_retries(retries))
+    Ok(builder.with_retries(REQUEST_RETRIES))
 }
 
 pub fn api_url_to_url(api_url: &ApiUrl) -> Result<Url, VpnApiClientError> {
