@@ -113,7 +113,7 @@ function Slider({
 
       <div className="relative">
         {valueIndicator && (
-          <div className="text-status-info absolute left-1/2 flex -translate-x-1/2 flex-col items-center justify-between text-sm">
+          <div className="text-brand-primary absolute left-1/2 flex -translate-x-1/2 flex-col items-center justify-between text-sm">
             <span className="whitespace-nowrap">
               {internalValue === defaultValue ? t('default') : t('current')}
             </span>

@@ -37,7 +37,9 @@ export function PerformanceCard() {
       <CardNewBody>
         <CardDataRow label={t('mixnet-tuning.performance.speed.title')}>
           <p className="text-brand-primary font-medium">
-            {t('mixnet-tuning.performance.speed.value', { value: speed })}
+            {state.disablePoissonRate
+              ? t('mixnet-tuning.performance.speed.unlimited')
+              : t('mixnet-tuning.performance.speed.value', { value: speed })}
           </p>
         </CardDataRow>
         <Separator
