@@ -14,20 +14,27 @@ function ContinuousTrafficSlider({
   disabled?: boolean;
 }) {
   const { t } = useTranslation('settings');
-  const { continuousItems } = useMixnetTrafficConfig();
+  const { continuousItems: items } = useMixnetTrafficConfig();
 
-  // Reversed so the faster (2 Mbps) end sits on the LEFT, matching the "Faster" label.
-  const items = [...continuousItems].reverse();
-
+  // Slowest rate (0.7 Mbps) on the left, fastest (2 Mbps) on the right: a higher
+  // rate is a denser cover stream, so "+ Anonymity" sits on the right as on the
+  // other mixnet tuning sliders.
   return (
     <div className="mt-0 w-full space-y-5">
-      <p className="text-text-secondary text-sm whitespace-pre-line">
-        {t('mixnet-tuning.continuous-traffic.description')}
+      <p
+        className={clsx('text-sm whitespace-pre-line', {
+          'text-status-warning': disabled,
+          'text-text-secondary': !disabled,
+        })}
+      >
+        {disabled
+          ? t('mixnet-tuning.continuous-traffic.warning')
+          : t('mixnet-tuning.continuous-traffic.description')}
       </p>
 
       <div className="text-text-secondary flex justify-between text-sm">
-        <span>{t('mixnet-tuning.slider.faster')}</span>
-        <span>{t('mixnet-tuning.slider.slower')}</span>
+        <span>{t('mixnet-tuning.slider.less-data')}</span>
+        <span>{t('mixnet-tuning.slider.anonymity')}</span>
       </div>
       <Slider
         className="px-2"
@@ -64,14 +71,11 @@ export function ContinuousTrafficCard() {
 
   const { state, updateField, continuousItems } = useMixnetTrafficConfig();
 
-  // Reversed to match the slider (faster / 2 Mbps on the left).
-  const reversedItems = [...continuousItems].reverse();
-
   const enabled = !state.disablePoissonRate;
   const toggle = () => updateField('disablePoissonRate', enabled);
 
   const setMessageSendingAverageDelay = (index: number) => {
-    const item = reversedItems[index];
+    const item = continuousItems[index];
     if (item) {
       updateField('messageSendingAverageDelay', item.value);
     }
@@ -83,15 +87,11 @@ export function ContinuousTrafficCard() {
         checked={enabled}
         onClick={toggle}
         header={t('mixnet-tuning.continuous-traffic.title')}
-        subheader={
-          enabled ? undefined : t('mixnet-tuning.continuous-traffic.warning')
-        }
-        subheaderColor="king-nacho"
       />
 
       <CardNewBody className="pb-5">
         <ContinuousTrafficSlider
-          value={reversedItems.findIndex(
+          value={continuousItems.findIndex(
             (item) => item.value === state.messageSendingAverageDelay,
           )}
           setValue={setMessageSendingAverageDelay}
