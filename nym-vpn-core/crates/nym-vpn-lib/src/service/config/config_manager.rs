@@ -203,10 +203,13 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_auto_connect(&mut self, auto_connect: bool) {
-        if self.config.auto_connect != auto_connect {
+    pub async fn set_auto_connect(&mut self, auto_connect: bool) -> bool {
+        if self.config.auto_connect == auto_connect {
+            false
+        } else {
             self.config.auto_connect = auto_connect;
             self.save_config_and_send_event().await;
+            true
         }
     }
 
