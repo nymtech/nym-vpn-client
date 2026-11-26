@@ -94,7 +94,7 @@ private extension PrivacyAndDataView {
         // TestFlight builds always log at debug level, so show the toggle locked on.
         let isTestFlight = ConfigurationManager.shared.isTestFlight
         return TelemetryOptInCard(
-            icon: "stethoscope",
+            icon: "doc.text.magnifyingglass",
             title: "welcomeOptIns.diagnostics.title".localizedString,
             subtitle: isTestFlight
                 ? "welcomeOptIns.diagnostics.testFlight".localizedString

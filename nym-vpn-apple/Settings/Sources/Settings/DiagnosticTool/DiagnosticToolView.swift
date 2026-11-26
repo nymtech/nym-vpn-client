@@ -66,7 +66,7 @@ private extension DiagnosticToolView {
     func loadingView() -> some View {
         ProgressView()
             .controlSize(.large)
-            .tint(Color.Nym.textSecondary)
+            .tint(Color.Nym.primary)
             .frame(maxWidth: .infinity)
             .padding(.top, 24)
     }
@@ -96,7 +96,7 @@ private extension DiagnosticToolView {
 #if os(macOS)
             GenericButton(
                 title: "settings.diagnosticTool.share".localizedString,
-                style: .accentBorderOnly
+                style: .primaryBorderOnly
             )
             .onTapGesture {
                 exportReport()
@@ -105,7 +105,7 @@ private extension DiagnosticToolView {
             ShareLink(item: reportText) {
                 GenericButton(
                     title: "settings.diagnosticTool.share".localizedString,
-                    style: .accentBorderOnly
+                    style: .primaryBorderOnly
                 )
             }
             .buttonStyle(.plain)
@@ -131,7 +131,7 @@ private extension DiagnosticToolView {
 
                 Text(reportText)
                     .foregroundStyle(Color.Nym.textSecondary)
-                    .nymTextStyle(.bodySmall)
+                    .font(.system(.caption, design: .monospaced))
                     .textSelection(.enabled)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
