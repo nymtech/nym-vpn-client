@@ -44,7 +44,7 @@ function DataAndPrivacy() {
 
   return (
     <PageAnim className="mt-2 flex h-full flex-col gap-6">
-      {/* Telemetry opt-ins — identical to the onboarding screen */}
+      {/* One card per opt-in, as on iOS and Android (onboarding groups them on every app) */}
       <SettingsGroup
         settings={[
           {
@@ -68,6 +68,10 @@ function DataAndPrivacy() {
             ),
             'data-testid': 'data-privacy-netstats-option',
           },
+        ]}
+      />
+      <SettingsGroup
+        settings={[
           {
             title: t('monitoring.label', { ns: 'welcome' }),
             titleTrailing: (
