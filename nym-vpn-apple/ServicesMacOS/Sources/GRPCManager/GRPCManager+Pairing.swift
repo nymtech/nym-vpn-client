@@ -14,25 +14,14 @@ extension GRPCManager {
     }
 
     public func startPairing() async throws -> QrUrl {
-        try await authorized { [weak self] in
-            guard let rpcClient = await self?.rpcClient else {
-                throw AccountDaemonRefreshError.clientUnavailable
-            }
-            return try await rpcClient.startPairing()
-        }
+        try await authorized { try await $0.startPairing() }
     }
 
     public func verifiedPairingPin(sessionId: UInt32) async throws {
-        try await authorized { [weak self] in
-            guard let rpcClient = await self?.rpcClient else {
-                throw AccountDaemonRefreshError.clientUnavailable
-            }
-            try await rpcClient.verifiedPairingPin(sessionId: sessionId)
-        }
+        try await authorized { try await $0.verifiedPairingPin(sessionId: sessionId) }
     }
 
     public func cancelPairingProcess() async throws {
-        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
-        try await rpcClient.cancelPairingProcess()
+        try await client.cancelPairingProcess()
     }
 }

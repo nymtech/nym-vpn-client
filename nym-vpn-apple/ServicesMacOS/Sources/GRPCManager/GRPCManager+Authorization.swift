@@ -8,15 +8,15 @@ extension GRPCManager {
     ///
     /// Skips the prompt if another request authorized the daemon while this one was in flight.
     @discardableResult
-    func authorized<T: Sendable>(_ request: @escaping @Sendable () async throws -> T) async throws -> T {
+    func authorized<T: Sendable>(_ request: @escaping @Sendable (RpcClient) async throws -> T) async throws -> T {
         let generation = authorizationGeneration
         do {
-            return try await request()
+            return try await request(client)
         } catch let error as RpcError where error.isUserPresenceRequired() {
             if generation == authorizationGeneration {
                 try await authorize()
             }
-            return try await request()
+            return try await request(client)
         }
     }
 }
@@ -30,8 +30,7 @@ private extension GRPCManager {
 
         let task = Task {
             let token = try await AuthorizationToken(prompt: kAuthorizationPrompt)
-            guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
-            try await rpcClient.authorize(token: token)
+            try await client.authorize(token: token)
         }
         authorizationTask = task
         defer { authorizationTask = nil }
