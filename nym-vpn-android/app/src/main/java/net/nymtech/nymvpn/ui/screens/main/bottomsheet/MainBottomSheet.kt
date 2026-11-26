@@ -74,9 +74,10 @@ fun MainBottomSheet(
 					)
 				}
 			}
-			MainBottomSheetContent.LoginProcessing -> {
+			is MainBottomSheetContent.LoginProcessing -> {
 				ProcessingComponent(
 					onProcessingComplete = onDismissRequest,
+					autoConnect = content.autoConnect,
 					authSheetMinHeightPx = authSheetMinHeightPx,
 				)
 			}

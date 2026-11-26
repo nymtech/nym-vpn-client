@@ -34,7 +34,7 @@ import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun PairingSignInScreen(viewModel: PairingSignInViewModel = hiltViewModel()) {
+fun PairingSignInScreen(autoConnect: Boolean, viewModel: PairingSignInViewModel = hiltViewModel()) {
 	SecureScreen()
 	SecureOverlayProtection()
 
@@ -44,7 +44,7 @@ fun PairingSignInScreen(viewModel: PairingSignInViewModel = hiltViewModel()) {
 	LaunchedEffect(state) {
 		// The core has already stored the account.
 		if (state == PairingState.SignedIn) {
-			navController.navigateAndForgetToMain(Route.Main(autoStart = false, loginProcessing = true))
+			navController.navigateAndForgetToMain(Route.Main(autoStart = autoConnect, loginProcessing = true))
 		}
 	}
 

@@ -778,6 +778,8 @@
 	<string name="redeem_code_checking">Checking code…</string>
 	<string name="redeem_code_invalid">This isn\'t a valid NymVPN code</string>
 	<string name="redeem_code_enter_instead">Enter code instead</string>
+	<string name="redeem_code_connect_after">Connect after redeeming</string>
+	<string name="qr_scan_connect_when_done">Connect when done</string>
 	<string name="freepass_error_invalid">This code isn\'t valid. Check it and try again.</string>
 	<string name="freepass_error_already_redeemed">This code has already been used.</string>
 	<string name="freepass_error_rate_limited">Too many attempts. Try again in a minute.</string>

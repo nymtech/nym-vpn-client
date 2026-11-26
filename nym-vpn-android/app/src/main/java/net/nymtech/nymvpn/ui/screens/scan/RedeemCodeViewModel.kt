@@ -31,9 +31,13 @@ class RedeemCodeViewModel @Inject constructor(private val validator: ScannedCode
 		_uiState.update { it.copy(code = code, errorRes = null) }
 	}
 
-	// The view model outlives the sheet, so closing it clears the code.
+	fun onConnectAfterChange(connectAfter: Boolean) {
+		_uiState.update { it.copy(connectAfter = connectAfter) }
+	}
+
+	// The view model outlives the sheet, so closing it clears the code. The scanner shares the connect choice.
 	fun reset() {
-		if (!_uiState.value.loading) _uiState.value = RedeemCodeUiState()
+		if (!_uiState.value.loading) _uiState.update { RedeemCodeUiState(connectAfter = it.connectAfter) }
 	}
 
 	fun submit() {

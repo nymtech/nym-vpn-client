@@ -355,7 +355,7 @@ class MainActivity : AppCompatActivity() {
 									QrScanScreen(fromWelcome = it.toRoute<Route.QrScan>().fromWelcome, accountStored = appState.managerState.isMnemonicStored)
 								}
 
-								composable<Route.PairingSignIn> { PairingSignInScreen() }
+								composable<Route.PairingSignIn> { PairingSignInScreen(autoConnect = it.toRoute<Route.PairingSignIn>().autoConnect) }
 
 								composable<Route.SplitTunneling> {
 									SplitTunnelingScreen(
