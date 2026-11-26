@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crate::error::VpnApiClientError;
-use nym_http_api_client::{Client, ClientBuilder, FrontPolicy, Url, UserAgent};
+use nym_http_api_client::{Client, ClientBuilder, FrontPolicy, FrontingConfig, Url, UserAgent};
 use nym_network_defaults::ApiUrl;
 
 pub fn fronted_http_client(
@@ -25,6 +25,11 @@ pub fn fronted_http_client_builder(
     timeout: Option<Duration>,
 ) -> Result<ClientBuilder, VpnApiClientError> {
     let has_front = urls.iter().any(|url| url.has_front());
+    // one attempt per host and per front, so a request can reach a plain relay behind fronted hosts
+    let retries: usize = urls
+        .iter()
+        .map(|url| 1 + url.fronts().map_or(0, <[_]>::len))
+        .sum();
 
     let mut builder = ClientBuilder::new_with_urls(urls)
         .map_err(Box::new)
@@ -47,11 +52,15 @@ pub fn fronted_http_client_builder(
         builder = builder.with_timeout(timeout);
     }
 
+    // Plain relays have no fronts: keep them in rotation once fronting is on.
     if has_front {
-        builder = builder.with_fronting(Some(FrontPolicy::OnRetry));
+        let config = FrontingConfig::new(1, 1)
+            .with_include_non_fronted_in_rotation(true)
+            .with_disable_fronting_on_non_fronting_success(true);
+        builder = builder.with_fronting(Some(FrontPolicy::ConfiguredRetry(config)));
     }
 
-    Ok(builder)
+    Ok(builder.with_retries(retries))
 }
 
 pub fn api_url_to_url(api_url: &ApiUrl) -> Result<Url, VpnApiClientError> {
@@ -123,6 +132,29 @@ fn parse_url(s: &str) -> Result<url::Url, VpnApiClientError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nym_http_api_client::{ApiClient, NO_PARAMS};
+    use wiremock::{Mock, MockServer, ResponseTemplate, matchers::path};
+
+    #[tokio::test]
+    async fn request_rotates_to_next_host_when_first_is_blocked() {
+        let server = MockServer::start().await;
+        Mock::given(path("/ok"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(true))
+            .mount(&server)
+            .await;
+        // rotation swaps only the host, so the refused host shares the relay's port
+        let blocked = Url::new(format!("http://[::1]:{}", server.address().port()), None).unwrap();
+        let relay = Url::new(server.uri(), None).unwrap();
+
+        let client = fronted_http_client(vec![blocked, relay], None, None).unwrap();
+
+        assert!(
+            client
+                .get_json::<_, bool, _, _>("ok", NO_PARAMS)
+                .await
+                .unwrap()
+        );
+    }
 
     #[test]
     fn test_api_url_to_url_domain() {
