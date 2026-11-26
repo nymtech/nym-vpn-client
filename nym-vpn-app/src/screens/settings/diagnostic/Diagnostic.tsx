@@ -1,20 +1,25 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { Separator } from '@base-ui/react';
-import { Button, ButtonIconNew, PageAnim } from '../../../ui';
+import { Button, ButtonIconNew, PageAnim, Spinner } from '../../../ui';
 import { useClipboard } from '../../../hooks';
 
 function Diagnostic() {
   const { t } = useTranslation('settings');
   const { copy } = useClipboard();
 
-  const [diagnosticRunning, setDiagnosticRunning] = useState(false);
+  // Starts true: the run begins as soon as the page opens
+  const [diagnosticRunning, setDiagnosticRunning] = useState(true);
+  const [diagnosticFailed, setDiagnosticFailed] = useState(false);
   const [diagnosticResult, setDiagnosticResult] = useState<string | null>(null);
   const [shareLoading, setShareLoading] = useState(false);
+  const startedRef = useRef(false);
 
-  const handleRunDiagnostic = async () => {
+  const handleRunDiagnostic = useCallback(async () => {
     setDiagnosticRunning(true);
+    setDiagnosticFailed(false);
+    setDiagnosticResult(null);
     try {
       const report = await invoke('run_diagnostic', {
         params: {
@@ -25,10 +30,20 @@ function Diagnostic() {
         },
       });
       setDiagnosticResult(JSON.stringify(report, null, 2));
+    } catch (error) {
+      console.error('failed to run diagnostic', error);
+      setDiagnosticFailed(true);
     } finally {
       setDiagnosticRunning(false);
     }
-  };
+  }, []);
+
+  // StrictMode runs effects twice in dev; the ref keeps it to one run per visit
+  useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    handleRunDiagnostic();
+  }, [handleRunDiagnostic]);
 
   const handleShareReport = async () => {
     if (!diagnosticResult) return;
@@ -48,14 +63,20 @@ function Diagnostic() {
   return (
     <PageAnim className="flex h-full flex-col">
       <div className="flex min-h-0 flex-1 flex-col gap-6">
-        <Button
-          onClick={handleRunDiagnostic}
-          disabled={diagnosticRunning}
-          loading={diagnosticRunning}
-        >
-          {t('diagnostic.run')}
-        </Button>
-        {diagnosticResult && (
+        {diagnosticRunning && (
+          <div className="flex justify-center pt-6">
+            <Spinner />
+          </div>
+        )}
+        {!diagnosticRunning && (
+          <Button onClick={handleRunDiagnostic}>{t('diagnostic.rerun')}</Button>
+        )}
+        {!diagnosticRunning && diagnosticFailed && (
+          <p className="text-text-secondary text-sm">
+            {t('diagnostic.failed')}
+          </p>
+        )}
+        {!diagnosticRunning && diagnosticResult && (
           <>
             <Button
               variant="outlined"

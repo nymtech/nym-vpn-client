@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { MsIcon, PageAnim, Switch } from '../../../ui';
+import { Button, MsIcon, PageAnim, Switch } from '../../../ui';
 import { dispatch, useMainState } from '../../../store';
 import SettingsGroup from '../SettingsGroup';
 import { routes } from '../../../router';
@@ -111,18 +111,9 @@ function DataAndPrivacy() {
           },
         ]}
       />
-      <SettingsGroup
-        settings={[
-          {
-            title: t('diagnostic.title'),
-            leadingIcon: 'monitor_heart',
-            trailing: (
-              <MsIcon icon="chevron_right" className="text-text-primary" />
-            ),
-            onClick: () => navigate(routes.diagnostic),
-          },
-        ]}
-      />
+      <Button onClick={() => navigate(routes.diagnostic)}>
+        {t('diagnostic.run')}
+      </Button>
 
       <TelemetryInfoDialog kind={info} onClose={() => setInfo(null)} />
     </PageAnim>
