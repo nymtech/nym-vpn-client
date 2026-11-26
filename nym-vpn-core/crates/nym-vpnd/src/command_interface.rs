@@ -1047,7 +1047,7 @@ impl NymVpnService for CommandInterface {
         let code = request.into_inner();
 
         let result = self
-            .send_and_wait(VpnServiceCommand::ApplyFreepass, code)
+            .send_and_wait(VpnServiceCommand::RedeemFreepass, code)
             .await?;
 
         account_command_response(result)

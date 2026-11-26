@@ -333,14 +333,14 @@ impl NymAccountController {
     }
 
     /// Redeems a free pass code on the signed-in account, then refreshes the account state.
-    pub async fn apply_freepass(&self, code: String) -> Result<(), VpnError> {
+    pub async fn redeem_freepass(&self, code: String) -> Result<(), VpnError> {
         self.account_command_sender.apply_freepass(code).await?;
         if let Err(err) = self
             .account_command_sender
             .refresh_account_state(true)
             .await
         {
-            tracing::warn!("Failed to refresh account after applying free pass: {err}");
+            tracing::warn!("Failed to refresh account after redeeming free pass: {err}");
         }
         Ok(())
     }

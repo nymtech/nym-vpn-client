@@ -149,7 +149,7 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun redeemFreepassForNewAccount(code: String): FreepassResult = freepassCall { it.createAccount(code) }
 
-	override suspend fun redeemFreepassForStoredAccount(code: String): FreepassResult = freepassCall { it.applyFreepass(code) }
+	override suspend fun redeemFreepassForStoredAccount(code: String): FreepassResult = freepassCall { it.redeemFreepass(code) }
 
 	private suspend fun <T> pairingCall(block: suspend (NymVpnServiceCommandSender) -> PairingCommandResult<T>): PairingCommandResult<T> =
 		core.withCoreSenderResult(PairingError, { PairingCommandResult.Failed(it) }, block)

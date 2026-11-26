@@ -68,11 +68,7 @@ private extension FreepassManager {
 
     // Core registers an account the API doesn't know yet.
     func redeemForStoredAccount(_ code: String) async -> FreepassResult {
-#if os(iOS)
-        await call { try await $0.applyFreepass(code: code) }
-#elseif os(macOS)
         await call { try await $0.redeemFreepass(code: code) }
-#endif
     }
 
     // A rejected code leaves no account.

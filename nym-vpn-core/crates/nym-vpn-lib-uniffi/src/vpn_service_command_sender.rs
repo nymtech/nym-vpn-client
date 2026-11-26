@@ -469,9 +469,9 @@ impl NymVpnServiceCommandSender {
     }
 
     /// Redeems a free pass code on the signed-in account, then refreshes the account state.
-    pub async fn apply_freepass(&self, code: String) -> Result<()> {
+    pub async fn redeem_freepass(&self, code: String) -> Result<()> {
         Ok(self
-            .send_and_wait(VpnServiceCommand::ApplyFreepass, code)
+            .send_and_wait(VpnServiceCommand::RedeemFreepass, code)
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
