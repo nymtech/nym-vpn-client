@@ -5,7 +5,10 @@ use anyhow::Result;
 use nym_vpn_lib_types::{DeeplinkClient, DeeplinkKind, GetDeeplinkParams, StoreAccountRequest};
 use nym_vpn_proto::rpc_client::RpcClient;
 
+use crate::display_helpers;
+
 mod pairing;
+mod summary;
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -91,16 +94,15 @@ impl Command {
                 let account_mode = rpc_client.get_account_mode().await?;
                 let account_state = rpc_client.get_account_state().await?;
 
-                println!(
-                    "Account identity: {}",
-                    account_id.unwrap_or("unset".to_owned())
-                );
-                println!(
-                    "Canonical Account identity: {}",
-                    canonical_account_id.unwrap_or("unset".to_owned())
-                );
-                println!("Account mode: {account_mode:?}");
-                println!("Account state: {account_state:?}");
+                print_row("Identity", account_id.as_deref().unwrap_or("unset"));
+                if canonical_account_id != account_id {
+                    print_row(
+                        "Canonical identity",
+                        canonical_account_id.as_deref().unwrap_or("unset"),
+                    );
+                }
+                print_row("Mode", summary::display_account_mode(account_mode));
+                print_row("State", &account_state.to_string());
                 Ok(())
             }
             Command::Set { secret, location } => {
@@ -208,7 +210,7 @@ impl Command {
             }
             Command::Summary => {
                 let response = rpc_client.get_account_summary().await?;
-                println!("{response:#?}");
+                summary::print_summary(response.as_ref());
                 Ok(())
             }
             Command::GetDeeplink { kind, name } => {
@@ -267,4 +269,8 @@ impl std::fmt::Display for AccountLocation {
             AccountLocation::Blockchain => write!(f, "blockchain"),
         }
     }
+}
+
+fn print_row(label: &str, value: &str) {
+    display_helpers::print_row(20, label, value);
 }

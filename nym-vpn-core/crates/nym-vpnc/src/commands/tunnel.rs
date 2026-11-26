@@ -3,10 +3,13 @@
 
 use anyhow::Result;
 
-use nym_vpn_lib_types::{BridgeMode, BridgeTransport};
+use nym_vpn_lib_types::{BridgeMode, BridgeTransport, VpnServiceConfig};
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
+use crate::{
+    boolean_option::BooleanOption,
+    display_helpers::{self, display_on_off},
+};
 use clap::builder::ValueParser;
 
 /// Transport preference, with an extra `auto` to clear back to no preference.
@@ -115,14 +118,7 @@ impl Command {
         match self {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
-                println!("IPv6: {}", display_on_off(!config.disable_ipv6));
-                println!("Two-hop: {}", display_on_off(config.enable_two_hop));
-                println!("Netstack: {}", display_on_off(config.netstack));
-                println!("Circumvention transports: {:?}", config.bridge_mode);
-                println!("Transport preference: {:?}", config.transport_preference);
-                println!("Mixnet traffic configuration: {}", config.mixnet_traffic);
-                println!("Gateway independence: {}", config.gateway_independence);
-
+                print_config(&config);
                 Ok(())
             }
             Command::Set(params) => {
@@ -195,4 +191,102 @@ impl Command {
             }
         }
     }
+}
+
+fn print_config(config: &VpnServiceConfig) {
+    let mixnet_traffic = &config.mixnet_traffic;
+    let gateway_independence = &config.gateway_independence;
+
+    print_row("IPv6", display_on_off(!config.disable_ipv6));
+    print_row("Two-hop", display_on_off(config.enable_two_hop));
+    print_row("Netstack", display_on_off(config.netstack));
+    print_row("Bridge mode", display_bridge_mode(config.bridge_mode));
+    print_row(
+        "Transport preference",
+        display_transport_preference(config.transport_preference),
+    );
+    print_row(
+        "Geo location",
+        display_on_off(
+            config
+                .gateway_selection_algorithm_config
+                .enable_geo_location,
+        ),
+    );
+    print_row(
+        "Gateway independence",
+        display_on_off(gateway_independence.active()),
+    );
+    print_row(
+        "  Different node family",
+        display_on_off(gateway_independence.different_node_family),
+    );
+    print_row(
+        "  Different ASN",
+        display_on_off(gateway_independence.different_asn),
+    );
+    print_row(
+        "  Different subnet",
+        display_on_off(gateway_independence.different_subnet),
+    );
+    print_row(
+        "  Notifications",
+        display_on_off(gateway_independence.enable_notifications),
+    );
+
+    println!();
+    println!("Mixnet traffic:");
+    print_row(
+        "  Loop cover stream delay",
+        &display_optional(mixnet_traffic.poisson_parameter_for_loop_cover_stream, "ms"),
+    );
+    print_row(
+        "  Average packet delay",
+        &display_optional(mixnet_traffic.average_packet_delay, "ms"),
+    );
+    print_row(
+        "  Message sending delay",
+        &display_optional(mixnet_traffic.message_sending_average_delay, "ms"),
+    );
+    print_row(
+        "  Real traffic Poisson rate",
+        display_on_off(!mixnet_traffic.disable_poisson_rate),
+    );
+    print_row(
+        "  Background cover traffic",
+        display_on_off(!mixnet_traffic.disable_background_cover_traffic),
+    );
+    print_row(
+        "  Min mixnode performance",
+        &display_optional(mixnet_traffic.min_mixnode_performance, "%"),
+    );
+    print_row(
+        "  Min gateway performance",
+        &display_optional(mixnet_traffic.min_gateway_mixnet_performance, "%"),
+    );
+}
+
+fn print_row(label: &str, value: &str) {
+    display_helpers::print_row(29, label, value);
+}
+
+fn display_bridge_mode(bridge_mode: BridgeMode) -> &'static str {
+    match bridge_mode {
+        BridgeMode::Auto => "auto",
+        BridgeMode::On => "on",
+        BridgeMode::Off => "off",
+    }
+}
+
+fn display_transport_preference(transport_preference: Option<BridgeTransport>) -> &'static str {
+    match transport_preference {
+        None => "auto",
+        Some(BridgeTransport::Quic) => "quic",
+        Some(BridgeTransport::Tls) => "tls",
+        Some(BridgeTransport::Ssh) => "ssh",
+    }
+}
+
+fn display_optional<T: std::fmt::Display>(value: Option<T>, unit: &str) -> String {
+    value.map_or_else(|| "default".to_owned(), |value| format!("{value}{unit}"))
 }
