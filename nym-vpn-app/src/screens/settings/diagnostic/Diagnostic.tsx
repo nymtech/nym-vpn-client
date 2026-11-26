@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { Separator } from '@base-ui/react';
 import { Button, ButtonIconNew, PageAnim, Spinner } from '../../../ui';
 import { useClipboard } from '../../../hooks';
 
@@ -68,7 +67,7 @@ function Diagnostic() {
             role="status"
             aria-label={t('diagnostic.running')}
           >
-            <Spinner />
+            <Spinner className="border-brand-primary! border-b-transparent!" />
           </div>
         )}
         {!diagnosticRunning && (
@@ -89,9 +88,9 @@ function Diagnostic() {
             >
               {t('diagnostic.share')}
             </Button>
-            <div className="dark:bg-surface-elev flex min-h-0 flex-1 flex-col space-y-4 rounded-lg bg-white p-6 font-mono text-xs">
+            <div className="dark:bg-surface-elev flex min-h-0 flex-1 flex-col space-y-4 rounded-lg bg-white p-6">
               <div className="flex items-center justify-between">
-                <span className="text-text-primary text-sm font-semibold">
+                <span className="text-text-primary text-base">
                   {t('diagnostic.report-title')}
                 </span>
                 <ButtonIconNew
@@ -103,12 +102,8 @@ function Diagnostic() {
                   // noDefaultSize
                 />
               </div>
-              <Separator
-                orientation="horizontal"
-                className="bg-text-tertiary dark:bg-text-secondary h-px w-full"
-              />
               <div className="min-h-0 flex-1 overflow-y-auto">
-                <pre className="text-text-secondary wrap-break-word whitespace-pre-wrap">
+                <pre className="text-text-secondary font-mono text-xs wrap-break-word whitespace-pre-wrap">
                   {diagnosticResult}
                 </pre>
               </div>
