@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `apply_freepass` no longer returns the subscription, and registers an account the VPN API doesn't know yet (https://github.com/nymtech/nym-vpn-client/pull/7178)
 - Account commands return `RateLimited`, `FreepassInvalid`, `FreepassAlreadyRedeemed` and `RecurringSubscriptionActive` errors instead of raw vpn-api errors (https://github.com/nymtech/nym-vpn-client/pull/7197)
+- _pending changelog_
 
 ### Fixed
 

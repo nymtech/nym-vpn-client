@@ -34,6 +34,8 @@ import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.RecentGateways
+import net.nymtech.vpn.model.freepass.FreepassError
+import net.nymtech.vpn.model.freepass.FreepassResult
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import nym_vpn_lib_types.AccountControllerState
@@ -271,6 +273,13 @@ class ServiceBackedBackendManager @Inject constructor(
 		serviceConnectionManager.withApi { it.createAccount() }
 		refreshIdentityState()
 	}
+	override suspend fun redeemFreepassForNewAccount(code: String): FreepassResult {
+		val result = serviceConnectionManager.withApiResult(FreepassError, FreepassResult::Failed) { it.redeemFreepassForNewAccount(code) }
+		if (result is FreepassResult.Redeemed) refreshIdentityState()
+		return result
+	}
+	override suspend fun redeemFreepassForStoredAccount(code: String): FreepassResult =
+		serviceConnectionManager.withApiResult(FreepassError, FreepassResult::Failed) { it.redeemFreepassForStoredAccount(code) }
 	override suspend fun registerAccount(purchaseToken: String?): String = serviceConnectionManager.withApi { it.registerAccount(purchaseToken) }
 	override suspend fun refreshAccount() {
 		serviceConnectionManager.withApi { it.refreshAccount() }

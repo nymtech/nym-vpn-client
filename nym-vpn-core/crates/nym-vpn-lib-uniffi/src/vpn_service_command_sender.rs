@@ -333,11 +333,12 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
-    pub async fn create_account(&self) -> Result<()> {
+    /// Creates an account, after redeeming the free pass if given.
+    pub async fn create_account(&self, freepass: Option<String>) -> Result<()> {
         Ok(self
             .send_and_wait(
                 VpnServiceCommand::CreateAccount,
-                ClientRequest::new(None, None),
+                ClientRequest::new(None, freepass),
             )
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
@@ -471,15 +472,6 @@ impl NymVpnServiceCommandSender {
     pub async fn apply_freepass(&self, code: String) -> Result<()> {
         Ok(self
             .send_and_wait(VpnServiceCommand::ApplyFreepass, code)
-            .await?
-            .map_err(NymVpnServiceCommandInnerError::Account)?)
-    }
-
-    /// Creates the stored account on the API with the free pass applied. The account state is
-    /// refreshed afterwards.
-    pub async fn redeem_freepass(&self, code: String) -> Result<()> {
-        Ok(self
-            .send_and_wait(VpnServiceCommand::RedeemFreepass, code)
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }

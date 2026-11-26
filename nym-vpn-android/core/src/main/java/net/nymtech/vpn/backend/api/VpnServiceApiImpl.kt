@@ -79,7 +79,7 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun createAccount() {
 		Timber.tag(TAG).d("createAccount requested")
-		core.requireCoreSender { it.createAccount() }
+		core.requireCoreSender { it.createAccount(null) }
 	}
 
 	override suspend fun registerAccount(token: String?): String {
@@ -147,9 +147,9 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun cancelPairing(): PairingCommandResult<Unit> = pairingCall { PairingCommandResult.Ok(it.cancelPairingProcess()) }
 
-	override suspend fun redeemFreepass(code: String): FreepassResult = freepassCall { it.redeemFreepass(code) }
+	override suspend fun redeemFreepassForNewAccount(code: String): FreepassResult = freepassCall { it.createAccount(code) }
 
-	override suspend fun applyFreepass(code: String): FreepassResult = freepassCall { it.applyFreepass(code) }
+	override suspend fun redeemFreepassForStoredAccount(code: String): FreepassResult = freepassCall { it.applyFreepass(code) }
 
 	private suspend fun <T> pairingCall(block: suspend (NymVpnServiceCommandSender) -> PairingCommandResult<T>): PairingCommandResult<T> =
 		core.withCoreSenderResult(PairingError, { PairingCommandResult.Failed(it) }, block)

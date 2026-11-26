@@ -252,7 +252,6 @@ pub enum VpnServiceCommand {
     HandleSubscriptionPayment(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     IsTrialEligible(oneshot::Sender<Result<bool, AccountCommandError>>, ()),
     ApplyFreepass(oneshot::Sender<Result<(), AccountCommandError>>, String),
-    RedeemFreepass(oneshot::Sender<Result<(), AccountCommandError>>, String),
     GetDeeplink(
         oneshot::Sender<Result<String, AccountCommandError>>,
         GetDeeplinkParams,
@@ -1392,9 +1391,6 @@ impl NymVpnService {
             VpnServiceCommand::ApplyFreepass(tx, code) => {
                 self.handle_apply_freepass(tx, code);
             }
-            VpnServiceCommand::RedeemFreepass(tx, code) => {
-                self.handle_redeem_freepass(tx, code);
-            }
             VpnServiceCommand::GetDeeplink(tx, params) => {
                 let _ = tx.send(self.handle_get_deeplink(params).await);
             }
@@ -2518,34 +2514,6 @@ impl NymVpnService {
                 // Pick up the new subscription without waiting for the next sync.
                 if let Err(err) = account_command_tx.refresh_account_state(true).await {
                     tracing::warn!("Failed to refresh account after applying free pass: {err}");
-                }
-            }
-            completion_tx.send(result).ok();
-        });
-    }
-
-    fn handle_redeem_freepass(
-        &self,
-        completion_tx: oneshot::Sender<Result<(), AccountCommandError>>,
-        code: String,
-    ) {
-        let account_command_tx = self.account_command_tx.clone();
-
-        tokio::spawn(async move {
-            let result = async {
-                let stored_account = account_command_tx
-                    .get_stored_account()
-                    .await?
-                    .ok_or(AccountCommandError::NoAccountStored)?;
-                account_command_tx
-                    .redeem_freepass(stored_account, code)
-                    .await
-            }
-            .await;
-            if result.is_ok() {
-                // Pick up the new account and subscription without waiting for the next sync.
-                if let Err(err) = account_command_tx.refresh_account_state(true).await {
-                    tracing::warn!("Failed to refresh account after redeeming free pass: {err}");
                 }
             }
             completion_tx.send(result).ok();

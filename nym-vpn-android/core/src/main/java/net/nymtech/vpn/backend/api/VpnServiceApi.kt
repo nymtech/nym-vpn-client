@@ -89,7 +89,6 @@ interface VpnServiceApi {
 	suspend fun verifiedPairingPin(sessionId: UInt): PairingCommandResult<Unit>
 	suspend fun cancelPairing(): PairingCommandResult<Unit>
 
-	// Free pass: redeem creates the stored account with the pass, apply adds it to the stored account.
-	suspend fun redeemFreepass(code: String): FreepassResult
-	suspend fun applyFreepass(code: String): FreepassResult
+	suspend fun redeemFreepassForNewAccount(code: String): FreepassResult
+	suspend fun redeemFreepassForStoredAccount(code: String): FreepassResult
 }
