@@ -16,7 +16,6 @@
 	<string name="search">Cari</string>
 	<string name="is_selected">Terpilih</string>
 	<string name="fastest">Tercepat</string>
-	<string name="logs">Catatan</string>
 	<string name="support">Dukungan</string>
 	<string name="terms_of_use">Ketentuan Penggunaan</string>
 	<string name="privacy_policy">Pernyataan Privasi</string>
@@ -470,26 +469,15 @@
 	<string name="pin_code_copied">Sudah disalin!</string>
 	<string name="clipboard_sensitive_copied">Telah disalin. Akan mencoba menghapus clipboard dalam %1$d detik</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">Aktifkan pencatatan</string>
-	<string name="logs_enable_description">Aktifkan untuk pemecahan masalah. Nonaktifkan untuk privasi. Catatan log tetap tersimpan di perangkat Anda. Nym tidak pernah memiliki akses.</string>
-	<string name="logs_debug_enable_title">Aktifkan pencatatan debug</string>
-	<string name="logs_debug_enable_description">Aktifkan opsi ini untuk mendapatkan log DEBUG terperinci guna keperluan debugging mandiri atau dukungan teknis. Hal ini akan meningkatkan konsumsi baterai. Ukuran log dapat membesar hingga 10 kali lipat.</string>
 	<string name="logs_tab_app">Aplikasi</string>
 	<string name="logs_tab_tunnel">Terowongan</string>
 	<string name="logs_tab_library">Perpustakaan</string>
 	<string name="logs_empty_placeholder">Belum ada catatan</string>
-	<string name="logs_share">Bagikan</string>
-	<string name="logs_download">Unduh</string>
 	<string name="logs_delete">Hapus</string>
 	<string name="logs_delete_title">Hapus log NymVPN?</string>
 	<string name="logs_delete_description">Menghapus log memang meningkatkan privasi, tetapi hal ini akan menghalangi Tim Dukungan untuk mendiagnosis masalah koneksi Anda.</string>
 	<string name="logs_delete_button">Hapus log</string>
-	<string name="logs_share_title">Apakah log NymVPN dibagikan?</string>
 	<string name="logs_share_description">Berkas log yang dibagikan dapat dilihat oleh penerima dan siapa pun yang mereka ajak berbagi.</string>
-	<string name="logs_share_button">Bagikan saja</string>
-	<string name="logs_download_title">Apakah log NymVPN akan disimpan sebagai berkas?</string>
-	<string name="logs_download_description">Catatan yang tersimpan dapat diakses oleh aplikasi lain atau siapa pun yang memiliki akses ke penyimpanan perangkat Anda.</string>
-	<string name="logs_download_button">Simpan sebagai file saja</string>
 	<string name="logs_saved">\"File log disimpan di folder Unduhan Anda\"</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Atur setiap aplikasi agar menggunakan NymVPN atau terhubung secara langsung.</string>

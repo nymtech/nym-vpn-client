@@ -16,7 +16,6 @@
 	<string name="search">Buscar</string>
 	<string name="is_selected">Seleccionado</string>
 	<string name="fastest">Más rápido</string>
-	<string name="logs">Registros</string>
 	<string name="support">Soporte</string>
 	<string name="terms_of_use">Términos de uso</string>
 	<string name="privacy_policy">Declaración de privacidad</string>
@@ -475,26 +474,15 @@
 	<string name="pin_code_copied">¡Copiado!</string>
 	<string name="clipboard_sensitive_copied">Copiado. Intentaré borrar el portapapeles en %1$d segundos</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">Habilitar registro</string>
-	<string name="logs_enable_description">Activar para solucionar problemas. Desactivar por privacidad. Los registros permanecen en tu dispositivo. Nym nunca tiene acceso.</string>
-	<string name="logs_debug_enable_title">Activar registro de depuración</string>
-	<string name="logs_debug_enable_description">Activar para registros DEBUG detallados para autodepuración o soporte. Aumenta el consumo de batería. El tamaño del registro puede crecer hasta 10x.</string>
 	<string name="logs_tab_app">App</string>
 	<string name="logs_tab_tunnel">Túnel</string>
 	<string name="logs_tab_library">Biblioteca</string>
 	<string name="logs_empty_placeholder">Aún no hay registros</string>
-	<string name="logs_share">Compartir</string>
-	<string name="logs_download">Descargar</string>
 	<string name="logs_delete">Eliminar</string>
 	<string name="logs_delete_title">¿Eliminar registros de NymVPN?</string>
 	<string name="logs_delete_description">La eliminación de registros mejora la privacidad pero evita que el soporte diagnostice sus problemas de conexión.</string>
 	<string name="logs_delete_button">Borrar registros</string>
-	<string name="logs_share_title">¿Compartir registros de NymVPN?</string>
 	<string name="logs_share_description">Los archivos de registro compartidos pueden ser vistos por los destinatarios y por cualquiera con quien compartan.</string>
-	<string name="logs_share_button">Compartir de todos modos</string>
-	<string name="logs_download_title">¿Guardar registros de NymVPN como archivo?</string>
-	<string name="logs_download_description">Los registros guardados pueden ser accedidos por otras aplicaciones o por cualquiera que tenga acceso al almacenamiento de su dispositivo.</string>
-	<string name="logs_download_button">Guardar como archivo de todos modos</string>
 	<string name="logs_saved">Registros guardados en la carpeta de descargas</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Establecer cada aplicación para usar NymVPN o conectarse directamente.</string>

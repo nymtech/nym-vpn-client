@@ -14,9 +14,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import net.nymtech.logcatutil.model.LogMessage
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 
 @Composable
 fun LogsListItem(log: LogMessage, modifier: Modifier = Modifier) {
@@ -25,11 +25,11 @@ fun LogsListItem(log: LogMessage, modifier: Modifier = Modifier) {
 			Icons.Filled.Close to MaterialTheme.colorScheme.error
 		}
 		"W" -> {
-			Icons.Filled.Warning to Color(0xFFFFC107)
+			Icons.Filled.Warning to LocalNymColors.current.warning
 		}
 
 		else -> {
-			Icons.Filled.Info to Color(0xFF7C4DFF)
+			Icons.Filled.Info to MaterialTheme.colorScheme.onSurfaceVariant
 		}
 	}
 

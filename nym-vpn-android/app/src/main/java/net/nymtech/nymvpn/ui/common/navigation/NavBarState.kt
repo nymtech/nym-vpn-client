@@ -16,6 +16,5 @@ sealed class NavBarState {
 	sealed class Trailing {
 		data object None : Trailing()
 		class Info(val onClick: () -> Unit) : Trailing()
-		class LogsMenu(val onDownload: () -> Unit, val onShare: () -> Unit, val onDelete: () -> Unit) : Trailing()
 	}
 }

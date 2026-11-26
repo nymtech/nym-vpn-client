@@ -18,7 +18,6 @@
 	<string name="search">Search</string>
 	<string name="is_selected">Selected</string>
 	<string name="fastest">Fastest</string>
-	<string name="logs">Logs</string>
 	<string name="support">Support</string>
 	<string name="privacy_link" translatable="false">https://nym.com/vpn-privacy-statement</string>
 	<string name="terms_of_use">Terms of use</string>
@@ -525,26 +524,26 @@
 	<string name="pin_code_copied">Copied!</string>
 	<string name="clipboard_sensitive_copied">Copied. Will try to clear clipboard in %1$d seconds</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">Enable logging</string>
-	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>
-	<string name="logs_debug_enable_title">Enable debug logging</string>
-	<string name="logs_debug_enable_description">Turn on for detailed DEBUG logs for self-debugging or support. Increases battery consumption. Log size may grow up to 10x.</string>
 	<string name="logs_tab_app">App</string>
 	<string name="logs_tab_tunnel">Tunnel</string>
 	<string name="logs_tab_library">Library</string>
 	<string name="logs_empty_placeholder">No logs yet</string>
-	<string name="logs_share">Share</string>
-	<string name="logs_download">Download</string>
+	<string name="logs_level_title">Your logs</string>
+	<string name="logs_level_off">Off</string>
+	<string name="logs_level_standard">Standard</string>
+	<string name="logs_level_detailed">Detailed</string>
+	<string name="logs_level_off_description">Nothing is recorded. If something goes wrong, Support has nothing to look at.</string>
+	<string name="logs_level_standard_description">Keeps a record of what the app does, on this device only. Nym never has access.</string>
+	<string name="logs_level_detailed_description">Adds detail for troubleshooting. Uses more battery, and logs can grow up to 10x larger.</string>
+	<string name="logs_share_logs">Share logs</string>
+	<string name="logs_save_logs">Save logs</string>
+	<string name="logs_show_live">Show live logs</string>
+	<string name="logs_off_hint">Logging is off. Turn it on in Data, privacy &amp; logs.</string>
 	<string name="logs_delete">Delete</string>
 	<string name="logs_delete_title">Delete NymVPN logs?</string>
 	<string name="logs_delete_description">Deleting logs improves privacy but prevents Support from diagnosing your connection issues.</string>
 	<string name="logs_delete_button">Delete logs</string>
-	<string name="logs_share_title">Share NymVPN logs?</string>
 	<string name="logs_share_description">Shared log files can be viewed by recipients and anyone they share them with.</string>
-	<string name="logs_share_button">Share anyway</string>
-	<string name="logs_download_title">Save NymVPN logs as file?</string>
-	<string name="logs_download_description">Saved logs may be accessed by other apps or anyone with access to your device\'s storage.</string>
-	<string name="logs_download_button">Save as file anyway</string>
 	<string name="logs_saved">Logs saved to your Downloads folder"</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>

@@ -3,12 +3,15 @@ package net.nymtech.nymvpn.ui.screens.settings.privacy
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +35,8 @@ import net.nymtech.nymvpn.ui.screens.settings.components.SettingsGroup
 import net.nymtech.nymvpn.ui.screens.settings.components.SettingsIcon
 import net.nymtech.nymvpn.ui.screens.settings.components.SettingsTitle
 import net.nymtech.nymvpn.ui.screens.settings.diagnostic.components.RunDiagnosticsButton
+import net.nymtech.nymvpn.ui.screens.settings.privacy.components.LoggingLevel
+import net.nymtech.nymvpn.ui.screens.settings.privacy.components.LoggingLevelCard
 import net.nymtech.nymvpn.ui.screens.settings.privacy.components.MonitoringSection
 import net.nymtech.nymvpn.ui.screens.settings.privacy.components.NetworkStatsSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -39,17 +44,26 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
+/** The three data choices shown on this screen, read from settings and the core config. */
+data class PrivacyChoices(val statsEnabled: Boolean, val sentryEnabled: Boolean, val loggingLevel: LoggingLevel)
+
 @Composable
 fun PrivacyScreen(appUiState: AppUiState, viewModel: PrivacyViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
 	PrivacyScreen(
-		appUiState.settings.statsEnabled,
-		appUiState.vpnConfig.sentry,
+		choices = PrivacyChoices(
+			statsEnabled = appUiState.settings.statsEnabled,
+			sentryEnabled = appUiState.vpnConfig.sentry,
+			loggingLevel = LoggingLevel.from(appUiState.settings.logsEnabled, appUiState.vpnConfig.debugLog),
+		),
 		onNetworkStatsEnable = {
 			viewModel.onNetworkStatsEnabled(it)
 		},
 		onMonitoringEnable = {
 			viewModel.onMonitoringEnabled(it)
+		},
+		onLoggingLevelChange = {
+			viewModel.onLoggingLevelChange(it)
 		},
 		onLogsClick = {
 			navController.navigate(Route.Logs)
@@ -62,10 +76,10 @@ fun PrivacyScreen(appUiState: AppUiState, viewModel: PrivacyViewModel = hiltView
 
 @Composable
 fun PrivacyScreen(
-	statsEnabled: Boolean,
-	sentryEnabled: Boolean,
+	choices: PrivacyChoices,
 	onNetworkStatsEnable: (enabled: Boolean) -> Unit,
 	onMonitoringEnable: (enabled: Boolean) -> Unit,
+	onLoggingLevelChange: (LoggingLevel) -> Unit,
 	onLogsClick: () -> Unit,
 	onDiagnosticClick: () -> Unit,
 ) {
@@ -79,8 +93,9 @@ fun PrivacyScreen(
 			.padding(top = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-		NetworkStatsSection(statsEnabled, onNetworkStatsEnable, onInfo = { infoKind = it })
-		MonitoringSection(sentryEnabled, onMonitoringEnable, onInfo = { infoKind = it })
+		NetworkStatsSection(choices.statsEnabled, onNetworkStatsEnable, onInfo = { infoKind = it })
+		MonitoringSection(choices.sentryEnabled, onMonitoringEnable, onInfo = { infoKind = it })
+		LoggingLevelCard(level = choices.loggingLevel, onLevelChange = onLoggingLevelChange)
 
 		SettingsGroup(
 			items = listOf(
@@ -92,7 +107,17 @@ fun PrivacyScreen(
 						)
 					},
 					trailing = {
-						SettingsArrowIcon()
+						Row(
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.spacedBy(4.dp),
+						) {
+							Text(
+								text = stringResource(choices.loggingLevel.labelRes),
+								style = MaterialTheme.typography.bodyMedium,
+								color = MaterialTheme.colorScheme.onBackground,
+							)
+							SettingsArrowIcon()
+						}
 					},
 					title = {
 						SettingsTitle(
@@ -116,6 +141,13 @@ fun PrivacyScreen(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewPrivacyScreen() {
 	NymVPNTheme(Theme.default()) {
-		PrivacyScreen(statsEnabled = true, sentryEnabled = true, onMonitoringEnable = {}, onNetworkStatsEnable = {}, onDiagnosticClick = {}, onLogsClick = {})
+		PrivacyScreen(
+			choices = PrivacyChoices(statsEnabled = true, sentryEnabled = true, loggingLevel = LoggingLevel.STANDARD),
+			onNetworkStatsEnable = {},
+			onMonitoringEnable = {},
+			onLoggingLevelChange = {},
+			onLogsClick = {},
+			onDiagnosticClick = {},
+		)
 	}
 }

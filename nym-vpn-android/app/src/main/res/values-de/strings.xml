@@ -16,7 +16,6 @@
 	<string name="search">Suche</string>
 	<string name="is_selected">Ausgewählt</string>
 	<string name="fastest">Am schnellsten</string>
-	<string name="logs">Logs</string>
 	<string name="support">Support</string>
 	<string name="terms_of_use">Nutzungsbedingungen</string>
 	<string name="privacy_policy">Datenschutzerklärung</string>
@@ -475,26 +474,15 @@
 	<string name="pin_code_copied">Kopiert!</string>
 	<string name="clipboard_sensitive_copied">Kopiert. Versuche, die Zwischenablage in %1$d Sekunden zu leeren</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">Logging aktivieren</string>
-	<string name="logs_enable_description">Einschalten zur Fehlerbehebung. Deaktivieren für den Datenschutz. Die Logs bleiben auf deinem Gerät. Nym hat keinen Zugriff.</string>
-	<string name="logs_debug_enable_title">Debug-Protokollierung aktivieren</string>
-	<string name="logs_debug_enable_description">Einschalten, um detaillierte DEBUG-Protokolle für die Selbstdiagnose oder den Support zu erhalten. Erhöht den Batterieverbrauch. Die Loggröße kann bis zu 10x größer werden.</string>
 	<string name="logs_tab_app">App</string>
 	<string name="logs_tab_tunnel">Tunnel</string>
 	<string name="logs_tab_library">Bibliothek</string>
 	<string name="logs_empty_placeholder">Noch keine Logs</string>
-	<string name="logs_share">Teilen</string>
-	<string name="logs_download">Download</string>
 	<string name="logs_delete">Löschen</string>
 	<string name="logs_delete_title">NymVPN-Logs löschen?</string>
 	<string name="logs_delete_description">Das Löschen von Logs verbessert die Privatsphäre, hindert aber den Support daran, deine Verbindungsprobleme zu diagnostizieren.</string>
 	<string name="logs_delete_button">Logs löschen</string>
-	<string name="logs_share_title">NymVPN-Logs teilen?</string>
 	<string name="logs_share_description">Geteilte Logdateien können von Empfängern und allen Personen, mit denen sie diese teilen, eingesehen werden.</string>
-	<string name="logs_share_button">Trotzdem teilen</string>
-	<string name="logs_download_title">NymVPN-Logs als Datei speichern?</string>
-	<string name="logs_download_description">Gespeicherte Logs können von anderen Apps oder jeder Person mit Zugriff auf den Speicher deines Geräts abgerufen werden.</string>
-	<string name="logs_download_button">Trotzdem als Datei speichern</string>
 	<string name="logs_saved">Logs wurden im Download-Ordner gespeichert</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Konfiguriere bei jeder App, ob sie sich über NymVPN verbinden soll oder direkt eine Verbindung herstellt.</string>

@@ -16,7 +16,6 @@
 	<string name="search">بحث</string>
 	<string name="is_selected">مختار</string>
 	<string name="fastest">الأسرع</string>
-	<string name="logs">السجلات</string>
 	<string name="support">الدعم</string>
 	<string name="terms_of_use">شروط الاستخدام</string>
 	<string name="privacy_policy">بيان الخصوصية</string>
@@ -491,26 +490,15 @@
 	<string name="pin_code_copied">نسخ!</string>
 	<string name="clipboard_sensitive_copied">تم النسخ. سأحاول مسح الحافظة خلال %1$d ثانية</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">تمكين تسجيل الدخول</string>
-	<string name="logs_enable_description">تشغيل لاستكشاف الأخطاء وإصلاحها. تعطيل للخصوصية. السجلات تبقى على جهازك. لا يوجد أي شيء لديه حق الوصول أبدا.</string>
-	<string name="logs_debug_enable_title">تمكين تسجيل التصحيح</string>
-	<string name="logs_debug_enable_description">تشغيل سجلات DEBUG المفصلة لتصحيح الأخطاء الذاتية أو الدعم. زيادة استهلاك البطارية. قد يكبر حجم السجل حتى 10x.</string>
 	<string name="logs_tab_app">التطبيق</string>
 	<string name="logs_tab_tunnel">نفق</string>
 	<string name="logs_tab_library">المكتبة</string>
 	<string name="logs_empty_placeholder">لا توجد سجلات بعد</string>
-	<string name="logs_share">مشاركة</string>
-	<string name="logs_download">تنزيل</string>
 	<string name="logs_delete">حذف</string>
 	<string name="logs_delete_title">حذف سجلات NymVPN؟</string>
 	<string name="logs_delete_description">حذف السجلات يحسن الخصوصية ولكن يمنع الدعم من تشخيص مشاكل الاتصال الخاصة بك.</string>
 	<string name="logs_delete_button">حذف السجلات</string>
-	<string name="logs_share_title">مشاركة سجلات NymVPN؟</string>
 	<string name="logs_share_description">ملفات السجل المشتركة يمكن مشاهدتها من قبل المستلمين وأي شخص يتقاسمونها معهم.</string>
-	<string name="logs_share_button">شارك على أي حال</string>
-	<string name="logs_download_title">حفظ سجلات NymVPN كملف؟</string>
-	<string name="logs_download_description">يمكن الوصول إلى السجلات المحفوظة بواسطة تطبيقات أخرى أو أي شخص لديه حق الوصول إلى تخزين جهازك.</string>
-	<string name="logs_download_button">حفظ كملف على أي حال</string>
 	<string name="logs_saved">Logs saved to downloads folder</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">تعيين كل تطبيق لاستخدام NymVPN أو الاتصال مباشرة.</string>

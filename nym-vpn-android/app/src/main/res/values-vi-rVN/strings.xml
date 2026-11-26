@@ -16,7 +16,6 @@
 	<string name="search">Tìm kiếm</string>
 	<string name="is_selected">Đã chọn</string>
 	<string name="fastest">Nhanh nhất</string>
-	<string name="logs">Nhật Ký</string>
 	<string name="support">Hỗ trợ</string>
 	<string name="terms_of_use">Điều khoản sử dụng</string>
 	<string name="privacy_policy">Tuyên bố về quyền riêng tư</string>
@@ -469,26 +468,15 @@
 	<string name="pin_code_copied">Đã sao chép!</string>
 	<string name="clipboard_sensitive_copied">Đã sao chép. Sẽ cố gắng xóa nội dung khay nhớ tạm trong %1$d giây</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">Cho phép ghi lại nhật ký</string>
-	<string name="logs_enable_description">Bật tính năng này để khắc phục sự cố. Tắt tính năng này để bảo mật thông tin cá nhân. Nhật ký sẽ được lưu trữ trên thiết bị của bạn. Nym không bao giờ có quyền truy cập.</string>
-	<string name="logs_debug_enable_title">Bật ghi nhật ký gỡ lỗi</string>
-	<string name="logs_debug_enable_description">Bật chế độ này để ghi lại nhật ký DEBUG chi tiết phục vụ cho việc tự gỡ lỗi hoặc hỗ trợ. Chế độ này sẽ làm tăng mức tiêu hao pin. Kích thước nhật ký có thể tăng lên đến 10 lần.</string>
 	<string name="logs_tab_app">Ứng dụng</string>
 	<string name="logs_tab_tunnel">Tunnel</string>
 	<string name="logs_tab_library">Thư viện</string>
 	<string name="logs_empty_placeholder">Chưa có bản ghi nào</string>
-	<string name="logs_share">Chia sẻ</string>
-	<string name="logs_download">Tải xuống</string>
 	<string name="logs_delete">Xóa</string>
 	<string name="logs_delete_title">Xóa nhật ký NymVPN?</string>
 	<string name="logs_delete_description">Xóa nhật ký sẽ cải thiện quyền riêng tư nhưng sẽ cản trở quá trình chẩn đoán các sự cố kết nối của bạn của Bộ phận hỗ trợ.</string>
 	<string name="logs_delete_button">Xóa nhật ký</string>
-	<string name="logs_share_title">Chia sẻ nhật ký NymVPN?</string>
 	<string name="logs_share_description">Người nhận và bất kỳ ai bạn chia sẻ quyền đều có thể xem được tệp nhật ký.</string>
-	<string name="logs_share_button">Vẫn chia sẻ</string>
-	<string name="logs_download_title">Lưu nhật ký NymVPN dưới dạng tệp?</string>
-	<string name="logs_download_description">Các ứng dụng khác hoặc bất kỳ ai có quyền truy cập vào bộ nhớ trên thiết bị của bạn đều có thể truy cập vào nhật ký đã lưu.</string>
-	<string name="logs_download_button">Vẫn lưu dưới dạng tệp</string>
 	<string name="logs_saved">Nhật ký được lưu vào thư mục tải xuống\"</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Thiết lập từng ứng dụng để sử dụng NymVPN hoặc kết nối trực tiếp.</string>

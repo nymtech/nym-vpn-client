@@ -22,8 +22,6 @@ import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogReader
 import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
@@ -31,7 +29,6 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.chunked
 import net.nymtech.nymvpn.util.extensions.launchShareFile
-import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import timber.log.Timber
 import java.io.File
 import java.time.Duration
@@ -41,8 +38,6 @@ import javax.inject.Inject
 @HiltViewModel
 class LogsViewModel @Inject constructor(
 	private val logReader: LogReader,
-	private val settingsRepository: SettingsRepository,
-	private val vpnConfigRepository: VpnConfigRepository,
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 	@MainDispatcher private val mainDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -198,16 +193,4 @@ class LogsViewModel @Inject constructor(
 		}
 	}
 
-	fun onLogsEnabled(enabled: Boolean) = viewModelScope.launch {
-		Timber.tag(TAG).i("LogsEnabledChanged enabled=%s", enabled)
-		settingsRepository.setLogsEnabled(enabled)
-		if (!enabled) {
-			onLogsDebugEnabled(false)
-		}
-	}
-
-	fun onLogsDebugEnabled(enabled: Boolean) = viewModelScope.launch {
-		Timber.tag(TAG).i("LogsDebugEnabledChanged enabled=%s", enabled)
-		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetDebugLog(enabled))
-	}
 }

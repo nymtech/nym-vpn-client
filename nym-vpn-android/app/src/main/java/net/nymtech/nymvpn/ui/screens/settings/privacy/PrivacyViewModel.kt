@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
+import net.nymtech.nymvpn.ui.screens.settings.privacy.components.LoggingLevel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import javax.inject.Inject
 
@@ -19,5 +20,10 @@ class PrivacyViewModel @Inject constructor(private val vpnConfigRepository: VpnC
 
 	fun onMonitoringEnabled(enabled: Boolean) = viewModelScope.launch {
 		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetSentry(enabled))
+	}
+
+	fun onLoggingLevelChange(level: LoggingLevel) = viewModelScope.launch {
+		settingsRepository.setLogsEnabled(level != LoggingLevel.OFF)
+		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetDebugLog(level == LoggingLevel.DETAILED))
 	}
 }

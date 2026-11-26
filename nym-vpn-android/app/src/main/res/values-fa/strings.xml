@@ -16,7 +16,6 @@
 	<string name="search">جستجو</string>
 	<string name="is_selected">انتخاب شده</string>
 	<string name="fastest">سریع‌ترین</string>
-	<string name="logs">گزارش‌ها</string>
 	<string name="support">پشتیبانی</string>
 	<string name="terms_of_use">شرایط استفاده از</string>
 	<string name="privacy_policy">اعلامیه حریم خصوصی</string>
@@ -475,26 +474,15 @@
 	<string name="pin_code_copied">کپی شد!</string>
 	<string name="clipboard_sensitive_copied">کپی شد. در %1$d ثانیه تلاش می‌شود کلیپ‌بورد پاک شود</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">فعال‌سازی ثبت لاگ</string>
-	<string name="logs_enable_description">برای عیب‌یابی فعال کنید. برای حریم خصوصی غیرفعال کنید. لاگ‌ها روی دستگاه شما می‌مانند. Nym هرگز دسترسی ندارد.</string>
-	<string name="logs_debug_enable_title">فعال‌سازی لاگ‌گیری اشکال‌زدایی</string>
-	<string name="logs_debug_enable_description">برای دریافت لاگ‌های DEBUG دقیق، برای عیب‌یابی-شخصی یا پشتیبانی فعال کنید. مصرف باتری را افزایش می‌دهد. اندازه لاگ ممکن است تا ۱۰ برابر افزایش یابد.</string>
 	<string name="logs_tab_app">برنامه</string>
 	<string name="logs_tab_tunnel">تونل</string>
 	<string name="logs_tab_library">کتابخانه</string>
 	<string name="logs_empty_placeholder">هنوز هیچ لاگی نیست</string>
-	<string name="logs_share">اشتراک‌گذاری</string>
-	<string name="logs_download">دانلود</string>
 	<string name="logs_delete">حذف کردن</string>
 	<string name="logs_delete_title">حذف گزارش‌های NymVPN؟</string>
 	<string name="logs_delete_description">حذف گزارش‌ها حریم خصوصی را بهبود می‌بخشد اما مانع از تشخیص مشکلات اتصال شما توسط پشتیبانی می‌شود.</string>
 	<string name="logs_delete_button">حذف کردن گزارشات</string>
-	<string name="logs_share_title">گزارش‌های NymVPN را به اشتراک بگذارید؟</string>
 	<string name="logs_share_description">فایل‌های لاگ یا گزارش اشتراک‌گذاری‌شده می‌توانند توسط گیرندگان و هر کسی که آنها را با او به اشتراک می‌گذارند، مشاهده شوند.</string>
-	<string name="logs_share_button">به هر حال به اشتراک بگذارید</string>
-	<string name="logs_download_title">گزارش‌های NymVPN را به عنوان فایل ذخیره کنید؟</string>
-	<string name="logs_download_description">گزارش‌های ذخیره‌شده ممکن است توسط برنامه‌های دیگر یا هر کسی که به فضای ذخیره‌سازی دستگاه شما دسترسی دارد، قابل دسترسی باشد.</string>
-	<string name="logs_download_button">در هر صورت به عنوان فایل ذخیره کنید</string>
 	<string name="logs_saved">گزارش‌ها در پوشه دانلود ذخیره شد</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">هر برنامه را طوری تنظیم کنید که از NymVPN استفاده کند یا بدون آن مستقیماً متصل شود.</string>
