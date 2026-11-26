@@ -565,7 +565,6 @@
 	<string name="diagnostic_report_title">Laporan diagnostik</string>
 	<string name="diagnostic_copy_report">Salin laporan</string>
 	<string name="diagnostic_copied">Telah disalin ke papan klip</string>
-	<string name="diagnostic_error">Proses diagnostik gagal</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Lindungi diri Anda dari penipuan</string>
 	<string name="support_protect_description">Silakan hubungi layanan dukungan NymVPN hanya melalui saluran resmi yang tercantum di bawah ini. Kami tidak akan pernah meminta frasa sandi Anda atau menghubungi Anda terlebih dahulu melalui pesan langsung.\n\nMenerima pesan yang tidak terduga? Kemungkinan besar itu adalah penipuan.</string>

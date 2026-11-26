@@ -569,7 +569,6 @@
 	<string name="diagnostic_report_title">Tanılama raporu</string>
 	<string name="diagnostic_copy_report">Raporu kopyala</string>
 	<string name="diagnostic_copied">Panoya kopyalandı</string>
-	<string name="diagnostic_error">Tanılama başarısız oldu</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Kendinizi dolandırıcılardan koruyun</string>
 	<string name="support_protect_description">NymVPN destek ekibiyle sadece aşağıda belirtilen resmi kanallar üzerinden iletişime geçin. Kurtarma ifadenizi asla istemeyiz ve sizinle doğrudan mesajla temas kurmayız.\n\nBeklenmedik bir ileti aldıysanız, büyük olasılıkla bu bir dolandırıcılıktır.</string>

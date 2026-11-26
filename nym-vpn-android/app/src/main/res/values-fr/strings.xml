@@ -568,7 +568,6 @@
 	<string name="diagnostic_report_title">Rapport de diagnostic</string>
 	<string name="diagnostic_copy_report">Copier le rapport</string>
 	<string name="diagnostic_copied">Copié dans le presse-papiers</string>
-	<string name="diagnostic_error">Échec du diagnostic</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Protégez-vous des arnaques</string>
 	<string name="support_protect_description">Contactez le service d\'assistance de NymVPN uniquement via les canaux officiels listés ci-dessous. Nous ne vous demanderons jamais votre phrase de passe et ne vous contacterons jamais en premier via des messages directs.\n\nUn contact non sollicité ? C\'est probablement une arnaque.</string>

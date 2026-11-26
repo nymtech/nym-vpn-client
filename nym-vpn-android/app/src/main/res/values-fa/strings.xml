@@ -570,7 +570,6 @@
 	<string name="diagnostic_report_title">گزارش عیب‌یابی</string>
 	<string name="diagnostic_copy_report">کپی گزارش</string>
 	<string name="diagnostic_copied">کپی شده به کلیپ‌بورد</string>
-	<string name="diagnostic_error">عیب‌یابی ناموفق بود</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ از خود در برابر کلاهبرداری محافظت کنید</string>
 	<string name="support_protect_description">فقط از طریق کانال‌های رسمی زیر با پشتیبانی NymVPN تماس بگیرید. ما هرگز عبارت عبور شما را درخواست نمی‌کنیم و هرگز از طریق دایرکت یا پیام شخصی با شما تماس نخواهیم گرفت.\n\nاگرچه تماس غیرمنتظره دریافت کرده‌اید؟ احتمالاً کلاهبرداری است.</string>

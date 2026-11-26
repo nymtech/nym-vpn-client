@@ -569,7 +569,6 @@
 	<string name="diagnostic_report_title">डायग्नोस्टिक रिपोर्ट</string>
 	<string name="diagnostic_copy_report">रिपोर्ट कॉपी करें</string>
 	<string name="diagnostic_copied">क्लिपबोर्ड में कॉपी किया गया</string>
-	<string name="diagnostic_error">निदान विफल रहा</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">अपने आप को स्कैम से बचाएँ</string>
 	<string name="support_protect_description">NymVPN सहायता के लिए कृपया नीचे दिए गए आधिकारिक चैनलों के माध्यम से ही संपर्क करें। हम आपसे कभी भी आपका पासवर्ड नहीं पूछेंगे और न ही सीधे संदेशों के माध्यम से आपसे संपर्क करेंगे।\n\nक्या आपको कोई अप्रत्याशित संदेश मिला है? यह संभवतः एक स्कैम है।</string>

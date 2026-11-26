@@ -110,11 +110,11 @@ fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShare
 			)
 		}
 
-		uiState.error?.let { error ->
+		if (!uiState.isLoading && uiState.report == null) {
 			Text(
-				text = "${stringResource(R.string.diagnostic_error)}: $error",
-				style = MaterialTheme.typography.bodySmall,
-				color = MaterialTheme.colorScheme.error,
+				text = stringResource(R.string.diagnostic_failed),
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onBackground,
 			)
 		}
 

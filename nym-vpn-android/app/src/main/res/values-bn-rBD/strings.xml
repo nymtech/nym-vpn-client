@@ -568,7 +568,6 @@
 	<string name="diagnostic_report_title">ডায়াগনস্টিক রিপোর্ট</string>
 	<string name="diagnostic_copy_report">প্রতিবেদন অনুলিপি করুন</string>
 	<string name="diagnostic_copied">ক্লিপবোর্ডে কপি করা হয়েছে</string>
-	<string name="diagnostic_error">ডায়াগনস্টিকস ব্যর্থ হয়েছে</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ প্রতারণা থেকে নিজেকে রক্ষা করুন</string>
 	<string name="support_protect_description">শুধুমাত্র নীচে তালিকাভুক্ত অফিসিয়াল চ্যানেলগুলির মাধ্যমে NymVPN সাপোর্টের সাথে যোগাযোগ করুন। আমরা কখনই আপনার পাসফ্রেজ চাইব না বা সরাসরি মেসেজের মাধ্যমে প্রথমে আপনার সাথে যোগাযোগ করব না।\n\nঅপ্রত্যাশিত যোগাযোগ পেয়েছেন? এটি সম্ভবত একটি স্ক্যাম।</string>

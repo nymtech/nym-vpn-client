@@ -564,7 +564,6 @@
 	<string name="diagnostic_report_title">Báo cáo chẩn đoán</string>
 	<string name="diagnostic_copy_report">Sao chép báo cáo</string>
 	<string name="diagnostic_copied">Đã sao chép vào bộ nhớ tạm</string>
-	<string name="diagnostic_error">Chẩn đoán không thành công</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Bảo vệ bản thân khỏi lừa đảo</string>
 	<string name="support_protect_description">Chỉ liên hệ với bộ phận hỗ trợ của NymVPN qua các kênh chính thức được liệt kê bên dưới. Chúng tôi sẽ không bao giờ yêu cầu mật khẩu hoặc liên hệ với bạn trước qua tin nhắn trực tiếp.\n\nBạn nhận được liên hệ đáng ngờ? Rất có thể đây là lừa đảo.</string>
