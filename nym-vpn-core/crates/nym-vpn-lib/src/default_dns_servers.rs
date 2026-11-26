@@ -4,6 +4,7 @@
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 use hickory_resolver::config::{CLOUDFLARE, NameServerConfig, QUAD9};
+use nym_vpn_lib_types::DefaultDnsSettings;
 
 const QUAD9_UNAVAILABLE_COUNTRY: &str = "FR";
 
@@ -20,18 +21,23 @@ impl DefaultDnsServers {
         }
     }
 
-    /// Update Quad9 availability based on user and exit gateway countries (two-letter ISO codes).
-    /// The last known user country is used when `user_country` is `None`.
+    /// Update Quad9 availability based on default DNS settings, user and exit gateway countries
+    /// (two-letter ISO codes). The last known user country is used when `user_country` is `None`.
     /// Returns `true` if the DNS servers changed.
-    pub fn update(&self, user_country: Option<&str>, exit_country: Option<&str>) -> bool {
+    pub fn update(
+        &self,
+        settings: &DefaultDnsSettings,
+        user_country: Option<&str>,
+        exit_country: Option<&str>,
+    ) -> bool {
         let mut inner = self.lock();
         // Cache last known user country, because it can be discarded by `GeoIpFetcher` in case of error.
         if let Some(user_country) = user_country {
             inner.last_known_user_country = Some(user_country.to_owned());
         }
 
-        let is_quad9_available = inner.last_known_user_country.as_deref()
-            != Some(QUAD9_UNAVAILABLE_COUNTRY)
+        let is_quad9_available = settings.enable_quad9
+            && inner.last_known_user_country.as_deref() != Some(QUAD9_UNAVAILABLE_COUNTRY)
             && exit_country != Some(QUAD9_UNAVAILABLE_COUNTRY);
 
         inner.set_quad9_available(is_quad9_available)

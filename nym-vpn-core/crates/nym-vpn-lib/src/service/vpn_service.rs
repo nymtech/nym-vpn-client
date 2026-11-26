@@ -140,6 +140,7 @@ pub enum VpnServiceCommand {
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetAutoConnect(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
+    SetEnableQuad9(oneshot::Sender<()>, bool),
     SetCustomDns(
         oneshot::Sender<Result<(), SetCustomDnsError>>,
         Vec<DnsServer>,
@@ -825,8 +826,7 @@ impl NymVpnService {
             nym_file_updater::FileUpdater::new().map_err(Error::CreateFileUpdater)?;
         tokio::spawn(file_updater.run(services_shutdown_token.child_token()));
 
-        // assume quad9 is available out of box
-        let default_dns_servers = DefaultDnsServers::new(true);
+        let default_dns_servers = DefaultDnsServers::new(tunnel_settings.default_dns.enable_quad9);
         let state_machine_handle = TunnelStateMachine::spawn(TunnelStateMachineArguments {
             command_receiver,
             event_sender,
@@ -1242,6 +1242,10 @@ impl NymVpnService {
             }
             VpnServiceCommand::SetEnableCustomDns(tx, enable_custom_dns) => {
                 self.handle_set_enable_custom_dns(enable_custom_dns).await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetEnableQuad9(tx, enable_quad9) => {
+                self.handle_set_enable_quad9(enable_quad9).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetCustomDns(tx, dns_servers) => {
@@ -1680,6 +1684,12 @@ impl NymVpnService {
             if !enable_custom_dns || !config.custom_dns.dns_servers.is_empty() {
                 self.update_tunnel_settings_with_throttle();
             }
+        }
+    }
+
+    async fn handle_set_enable_quad9(&mut self, enable_quad9: bool) {
+        if self.config_manager.set_enable_quad9(enable_quad9).await {
+            self.update_tunnel_settings_with_throttle();
         }
     }
 

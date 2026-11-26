@@ -91,8 +91,8 @@ use nym_gateway_directory::{
 };
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, BridgeMode, BridgeTransport,
-    ConflictDetected, ConnectionData, DiagnosticsSuggestionReason, DnsServer, EntryPoint,
-    ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
+    ConflictDetected, ConnectionData, DefaultDnsSettings, DiagnosticsSuggestionReason, DnsServer,
+    EntryPoint, ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
     GatewayIndependence, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
     SelectorFallbackState, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
@@ -203,6 +203,9 @@ pub struct TunnelSettings {
 
     /// DNS configuration.
     pub dns: DnsOptions,
+
+    /// Default DNS servers settings.
+    pub default_dns: DefaultDnsSettings,
 
     /// Split tunneling settings.
     pub split_tunnel: SplitTunnelSettings,
@@ -321,6 +324,9 @@ impl TunnelSettings {
         if self.dns != other.dns {
             diff.add(TunnelSettingsDiffFields::Dns);
         }
+        if self.default_dns != other.default_dns {
+            diff.add(TunnelSettingsDiffFields::DefaultDns);
+        }
         if self.split_tunnel != other.split_tunnel {
             diff.add(TunnelSettingsDiffFields::SplitTunnel);
         }
@@ -369,6 +375,7 @@ pub enum TunnelSettingsDiffFields {
     EntryPoint,
     ExitPoint,
     Dns,
+    DefaultDns,
     SplitTunnel,
     GeoExclusion,
     GeoExclusionEnabled,
@@ -390,6 +397,7 @@ impl TunnelSettingsDiffFields {
             | Self::ExitPoint
             | Self::GatewayPerformanceOptions
             | Self::Dns
+            | Self::DefaultDns
             | Self::GatewaySelectionAlgorithmConfig
             | Self::GatewayIndependence => true,
             Self::EnableAdBlocking => {
@@ -451,6 +459,10 @@ impl TunnelSettingsDiff {
 
     pub fn quic_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::QUIC)
+    }
+
+    pub fn default_dns_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::DefaultDns)
     }
 
     pub fn split_tunnel_changed(&self) -> bool {
@@ -767,6 +779,7 @@ impl SharedState {
     fn update_default_dns_servers(&self, exit_gateway: Option<&Gateway>) {
         let user_location = self.gateway_provider.user_location();
         let changed = self.default_dns_servers.update(
+            &self.tunnel_settings.default_dns,
             user_location
                 .as_ref()
                 .map(|location| location.two_letter_iso_country_code.as_str()),
