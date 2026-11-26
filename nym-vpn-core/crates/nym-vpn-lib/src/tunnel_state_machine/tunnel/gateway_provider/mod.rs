@@ -173,6 +173,11 @@ impl<C: GatewayCache> GatewayProvider<C> {
     }
 
     /// Returns the latest user geo location, if available.
+    /// Subscribe to user geo location updates. The location is `None` when the last lookup failed.
+    pub fn subscribe_user_location(&self) -> watch::Receiver<Option<Location>> {
+        self.location_rx.clone()
+    }
+
     pub fn user_location(&self) -> Option<Location> {
         self.location_rx.borrow().clone()
     }

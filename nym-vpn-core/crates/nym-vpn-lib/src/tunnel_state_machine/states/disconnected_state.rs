@@ -136,6 +136,10 @@ impl TunnelStateHandler for DisconnectedState {
                     NextTunnelState::SameState(self)
                 }
             }
+            Ok(()) = shared_state.user_location_rx.changed() => {
+                shared_state.update_default_dns_servers(None);
+                NextTunnelState::SameState(self)
+            }
             _ = shutdown_token.cancelled() => {
                 #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 Self::reset_dns(shared_state).await;

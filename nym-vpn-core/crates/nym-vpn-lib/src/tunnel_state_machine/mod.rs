@@ -87,7 +87,7 @@ use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{
-    Config as GatewayDirectoryConfig, Gateway, GatewayCacheHandle, NodeIdentity,
+    Config as GatewayDirectoryConfig, Gateway, GatewayCacheHandle, Location, NodeIdentity,
 };
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, BridgeMode, BridgeTransport,
@@ -751,6 +751,8 @@ pub struct SharedState {
     nm_connectivity_check_enabled: Option<bool>,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     default_dns_servers: DefaultDnsServers,
+    /// Notified when the user geo location is looked up.
+    user_location_rx: watch::Receiver<Option<Location>>,
     /// Tracks pre-handshake connection failures to attribute blame to the entry gateway.
     entry_blame: entry_blame::EntryBlameTracker<NodeIdentity>,
     topology_service: VpnTopologyServiceHandle,
@@ -1400,6 +1402,7 @@ impl TunnelStateMachine {
             statistics_event_sender: args.statistics_event_sender,
             #[cfg(target_os = "linux")]
             nm_connectivity_check_enabled: None,
+            user_location_rx: args.gateway_provider.subscribe_user_location(),
             gateway_provider: args.gateway_provider,
             default_dns_servers: args.default_dns_servers,
             entry_blame: entry_blame::EntryBlameTracker::default(),
