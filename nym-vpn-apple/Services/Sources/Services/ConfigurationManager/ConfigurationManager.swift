@@ -22,6 +22,8 @@ import PathManager
 
 #if os(macOS)
     private let grpcManager: GRPCManager
+    /// Bumped on every data-sharing write, so a daemon read that started before it is discarded.
+    private var telemetryConsentRevision = 0
 #endif
 
     private var cancellables = Set<AnyCancellable>()
@@ -358,25 +360,27 @@ public extension ConfigurationManager {
 
     /// A Settings toggle change. Shown at once; reverted if the daemon doesn't take it.
     func setNetworkStatistics(_ isEnabled: Bool) async {
-        let previous = appSettings.isStatisticsEnabled
+        telemetryConsentRevision += 1
         appSettings.isStatisticsEnabled = isEnabled
         do {
             try await grpcManager.setNetworkStatistics(isEnabled)
         } catch {
             logger.error("Failed to set network statistics in daemon: \(describe(error))")
-            appSettings.isStatisticsEnabled = previous
+            // Show what the daemon actually holds, not a value captured before other writes.
+            await refreshNetworkStatisticsFromDaemon(force: true)
         }
     }
 
     /// A Settings toggle change. Shown at once; reverted if the daemon doesn't take it.
     func setErrorReporting(_ isEnabled: Bool) async {
-        let previous = appSettings.isErrorReportingOn
+        telemetryConsentRevision += 1
         appSettings.isErrorReportingOn = isEnabled
         do {
             try await grpcManager.setErrorReporting(isEnabled)
         } catch {
             logger.error("Failed to set error reporting in daemon: \(describe(error))")
-            appSettings.isErrorReportingOn = previous
+            // Show what the daemon actually holds, not a value captured before other writes.
+            await refreshErrorReportingFromDaemon(force: true)
         }
     }
 }
@@ -394,6 +398,7 @@ private extension ConfigurationManager {
             return
         }
         if appSettings.isTelemetryConsentPendingForDaemon {
+            telemetryConsentRevision += 1
             do {
                 try await grpcManager.setNetworkStatistics(appSettings.isStatisticsEnabled)
                 try await grpcManager.setErrorReporting(appSettings.isErrorReportingOn)
@@ -408,19 +413,25 @@ private extension ConfigurationManager {
         await refreshErrorReportingFromDaemon()
     }
 
-    func refreshNetworkStatisticsFromDaemon() async {
-        guard canMirrorDaemonConsent,
-              let isEnabled = await grpcManager.isNetworkStatisticsEnabled(),
+    /// `force` applies the daemon's value even if a write happened meanwhile (used after a
+    /// failed write, where the daemon's value is the truth to show).
+    func refreshNetworkStatisticsFromDaemon(force: Bool = false) async {
+        guard canMirrorDaemonConsent else { return }
+        let revision = telemetryConsentRevision
+        guard let isEnabled = await grpcManager.isNetworkStatisticsEnabled(),
+              force || revision == telemetryConsentRevision,
               isEnabled != appSettings.isStatisticsEnabled
         else { return }
         appSettings.isStatisticsEnabled = isEnabled
     }
 
     /// Only on connect: the daemon sends no event when error reporting changes.
-    func refreshErrorReportingFromDaemon() async {
+    func refreshErrorReportingFromDaemon(force: Bool = false) async {
         guard canMirrorDaemonConsent else { return }
+        let revision = telemetryConsentRevision
         do {
             guard let isEnabled = try await grpcManager.isErrorReportingEnabled(),
+                  force || revision == telemetryConsentRevision,
                   isEnabled != appSettings.isErrorReportingOn
             else { return }
             appSettings.isErrorReportingOn = isEnabled
