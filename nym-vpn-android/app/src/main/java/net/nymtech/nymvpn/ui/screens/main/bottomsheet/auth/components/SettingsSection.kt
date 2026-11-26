@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Analytics
@@ -63,11 +64,14 @@ fun SettingsSection(
 						)
 						IconButton(
 							onClick = { onInfo(TelemetryInfoKind.CONNECTION) },
-							modifier = Modifier.size(24.dp),
+							modifier = Modifier
+								.padding(start = 8.dp)
+								.size(24.dp),
 						) {
 							Icon(
 								Icons.Outlined.Info,
 								contentDescription = stringResource(R.string.optin_info_accessibility, stringResource(R.string.optin_connection_title)),
+								modifier = Modifier.size(18.dp),
 								tint = MaterialTheme.colorScheme.onBackground,
 							)
 						}
@@ -106,11 +110,14 @@ fun SettingsSection(
 						)
 						IconButton(
 							onClick = { onInfo(TelemetryInfoKind.MONITORING) },
-							modifier = Modifier.size(24.dp),
+							modifier = Modifier
+								.padding(start = 8.dp)
+								.size(24.dp),
 						) {
 							Icon(
 								Icons.Outlined.Info,
 								contentDescription = stringResource(R.string.optin_info_accessibility, stringResource(R.string.optin_monitoring_title)),
+								modifier = Modifier.size(18.dp),
 								tint = MaterialTheme.colorScheme.onBackground,
 							)
 						}

@@ -102,7 +102,7 @@ fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShare
 						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				},
-				borderColor = MaterialTheme.colorScheme.onBackground,
+				borderColor = MaterialTheme.colorScheme.onPrimaryContainer,
 				modifier = Modifier
 					.fillMaxWidth()
 					.height(48.dp.scaledHeight()),

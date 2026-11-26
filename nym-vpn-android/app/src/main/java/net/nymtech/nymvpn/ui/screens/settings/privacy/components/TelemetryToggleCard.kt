@@ -80,11 +80,14 @@ fun TelemetryToggleCard(
 					)
 					IconButton(
 						onClick = { onInfo(kind) },
-						modifier = Modifier.size(24.dp),
+						modifier = Modifier
+							.padding(start = 8.dp)
+							.size(24.dp),
 					) {
 						Icon(
 							Icons.Outlined.Info,
 							contentDescription = stringResource(R.string.optin_info_accessibility, title),
+							modifier = Modifier.size(18.dp),
 							tint = MaterialTheme.colorScheme.onBackground,
 						)
 					}
