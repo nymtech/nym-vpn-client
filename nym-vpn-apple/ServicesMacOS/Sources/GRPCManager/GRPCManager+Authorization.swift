@@ -28,11 +28,9 @@ private extension GRPCManager {
             return try await authorizationTask.value
         }
 
-        let task = Task.detached { [weak self] in
+        let task = Task {
             let token = try await AuthorizationToken(prompt: kAuthorizationPrompt)
-            guard let rpcClient = await self?.rpcClient else {
-                throw AccountDaemonRefreshError.clientUnavailable
-            }
+            guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
             try await rpcClient.authorize(token: token)
         }
         authorizationTask = task

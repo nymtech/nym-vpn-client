@@ -32,11 +32,7 @@ extension GRPCManager {
     }
 
     public func cancelPairingProcess() async throws {
-        try await Task.detached { [weak self] in
-            guard let rpcClient = await self?.rpcClient else {
-                throw AccountDaemonRefreshError.clientUnavailable
-            }
-            try await rpcClient.cancelPairingProcess()
-        }.value
+        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
+        try await rpcClient.cancelPairingProcess()
     }
 }

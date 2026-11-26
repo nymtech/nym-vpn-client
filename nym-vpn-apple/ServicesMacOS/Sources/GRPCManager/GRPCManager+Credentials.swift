@@ -21,70 +21,55 @@ extension GRPCManager {
     }
 
     public func isAccountStored() async throws -> Bool {
-        try await Task.detached { [weak self] in
-            // Throws without the daemon, so it's never read as no account.
-            guard let rpcClient = await self?.rpcClient else {
-                throw AccountDaemonRefreshError.clientUnavailable
-            }
-            return try await rpcClient.isAccountStored()
-        }.value
+        // Throws without the daemon, so it's never read as no account.
+        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
+        return try await rpcClient.isAccountStored()
     }
 
     public func accountSummary() async throws -> AccountSummary? {
-        try await Task.detached { [weak self] in
-            guard let summary = try await self?.rpcClient?.getAccountSummary() else { return nil }
-            let innerSub = summary.subscription?.subscription
-            return AccountSummary(
-                validUntilTimeInterval: innerSub?.validUntilUtc,
-                trafficUsedGb: summary.trafficUsedGb,
-                trafficLimitGb: summary.trafficLimitGb,
-                trafficResetTimeInterval: summary.trafficResetTime,
-                accountAddress: summary.accountAddr,
-                cannonicalAccountAddress: summary.canonicalAccountAddr,
-                accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
-                isLinked: summary.isLinked(),
-                isActive: summary.isSubscriptionActive(),
-                isAutoRenewEnabled: innerSub?.isRecurring ?? false,
-                subscription: summary.subscription.map { Subscription(from: $0) },
-                dataUnavailable: summary.fairUsageDataUnavailable
-            )
-        }.value
+        guard let summary = try await rpcClient?.getAccountSummary() else { return nil }
+        let innerSub = summary.subscription?.subscription
+        return AccountSummary(
+            validUntilTimeInterval: innerSub?.validUntilUtc,
+            trafficUsedGb: summary.trafficUsedGb,
+            trafficLimitGb: summary.trafficLimitGb,
+            trafficResetTimeInterval: summary.trafficResetTime,
+            accountAddress: summary.accountAddr,
+            cannonicalAccountAddress: summary.canonicalAccountAddr,
+            accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
+            isLinked: summary.isLinked(),
+            isActive: summary.isSubscriptionActive(),
+            isAutoRenewEnabled: innerSub?.isRecurring ?? false,
+            subscription: summary.subscription.map { Subscription(from: $0) },
+            dataUnavailable: summary.fairUsageDataUnavailable
+        )
     }
 
     public func refreshAccountState() async throws {
-        guard rpcClient != nil else { throw AccountDaemonRefreshError.clientUnavailable }
-        try await Task.detached { [weak self] in
-            try await self?.rpcClient?.refreshAccountState(force: true)
-        }.value
+        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
+        try await rpcClient.refreshAccountState(force: true)
     }
 
     public func accountSummarySyncMark() async throws -> (stale: Bool, lastSyncedUnixSeconds: Int64)? {
-        guard rpcClient != nil else { throw AccountDaemonRefreshError.clientUnavailable }
-        return try await Task.detached { [weak self] in
-            guard let raw = try await self?.rpcClient?.getAccountSummary() else { return nil }
-            return (raw.stale, raw.lastSyncedUtc)
-        }.value
+        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
+        guard let raw = try await rpcClient.getAccountSummary() else { return nil }
+        return (raw.stale, raw.lastSyncedUtc)
     }
 
     public func accountLinks(for locale: String) async throws -> (account: String?, signIn: String?, signUp: String?) {
-        try await Task.detached { [weak self] in
-            guard let links = try await self?.rpcClient?.getAccountLinks(locale: locale) else { return ("", "", "")}
-            return (links.account, links.signIn, links.signUp)
-        }.value
+        guard let links = try await rpcClient?.getAccountLinks(locale: locale) else { return ("", "", "") }
+        return (links.account, links.signIn, links.signUp)
     }
 
     public func privyLogin(locale: String, name: String, kind: NymDeeplinkKind) async throws -> String? {
-        try await Task.detached { [weak self] in
-            try await self?.rpcClient?.getDeeplink(
-                params:
-                    GetDeeplinkParams(
-                        client: .desktop,
-                        locale: locale,
-                        kind: kind.deeplinkKind,
-                        name: name
-                    )
+        try await rpcClient?.getDeeplink(
+            params: GetDeeplinkParams(
+                client: .desktop,
+                locale: locale,
+                kind: kind.deeplinkKind,
+                name: name
             )
-        }.value
+        )
     }
 
     public func storePrivyAccount(with callbackURLString: String) async throws {
@@ -103,18 +88,12 @@ extension GRPCManager {
     }
 
     public func redeemFreepass(code: String) async throws {
-        try await Task.detached { [weak self] in
-            guard let rpcClient = await self?.rpcClient else {
-                throw AccountDaemonRefreshError.clientUnavailable
-            }
-            try await rpcClient.redeemFreepass(code: code)
-        }.value
+        guard let rpcClient else { throw AccountDaemonRefreshError.clientUnavailable }
+        try await rpcClient.redeemFreepass(code: code)
     }
 
     public func handleSubscriptionPayment() async throws {
-        try await Task.detached { [weak self] in
-            try await self?.rpcClient?.handleSubscriptionPayment()
-        }.value
+        try await rpcClient?.handleSubscriptionPayment()
     }
 
     public func autologin(

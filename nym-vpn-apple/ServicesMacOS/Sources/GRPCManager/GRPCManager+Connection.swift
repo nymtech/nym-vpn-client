@@ -4,22 +4,16 @@ import ConnectionTypes
 
 extension GRPCManager {
     public func config() async -> ConnectionConfig? {
-        await Task.detached { [weak self] in
-            guard let cfg = try? await self?.rpcClient?.getConfig() else { return nil }
-            return ConnectionConfig(from: cfg)
-        }.value
+        guard let cfg = try? await rpcClient?.getConfig() else { return nil }
+        return ConnectionConfig(from: cfg)
     }
 
     public func connect() async throws {
-        try await Task.detached { [weak self] in
-            try await self?.rpcClient?.connectTunnel()
-        }.value
+        try await rpcClient?.connectTunnel()
     }
 
     public func disconnect() async throws {
-        try await Task.detached { [weak self] in
-            try await self?.rpcClient?.disconnectTunnel()
-        }.value
+        try await rpcClient?.disconnectTunnel()
     }
 
     public func setEntryPoint(_ entry: EntryGateway) async throws {
