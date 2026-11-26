@@ -47,11 +47,13 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun PrivacyScreen(appUiState: AppUiState, viewModel: PrivacyViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
+	val loggingLevel = LoggingLevel.from(appUiState.settings.logsEnabled, appUiState.vpnConfig.debugLog)
 	PrivacyScreen(
 		choices = PrivacyChoices(
 			statsEnabled = appUiState.settings.statsEnabled,
 			sentryEnabled = appUiState.vpnConfig.sentry,
-			loggingLevel = LoggingLevel.from(appUiState.settings.logsEnabled, appUiState.vpnConfig.debugLog),
+			loggingLevel = loggingLevel,
+			loggingRestartPending = viewModel.isRestartPending(loggingLevel),
 		),
 		onNetworkStatsEnable = {
 			viewModel.onNetworkStatsEnabled(it)
@@ -92,7 +94,7 @@ fun PrivacyScreen(
 	) {
 		NetworkStatsSection(choices.statsEnabled, onNetworkStatsEnable, onInfo = { infoKind = it })
 		MonitoringSection(choices.sentryEnabled, onMonitoringEnable, onInfo = { infoKind = it })
-		LoggingLevelCard(level = choices.loggingLevel, onLevelChange = onLoggingLevelChange)
+		LoggingLevelCard(level = choices.loggingLevel, showRestartNote = choices.loggingRestartPending, onLevelChange = onLoggingLevelChange)
 
 		SettingsGroup(
 			items = listOf(
@@ -139,7 +141,7 @@ fun PrivacyScreen(
 internal fun PreviewPrivacyScreen() {
 	NymVPNTheme(Theme.default()) {
 		PrivacyScreen(
-			choices = PrivacyChoices(statsEnabled = true, sentryEnabled = true, loggingLevel = LoggingLevel.STANDARD),
+			choices = PrivacyChoices(statsEnabled = true, sentryEnabled = true, loggingLevel = LoggingLevel.STANDARD, loggingRestartPending = false),
 			onNetworkStatsEnable = {},
 			onMonitoringEnable = {},
 			onLoggingLevelChange = {},

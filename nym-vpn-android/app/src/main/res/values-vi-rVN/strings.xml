@@ -477,6 +477,7 @@
 	<string name="logs_delete_description">Xóa nhật ký sẽ cải thiện quyền riêng tư nhưng sẽ cản trở quá trình chẩn đoán các sự cố kết nối của bạn của Bộ phận hỗ trợ.</string>
 	<string name="logs_delete_button">Xóa nhật ký</string>
 	<string name="logs_share_description">Người nhận và bất kỳ ai bạn chia sẻ quyền đều có thể xem được tệp nhật ký.</string>
+	<string name="logs_download_description">Các ứng dụng khác hoặc bất kỳ ai có quyền truy cập vào bộ nhớ trên thiết bị của bạn đều có thể truy cập vào nhật ký đã lưu.</string>
 	<string name="logs_saved">Nhật ký được lưu vào thư mục tải xuống\"</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Thiết lập từng ứng dụng để sử dụng NymVPN hoặc kết nối trực tiếp.</string>

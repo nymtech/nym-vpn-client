@@ -483,6 +483,7 @@
 	<string name="logs_delete_description">حذف گزارش‌ها حریم خصوصی را بهبود می‌بخشد اما مانع از تشخیص مشکلات اتصال شما توسط پشتیبانی می‌شود.</string>
 	<string name="logs_delete_button">حذف کردن گزارشات</string>
 	<string name="logs_share_description">فایل‌های لاگ یا گزارش اشتراک‌گذاری‌شده می‌توانند توسط گیرندگان و هر کسی که آنها را با او به اشتراک می‌گذارند، مشاهده شوند.</string>
+	<string name="logs_download_description">گزارش‌های ذخیره‌شده ممکن است توسط برنامه‌های دیگر یا هر کسی که به فضای ذخیره‌سازی دستگاه شما دسترسی دارد، قابل دسترسی باشد.</string>
 	<string name="logs_saved">گزارش‌ها در پوشه دانلود ذخیره شد</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">هر برنامه را طوری تنظیم کنید که از NymVPN استفاده کند یا بدون آن مستقیماً متصل شود.</string>

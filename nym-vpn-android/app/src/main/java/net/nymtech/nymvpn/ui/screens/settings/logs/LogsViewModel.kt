@@ -55,6 +55,10 @@ class LogsViewModel @Inject constructor(
 	private val _libraryLogs = MutableStateFlow<List<LogMessage>>(emptyList())
 	val libraryLogs: StateFlow<List<LogMessage>> = _libraryLogs.asStateFlow()
 
+	// True while Share or Save is zipping the logs. One at a time, so a double tap can't start two.
+	private val _busy = MutableStateFlow(false)
+	val busy: StateFlow<Boolean> = _busy.asStateFlow()
+
 	private val _requestSaveUri = Channel<String>(Channel.BUFFERED)
 	val requestSaveUri = _requestSaveUri.receiveAsFlow()
 
@@ -94,6 +98,7 @@ class LogsViewModel @Inject constructor(
 	}
 
 	fun shareLogs(context: Context): Job = viewModelScope.launch(ioDispatcher) {
+		if (!_busy.compareAndSet(expect = false, update = true)) return@launch
 		Timber.tag(TAG).i("LogsShareRequested")
 
 		runCatching {
@@ -114,9 +119,11 @@ class LogsViewModel @Inject constructor(
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "LogsShareFailed")
 		}
+		_busy.value = false
 	}
 
 	fun downloadLogs(context: Context): Job = viewModelScope.launch(ioDispatcher) {
+		if (!_busy.compareAndSet(expect = false, update = true)) return@launch
 		Timber.tag(TAG).i("LogsDownloadRequested")
 
 		runCatching {
@@ -152,6 +159,7 @@ class LogsViewModel @Inject constructor(
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "LogsDownloadFailed")
 		}
+		_busy.value = false
 	}
 
 	fun deleteLogs() = viewModelScope.launch {
@@ -169,6 +177,7 @@ class LogsViewModel @Inject constructor(
 	}
 
 	fun saveLogsToUri(context: Context, uri: Uri) = viewModelScope.launch(ioDispatcher) {
+		if (!_busy.compareAndSet(expect = false, update = true)) return@launch
 		Timber.tag(TAG).i("LogsSaveToUriRequested")
 
 		runCatching {
@@ -191,5 +200,6 @@ class LogsViewModel @Inject constructor(
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "LogsSaveToUriFailed")
 		}
+		_busy.value = false
 	}
 }

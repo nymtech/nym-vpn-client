@@ -489,6 +489,7 @@
 	<string name="logs_delete_description">Видалення журналів покращує конфіденційність, але заважає службі підтримки діагностувати проблеми з підключенням.</string>
 	<string name="logs_delete_button">Видалення логів</string>
 	<string name="logs_share_description">Спільні файли журналів можуть переглядати одержувачі та всі, з ким ними діляться.</string>
+	<string name="logs_download_description">До збережених журналів можуть отримати доступ інші програми або будь-хто, хто має доступ до пам\'яті вашого пристрою.</string>
 	<string name="logs_saved">Логи збережені в папці завантажень</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Налаштуйте кожну програму на використання NymVPN або підключіться безпосередньо.</string>

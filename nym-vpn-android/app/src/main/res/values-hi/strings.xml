@@ -482,6 +482,7 @@
 	<string name="logs_delete_description">लॉग हटाने से प्राइवेसी बढ़ती है, लेकिन इससे सपोर्ट आपकी कनेक्शन समस्याओं का निदान नहीं कर पाएगा।</string>
 	<string name="logs_delete_button">लॉग हटाएं</string>
 	<string name="logs_share_description">शेयर की गई लॉग फ़ाइलें प्राप्तकर्ताओं और जिनसे वे साझा करें, उनके द्वारा देखी जा सकती हैं।</string>
+	<string name="logs_download_description">सहेजे गए लॉग्स को अन्य ऐप्स या वे व्यक्ति एक्सेस कर सकते हैं, जिन्हें आपके डिवाइस की स्टोरेज तक पहुँच है।</string>
 	<string name="logs_saved">लॉग्स डाउनलोड फोल्डर में सहेजे गए</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">प्रत्येक ऐप को NymVPN का उपयोग करने या सीधे कनेक्ट करने के लिए सेट करें।</string>

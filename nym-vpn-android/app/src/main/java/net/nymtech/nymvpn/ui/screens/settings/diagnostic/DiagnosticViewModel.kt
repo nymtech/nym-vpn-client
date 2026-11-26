@@ -41,6 +41,8 @@ class DiagnosticViewModel @Inject constructor(private val backendManager: Backen
 			runCatching {
 				backendManager.runDiagnostic()
 			}.onSuccess { report ->
+				// Most failures arrive here as no report rather than an exception (core not ready, or a swallowed error).
+				if (report == null) Timber.w("DiagnosticsRunNoReport")
 				_uiState.update { it.copy(isLoading = false, report = report) }
 			}.onFailure { t ->
 				Timber.e(t, "DiagnosticsRunFailed")

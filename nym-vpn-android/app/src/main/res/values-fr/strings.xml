@@ -481,6 +481,7 @@
 	<string name="logs_delete_description">La suppression des logs améliore la confidentialité mais empêche le service d\'assistance de diagnostiquer vos problèmes de connexion.</string>
 	<string name="logs_delete_button">Supprimer les logs</string>
 	<string name="logs_share_description">Les fichiers de logs partagés peuvent être consultés par les destinataires et toute personne avec qui ils les partagent.</string>
+	<string name="logs_download_description">Les logs enregistrés peuvent être consultés par d\'autres applications ou par toute personne ayant accès aux fichiers de votre appareil.</string>
 	<string name="logs_saved">Logs enregistrés dans le dossier Téléchargements</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Réglez chacune de vos applications pour qu\'elle utilise NymVPN ou se connecte directement.</string>

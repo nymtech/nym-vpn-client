@@ -483,6 +483,7 @@
 	<string name="logs_delete_description">La eliminación de registros mejora la privacidad pero evita que el soporte diagnostice sus problemas de conexión.</string>
 	<string name="logs_delete_button">Borrar registros</string>
 	<string name="logs_share_description">Los archivos de registro compartidos pueden ser vistos por los destinatarios y por cualquiera con quien compartan.</string>
+	<string name="logs_download_description">Los registros guardados pueden ser accedidos por otras aplicaciones o por cualquiera que tenga acceso al almacenamiento de su dispositivo.</string>
 	<string name="logs_saved">Registros guardados en la carpeta de descargas</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Establecer cada aplicación para usar NymVPN o conectarse directamente.</string>

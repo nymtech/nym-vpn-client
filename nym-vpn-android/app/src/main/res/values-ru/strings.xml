@@ -491,6 +491,7 @@
 	<string name="logs_delete_description">Удаление логов улучшает приватность, но мешает службе поддержки диагностировать проблемы с вашим подключением.</string>
 	<string name="logs_delete_button">Удалить логи</string>
 	<string name="logs_share_description">Получатели смогут просматривать переданные вами логи и делиться ими с другими людьми.</string>
+	<string name="logs_download_description">Сохраненные логи могут быть доступны другим приложениям или любым лицам, имеющим доступ к хранилищу вашего устройства.</string>
 	<string name="logs_saved">Логи сохранены в загрузки\"</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Настройте каждое приложение для использования NymVPN или прямого подключения.</string>

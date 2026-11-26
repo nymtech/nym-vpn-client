@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +23,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Delete
@@ -70,7 +70,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 /** What the screen shows. The logging level itself is set on Data, privacy & logs. */
-data class LogsViewState(val logsEnabled: Boolean, val showLive: Boolean, val selectedTab: Int, val currentLogs: List<LogMessage>, val currentScrollState: LazyListState)
+data class LogsViewState(val logsEnabled: Boolean, val busy: Boolean, val showLive: Boolean, val selectedTab: Int, val currentLogs: List<LogMessage>, val currentScrollState: LazyListState)
 
 class LogsActions(val onShare: () -> Unit, val onSave: () -> Unit, val onDelete: () -> Unit, val onToggleLive: () -> Unit, val onSelectTab: (Int) -> Unit)
 
@@ -89,6 +89,7 @@ fun LogsScreen(appUiState: AppUiState, viewModel: LogsViewModel = hiltViewModel(
 	val appLogs by viewModel.appLogs.collectAsState()
 	val tunnelLogs by viewModel.tunnelLogs.collectAsState()
 	val libraryLogs by viewModel.libraryLogs.collectAsState()
+	val busy by viewModel.busy.collectAsState()
 
 	val currentLogs = when (selectedTab) {
 		0 -> appLogs
@@ -119,6 +120,7 @@ fun LogsScreen(appUiState: AppUiState, viewModel: LogsViewModel = hiltViewModel(
 	LogsScreenContent(
 		state = LogsViewState(
 			logsEnabled = appUiState.settings.logsEnabled,
+			busy = busy,
 			showLive = showLive,
 			selectedTab = selectedTab,
 			currentLogs = currentLogs,
@@ -198,6 +200,8 @@ fun LogsScreenContent(state: LogsViewState, actions: LogsActions, modifier: Modi
 				color = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier.padding(top = 24.dp),
 			)
+			// Files from before logging was turned off stay on the device, so they can still be deleted.
+			DeleteLogsButton(onClick = actions.onDelete, modifier = Modifier.fillMaxWidth())
 			return@Column
 		}
 
@@ -207,6 +211,7 @@ fun LogsScreenContent(state: LogsViewState, actions: LogsActions, modifier: Modi
 		) {
 			MainStyledButton(
 				onClick = actions.onShare,
+				enabled = !state.busy,
 				content = {
 					Row(
 						verticalAlignment = Alignment.CenterVertically,
@@ -231,39 +236,34 @@ fun LogsScreenContent(state: LogsViewState, actions: LogsActions, modifier: Modi
 			)
 		}
 
-		Row(
-			horizontalArrangement = Arrangement.spacedBy(8.dp),
-			modifier = Modifier.fillMaxWidth(),
-		) {
-			OutlineStyledButton(
-				onClick = actions.onSave,
-				content = {
-					Text(
-						text = stringResource(R.string.logs_save_logs),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-				},
-				borderColor = MaterialTheme.colorScheme.onPrimaryContainer,
-				modifier = Modifier
-					.weight(1f)
-					.height(44.dp.scaledHeight()),
-				shape = RoundedCornerShape(12.dp),
-			)
-			OutlineStyledButton(
-				onClick = actions.onDelete,
-				content = {
-					Text(
-						text = stringResource(R.string.logs_delete_button),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.error,
-					)
-				},
-				borderColor = MaterialTheme.colorScheme.error,
-				modifier = Modifier
-					.weight(1f)
-					.height(44.dp.scaledHeight()),
-				shape = RoundedCornerShape(12.dp),
+		// Save writes to shared storage, so it carries its own privacy line, as Share does.
+		Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+			Row(
+				horizontalArrangement = Arrangement.spacedBy(8.dp),
+				modifier = Modifier.fillMaxWidth(),
+			) {
+				OutlineStyledButton(
+					onClick = actions.onSave,
+					enabled = !state.busy,
+					content = {
+						Text(
+							text = stringResource(R.string.logs_save_logs),
+							style = MaterialTheme.typography.bodyMedium,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
+						)
+					},
+					borderColor = MaterialTheme.colorScheme.onPrimaryContainer,
+					modifier = Modifier
+						.weight(1f)
+						.height(44.dp.scaledHeight()),
+					shape = RoundedCornerShape(12.dp),
+				)
+				DeleteLogsButton(onClick = actions.onDelete, modifier = Modifier.weight(1f))
+			}
+			Text(
+				text = stringResource(R.string.logs_download_description),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onBackground,
 			)
 		}
 
@@ -277,7 +277,7 @@ fun LogsScreenContent(state: LogsViewState, actions: LogsActions, modifier: Modi
 				verticalAlignment = Alignment.CenterVertically,
 				modifier = Modifier
 					.fillMaxWidth()
-					.clickable(role = Role.Button, onClick = actions.onToggleLive)
+					.toggleable(value = state.showLive, role = Role.Switch, onValueChange = { actions.onToggleLive() })
 					.padding(16.dp),
 			) {
 				Text(
@@ -318,6 +318,23 @@ fun LogsScreenContent(state: LogsViewState, actions: LogsActions, modifier: Modi
 	}
 }
 
+@Composable
+private fun DeleteLogsButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+	OutlineStyledButton(
+		onClick = onClick,
+		content = {
+			Text(
+				text = stringResource(R.string.logs_delete_button),
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.error,
+			)
+		},
+		borderColor = MaterialTheme.colorScheme.error,
+		modifier = modifier.height(44.dp.scaledHeight()),
+		shape = RoundedCornerShape(12.dp),
+	)
+}
+
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 internal fun PreviewLogsScreenContent() {
@@ -351,6 +368,7 @@ internal fun PreviewLogsScreenContent() {
 			LogsScreenContent(
 				state = LogsViewState(
 					logsEnabled = true,
+					busy = false,
 					showLive = true,
 					selectedTab = 0,
 					currentLogs = mockLogs,

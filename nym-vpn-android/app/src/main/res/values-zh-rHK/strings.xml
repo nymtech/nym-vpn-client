@@ -479,6 +479,7 @@
 	<string name="logs_delete_description">刪除日誌可以改善隱私，但是也會導致 Nym 團隊無法使用日誌診斷您的連接問題。</string>
 	<string name="logs_delete_button">刪除日誌</string>
 	<string name="logs_share_description">共享的日誌文件可以被收件人和他們共享的任何人查看。</string>
+	<string name="logs_download_description">另存為的日誌文件可能會被其他任何具有你的設備存儲訪問權限的應用程序或其他人訪問。</string>
 	<string name="logs_saved">保存日誌到下載文件夾</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">為每個應用程序設置通過 NymVPN 連接或者直接連接到網絡。</string>
