@@ -1,9 +1,8 @@
 import SwiftUI
 import AppSettings
-import ImpactGenerator
-#if os(iOS)
 import ConfigurationManager
-#elseif os(macOS)
+import ImpactGenerator
+#if os(macOS)
 import GRPCManager
 #endif
 import Theme
@@ -30,10 +29,15 @@ public struct PrivacyAndDataView: View {
                 diagnosticToolSection()
                 Spacer()
                     .frame(height: 24)
-                statisticsSection()
-                Spacer()
-                    .frame(height: 24)
-                errorReportingSection()
+                // On macOS the daemon holds these values; without it there is nothing true to show.
+                if isDaemonUnavailable {
+                    daemonNotRunningSection()
+                } else {
+                    statisticsSection()
+                    Spacer()
+                        .frame(height: 24)
+                    errorReportingSection()
+                }
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
             .padding(.horizontal, 16)
@@ -132,14 +136,9 @@ private extension PrivacyAndDataView {
             icon: "chart.bar",
             title: "welcomeOptIns.connection.title".localizedString,
             subtitle: "welcomeOptIns.connection.subtitle".localizedString,
-            isOn: $appSettings.isStatisticsEnabled,
+            isOn: statisticsBinding,
             onInfo: { infoContent = connectionInfo() }
         )
-#if os(macOS)
-        .onChange(of: appSettings.isStatisticsEnabled) {
-            enableMacOSNetworkStatsIfNeeded(with: appSettings.isStatisticsEnabled)
-        }
-#endif
     }
 
     func errorReportingSection() -> some View {
@@ -147,14 +146,10 @@ private extension PrivacyAndDataView {
             icon: "ladybug",
             title: "welcomeOptIns.monitoring.title".localizedString,
             subtitle: "welcomeOptIns.monitoring.subtitle".localizedString,
-            isOn: $appSettings.isErrorReportingOn,
+            note: errorReportingNote,
+            isOn: errorReportingBinding,
             onInfo: { infoContent = monitoringInfo() }
         )
-#if os(macOS)
-        .onChange(of: appSettings.isErrorReportingOn) {
-            enableMacOSErrorReportingIfNeeded(with: appSettings.isErrorReportingOn)
-        }
-#endif
     }
 
     func connectionInfo() -> TelemetryInfoContent {
@@ -193,19 +188,71 @@ private extension PrivacyAndDataView {
     }
 }
 
-#if os(macOS)
-// MARK: - macOS actions
+// MARK: - Data-sharing state -
+// On macOS nym-vpnd is the source of truth: the toggles show its values (mirrored into
+// AppSettings by ConfigurationManager) and send only the user's own changes.
 private extension PrivacyAndDataView {
-    func enableMacOSErrorReportingIfNeeded(with isOn: Bool) {
-        Task {
-            try? await grpcManager.updateErrorReportingIfNeeded(with: isOn)
-        }
+    var isDaemonUnavailable: Bool {
+#if os(macOS)
+        return !grpcManager.isServing
+#else
+        return false
+#endif
     }
 
-    func enableMacOSNetworkStatsIfNeeded(with isOn: Bool) {
-        Task {
-            try? await grpcManager.updateNetworkStatisticsIfNeeded(with: isOn)
-        }
+    var statisticsBinding: Binding<Bool> {
+#if os(macOS)
+        return Binding(
+            get: { appSettings.isStatisticsEnabled },
+            set: { isOn in
+                Task { await ConfigurationManager.shared.setNetworkStatistics(isOn) }
+            }
+        )
+#else
+        return $appSettings.isStatisticsEnabled
+#endif
+    }
+
+    var errorReportingBinding: Binding<Bool> {
+#if os(macOS)
+        return Binding(
+            get: { appSettings.isErrorReportingOn },
+            set: { isOn in
+                Task { await ConfigurationManager.shared.setErrorReporting(isOn) }
+            }
+        )
+#else
+        return $appSettings.isErrorReportingOn
+#endif
+    }
+
+    /// The daemon starts error reporting only when it launches.
+    var errorReportingNote: String? {
+#if os(macOS)
+        return "settings.privacyAndData.errorReportingRestartNote".localizedString
+#else
+        return nil
+#endif
     }
 }
+
+// MARK: - Daemon not running (macOS) -
+private extension PrivacyAndDataView {
+    @ViewBuilder
+    func daemonNotRunningSection() -> some View {
+#if os(macOS)
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "daemonInstall.title".localizedString,
+                systemImageName: "exclamationmark.triangle",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {
+                    impactGenerator.softImpact()
+                    path.append(SettingLink.daemonEnable)
+                }
+            )
+        )
 #endif
+    }
+}

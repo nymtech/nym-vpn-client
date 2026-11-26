@@ -34,6 +34,8 @@ let kRpcReconnectDelay = Duration.seconds(5)
     @Published public var connectionInfoData: ConnectionInfoData?
     @Published public var networkName: String?
     @Published public var daemonVersion = "unknown"
+    /// Fires each time the daemon reports that its config changed; read the values you need.
+    public let configChanged = PassthroughSubject<Void, Never>()
 
     public var userAgent: UserAgent {
         UserAgent(
@@ -93,7 +95,7 @@ private extension GRPCManager {
         case .mixnetState:
             break
         case .configChanged:
-            break
+            configChanged.send()
         case .accountState:
             break
         case .diagnosticsSuggested:

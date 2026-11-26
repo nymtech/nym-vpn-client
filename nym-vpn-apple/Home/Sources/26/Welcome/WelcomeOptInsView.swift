@@ -43,17 +43,7 @@ public struct WelcomeOptInsView: View {
         // SentryManager observes this publisher; AppStorage alone would not reach it until relaunch.
         .onChange(of: isErrorReportingOn) {
             appSettings.isErrorReportingOnPublisher = isErrorReportingOn
-#if os(macOS)
-            syncTelemetryConsentToDaemon()
-#endif
         }
-#if os(macOS)
-        // The daemon keeps its own defaults until told, so onboarding has to send the
-        // choices just as Settings does.
-        .onChange(of: isStatisticsEnabled) {
-            syncTelemetryConsentToDaemon()
-        }
-#endif
         .sheet(item: $infoContent) { content in
             TelemetryInfoSheet(content: content) {
                 infoContent = nil
@@ -109,6 +99,7 @@ private extension WelcomeOptInsView {
                 icon: "ladybug",
                 title: "welcomeOptIns.monitoring.title".localizedString,
                 subtitle: "welcomeOptIns.monitoring.subtitle".localizedString,
+                note: errorReportingNote,
                 isOn: $isErrorReportingOn,
                 onInfo: { infoContent = monitoringInfo() }
             )
@@ -133,17 +124,23 @@ private extension WelcomeOptInsView {
         )
     }
 
+    /// On macOS the daemon starts error reporting only when it launches.
+    var errorReportingNote: String? {
 #if os(macOS)
-    func syncTelemetryConsentToDaemon() {
-        Task {
-            await ConfigurationManager.shared.syncTelemetryConsent()
-        }
-    }
+        return "settings.privacyAndData.errorReportingRestartNote".localizedString
+#else
+        return nil
 #endif
+    }
 
     var continueButton: some View {
         NymButton("welcome.continue".localizedString, style: .primary) {
             ImpactGenerator.shared.softImpact()
+#if os(macOS)
+            // Onboarding asks rather than mirrors: send the answers to the daemon (now, or on
+            // the next connect), so the opt-ins never start pre-checked from the daemon default.
+            Task { await ConfigurationManager.shared.submitOnboardingTelemetryConsent() }
+#endif
             onContinue()
         }
     }

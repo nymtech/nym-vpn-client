@@ -159,15 +159,23 @@ import PathManager
 
 #if os(macOS)
         // The daemon may not be reachable yet when the app starts, so ask again once it is.
-        // The daemon keeps its own data-sharing defaults until told, so resend the user's
-        // choices on every (re)connect too.
         grpcManager.$isServing
             .removeDuplicates()
             .filter { $0 }
             .sink { [weak self] _ in
                 self?.updateCompatibilityVersions()
+                // The Task hop matters: @Published emits before `isServing` is stored, and
+                // `loadTelemetryConsent()` checks it.
                 Task { @MainActor in
-                    await self?.syncTelemetryConsent()
+                    await self?.loadTelemetryConsent()
+                }
+            }
+            .store(in: &cancellables)
+
+        grpcManager.configChanged
+            .sink { [weak self] in
+                Task { @MainActor in
+                    await self?.refreshNetworkStatisticsFromDaemon()
                 }
             }
             .store(in: &cancellables)
@@ -325,35 +333,104 @@ private extension ConfigurationManager {
             }
         }
     }
-
-#if os(macOS)
-    func updateErrorReportingIfNeeded() async throws {
-        try await grpcManager.updateErrorReportingIfNeeded(with: appSettings.isErrorReportingOn)
-    }
-
-    func updateNetworkStatisticsIfNeeded() async throws {
-        try await grpcManager.updateNetworkStatisticsIfNeeded(with: appSettings.isStatisticsEnabled)
-    }
-#endif
 }
 
 #if os(macOS)
 // MARK: - Data-sharing consent (macOS daemon) -
+// nym-vpnd is the source of truth for both choices. The app reads them on every connect and
+// follows the daemon's config changes. It writes only when the user changes a value, plus once
+// for a choice the daemon hasn't received yet (the onboarding answers, or the one-time
+// migration for installs from before this change).
 public extension ConfigurationManager {
-    /// Sends the data-sharing choices to the daemon. A no-op until the daemon is connected;
-    /// the `isServing` observer in `setup()` sends them on every connect, including at launch.
-    func syncTelemetryConsent() async {
-        guard grpcManager.isServing else { return }
+    /// Called on every daemon connect. Until onboarding has been answered the daemon is left
+    /// alone: onboarding asks the question, and Continue delivers the answers.
+    func loadTelemetryConsent() async {
+        guard appSettings.welcomeScreenDidDisplay else { return }
+        await deliverPendingConsentAndMirrorDaemon()
+    }
+
+    /// The user's onboarding answers: deliver them now if the daemon is connected, otherwise
+    /// on the next connect.
+    func submitOnboardingTelemetryConsent() async {
+        appSettings.isTelemetryConsentPendingForDaemon = true
+        await deliverPendingConsentAndMirrorDaemon()
+    }
+
+    /// A Settings toggle change. Shown at once; reverted if the daemon doesn't take it.
+    func setNetworkStatistics(_ isEnabled: Bool) async {
+        let previous = appSettings.isStatisticsEnabled
+        appSettings.isStatisticsEnabled = isEnabled
         do {
-            try await updateErrorReportingIfNeeded()
+            try await grpcManager.setNetworkStatistics(isEnabled)
         } catch {
-            logger.error("Failed to sync error reporting to daemon: \(error.localizedDescription)")
+            logger.error("Failed to set network statistics in daemon: \(describe(error))")
+            appSettings.isStatisticsEnabled = previous
         }
+    }
+
+    /// A Settings toggle change. Shown at once; reverted if the daemon doesn't take it.
+    func setErrorReporting(_ isEnabled: Bool) async {
+        let previous = appSettings.isErrorReportingOn
+        appSettings.isErrorReportingOn = isEnabled
         do {
-            try await updateNetworkStatisticsIfNeeded()
+            try await grpcManager.setErrorReporting(isEnabled)
         } catch {
-            logger.error("Failed to sync network statistics to daemon: \(error.localizedDescription)")
+            logger.error("Failed to set error reporting in daemon: \(describe(error))")
+            appSettings.isErrorReportingOn = previous
         }
+    }
+}
+
+private extension ConfigurationManager {
+    /// Mirroring would overwrite a choice the daemon hasn't received yet, or an onboarding
+    /// answer still being made.
+    var canMirrorDaemonConsent: Bool {
+        appSettings.welcomeScreenDidDisplay && !appSettings.isTelemetryConsentPendingForDaemon
+    }
+
+    func deliverPendingConsentAndMirrorDaemon() async {
+        guard grpcManager.isServing else {
+            logger.debug("Daemon not connected; data-sharing choices load when it connects")
+            return
+        }
+        if appSettings.isTelemetryConsentPendingForDaemon {
+            do {
+                try await grpcManager.setNetworkStatistics(appSettings.isStatisticsEnabled)
+                try await grpcManager.setErrorReporting(appSettings.isErrorReportingOn)
+                appSettings.isTelemetryConsentPendingForDaemon = false
+            } catch {
+                // Keep the user's choice and retry on the next connect.
+                logger.error("Failed to deliver data-sharing choices to daemon: \(describe(error))")
+                return
+            }
+        }
+        await refreshNetworkStatisticsFromDaemon()
+        await refreshErrorReportingFromDaemon()
+    }
+
+    func refreshNetworkStatisticsFromDaemon() async {
+        guard canMirrorDaemonConsent,
+              let isEnabled = await grpcManager.isNetworkStatisticsEnabled(),
+              isEnabled != appSettings.isStatisticsEnabled
+        else { return }
+        appSettings.isStatisticsEnabled = isEnabled
+    }
+
+    /// Only on connect: the daemon sends no event when error reporting changes.
+    func refreshErrorReportingFromDaemon() async {
+        guard canMirrorDaemonConsent else { return }
+        do {
+            guard let isEnabled = try await grpcManager.isErrorReportingEnabled(),
+                  isEnabled != appSettings.isErrorReportingOn
+            else { return }
+            appSettings.isErrorReportingOn = isEnabled
+        } catch {
+            logger.error("Failed to read error reporting from daemon: \(describe(error))")
+        }
+    }
+
+    func describe(_ error: Error) -> String {
+        String(describing: error)
     }
 }
 #endif
