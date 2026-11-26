@@ -82,9 +82,9 @@ use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
-    DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
-    VpnTopologyServiceHandle,
+    NodeIdentity, UserAgent, VpnTopologyService, VpnTopologyServiceHandle,
     config::GlobalConfig,
+    default_dns_servers::DefaultDnsServers,
     gateway_directory::{
         self, GatewayCache, GatewayCacheHandle, GatewayClient, GatewayMinPerformance,
     },
@@ -481,6 +481,9 @@ pub struct NymVpnService {
     // Unlocked with the authorization token obtained in the user's session
     #[cfg(target_os = "macos")]
     authorization_service: AuthorizationService,
+
+    // List of default DNS servers that can be affected by user location or exit gateway
+    default_dns_servers: DefaultDnsServers,
 }
 
 impl NymVpnService {
@@ -822,10 +825,13 @@ impl NymVpnService {
             nym_file_updater::FileUpdater::new().map_err(Error::CreateFileUpdater)?;
         tokio::spawn(file_updater.run(services_shutdown_token.child_token()));
 
+        // assume quad9 is available out of box
+        let default_dns_servers = DefaultDnsServers::new(true);
         let state_machine_handle = TunnelStateMachine::spawn(TunnelStateMachineArguments {
             command_receiver,
             event_sender,
             nym_config,
+            default_dns_servers: default_dns_servers.clone(),
             tunnel_settings,
             tunnel_constants,
             account_command_tx: account_command_tx.clone(),
@@ -898,6 +904,7 @@ impl NymVpnService {
             split_tunnel_pid_manager,
             #[cfg(target_os = "macos")]
             authorization_service: AuthorizationService::default(),
+            default_dns_servers,
         })
     }
 
@@ -1807,7 +1814,8 @@ impl NymVpnService {
     }
 
     fn handle_get_default_dns(&self) -> Vec<DnsServer> {
-        DEFAULT_DNS_SERVERS_CONFIG
+        self.default_dns_servers
+            .get_dns_servers()
             .iter()
             .flat_map(dns_servers_from_hickory_config)
             .collect()

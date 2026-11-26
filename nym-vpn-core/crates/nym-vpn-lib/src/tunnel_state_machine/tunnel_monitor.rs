@@ -274,6 +274,8 @@ pub struct TunnelParameters {
     /// Fall back from QUIC to TLS and SSH bridges.
     pub bridge_fallback: bool,
     pub user_agent: UserAgent,
+    #[cfg(target_os = "android")]
+    pub default_dns_servers: crate::default_dns_servers::DefaultDnsServers,
     #[cfg(not(target_os = "android"))]
     pub filtering_resolver_addr: SocketAddr,
 }
@@ -1792,7 +1794,9 @@ impl TunnelMonitor {
 
     #[cfg(target_os = "android")]
     fn get_dns_addresses(&self) -> Vec<IpAddr> {
-        self.tunnel_parameters.tunnel_settings.android_tunnel_dns()
+        self.tunnel_parameters
+            .tunnel_settings
+            .android_tunnel_dns(&self.tunnel_parameters.default_dns_servers)
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

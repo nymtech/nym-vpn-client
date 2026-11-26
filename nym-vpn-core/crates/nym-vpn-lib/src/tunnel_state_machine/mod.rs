@@ -55,7 +55,7 @@ use crate::socks5_proxy::find_proxy_binary;
 
 use crate::{
     GatewayProviderError, UserAgent, bandwidth_monitor::Error as BandwidthMonitorError,
-    mixnet::VpnTopologyServiceHandle,
+    default_dns_servers::DefaultDnsServers, mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
 use custom_dns::DnsServerExt;
@@ -86,7 +86,9 @@ use tokio_util::sync::CancellationToken;
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_gateway_directory::ResolvedConfig;
-use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle, NodeIdentity};
+use nym_gateway_directory::{
+    Config as GatewayDirectoryConfig, Gateway, GatewayCacheHandle, NodeIdentity,
+};
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, BridgeMode, BridgeTransport,
     ConflictDetected, ConnectionData, DiagnosticsSuggestionReason, DnsServer, EntryPoint,
@@ -265,14 +267,12 @@ impl TunnelSettings {
         }
     }
 
-    pub fn resolver_config(&self) -> ResolverConfig {
-        let defaults = || crate::DEFAULT_DNS_SERVERS_CONFIG.clone();
-
+    pub fn resolver_config(&self, default_dns_servers: &DefaultDnsServers) -> ResolverConfig {
         let mut config = match self.dns {
-            DnsOptions::Default => defaults(),
+            DnsOptions::Default => default_dns_servers.get_dns_servers(),
             DnsOptions::Custom(ref dns_servers) => {
                 if dns_servers.is_empty() {
-                    defaults()
+                    default_dns_servers.get_dns_servers()
                 } else {
                     dns_servers
                         .iter()
@@ -289,10 +289,11 @@ impl TunnelSettings {
     ///
     /// If Private DNS is enabled, these IPs will be probed for DoT before falling back to UDP/TCP.
     #[cfg(target_os = "android")]
-    pub fn android_tunnel_dns(&self) -> Vec<IpAddr> {
+    pub fn android_tunnel_dns(&self, default_dns_servers: &DefaultDnsServers) -> Vec<IpAddr> {
         let defaults = || {
             let mut seen = HashSet::new();
-            crate::DEFAULT_DNS_SERVERS_CONFIG
+            default_dns_servers
+                .get_dns_servers()
                 .iter()
                 .filter(|ns| {
                     // Android only supports TCP/UDP 53 and TLS (853)
@@ -332,11 +333,14 @@ impl TunnelSettings {
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    pub fn allowed_dns_endpoints(&self) -> Vec<nym_firewall::Endpoint> {
+    pub fn allowed_dns_endpoints(
+        &self,
+        default_dns_servers: &DefaultDnsServers,
+    ) -> Vec<nym_firewall::Endpoint> {
         match self.dns {
             DnsOptions::Custom(ref dns_servers) => {
                 if dns_servers.is_empty() {
-                    self.allowed_default_dns_endpoints()
+                    self.allowed_default_dns_endpoints(default_dns_servers)
                 } else {
                     dns_servers
                         .iter()
@@ -348,13 +352,17 @@ impl TunnelSettings {
                         .collect()
                 }
             }
-            DnsOptions::Default => self.allowed_default_dns_endpoints(),
+            DnsOptions::Default => self.allowed_default_dns_endpoints(default_dns_servers),
         }
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    pub fn allowed_default_dns_endpoints(&self) -> Vec<nym_firewall::Endpoint> {
-        crate::DEFAULT_DNS_SERVERS_CONFIG
+    pub fn allowed_default_dns_endpoints(
+        &self,
+        default_dns_servers: &DefaultDnsServers,
+    ) -> Vec<nym_firewall::Endpoint> {
+        default_dns_servers
+            .get_dns_servers()
             .iter()
             .filter(|ns| ns.ip.is_ipv4() || (ns.ip.is_ipv6() && self.enable_ipv6))
             .flat_map(|ns| {
@@ -844,6 +852,7 @@ pub struct SharedState {
     #[cfg(target_os = "linux")]
     nm_connectivity_check_enabled: Option<bool>,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
+    default_dns_servers: DefaultDnsServers,
     /// Tracks pre-handshake connection failures to attribute blame to the entry gateway.
     entry_blame: entry_blame::EntryBlameTracker<NodeIdentity>,
     topology_service: VpnTopologyServiceHandle,
@@ -858,6 +867,29 @@ pub struct SharedState {
 }
 
 impl SharedState {
+    /// Update default DNS servers based on user location and exit gateway and apply them to the
+    /// shared HTTP resolver.
+    fn update_default_dns_servers(&self, exit_gateway: Option<&Gateway>) {
+        let user_location = self.gateway_provider.user_location();
+        let changed = self.default_dns_servers.update(
+            user_location
+                .as_ref()
+                .map(|location| location.two_letter_iso_country_code.as_str()),
+            exit_gateway.and_then(|gateway| gateway.two_letter_iso_country_code()),
+        );
+
+        if changed {
+            self.apply_default_dns_servers();
+        }
+    }
+
+    /// Set name servers on shared DNS resolver
+    fn apply_default_dns_servers(&self) {
+        let dns_resolver: nym_http_api_client::HickoryDnsResolver =
+            nym_http_api_client::HickoryDnsResolver::shared();
+        dns_resolver.set_name_servers(self.default_dns_servers.get_dns_servers());
+    }
+
     /// Unpause discovery / account / gateway cache. This is not a device kill-switch; on Android
     /// other apps follow the VpnService interface, not this flag.
     async fn allow_networking(&self) {
@@ -1342,6 +1374,7 @@ pub struct TunnelStateMachineArguments {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub split_tunnel: nym_split_tunnel::SplitTunnelHandle,
     pub gateway_provider: GatewayProvider<GatewayCacheHandle>,
+    pub default_dns_servers: DefaultDnsServers,
     pub recents_manager: RecentsManager<GatewayCacheHandle>,
     #[cfg(target_os = "linux")]
     pub split_tunnel_config: LinuxSplitTunnelConfiguration,
@@ -1460,6 +1493,7 @@ impl TunnelStateMachine {
             #[cfg(target_os = "linux")]
             nm_connectivity_check_enabled: None,
             gateway_provider: args.gateway_provider,
+            default_dns_servers: args.default_dns_servers,
             entry_blame: entry_blame::EntryBlameTracker::default(),
             topology_service: args.topology_service,
             recents_manager: args.recents_manager,
@@ -1470,6 +1504,9 @@ impl TunnelStateMachine {
             #[cfg(not(target_os = "ios"))]
             shutdown_token: args.shutdown_token.clone(),
         };
+
+        // Apply default DNS servers to avoid discrepancy between defaults in here and monorepo
+        shared_state.apply_default_dns_servers();
 
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         if let Err(err) = shared_state.set_split_tunnel_exclude_paths().await {
