@@ -1026,14 +1026,24 @@ impl NymVpnService {
     }
 
     /// Returns true if auto-connect is enabled and account is set.
-    fn should_auto_connect(&self) -> bool {
-        self.config_manager.config().auto_connect
-            && self.account_state_rx.get_state() != AccountControllerState::LoggedOut
+    async fn should_auto_connect(&self) -> bool {
+        if self.config_manager.config().auto_connect {
+            self.account_command_tx
+                .get_account_id()
+                .await
+                .map(|account_id| account_id.is_some())
+                .unwrap_or_else(|err| {
+                    tracing::error!("Failed to get account id for auto-connect: {err}");
+                    false
+                })
+        } else {
+            false
+        }
     }
 
     /// Returns true if auto-connect was issued
     async fn auto_connect(&mut self) -> bool {
-        if self.should_auto_connect() {
+        if self.should_auto_connect().await {
             tracing::info!("Auto-connect is enabled, connecting");
             self.set_target_state(TargetState::Secured).await;
             true
@@ -2231,7 +2241,7 @@ impl NymVpnService {
         self.account_command_tx.store_account(account).await?;
 
         // Auto connect once user logged in
-        if self.should_auto_connect() {
+        if self.should_auto_connect().await {
             tracing::info!("Auto-connect is enabled, connecting");
             self.set_target_state(TargetState::Secured).await;
         }
