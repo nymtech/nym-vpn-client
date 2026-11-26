@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.privacy.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,8 +27,8 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.TelemetryInfoKind
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
-import net.nymtech.nymvpn.ui.screens.settings.components.SettingsIcon
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
+import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 /**
@@ -62,9 +61,15 @@ fun TelemetryToggleCard(
 			horizontalArrangement = Arrangement.SpaceBetween,
 			verticalAlignment = Alignment.CenterVertically,
 		) {
-			Box(modifier = Modifier.padding(end = 16.dp.scaledWidth())) {
-				SettingsIcon(kind.icon(), title)
-			}
+			// Decorative: the title beside it already names the card for TalkBack.
+			Icon(
+				kind.icon(),
+				contentDescription = null,
+				modifier = Modifier
+					.padding(end = 16.dp.scaledWidth())
+					.size(iconSize.scaledWidth()),
+				tint = MaterialTheme.colorScheme.onSurfaceVariant,
+			)
 			Column(modifier = Modifier.weight(1f)) {
 				Row(verticalAlignment = Alignment.CenterVertically) {
 					Text(
