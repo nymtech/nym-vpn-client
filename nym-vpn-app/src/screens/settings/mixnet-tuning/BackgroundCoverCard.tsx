@@ -51,7 +51,7 @@ function BackgroundCoverSlider({
           items[index]
             ? t(
                 `mixnet-tuning.background-cover.${items[index].label}.label`,
-              ).replace('\n', ' ')
+              ).replace(/\n/g, ' ')
             : String(index)
         }
         labels={items.map((item, index) => (
