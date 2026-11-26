@@ -53,6 +53,13 @@ struct DiagnosticToolView: View {
             hasStarted = true
             runDiagnostics()
         }
+        // The spinner is swapped out with no focus change, so tell VoiceOver how the run ended.
+        // onChange only fires while this page is shown, so a run finishing after leaving stays quiet.
+        .onChange(of: isLoading) { _, loading in
+            guard !loading else { return }
+            let outcome = reportText == nil ? "settings.diagnosticTool.failed" : "settings.diagnosticTool.report"
+            AccessibilityNotification.Announcement(outcome.localizedString).post()
+        }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
@@ -159,9 +166,6 @@ private extension DiagnosticToolView {
             await MainActor.run {
                 reportText = formatJSON(result)
                 isLoading = false
-                // The spinner is swapped out with no focus change, so tell VoiceOver how the run ended.
-                let outcome = reportText == nil ? "settings.diagnosticTool.failed" : "settings.diagnosticTool.report"
-                AccessibilityNotification.Announcement(outcome.localizedString).post()
             }
         }
     }
