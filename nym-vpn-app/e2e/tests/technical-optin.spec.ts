@@ -68,3 +68,39 @@ test.describe('Technical opt-in', () => {
     ).toBeVisible();
   });
 });
+
+const privacySaveError = "Couldn't save your privacy choice. Try again.";
+
+test.describe('Technical opt-in save', () => {
+  test('stays on the screen when saving network stats fails', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      (window as Window & { __NYM_IPC_FAIL?: string[] }).__NYM_IPC_FAIL = [
+        'disable_netstats',
+      ];
+    });
+    await page.goto('/technical-optin');
+    await page.waitForLoadState('networkidle');
+
+    const netstats = page.getByTestId('welcome-netstats-switch');
+    await expect(netstats).toHaveAttribute('aria-checked', 'true');
+    await netstats.click();
+    await expect(netstats).toHaveAttribute('aria-checked', 'false');
+
+    await page.getByRole('button', { name: 'Continue' }).click();
+
+    await expect(page).toHaveURL(/\/technical-optin$/);
+    await expect(page.getByText(privacySaveError)).toBeVisible();
+    await expect(netstats).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test('leaves the screen after both choices save', async ({ page }) => {
+    await page.goto('/technical-optin');
+    await page.waitForLoadState('networkidle');
+
+    await page.getByRole('button', { name: 'Continue' }).click();
+
+    await expect(page).toHaveURL(/\/home$/);
+  });
+});

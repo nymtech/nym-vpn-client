@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { PrivacyPolicyUrl } from '../../constants';
+import { useToast } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { Button, Link, Switch } from '../../ui';
@@ -21,16 +22,37 @@ const defaultNetstats = window._APP.defaultNetstats;
 function TechnicalOptin() {
   const [monitoring, setMonitoring] = useState<boolean>(defaultSentry);
   const [netstats, setNetstats] = useState<boolean>(defaultNetstats);
+  // last values the backend accepted, a rejected save snaps back to these
+  const [savedMonitoring, setSavedMonitoring] =
+    useState<boolean>(defaultSentry);
+  const [savedNetstats, setSavedNetstats] = useState<boolean>(defaultNetstats);
+  const [saving, setSaving] = useState(false);
   const [info, setInfo] = useState<TelemetryInfoKind | null>(null);
   const navigate = useNavigate();
-  const { t } = useTranslation('welcome');
+  const { t } = useTranslation(['welcome', 'settings']);
+  const { add } = useToast();
 
-  const handleContinue = () => {
-    initMonitoring();
-    initNetworkStats();
-    dispatch({ type: 'set-technical-optin-seen', seen: true });
-    kvSet('technical-optin-seen', true);
-    navigate(routes.root);
+  const handleContinue = async () => {
+    if (saving) {
+      return;
+    }
+    setSaving(true);
+    try {
+      const monitoringApplied = await applyChoice('monitoring');
+      const netstatsApplied = await applyChoice('netstats');
+      if (!monitoringApplied || !netstatsApplied) {
+        add({
+          title: t('privacy.errors.failed', { ns: 'settings' }),
+          type: 'error',
+        });
+        return;
+      }
+      dispatch({ type: 'set-technical-optin-seen', seen: true });
+      kvSet('technical-optin-seen', true);
+      navigate(routes.root);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleMonitoring = () => {
@@ -41,25 +63,46 @@ function TechnicalOptin() {
     setNetstats(!netstats);
   };
 
-  const initMonitoring = async () => {
-    dispatch({ type: 'set-monitoring', enabled: monitoring });
-    // sentry is disabled by default
-    if (monitoring) {
-      try {
-        await invoke('enable_sentry');
-      } catch {}
-    }
-  };
+  const choices = {
+    monitoring: {
+      checked: monitoring,
+      saved: savedMonitoring,
+      setChecked: setMonitoring,
+      setSaved: setSavedMonitoring,
+      enable: 'enable_sentry',
+      disable: 'disable_sentry',
+      action: 'set-monitoring',
+      label: 'monitoring',
+    },
+    netstats: {
+      checked: netstats,
+      saved: savedNetstats,
+      setChecked: setNetstats,
+      setSaved: setSavedNetstats,
+      enable: 'enable_netstats',
+      disable: 'disable_netstats',
+      action: 'set-network-stats',
+      label: 'network stats',
+    },
+  } as const;
 
-  const initNetworkStats = async () => {
-    dispatch({ type: 'set-network-stats', enabled: netstats });
+  const applyChoice = async (name: keyof typeof choices) => {
+    const choice = choices[name];
+    // An unchanged choice is already saved. Calling the daemon again and then
+    // failing the local write would revert it to the opposite value.
+    if (choice.checked === choice.saved) {
+      return true;
+    }
     try {
-      if (netstats) {
-        await invoke('enable_netstats');
-      } else {
-        await invoke('disable_netstats');
-      }
-    } catch {}
+      await invoke(choice.checked ? choice.enable : choice.disable);
+      dispatch({ type: choice.action, enabled: choice.checked });
+      choice.setSaved(choice.checked);
+      return true;
+    } catch (error) {
+      console.error(`[technical-optin] ${choice.label} error`, error);
+      choice.setChecked(choice.saved);
+      return false;
+    }
   };
 
   return (
@@ -99,6 +142,7 @@ function TechnicalOptin() {
                 <Switch
                   checked={netstats}
                   onChange={toggleNetstats}
+                  disabled={saving}
                   data-testid="welcome-netstats-switch"
                 />
               ),
@@ -120,6 +164,7 @@ function TechnicalOptin() {
                 <Switch
                   checked={monitoring}
                   onChange={toggleMonitoring}
+                  disabled={saving}
                   data-testid="welcome-monitoring-switch"
                 />
               ),
@@ -128,7 +173,9 @@ function TechnicalOptin() {
           ]}
           data-testid="welcome-optin-group"
         />
-        <Button onClick={handleContinue}>{t('continue-button')}</Button>
+        <Button onClick={handleContinue} disabled={saving}>
+          {t('continue-button')}
+        </Button>
       </div>
 
       <TelemetryInfoDialog kind={info} onClose={() => setInfo(null)} />

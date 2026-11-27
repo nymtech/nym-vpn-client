@@ -279,7 +279,10 @@
   },
   "privacy": {
     "title": "Data, privacy & logs",
-    "monitoring-restart-note": "Changes will apply after app and daemon restart."
+    "monitoring-restart-note": "Changes will apply after app and daemon restart.",
+    "errors": {
+      "failed": "Couldn't save your privacy choice. Try again."
+    }
   },
   "account": {
     "planValidUntil": "Plan valid until {{date}}",
