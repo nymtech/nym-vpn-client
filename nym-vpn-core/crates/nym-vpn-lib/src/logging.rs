@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
+    fmt,
     path::{Path, PathBuf},
     sync::{Arc, OnceLock},
 };
@@ -15,14 +16,18 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tracing::{Dispatch, Event, Level, Subscriber, dispatcher::WeakDispatch};
+use tracing::{
+    Dispatch, Event, Level, Metadata, Subscriber,
+    dispatcher::WeakDispatch,
+    field::{Field, Visit},
+};
 use tracing_appender::{non_blocking::WorkerGuard, rolling::RollingFileAppender};
 use tracing_opentelemetry::get_otel_context;
 use tracing_subscriber::{
     EnvFilter, Layer,
     filter::{LevelFilter, filter_fn},
     fmt::{FmtContext, FormatEvent, FormatFields, format::FmtSpan},
-    layer::SubscriberExt,
+    layer::{Context, Filter, SubscriberExt},
     registry::LookupSpan,
     util::SubscriberInitExt,
 };
@@ -31,7 +36,7 @@ use nym_vpn_lib_types::LogPath;
 
 const BACKUP_LOG_EXTENSION: &str = "old.log";
 
-/// Events and spans carrying this field (e.g. `tracing::warn!(skip_sentry = true, ...)`) are not sent to Sentry.
+/// Events with this field set to `true` (e.g. `tracing::warn!(skip_sentry = true, ...)`) are not sent to Sentry.
 const SKIP_SENTRY_FIELD: &str = "skip_sentry";
 
 /// Third-party targets whose events are not sent to Sentry.
@@ -69,6 +74,39 @@ static WARN_TARGETS: [&str; 4] = [
     "zbus",
     "nym_socks5_client_core",
 ];
+
+struct SentryFilter;
+
+impl<S> Filter<S> for SentryFilter {
+    fn enabled(&self, metadata: &Metadata<'_>, _cx: &Context<'_, S>) -> bool {
+        !SKIP_SENTRY_TARGETS.contains(&metadata.target())
+    }
+
+    fn event_enabled(&self, event: &Event<'_>, _cx: &Context<'_, S>) -> bool {
+        if event.metadata().fields().field(SKIP_SENTRY_FIELD).is_none() {
+            true
+        } else {
+            let mut visitor = SkipSentryVisitor::default();
+            event.record(&mut visitor);
+            !visitor.skip
+        }
+    }
+}
+
+#[derive(Default)]
+struct SkipSentryVisitor {
+    skip: bool,
+}
+
+impl Visit for SkipSentryVisitor {
+    fn record_bool(&mut self, field: &Field, value: bool) {
+        if field.name() == SKIP_SENTRY_FIELD {
+            self.skip = value;
+        }
+    }
+
+    fn record_debug(&mut self, _field: &Field, _value: &dyn fmt::Debug) {}
+}
 
 pub struct Options {
     pub verbosity_level: Level,
@@ -492,10 +530,7 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
                     })),
                 )
                 .and_then(sentry_tracing::ErrorLayer::new().with_filter(LevelFilter::WARN))
-                .with_filter(filter_fn(|md| {
-                    md.fields().field(SKIP_SENTRY_FIELD).is_none()
-                        && !SKIP_SENTRY_TARGETS.contains(&md.target())
-                })),
+                .with_filter(SentryFilter),
         )
     } else {
         None
