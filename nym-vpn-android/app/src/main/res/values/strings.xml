@@ -44,6 +44,7 @@
 	<string name="country_load_failure">Failed to load hop countries</string>
 	<string name="server_list_update_failed">Couldn\'t update the server list. Showing saved servers.</string>
 	<string name="permission_required">Permission required</string>
+	<string name="vpn_blocked_by_system_lockdown">Another VPN is set as always-on in your device settings and is blocking NymVPN. Turn off its "Always-on VPN" option and try again.</string>
 	<string name="permission_message">To ensure the app works correctly on your device, please allow the following permissions. These permissions are required for that app to function.</string>
 	<string name="notification_permission_required">Please enable notification permission for proper app functionality</string>
 	<string name="mode_selection">Mode selection</string>
