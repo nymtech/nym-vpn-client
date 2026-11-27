@@ -35,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.billing.PLAY_STORE_LISTING_URL
@@ -93,6 +94,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val connectionSeconds by viewModel.connectionSeconds.collectAsStateWithLifecycle()
 	val connectionTime = remember(connectionSeconds) { connectionSeconds?.convertSecondsToTimeString() }
 	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
+	val lockdown by viewModel.lockdown.collectAsStateWithLifecycle()
+	LifecycleResumeEffect(Unit) {
+		viewModel.refreshLockdown()
+		onPauseOrDispose { }
+	}
 	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsStateWithLifecycle()
 
 	val deviceAuthViewModel: DeviceAuthViewModel = hiltViewModel()
@@ -304,6 +310,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		connectionTime = connectionTime,
 		initialPanelState = if (appUiState.settings.panelCollapsed) PanelState.COLLAPSED else PanelState.FULL,
 		contentPadding = padding,
+		lockdown = lockdown,
 		onAction = { action ->
 			when (action) {
 				ConnectAction.CONNECT -> onConnectPressed()
@@ -437,6 +444,7 @@ private fun MainScreenContent(
 	modifier: Modifier = Modifier,
 	contentPadding: PaddingValues = PaddingValues(),
 	previewAlertMessage: AlertMessage? = null,
+	lockdown: Boolean = false,
 ) {
 	val context = LocalContext.current
 	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
@@ -449,6 +457,7 @@ private fun MainScreenContent(
 			stringResource(R.string.connection_status_direct)
 		else -> null
 	}
+
 	val panelState = ConnectPanelState(
 		bridgeText = bridgeText,
 		connectionState = connectionState,
@@ -498,8 +507,8 @@ private fun MainScreenContent(
 		) {
 			ConnectionStatus(
 				connectionState = connectionState,
+				lockdown = lockdown,
 				vpnMode = appUiState.vpnConfig.mode,
-				establishConnectionState = appUiState.managerState.establishConnectionState,
 				connectionTime = connectionTime,
 			)
 		}

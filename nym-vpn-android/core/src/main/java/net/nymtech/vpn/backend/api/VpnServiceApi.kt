@@ -38,6 +38,9 @@ interface VpnServiceApi {
 
 	fun getState(): Tunnel.State
 
+	/** Always-on with "Block connections without VPN"; null below API 29. */
+	fun systemBlocksWithoutVpn(): Boolean? = null
+
 	suspend fun getConfig(): CoreVpnConfig
 
 	suspend fun applyUpdate(patch: CoreVpnConfigUpdate): ConfigResult
