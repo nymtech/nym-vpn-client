@@ -12,7 +12,7 @@ use tokio::sync::RwLock;
 
 use crate::{
     adblocker::{
-        AdBlockerError, Result,
+        Result,
         engines::AdBlockEngine,
         file_manager::{SOURCES, Source},
     },
@@ -42,30 +42,18 @@ impl AdBlockEngine for BraveAdblockEngine {
 }
 
 impl BraveAdblockEngine {
-    async fn should_block_url(&self, url: url::Url) -> Result<bool> {
+    async fn should_block_hostname(&self, hostname: &str) -> bool {
         let engine = self.engine.read().await;
 
         let Some(engine) = engine.as_ref() else {
             // If we're not initialized, then we already know the answer
-            return Ok(false);
+            return false;
         };
 
-        // Use default values for data that is not available in DNS-based blocking
-        let source_url = "";
-        let request_type = "other";
-        let method = "";
+        let url = format!("https://{hostname}/");
+        let request = Request::preparsed(&url, hostname, "", "other", true, "");
 
-        let request =
-            Request::new(url.as_str(), source_url, request_type, method).map_err(|error| {
-                AdBlockerError::CreateRequest {
-                    url: url.to_string(),
-                    error,
-                }
-            })?;
-
-        let matched = engine.check_network_request(&request).should_block();
-
-        Ok(matched)
+        engine.check_network_request(&request).should_block()
     }
 }
 
@@ -75,7 +63,6 @@ impl DnsFilterT for BraveAdblockEngine {
         const PASS: DnsFilterDecision = DnsFilterDecision::Pass;
         const BLOCK: DnsFilterDecision = DnsFilterDecision::Block(DnsFilterStrategy::Localhost);
 
-        // Some DNS qname strings can crash `Request::new()`, so clean them up before parsing.
         let domain = super::qname_to_domain_name(domain);
 
         // Treat empty / root as non-blockable.
@@ -83,24 +70,12 @@ impl DnsFilterT for BraveAdblockEngine {
             return PASS;
         }
 
-        let domain_url = format!("https://{domain}");
-        let Ok(url) = url::Url::parse(&domain_url) else {
-            tracing::error!("Ad-blocker failed to parse url {domain_url}");
-            return BLOCK;
-        };
+        let hostname = domain.to_ascii_lowercase();
 
-        match self.should_block_url(url).await {
-            Ok(block) => {
-                if block {
-                    BLOCK
-                } else {
-                    PASS
-                }
-            }
-            Err(error) => {
-                tracing::error!("Ad-blocker failed to check domain {domain}: {error}");
-                BLOCK
-            }
+        if self.should_block_hostname(&hostname).await {
+            BLOCK
+        } else {
+            PASS
         }
     }
 }
@@ -148,6 +123,32 @@ mod tests {
         engine.load_filters(temp_dir.path()).await.unwrap();
         assert!(matches!(
             engine.should_block(SHOULD_BE_BLOCKED_DOMAIN).await,
+            DnsFilterDecision::Block(_)
+        ));
+    }
+
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_handles_non_url_qnames() {
+        let temp_dir = init_tests().await.unwrap();
+        let engine = BraveAdblockEngine::default();
+
+        engine.load_filters(temp_dir.path()).await.unwrap();
+        for qname in [
+            "_minecraft._tcp.192.168.1.66",
+            "_minecraft._tcp.192.168.1.66.",
+            "66.1.168.192.in-addr.arpa",
+            "_services._dns-sd._udp.local",
+        ] {
+            assert!(
+                matches!(engine.should_block(qname).await, DnsFilterDecision::Pass),
+                "{qname} should pass"
+            );
+        }
+        assert!(matches!(
+            engine
+                .should_block(&format!("_http._tcp.{SHOULD_BE_BLOCKED_DOMAIN}"))
+                .await,
             DnsFilterDecision::Block(_)
         ));
     }
