@@ -80,9 +80,10 @@ private extension DiagnosticToolView {
 
     func failedText() -> some View {
         Text("settings.diagnosticTool.failed".localizedString)
-            .foregroundStyle(Color.Nym.textSecondary)
+            .foregroundStyle(Color.Nym.error)
             .nymTextStyle(.bodyDefault)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, alignment: .center)
     }
 
     func rerunButton() -> some View {
