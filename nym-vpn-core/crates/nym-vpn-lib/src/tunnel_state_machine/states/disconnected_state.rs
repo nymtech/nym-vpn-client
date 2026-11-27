@@ -114,6 +114,10 @@ impl TunnelStateHandler for DisconnectedState {
                             shared_state.set_socks5_proxy_excluded_countries();
                         }
 
+                        if diff.default_dns_changed() {
+                            shared_state.update_default_dns_servers(None);
+                        }
+
                         if diff.enable_ad_blocking_changed() {
                             shared_state.enable_ad_blocking(shared_state.tunnel_settings.enable_ad_blocking).await;
                         }
@@ -131,6 +135,10 @@ impl TunnelStateHandler for DisconnectedState {
                 } else {
                     NextTunnelState::SameState(self)
                 }
+            }
+            Ok(()) = shared_state.user_location_rx.changed() => {
+                shared_state.update_default_dns_servers(None);
+                NextTunnelState::SameState(self)
             }
             _ = shutdown_token.cancelled() => {
                 #[cfg(not(any(target_os = "android", target_os = "ios")))]

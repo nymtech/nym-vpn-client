@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Home screen: the selected connection mode now has an outline in the brand colour, so it is clear which one is on, also in dark mode
+- Prevent crash on connect when another VPN is set as always-on; show a warning instead (https://github.com/nymtech/nym-vpn-client/pull/7181)                                 
 
 ## [2026.16.0] - 2026-11-18
 

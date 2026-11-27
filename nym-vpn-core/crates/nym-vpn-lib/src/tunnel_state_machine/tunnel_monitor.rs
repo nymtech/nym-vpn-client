@@ -57,6 +57,8 @@ use nym_vpn_lib_types::{
     WireguardConnectionData, WireguardNode,
 };
 
+#[cfg(target_os = "android")]
+use super::dns_options_resolver::DnsOptionsResolver;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use super::route_handler::{RouteHandler, RoutingConfig};
 #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -274,6 +276,8 @@ pub struct TunnelParameters {
     /// Fall back from QUIC to TLS and SSH bridges.
     pub bridge_fallback: bool,
     pub user_agent: UserAgent,
+    #[cfg(target_os = "android")]
+    pub default_dns_servers: crate::default_dns_servers::DefaultDnsServers,
     #[cfg(not(target_os = "android"))]
     pub filtering_resolver_addr: SocketAddr,
 }
@@ -1792,7 +1796,12 @@ impl TunnelMonitor {
 
     #[cfg(target_os = "android")]
     fn get_dns_addresses(&self) -> Vec<IpAddr> {
-        self.tunnel_parameters.tunnel_settings.android_tunnel_dns()
+        DnsOptionsResolver::new(
+            &self.tunnel_parameters.tunnel_settings.dns,
+            self.tunnel_parameters.tunnel_settings.enable_ipv6,
+            &self.tunnel_parameters.default_dns_servers,
+        )
+        .android_tunnel_dns()
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

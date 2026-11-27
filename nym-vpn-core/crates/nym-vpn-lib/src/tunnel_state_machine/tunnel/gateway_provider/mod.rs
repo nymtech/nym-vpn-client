@@ -13,11 +13,13 @@ mod tests;
 use std::{sync::Arc, task::Poll, time::Duration};
 
 use futures::{FutureExt as _, Stream, StreamExt as FuturesStreamExt};
-use nym_gateway_directory::{BlacklistReason, BlacklistedGateways, GatewayClient, NodeIdentity};
+use nym_gateway_directory::{
+    BlacklistReason, BlacklistedGateways, GatewayClient, Location, NodeIdentity,
+};
 use nym_vpn_lib_types::TentativeGateways;
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
-    sync::{Mutex, RwLock, mpsc, oneshot},
+    sync::{Mutex, RwLock, mpsc, oneshot, watch},
     task::JoinHandle,
 };
 use tokio_stream::{adapters::Peekable, wrappers::ReceiverStream};
@@ -57,11 +59,12 @@ pub struct GatewayProvider<C: GatewayCache> {
     gateway_cache: C,
     latest_tunnel_settings: Arc<Mutex<(TunnelSettings, bool)>>,
     tunnel_settings_tx: mpsc::Sender<SelectAndSend>,
-    tunnel_monitor_event_sender_tx: mpsc::Sender<GatewayProviderEventSender>,
+    event_sender_tx: mpsc::Sender<GatewayProviderEventSender>,
     selected_gateways_stream: SelectedGatewaysStream,
     blacklisted_gateways: BlacklistedGateways,
     query_control: Arc<RwLock<QueryControl>>,
     query_control_tx: mpsc::UnboundedSender<FetcherCommand>,
+    location_rx: watch::Receiver<Option<Location>>,
 }
 
 impl<C: GatewayCache> Stream for GatewayProvider<C> {
@@ -92,17 +95,17 @@ impl<C: GatewayCache> GatewayProvider<C> {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let blacklisted_gateways = BlacklistedGateways::new();
         let (query_control_tx, query_control_rx) = mpsc::unbounded_channel();
-        let (update_location_tx, update_location_rx) = mpsc::unbounded_channel();
-        let (tunnel_monitor_event_sender_tx, tunnel_monitor_event_sender_rx) = mpsc::channel(1);
+        let (location_tx, location_rx) = watch::channel(None);
+        let (event_sender_tx, event_sender_rx) = mpsc::channel(1);
 
-        let mut geo_ip_provider = GeoIpProvider::new(update_location_rx);
+        let mut geo_ip_provider = GeoIpProvider::new(location_rx.clone());
         let geo_ip_fetcher = GeoIpFetcher::new(
             tunnel_settings
                 .gateway_selection_algorithm_config
                 .enable_geo_location,
             Box::new(geo_ip_client),
             query_control_rx,
-            update_location_tx,
+            location_tx,
             shutdown_token.child_token(),
         );
         let query_control = geo_ip_fetcher.query_control();
@@ -126,7 +129,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
             };
             SelectionAlgorithm::new(
                 tunnel_settings_rx,
-                tunnel_monitor_event_sender_rx,
+                event_sender_rx,
                 gateway_cache_clone,
                 geo_ip_provider,
                 blacklisted_gateways_clone,
@@ -158,14 +161,25 @@ impl<C: GatewayCache> GatewayProvider<C> {
                 gateway_cache,
                 latest_tunnel_settings,
                 tunnel_settings_tx,
-                tunnel_monitor_event_sender_tx,
+                event_sender_tx,
                 selected_gateways_stream,
                 blacklisted_gateways,
                 query_control_tx,
                 query_control,
+                location_rx,
             },
             gateway_provider_handle,
         )
+    }
+
+    /// Returns the latest user geo location, if available.
+    /// Subscribe to user geo location updates. The location is `None` when the last lookup failed.
+    pub fn subscribe_user_location(&self) -> watch::Receiver<Option<Location>> {
+        self.location_rx.clone()
+    }
+
+    pub fn user_location(&self) -> Option<Location> {
+        self.location_rx.borrow().clone()
     }
 
     pub async fn tentative_gateways(&self) -> TentativeGateways {
@@ -339,6 +353,6 @@ impl<C: GatewayCache> GatewayProvider<C> {
     }
 
     pub async fn set_tunnel_monitor_event_sender(&self, sender: GatewayProviderEventSender) {
-        self.tunnel_monitor_event_sender_tx.send(sender).await.ok();
+        self.event_sender_tx.send(sender).await.ok();
     }
 }

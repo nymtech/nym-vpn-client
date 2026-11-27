@@ -52,6 +52,7 @@ pub struct VpnServiceConfig {
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
     pub custom_dns: CustomDnsSettings,
+    pub default_dns: DefaultDnsSettings,
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
@@ -89,6 +90,11 @@ impl fmt::Display for VpnServiceConfig {
             f,
             "custom_dns: enabled: {}, servers: {:?}",
             self.custom_dns.enabled, self.custom_dns.dns_servers
+        )?;
+        writeln!(
+            f,
+            "default_dns: enable_quad9: {}",
+            self.default_dns.enable_quad9
         )?;
         writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
@@ -128,6 +134,7 @@ impl Default for VpnServiceConfig {
             min_gateway_vpn_performance: None,
             residential_exit: false,
             custom_dns: CustomDnsSettings::default(),
+            default_dns: DefaultDnsSettings::default(),
             network_stats: Default::default(),
             mixnet_traffic: MixnetTrafficConfig::default(),
             split_tunnel: SplitTunnelSettings::default(),
@@ -603,6 +610,28 @@ pub struct CustomDnsSettings {
     /// Use `dns_servers` instead of the default DNS servers when there is at least one.
     pub enabled: bool,
     pub dns_servers: Vec<DnsServer>,
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct DefaultDnsSettings {
+    /// Allow Quad9 among the default DNS servers. Quad9 is still excluded when the user or the
+    /// exit gateway is in France.
+    pub enable_quad9: bool,
+}
+
+impl Default for DefaultDnsSettings {
+    fn default() -> Self {
+        Self { enable_quad9: true }
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
