@@ -62,7 +62,9 @@ gross {
 
 android {
 	namespace = Constants.APP_ID
-	compileSdk = Constants.COMPILE_SDK
+	compileSdk {
+		version = release(Constants.COMPILE_SDK) { minorApiLevel = Constants.COMPILE_SDK_MINOR }
+	}
 	ndkVersion = Constants.NDK_VERSION
 
 	androidResources {
@@ -268,7 +270,7 @@ dependencies {
 
 	// navigation
 	implementation(libs.androidx.navigation.compose)
-	implementation(libs.androidx.hilt.navigation.compose)
+	implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
 	// hilt
 	implementation(libs.hilt.android)

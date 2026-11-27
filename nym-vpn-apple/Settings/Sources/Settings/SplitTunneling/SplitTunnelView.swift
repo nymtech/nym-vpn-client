@@ -106,18 +106,9 @@ private extension SplitTunnelView {
         .id(isFullDiskAccessEnabled)
     }
 
-    var changesText: some View {
+    var excludeWarningText: some View {
         HStack {
-            Text("⚠️ \("splitTunnel.betaFeature".localizedString)\n\("splitTunel.apps.exclude".localizedString) \n\("splitTunnel.apps.unprotected".localizedString)")
-                .foregroundStyle(Color.Nym.textSecondary)
-                .nymTextStyle(.bodyDefault)
-            Spacer()
-        }
-    }
-
-    var dnsWarningText: some View {
-        HStack {
-            Text("⚠️ \("splitTunnel.dnsWarning".localizedString)")
+            Text("⚠️ \("splitTunnel.excludeWarning".localizedString)")
                 .foregroundStyle(Color.Nym.textSecondary)
                 .nymTextStyle(.bodyDefault)
             Spacer()
@@ -217,10 +208,7 @@ private extension SplitTunnelView {
             Spacer()
                 .frame(height: 24)
             if splitTunnelConfig.isEnabled {
-                changesText
-                Spacer()
-                    .frame(height: 24)
-                dnsWarningText
+                excludeWarningText
                 Spacer()
                     .frame(height: 24)
                 appsText

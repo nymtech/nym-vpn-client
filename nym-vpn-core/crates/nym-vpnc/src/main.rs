@@ -96,6 +96,12 @@ pub enum Command {
         subcommand: commands::ad_block::Command,
     },
 
+    /// Connect automatically when the daemon starts
+    AutoConnect {
+        #[command(subcommand)]
+        subcommand: commands::auto_connect::Command,
+    },
+
     /// DNS
     Dns {
         #[command(subcommand)]
@@ -209,6 +215,7 @@ impl Command {
             Command::Tunnel { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Lan { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::AdBlock { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::AutoConnect { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Dns { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Network { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Account { subcommand } => subcommand.execute(rpc_client.await?).await,

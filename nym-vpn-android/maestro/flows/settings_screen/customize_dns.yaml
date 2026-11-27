@@ -12,7 +12,7 @@ tags:
 
 - extendedWaitUntil:
       visible:
-          text: "DNS customization"
+          text: "View default DNS"
       timeout: 5000
 
 - assertNotVisible: "9.9.9.9"

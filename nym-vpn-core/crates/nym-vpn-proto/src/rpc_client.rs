@@ -13,8 +13,8 @@ use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AppCompatibility,
-    AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport, DnsServer, EntryPoint,
-    ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings,
+    AutologinResponse, AvailableTickets, BridgeMode, BridgeTransport, DiagnosticReport, DnsServer,
+    EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings,
     ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice,
     NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, QrPairingConfirmation,
     QrUrl, RecentGateways, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
@@ -197,6 +197,15 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_auto_connect(&mut self, auto_connect: bool) -> Result<()> {
+        self.0
+            .set_auto_connect(auto_connect)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_enable_custom_dns(&mut self, enable: bool) -> Result<()> {
         self.0
             .set_enable_custom_dns(enable)
@@ -290,6 +299,20 @@ impl RpcClient {
         self.0
             .set_fronting_mode(proto::FrontingModeRequest {
                 mode: proto::FrontingModes::from(fronting_mode).into(),
+            })
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn set_transport_preference(
+        &mut self,
+        transport_preference: Option<BridgeTransport>,
+    ) -> Result<()> {
+        self.0
+            .set_transport_preference(proto::TransportPreferenceRequest {
+                transport: transport_preference.map(|t| proto::BridgeTransport::from(t) as i32),
             })
             .await
             .map_err(Error::Rpc)?
@@ -714,6 +737,31 @@ impl RpcClient {
         let response = self
             .0
             .deeplink_store_account(deeplink_callback_url)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn create_account(
+        &mut self,
+        freepass: Option<String>,
+    ) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .create_account(proto::CreateAccountRequest { freepass })
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn redeem_freepass(&mut self, code: String) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .redeem_freepass(code)
             .await
             .map_err(Error::Rpc)?
             .into_inner();

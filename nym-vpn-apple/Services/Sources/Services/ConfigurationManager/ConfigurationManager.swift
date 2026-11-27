@@ -190,10 +190,11 @@ import PathManager
     private func applyEnvChange(to env: Env) async {
         guard isSantaClaus else { return }
         do {
-            self.currentEnv = env
 #if os(macOS)
+            // Saved only after the daemon switches.
             try await grpcManager.switchEnvironment(to: env.rawValue)
 #endif
+            self.currentEnv = env
             try await self.configure()
 #if os(iOS)
             guard lastConfiguredEnvString == currentEnvString else {

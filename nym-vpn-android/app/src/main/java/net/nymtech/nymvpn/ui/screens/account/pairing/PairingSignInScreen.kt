@@ -34,7 +34,7 @@ import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun PairingSignInScreen(viewModel: PairingSignInViewModel = hiltViewModel()) {
+fun PairingSignInScreen(autoConnect: Boolean, viewModel: PairingSignInViewModel = hiltViewModel()) {
 	SecureScreen()
 	SecureOverlayProtection()
 
@@ -44,7 +44,7 @@ fun PairingSignInScreen(viewModel: PairingSignInViewModel = hiltViewModel()) {
 	LaunchedEffect(state) {
 		// The core has already stored the account.
 		if (state == PairingState.SignedIn) {
-			navController.navigateAndForgetToMain(Route.Main(autoStart = false, loginProcessing = true))
+			navController.navigateAndForgetToMain(Route.Main(autoStart = autoConnect, loginProcessing = true))
 		}
 	}
 
@@ -63,6 +63,10 @@ fun PairingSignInContent(state: PairingState, onBack: () -> Unit, modifier: Modi
 		verticalArrangement = Arrangement.spacedBy(24.dp),
 	) {
 		when (state) {
+			is PairingState.WaitingForCode -> {
+				PairingStatus(title = stringResource(R.string.pairing_waiting_for_code), loading = true)
+				CancelButton(onClick = onBack)
+			}
 			is PairingState.WaitingForApproval -> {
 				PairingStatus(
 					title = stringResource(R.string.pairing_sign_in_title),
@@ -70,9 +74,7 @@ fun PairingSignInContent(state: PairingState, onBack: () -> Unit, modifier: Modi
 				)
 				PairingPin(pin = state.pin)
 				CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-				TextButton(onClick = onBack) {
-					Text(stringResource(R.string.pairing_cancel), style = MaterialTheme.typography.titleMedium)
-				}
+				CancelButton(onClick = onBack)
 			}
 			PairingState.SignedIn -> PairingStatus(title = stringResource(R.string.pairing_signing_in), loading = true)
 			PairingState.Expired -> PairingStatus(
@@ -92,5 +94,12 @@ fun PairingSignInContent(state: PairingState, onBack: () -> Unit, modifier: Modi
 				onAction = onBack,
 			)
 		}
+	}
+}
+
+@Composable
+private fun CancelButton(onClick: () -> Unit) {
+	TextButton(onClick = onClick) {
+		Text(stringResource(R.string.pairing_cancel), style = MaterialTheme.typography.titleMedium)
 	}
 }

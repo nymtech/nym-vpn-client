@@ -50,10 +50,10 @@ struct AuthFlowView: View {
         .clipped()
 #if os(iOS)
         .fullScreenCover(isPresented: isCodeEntryPresented) {
-            CodeEntryView(startsWithScanner: codeEntryStartsWithScanner ?? false) { outcome in
+            FreepassOrPairingEntryView(startsWithScanner: codeEntryStartsWithScanner ?? false) { outcome in
                 codeEntryStartsWithScanner = nil
                 Task {
-                    await CodeEntryOutcomeHandler.handle(
+                    await FreepassOrPairingOutcomeHandler.handle(
                         outcome,
                         credentialsManager: credentialsManager,
                         sendSessionEvent: { sessionCoordinator.handle(.session($0)) }

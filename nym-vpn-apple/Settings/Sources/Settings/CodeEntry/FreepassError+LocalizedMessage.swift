@@ -1,4 +1,3 @@
-#if os(iOS)
 import CredentialsManager
 import Theme
 
@@ -17,9 +16,8 @@ extension FreepassError {
             "freepass.error.subscriptionActive".localizedString
         case .vpnConnected:
             "freepass.error.vpnConnected".localizedString
-        case .accountNotRegistered, .server, .unknown:
+        case .server, .unknown:
             "freepass.error.generic".localizedString
         }
     }
 }
-#endif

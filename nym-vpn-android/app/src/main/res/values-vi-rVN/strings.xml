@@ -233,7 +233,6 @@
 	<string name="settings_reset_app_title">Đặt lại dữ liệu ứng dụng</string>
 	<string name="settings_system_status_title">Trạng thái hệ thống</string>
 	<string name="settings_mixnet_tuning_title">Điều chỉnh mixnet</string>
-	<string name="settings_mixnet_tuning_description">Tinh chỉnh các thông số mixnet của bạn</string>
 	<string name="settings_quit_title">Thoát NymVPN</string>
 	<string name="settings_app_version_line">Phiên bản ứng dụng: %1$s</string>
 	<string name="settings_language_help_title">Hỗ trợ dịch</string>
@@ -436,7 +435,6 @@
 	<string name="passphrase_info_keeps_anonymous">Giúp bạn duy trì tính ẩn danh</string>
 	<string name="passphrase_info_belongs">Chỉ thuộc về bạn (tự quản lý)</string>
 	<!-- Account screen -->
-	<string name="account_title">Tài khoản và thiết bị</string>
 	<string name="account_info_manage_button">Quản lý gói đăng ký của bạn</string>
 	<string name="account_info_renew_auth_title">Gia hạn đăng ký</string>
 	<string name="account_info_link_auth_subtitle">Xác nhận danh tính để thêm tính năng đăng nhập qua mạng xã hội</string>
@@ -492,7 +490,6 @@
 	<string name="logs_download_button">Vẫn lưu dưới dạng tệp</string>
 	<string name="logs_saved">Nhật ký được lưu vào thư mục tải xuống\"</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling_info_msg">Thiết lập từng ứng dụng để sử dụng NymVPN hoặc kết nối trực tiếp.</string>
 	<string name="split_tunneling_search_apps_hint">Tìm kiếm ứng dụng</string>
 	<string name="split_tunneling_apps">Ứng Dụng</string>
 	<string name="split_tunneling_direct">Trực tiếp</string>
