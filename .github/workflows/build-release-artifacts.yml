@@ -103,16 +103,16 @@ on:
     outputs:
       pkg_installer_name:
         description: "Name of the PKG installer artifact"
-        value: ${{ jobs.apple.outputs.pkg_installer_name }}
+        value: ${{ jobs.app-macos.outputs.pkg_installer_name }}
       vpnc_pkg_installer_name:
         description: "Name of the nym-vpnc PKG installer artifact"
-        value: ${{ jobs.apple.outputs.vpnc_pkg_installer_name }}
+        value: ${{ jobs.vpnc-macos.outputs.pkg_installer_name }}
       ios_ipa_name:
         description: "Name of the IPA artifact"
-        value: ${{ jobs.apple.outputs.ios_ipa_name }}
+        value: ${{ jobs.app-ios.outputs.ios_ipa_name }}
       ios_build:
         description: "Build number of the iOS app"
-        value: ${{ jobs.apple.outputs.ios_build }}
+        value: ${{ jobs.app-ios.outputs.ios_build }}
       fdroid_artifact_name:
         description: "Name of the F-Droid artifact"
         value: ${{ jobs.android.outputs.fdroid_artifact_name }}
@@ -194,27 +194,104 @@ jobs:
 
           echo "::notice:: channel=$RELEASE_CHANNEL, version=$VERSION, nightly_timestamp=$NIGHTLY_TIMESTAMP, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
 
-  core:
+  core-linux:
     needs: [resolve]
-    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' || needs.resolve.outputs.macos == 'true' || needs.resolve.outputs.ios == 'true' }}
-    uses: ./.github/workflows/build-nym-vpn-core.yml
+    if: ${{ needs.resolve.outputs.linux == 'true' }}
+    uses: ./.github/workflows/build-nym-vpn-core-linux.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
-      linux: ${{ needs.resolve.outputs.linux == 'true' }}
-      windows: ${{ needs.resolve.outputs.windows == 'true' }}
-      ios: ${{ needs.resolve.outputs.ios == 'true' }}
-      macos: ${{ needs.resolve.outputs.macos == 'true' }}
     secrets: inherit
 
-  apple:
-    needs: [resolve, core]
+  core-windows:
+    needs: [resolve]
+    if: ${{ needs.resolve.outputs.windows == 'true' }}
+    uses: ./.github/workflows/build-nym-vpn-core-windows.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+    secrets: inherit
+
+  core-macos:
+    needs: [resolve]
+    if: ${{ needs.resolve.outputs.macos == 'true' }}
+    uses: ./.github/workflows/build-nym-vpn-core-macos.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+    secrets: inherit
+
+  core-ios:
+    needs: [resolve]
+    if: ${{ needs.resolve.outputs.ios == 'true' }}
+    uses: ./.github/workflows/build-nym-vpn-core-ios.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+    secrets: inherit
+
+  translations:
+    needs: [resolve]
+    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
+    uses: ./.github/workflows/crowdin-download.yml
+    with:
+      config_path: crowdin-configs/linux-windows.yml
+      artifact_name: translations
+      artifact_path: nym-vpn-app/src/i18n
+    secrets: inherit
+
+  translations-apple:
+    needs: [resolve]
     if: ${{ needs.resolve.outputs.ios == 'true' || needs.resolve.outputs.macos == 'true' }}
-    uses: ./.github/workflows/build-release-artifacts-apple.yml
+    uses: ./.github/workflows/crowdin-download.yml
+    with:
+      config_path: crowdin-configs/macos-ios.yml
+      artifact_name: translations-apple
+      artifact_path: nym-vpn-apple/NymVPN/Resources/*.xcstrings
+    secrets: inherit
+
+  app-linux:
+    needs: [resolve, translations]
+    if: ${{ needs.resolve.outputs.linux == 'true' }}
+    uses: ./.github/workflows/build-nym-vpn-app-linux.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+      dev_mode: ${{ needs.resolve.outputs.channel == 'beta' || needs.resolve.outputs.channel == 'nightly' }}
+    secrets: inherit
+
+  app-windows:
+    needs: [resolve, translations, core-windows]
+    if: ${{ needs.resolve.outputs.windows == 'true' }}
+    uses: ./.github/workflows/build-nym-vpn-app-windows.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+      dev_mode: ${{ needs.resolve.outputs.channel == 'beta' || needs.resolve.outputs.channel == 'nightly' }}
+      sign: ${{ needs.resolve.outputs.channel == 'ship' || needs.resolve.outputs.channel == 'beta' }}
+      updater_bundle: ${{ needs.resolve.outputs.channel == 'ship' }}
+      updater_channel: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || 'dev' }}
+    secrets: inherit
+
+  app-macos:
+    needs: [resolve, translations-apple, core-macos]
+    if: ${{ needs.resolve.outputs.macos == 'true' }}
+    uses: ./.github/workflows/build-nym-vpn-app-macos.yml
     with:
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
       version: ${{ needs.resolve.outputs.version }}
-      build_ios: ${{ needs.resolve.outputs.ios == 'true' }}
-      build_macos: ${{ needs.resolve.outputs.macos == 'true' }}
+    secrets: inherit
+
+  vpnc-macos:
+    needs: [resolve, core-macos]
+    if: ${{ needs.resolve.outputs.macos == 'true' }}
+    uses: ./.github/workflows/build-nym-vpnc-macos.yml
+    with:
+      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
+      version: ${{ needs.resolve.outputs.version }}
+    secrets: inherit
+
+  app-ios:
+    needs: [resolve, translations-apple, core-ios]
+    if: ${{ needs.resolve.outputs.ios == 'true' }}
+    uses: ./.github/workflows/build-nym-vpn-app-ios.yml
+    with:
+      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
+      version: ${{ needs.resolve.outputs.version }}
     secrets: inherit
 
   android:
@@ -227,16 +304,4 @@ jobs:
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
       play: ${{ needs.resolve.outputs.android == 'true' }}
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
-    secrets: inherit
-
-  app:
-    needs: [resolve, core]
-    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
-    uses: ./.github/workflows/build-nym-vpn-app.yml
-    with:
-      version: ${{ needs.resolve.outputs.version }}
-      linux: ${{ needs.resolve.outputs.linux == 'true' }}
-      windows: ${{ needs.resolve.outputs.windows == 'true' }}
-      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
-      dev_mode: ${{ needs.resolve.outputs.channel == 'beta' || needs.resolve.outputs.channel == 'nightly' }}
     secrets: inherit
