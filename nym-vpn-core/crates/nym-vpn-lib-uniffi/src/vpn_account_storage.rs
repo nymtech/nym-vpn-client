@@ -65,8 +65,10 @@ impl NymVpnAccountStorage {
             if err.is_account_not_found() {
                 return Err(VpnError::AccountNotRegistered);
             }
-            // unreachable API is not an unregistered account: the account sync checks it later
-            tracing::warn!("Storing the account without checking it with the API: {err}");
+            return Err(match nym_vpn_lib_types::VpnApiError::try_from(err) {
+                Ok(details) => VpnError::VpnApi { details },
+                Err(err) => VpnError::internal(err),
+            });
         }
 
         self.storage.store_account(storable_account).await?;
