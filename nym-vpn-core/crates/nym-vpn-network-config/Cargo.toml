@@ -29,3 +29,7 @@ tokio-util.workspace = true
 tracing.workspace = true
 semver.workspace = true
 url = { workspace = true, features = ["serde"] }
+
+[dev-dependencies]
+wiremock.workspace = true
+async-trait.workspace = true

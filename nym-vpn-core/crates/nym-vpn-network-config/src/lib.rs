@@ -67,6 +67,20 @@ pub struct Network {
     dns_fallbacks: HashMap<String, HashSet<IpAddr>>,
 }
 
+/// Discovery's URLs come first; the nym-api ones stay behind so a bad list can still reach a host.
+pub(crate) fn discovery_first(
+    mut discovery: Vec<nym_network_defaults::ApiUrl>,
+    details: Vec<nym_network_defaults::ApiUrl>,
+) -> Vec<nym_network_defaults::ApiUrl> {
+    for url in details {
+        match discovery.iter_mut().find(|known| known.url == url.url) {
+            Some(known) => known.front_hosts = known.front_hosts.take().or(url.front_hosts),
+            None => discovery.push(url),
+        }
+    }
+    discovery
+}
+
 fn dns_fallback_addr_map(fallbacks: impl AsRef<[DnsFallback]>) -> HashMap<String, HashSet<IpAddr>> {
     fallbacks
         .as_ref()
@@ -109,7 +123,7 @@ impl Network {
     /// Create new network configuration from discovery and network details.
     pub fn new_from_discovery(
         discovery: Discovery,
-        network_details: NymNetworkDetails,
+        mut network_details: NymNetworkDetails,
     ) -> Result<Self> {
         if discovery.network_name != network_details.network_name {
             return Err(Error::NetworkNameMismatch {
@@ -117,6 +131,13 @@ impl Network {
                 actual: network_details.network_name,
             });
         }
+
+        network_details.networking.nym_api_urls =
+            discovery_first(discovery.nym_api_urls(), network_details.nym_api_urls());
+        network_details.networking.nym_vpn_api_urls = discovery_first(
+            discovery.nym_vpn_api_urls(),
+            network_details.nym_vpn_api_urls(),
+        );
 
         let feature_flags = discovery.feature_flags.clone();
         let system_configuration = discovery.system_configuration.clone();
@@ -368,7 +389,6 @@ impl NetworkCache {
             .value()
             .clone();
 
-        Self::patch_network_details_from_discovery(&mut network_details, &discovery);
         self.apply_network_overrides(&mut network_details.networking);
 
         let network_env = Network::new_from_discovery(discovery, network_details)?;
@@ -383,22 +403,6 @@ impl NetworkCache {
                 url: vpn_api_override.clone(),
                 front_hosts: None,
             }];
-        }
-    }
-
-    // Patch network details from discovery.
-    //
-    // Sometimes deployments go wrong and nym-vpn-api-urls aren't set properly which can be a show stopper.
-    // Patch it up manually from discovery since some of VpnClient initializers use network details.
-    fn patch_network_details_from_discovery(
-        network_details: &mut NymNetworkDetails,
-        discovery: &Discovery,
-    ) {
-        if network_details.nym_vpn_api_urls().is_empty() {
-            tracing::debug!(
-                "Patching up network details from discovery due to missing network details!"
-            );
-            network_details.networking.nym_vpn_api_urls = discovery.nym_vpn_api_urls();
         }
     }
 
@@ -614,6 +618,60 @@ mod tests {
                 .await
                 .unwrap()
         );
+    }
+
+    #[test]
+    fn test_discovery_api_urls_come_first_and_network_details_stay_behind() {
+        let url = |url: &str| nym_network_defaults::ApiUrl {
+            url: url.to_owned(),
+            front_hosts: None,
+        };
+        let details = NymNetworkDetails::new_mainnet();
+        let known = details.nym_api_urls();
+        let mut discovery = Discovery::default_mainnet();
+
+        // new entries first, in discovery order; a known entry keeps its discovery position and
+        // gets its front hosts back when discovery lists it without them
+        assert!(known[1].front_hosts.is_some());
+        discovery.networking.nym_api_urls = vec![
+            url("https://a.test/api/"),
+            url(&known[1].url),
+            url("https://b.test/api/"),
+        ];
+        let network = Network::new_from_discovery(discovery.clone(), details.clone()).unwrap();
+        let urls = network.nym_api_urls().unwrap();
+        assert_eq!(urls[0], discovery.networking.nym_api_urls[0]);
+        assert_eq!(urls[1], known[1]);
+        assert_eq!(urls[2], discovery.networking.nym_api_urls[2]);
+        let tail: Vec<_> = known
+            .iter()
+            .filter(|k| k.url != known[1].url)
+            .cloned()
+            .collect();
+        assert_eq!(urls[3..], tail);
+
+        // an empty discovery list leaves network details untouched
+        discovery.networking.nym_api_urls.clear();
+        let network = Network::new_from_discovery(discovery, details.clone()).unwrap();
+        assert_eq!(network.nym_api_urls(), Some(known));
+    }
+
+    #[tokio::test]
+    async fn test_vpn_api_override_wins_over_discovery_api_urls() {
+        let cache_dir = tempdir().unwrap();
+        let override_url = "https://override.test/api/".to_owned();
+        let cache = NetworkCache::new(
+            cache_dir.path().to_path_buf(),
+            "mainnet",
+            None,
+            Some(override_url.clone()),
+        )
+        .await
+        .unwrap();
+
+        let urls = cache.network().unwrap().nym_vpn_api_urls().unwrap();
+        assert_eq!(urls.len(), 1);
+        assert_eq!(urls[0].url, override_url);
     }
 
     #[test]
