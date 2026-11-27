@@ -69,16 +69,17 @@ pub struct Network {
 
 /// Discovery's URLs come first; the nym-api ones stay behind so a bad list can still reach a host.
 pub(crate) fn discovery_first(
-    mut discovery: Vec<nym_network_defaults::ApiUrl>,
+    discovery: Vec<nym_network_defaults::ApiUrl>,
     details: Vec<nym_network_defaults::ApiUrl>,
 ) -> Vec<nym_network_defaults::ApiUrl> {
-    for url in details {
-        match discovery.iter_mut().find(|known| known.url == url.url) {
+    let mut urls: Vec<nym_network_defaults::ApiUrl> = Vec::new();
+    for url in discovery.into_iter().chain(details) {
+        match urls.iter_mut().find(|known| known.url == url.url) {
             Some(known) => known.front_hosts = known.front_hosts.take().or(url.front_hosts),
-            None => discovery.push(url),
+            None => urls.push(url),
         }
     }
-    discovery
+    urls
 }
 
 fn dns_fallback_addr_map(fallbacks: impl AsRef<[DnsFallback]>) -> HashMap<String, HashSet<IpAddr>> {
@@ -649,6 +650,15 @@ mod tests {
             .cloned()
             .collect();
         assert_eq!(urls[3..], tail);
+
+        // a url listed twice by discovery is kept once, at its first position, with its front hosts
+        discovery.networking.nym_api_urls =
+            vec![url(&known[1].url), url(&known[0].url), known[1].clone()];
+        let network = Network::new_from_discovery(discovery.clone(), details.clone()).unwrap();
+        let urls = network.nym_api_urls().unwrap();
+        assert_eq!(urls[0], known[1]);
+        assert_eq!(urls[1], url(&known[0].url));
+        assert_eq!(urls.len(), known.len());
 
         // an empty discovery list leaves network details untouched
         discovery.networking.nym_api_urls.clear();
