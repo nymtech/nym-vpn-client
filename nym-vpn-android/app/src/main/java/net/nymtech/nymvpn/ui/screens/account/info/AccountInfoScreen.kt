@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,8 +74,12 @@ import net.nymtech.nymvpn.ui.screens.account.info.modal.PairDeviceDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.account.info.components.SubscriptionSection
 import net.nymtech.nymvpn.ui.screens.account.pairing.PairDeviceViewModel
+import net.nymtech.nymvpn.ui.screens.scan.RedeemCodeSheet
+import net.nymtech.nymvpn.ui.screens.settings.components.SettingsGroup
+import net.nymtech.nymvpn.ui.screens.settings.components.accountPageItems
 import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
+import net.nymtech.nymvpn.ui.screens.settings.components.LogoutSection
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionStatusText
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
@@ -88,6 +93,7 @@ import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.qrscanner.isQrCameraAvailable
 
 @Composable
 fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: AccountInfoViewModel = hiltViewModel(), pairDeviceViewModel: PairDeviceViewModel = hiltViewModel()) {
@@ -98,6 +104,8 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
+	var showRedeemCodeSheet by rememberSaveable { mutableStateOf(false) }
+	val cameraAvailable = remember(context) { isQrCameraAvailable(context) }
 	val supportURL = stringResource(R.string.contact_url)
 
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -153,6 +161,10 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 			onCodesMatch = pairDeviceViewModel::confirm,
 			onDismiss = pairDeviceViewModel::dismiss,
 		)
+	}
+
+	if (showRedeemCodeSheet) {
+		RedeemCodeSheet(accountStored = appUiState.managerState.isMnemonicStored, onDismiss = { showRedeemCodeSheet = false })
 	}
 
 	val accountState = appUiState.managerState.accountState
@@ -211,6 +223,12 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 				}
 			}
 		},
+		onPassphraseClick = {
+			navController.navigate(Route.Passphrase)
+		},
+		onRedeemCodeClick = {
+			if (cameraAvailable) navController.navigate(Route.QrScan()) else showRedeemCodeSheet = true
+		},
 		onLogoutClick = {
 			showLogoutDialog = true
 		},
@@ -240,6 +258,8 @@ fun AccountInfoScreenContent(
 	onPairDeviceClick: () -> Unit,
 	onAccountIdClick: () -> Unit,
 	onDeviceIdClick: () -> Unit,
+	onPassphraseClick: () -> Unit,
+	onRedeemCodeClick: () -> Unit,
 	onLogoutClick: () -> Unit,
 	onDeleteAccountClick: () -> Unit,
 	onSelectPlanClick: () -> Unit,
@@ -328,6 +348,8 @@ fun AccountInfoScreenContent(
 		)
 		Spacer(Modifier.height(16.dp))
 		if (isMnemonicStored) {
+			SettingsGroup(items = accountPageItems(onPassphraseClick, onRedeemCodeClick))
+			Spacer(Modifier.height(16.dp))
 			OutlineStyledButton(
 				onClick = onPairDeviceClick,
 				content = {
@@ -341,19 +363,7 @@ fun AccountInfoScreenContent(
 				shape = RoundedCornerShape(12.dp),
 			)
 			Spacer(Modifier.height(16.dp))
-			OutlineStyledButton(
-				onClick = onLogoutClick,
-				content = {
-					Text(
-						stringResource(R.string.log_out),
-						style = MaterialTheme.typography.bodyLarge,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-				},
-				borderColor = LocalNymColors.current.buttonErrorBorder,
-				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
-				shape = RoundedCornerShape(12.dp),
-			)
+			LogoutSection(isMnemonicStored = true, onLogoutClick = onLogoutClick)
 			Spacer(Modifier.height(8.dp))
 			TransparentButton(
 				onClick = onDeleteAccountClick,
@@ -423,6 +433,8 @@ internal fun PreviewAccountInfoScreen() {
 				onPairDeviceClick = {},
 				onAccountIdClick = {},
 				onDeviceIdClick = {},
+				onPassphraseClick = {},
+				onRedeemCodeClick = {},
 				onLogoutClick = {},
 				onDeleteAccountClick = {},
 				onSelectPlanClick = {},

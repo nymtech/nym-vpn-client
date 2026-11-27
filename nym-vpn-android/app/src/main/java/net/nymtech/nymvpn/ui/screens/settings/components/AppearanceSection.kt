@@ -23,26 +23,6 @@ import net.nymtech.nymvpn.ui.theme.Theme
 fun appEntries(values: SettingsValues, actions: SettingsActions): List<SettingsEntry> = buildList {
 	add(
 		R.string.settings_section_app,
-		stringResource(R.string.appearance),
-		SelectionItem(
-			leading = {
-				SettingsIcon(
-					Icons.Outlined.ViewComfy,
-					stringResource(R.string.appearance),
-				)
-			},
-			trailing = {
-				SettingsArrowIcon()
-			},
-			title = {
-				SettingsTitle(stringResource(R.string.appearance))
-			},
-			onClick = actions.onAppearanceClick,
-		),
-	)
-
-	add(
-		R.string.settings_section_app,
 		stringResource(R.string.settings_startup_title),
 		SelectionItem(
 			leading = {
@@ -60,6 +40,50 @@ fun appEntries(values: SettingsValues, actions: SettingsActions): List<SettingsE
 			title = {
 				SettingsTitle(stringResource(R.string.settings_startup_title))
 			},
+		),
+	)
+
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+		add(
+			R.string.settings_section_app,
+			stringResource(R.string.settings_shortcuts_title),
+			SelectionItem(
+				leading = {
+					SettingsIcon(
+						Icons.Outlined.KeyboardAlt,
+						stringResource(R.string.settings_shortcuts_title),
+					)
+				},
+				trailing = {
+					ScaledSwitch(
+						checked = values.appShortcutsEnabled,
+						onClick = actions.onShortcutsEnable,
+					)
+				},
+				title = {
+					SettingsTitle(stringResource(R.string.settings_shortcuts_title))
+				},
+			),
+		)
+	}
+
+	add(
+		R.string.settings_section_app,
+		stringResource(R.string.appearance),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					Icons.Outlined.ViewComfy,
+					stringResource(R.string.appearance),
+				)
+			},
+			trailing = {
+				SettingsArrowIcon()
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.appearance))
+			},
+			onClick = actions.onAppearanceClick,
 		),
 	)
 
@@ -102,30 +126,6 @@ fun appEntries(values: SettingsValues, actions: SettingsActions): List<SettingsE
 			onClick = actions.onBatterySettingsClick,
 		),
 	)
-
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-		add(
-			R.string.settings_section_app,
-			stringResource(R.string.settings_shortcuts_title),
-			SelectionItem(
-				leading = {
-					SettingsIcon(
-						Icons.Outlined.KeyboardAlt,
-						stringResource(R.string.settings_shortcuts_title),
-					)
-				},
-				trailing = {
-					ScaledSwitch(
-						checked = values.appShortcutsEnabled,
-						onClick = actions.onShortcutsEnable,
-					)
-				},
-				title = {
-					SettingsTitle(stringResource(R.string.settings_shortcuts_title))
-				},
-			),
-		)
-	}
 }
 
 @Composable

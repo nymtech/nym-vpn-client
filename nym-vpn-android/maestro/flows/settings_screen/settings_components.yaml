@@ -10,12 +10,12 @@ tags:
 
 - scrollUntilVisible:
     element:
-      text: "Account"
+      text: "Your account"
     direction: DOWN
 
 - scrollUntilVisible:
     element:
-      text: "Passphrase"
+      text: "Block ads"
     direction: DOWN
 
 - scrollUntilVisible:
@@ -25,7 +25,12 @@ tags:
 
 - scrollUntilVisible:
     element:
-      text: "Ad blocking"
+      text: "Mixnet tuning"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Bypass LAN"
     direction: DOWN
 
 - scrollUntilVisible:
@@ -45,11 +50,6 @@ tags:
 
 - scrollUntilVisible:
     element:
-      text: "Bypass LAN"
-    direction: DOWN
-
-- scrollUntilVisible:
-    element:
       text: "Split tunneling"
     direction: DOWN
 
@@ -60,17 +60,17 @@ tags:
 
 - scrollUntilVisible:
     element:
-      text: "Mixnet tuning"
+      text: "Launch at startup"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "App shortcuts"
     direction: DOWN
 
 - scrollUntilVisible:
     element:
       text: "Appearance"
-    direction: DOWN
-
-- scrollUntilVisible:
-    element:
-      text: "Launch at startup"
     direction: DOWN
 
 - scrollUntilVisible:
@@ -81,11 +81,6 @@ tags:
 - scrollUntilVisible:
     element:
       text: "Power management"
-    direction: DOWN
-
-- scrollUntilVisible:
-    element:
-      text: "App shortcuts"
     direction: DOWN
 
 - scrollUntilVisible:

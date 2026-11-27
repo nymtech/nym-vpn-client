@@ -17,25 +17,25 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 
 @Composable
-fun accountEntries(isMnemonicStored: Boolean, subscription: SubscriptionUiState?, onAccountClick: () -> Unit, onPassphraseClick: () -> Unit, onRedeemCodeClick: () -> Unit): List<SettingsEntry> {
-	// Redeeming without an account creates one, so it shows either way.
+fun accountEntries(isMnemonicStored: Boolean, subscription: SubscriptionUiState?, onAccountClick: () -> Unit): List<SettingsEntry> {
+	// One row opens the account page, which holds the passphrase and redeem rows.
 	return buildList {
 		if (isMnemonicStored) {
 			add(
 				R.string.settings_section_account,
-				stringResource(R.string.account),
+				stringResource(R.string.settings_your_account_title),
 				SelectionItem(
 					leading = {
 						SettingsIcon(
 							Icons.Outlined.AccountCircle,
-							stringResource(R.string.account),
+							stringResource(R.string.settings_your_account_title),
 						)
 					},
 					trailing = {
 						SettingsArrowIcon()
 					},
 					title = {
-						SettingsTitle(stringResource(R.string.account))
+						SettingsTitle(stringResource(R.string.settings_your_account_title))
 					},
 					description = {
 						SubscriptionStatusText(subscription = subscription)
@@ -50,54 +50,51 @@ fun accountEntries(isMnemonicStored: Boolean, subscription: SubscriptionUiState?
 					onClick = onAccountClick,
 				),
 			)
-			add(
-				R.string.settings_section_account,
-				stringResource(R.string.settings_passphrase_title),
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							ImageVector.vectorResource(R.drawable.ic_passphrase),
-							stringResource(R.string.settings_passphrase_title),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.settings_passphrase_title))
-					},
-					onClick = onPassphraseClick,
-				),
-			)
 		}
-		add(
-			R.string.settings_section_account,
-			stringResource(R.string.settings_redeem_code_title),
-			SelectionItem(
-				leading = {
-					SettingsIcon(
-						Icons.Outlined.Redeem,
-						stringResource(R.string.settings_redeem_code_title),
-					)
-				},
-				trailing = {
-					SettingsArrowIcon()
-				},
-				title = {
-					SettingsTitle(stringResource(R.string.settings_redeem_code_title))
-				},
-				onClick = onRedeemCodeClick,
-			),
-		)
 	}
 }
+
+/** The Passphrase and Redeem a code rows shown on the account page. */
+@Composable
+fun accountPageItems(onPassphraseClick: () -> Unit, onRedeemCodeClick: () -> Unit): List<SelectionItem> = listOf(
+	SelectionItem(
+		leading = {
+			SettingsIcon(
+				ImageVector.vectorResource(R.drawable.ic_passphrase),
+				stringResource(R.string.settings_passphrase_title),
+			)
+		},
+		trailing = {
+			SettingsArrowIcon()
+		},
+		title = {
+			SettingsTitle(stringResource(R.string.settings_passphrase_title))
+		},
+		onClick = onPassphraseClick,
+	),
+	SelectionItem(
+		leading = {
+			SettingsIcon(
+				Icons.Outlined.Redeem,
+				stringResource(R.string.settings_redeem_code_title),
+			)
+		},
+		trailing = {
+			SettingsArrowIcon()
+		},
+		title = {
+			SettingsTitle(stringResource(R.string.settings_redeem_code_title))
+		},
+		onClick = onRedeemCodeClick,
+	),
+)
 
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewAccountSection() {
 	NymVPNTheme(Theme.default()) {
 		SettingsGroup(
-			items = accountEntries(isMnemonicStored = true, subscription = null, onAccountClick = {}, onPassphraseClick = {}, onRedeemCodeClick = {}).map { it.item },
+			items = accountEntries(isMnemonicStored = true, subscription = null, onAccountClick = {}).map { it.item },
 		)
 	}
 }

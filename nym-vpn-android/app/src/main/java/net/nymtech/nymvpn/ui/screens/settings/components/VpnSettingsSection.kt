@@ -27,6 +27,35 @@ import net.nymtech.nymvpn.ui.theme.Theme
 fun vpnSettingsEntries(values: SettingsValues, actions: SettingsActions): List<SettingsEntry> = buildList {
 	add(
 		R.string.settings_section_protection,
+		stringResource(R.string.settings_ad_blocking_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					Icons.Outlined.Block,
+					stringResource(R.string.settings_ad_blocking_title),
+				)
+			},
+			trailing = {
+				ScaledSwitch(
+					checked = values.adBlockingEnabled,
+					onClick = actions.onAdBlockingEnable,
+				)
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_ad_blocking_title))
+			},
+			description = {
+				Text(
+					stringResource(if (values.adBlockingEnabled) R.string.settings_ad_blocking_subtitle_on else R.string.settings_ad_blocking_subtitle_off),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
+				)
+			},
+		),
+	)
+
+	add(
+		R.string.settings_section_protection,
 		stringResource(R.string.settings_kill_switch_title),
 		SelectionItem(
 			leading = {
@@ -54,22 +83,56 @@ fun vpnSettingsEntries(values: SettingsValues, actions: SettingsActions): List<S
 
 	add(
 		R.string.settings_section_protection,
-		stringResource(R.string.settings_ad_blocking_title),
+		stringResource(R.string.settings_mixnet_tuning_title),
 		SelectionItem(
 			leading = {
 				SettingsIcon(
-					Icons.Outlined.Block,
-					stringResource(R.string.settings_ad_blocking_title),
+					ImageVector.vectorResource(R.drawable.ic_mixnet_tuning),
+					stringResource(R.string.settings_mixnet_tuning_title),
+				)
+			},
+			trailing = {
+				SettingsArrowIcon()
+			},
+			description = {
+				Text(
+					stringResource(R.string.settings_mixnet_tuning_subtitle),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
+				)
+			},
+			title = {
+				SettingsTitle(stringResource(R.string.settings_mixnet_tuning_title))
+			},
+			onClick = actions.onMixnetTuningClick,
+		),
+	)
+
+	add(
+		R.string.settings_section_connection,
+		stringResource(R.string.settings_bypass_lan_title),
+		SelectionItem(
+			leading = {
+				SettingsIcon(
+					Icons.Outlined.Lan,
+					stringResource(R.string.settings_bypass_lan_title),
 				)
 			},
 			trailing = {
 				ScaledSwitch(
-					checked = values.adBlockingEnabled,
-					onClick = actions.onAdBlockingEnable,
+					checked = values.bypassLanEnabled,
+					onClick = actions.onBypassLanEnable,
 				)
 			},
 			title = {
-				SettingsTitle(stringResource(R.string.settings_ad_blocking_title))
+				SettingsTitle(stringResource(R.string.settings_bypass_lan_title))
+			},
+			description = {
+				Text(
+					stringResource(R.string.settings_bypass_lan_description),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
+				)
 			},
 		),
 	)
@@ -142,35 +205,6 @@ fun vpnSettingsEntries(values: SettingsValues, actions: SettingsActions): List<S
 	)
 
 	add(
-		R.string.settings_section_connection,
-		stringResource(R.string.settings_bypass_lan_title),
-		SelectionItem(
-			leading = {
-				SettingsIcon(
-					Icons.Outlined.Lan,
-					stringResource(R.string.settings_bypass_lan_title),
-				)
-			},
-			trailing = {
-				ScaledSwitch(
-					checked = values.bypassLanEnabled,
-					onClick = actions.onBypassLanEnable,
-				)
-			},
-			title = {
-				SettingsTitle(stringResource(R.string.settings_bypass_lan_title))
-			},
-			description = {
-				Text(
-					stringResource(R.string.settings_bypass_lan_description),
-					style = MaterialTheme.typography.bodySmall,
-					color = MaterialTheme.colorScheme.onBackground,
-				)
-			},
-		),
-	)
-
-	add(
 		R.string.settings_section_routing,
 		stringResource(R.string.settings_split_tunneling_title),
 		SelectionItem(
@@ -214,33 +248,6 @@ fun vpnSettingsEntries(values: SettingsValues, actions: SettingsActions): List<S
 				)
 			},
 			onClick = actions.onGeoExclusionClick,
-		),
-	)
-
-	add(
-		R.string.settings_section_mixnet,
-		stringResource(R.string.settings_mixnet_tuning_title),
-		SelectionItem(
-			leading = {
-				SettingsIcon(
-					ImageVector.vectorResource(R.drawable.ic_mixnet_tuning),
-					stringResource(R.string.settings_mixnet_tuning_title),
-				)
-			},
-			trailing = {
-				SettingsArrowIcon()
-			},
-			description = {
-				Text(
-					stringResource(R.string.settings_mixnet_tuning_description),
-					style = MaterialTheme.typography.bodySmall,
-					color = MaterialTheme.colorScheme.onBackground,
-				)
-			},
-			title = {
-				SettingsTitle(stringResource(R.string.settings_mixnet_tuning_title))
-			},
-			onClick = actions.onMixnetTuningClick,
 		),
 	)
 }
