@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.17.0] - TBD
+
 ### Changed
 
 - Settings are now grouped into labeled sections with a search field that finds any setting, Log out and Quit included, by its name, its description or its section (https://github.com/nymtech/nym-vpn-client/pull/7169)
