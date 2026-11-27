@@ -52,6 +52,12 @@ test.describe('Settings', () => {
     await expect(settingsPage.quitButton).toBeVisible();
   });
 
+  test('search finds the account row by its own title', async () => {
+    await settingsPage.search('your account');
+    await expect(settingsPage.row('Your account')).toBeVisible();
+    await expect(settingsPage.noResults).toBeHidden();
+  });
+
   test('search with no match shows no results and clearing restores the list', async () => {
     await settingsPage.search('zzz');
     await expect(settingsPage.noResults).toBeVisible();

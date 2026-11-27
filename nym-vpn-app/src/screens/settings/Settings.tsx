@@ -25,6 +25,7 @@ function Settings() {
     enableAdBlocking,
     enableConflictDetection,
     account,
+    accountState,
   } = useMainState();
 
   const navigate = useNavigate();
@@ -279,7 +280,17 @@ function Settings() {
       settings: section.settings.filter((s) => !search || matches(s.title)),
     }))
     .filter((section) => section.settings.length > 0);
-  const showAccount = !search || matches(t('sections.account'));
+  // the account section matches on its heading and on the titles it shows
+  const accountTitles = account
+    ? [
+        t('account.your-account'),
+        ...(accountState === 'no-subscription'
+          ? [t('account.choose-plan')]
+          : []),
+      ]
+    : [t('account.get-started')];
+  const showAccount =
+    !search || [t('sections.account'), ...accountTitles].some(matches);
   const noResults = !showAccount && visibleSections.length === 0;
 
   return (
