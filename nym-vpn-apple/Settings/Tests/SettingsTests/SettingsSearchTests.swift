@@ -33,4 +33,13 @@ final class SettingsSearchTests: XCTestCase {
     func testNoMatchReturnsNothing() {
         XCTAssertEqual(SettingsSearch.filter(sections, query: "zzz").count, 0)
     }
+
+    func testRowlessSectionMatchesOnItsTitle() {
+        let signedOut = [SettingsSection<AppSettingsSectionKind>(kind: .account, viewModels: [])] + sections
+        let getStarted: (AppSettingsSectionKind) -> String? = { $0 == .account ? "Get started" : nil }
+
+        XCTAssertEqual(SettingsSearch.filter(signedOut, query: "", rowlessTitle: getStarted).first?.kind, .account)
+        XCTAssertEqual(SettingsSearch.filter(signedOut, query: "get st", rowlessTitle: getStarted).map(\.kind), [.account])
+        XCTAssertEqual(SettingsSearch.filter(signedOut, query: "dns", rowlessTitle: getStarted).map(\.kind), [.connection])
+    }
 }

@@ -143,7 +143,10 @@ private extension SettingsView {
 
     /// All sections, or while searching only the rows whose title matches, under their section header.
     func visibleSections() -> [SettingsSection<AppSettingsSectionKind>] {
-        SettingsSearch.filter(viewModel.sections, query: searchText)
+        let getStarted = viewModel.isSignedIn ? nil : "home.getStarted".localizedString
+        return SettingsSearch.filter(viewModel.sections, query: searchText) { kind in
+            kind == .account ? getStarted : nil
+        }
     }
 
     func sectionHeader(_ title: String) -> some View {
