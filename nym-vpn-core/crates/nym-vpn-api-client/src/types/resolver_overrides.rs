@@ -80,6 +80,15 @@ impl ResolverOverrides {
 
             Ok(Self { overrides })
         } else {
+            // At least one resolution failed.
+            tracing::warn!(
+                "Failed to resolve one or more URLs: {:?}",
+                failures
+                    .iter()
+                    .map(|failure| failure.hostname.as_str())
+                    .collect::<Vec<_>>()
+            );
+
             Err(VpnApiClientError::DnsResolution { failures })
         }
     }
