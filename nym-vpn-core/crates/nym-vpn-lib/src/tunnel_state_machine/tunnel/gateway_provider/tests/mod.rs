@@ -200,6 +200,7 @@ pub fn default_tunnel_settings() -> TunnelSettings {
         entry_point: Box::new(EntryPoint::Random),
         exit_point: Box::new(ExitPoint::Random),
         dns: Default::default(),
+        default_dns: Default::default(),
         split_tunnel: Default::default(),
         gateway_selection_algorithm_config: Default::default(),
         geo_exclusion_settings: Default::default(),

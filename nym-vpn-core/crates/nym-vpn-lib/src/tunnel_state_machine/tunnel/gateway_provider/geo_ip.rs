@@ -9,11 +9,7 @@ use nym_gateway_directory::{Gateway, Location};
 use nym_vpn_api_client::{
     VpnApiClient, error::VpnApiClientError, response::NymUserGeoIpLocationResponse,
 };
-use tokio::sync::{
-    RwLock,
-    mpsc::{self, UnboundedReceiver},
-    oneshot,
-};
+use tokio::sync::{RwLock, mpsc, oneshot, watch};
 use tokio_util::sync::CancellationToken;
 
 const GEO_IP_UPDATE_INTERVAL: Duration = Duration::from_hours(1);
@@ -132,7 +128,7 @@ pub(crate) struct GeoIpFetcher {
     query_control: Arc<RwLock<QueryControl>>,
     client: Arc<dyn GeoIpClient>,
     command_rx: mpsc::UnboundedReceiver<FetcherCommand>,
-    update_location_tx: mpsc::UnboundedSender<Option<Location>>,
+    location_tx: watch::Sender<Option<Location>>,
     shutdown_token: CancellationToken,
 }
 
@@ -141,7 +137,7 @@ impl GeoIpFetcher {
         enable_geo_location: bool,
         client: Box<dyn GeoIpClient>,
         command_rx: mpsc::UnboundedReceiver<FetcherCommand>,
-        update_location_tx: mpsc::UnboundedSender<Option<Location>>,
+        location_tx: watch::Sender<Option<Location>>,
         shutdown_token: CancellationToken,
     ) -> Self {
         let state = if enable_geo_location {
@@ -156,7 +152,7 @@ impl GeoIpFetcher {
             query_control,
             client: Arc::from(client),
             command_rx,
-            update_location_tx,
+            location_tx,
             shutdown_token,
         }
     }
@@ -196,15 +192,15 @@ impl GeoIpFetcher {
                     self.state = State::Nothing;
                     match ret {
                         Ok(geo_ip_location) => {
-                            let Ok(location) = geo_ip_location.location.try_into() else {
+                            let Ok(location) = Location::try_from(geo_ip_location.location) else {
                                 tracing::warn!("Failed to convert geo ip location response into location");
-                                let _ = self.update_location_tx.send(None);
+                                let _ = self.location_tx.send_replace(None);
                                 continue;
                             };
-                            let _ = self.update_location_tx.send(Some(location));
+                            let _ = self.location_tx.send_replace(Some(location));
                         }
                         Err(err) => {
-                            let _ = self.update_location_tx.send(None);
+                            let _ = self.location_tx.send_replace(None);
                             tracing::warn!("Failed to query VPN API: {err:?}");
                         }
                     }
@@ -225,14 +221,14 @@ impl GeoIpFetcher {
 }
 
 pub(crate) struct GeoIpProvider {
-    update_location_rx: UnboundedReceiver<Option<Location>>,
+    location_rx: watch::Receiver<Option<Location>>,
     latest_known_location: Option<Location>,
 }
 
 impl GeoIpProvider {
-    pub(crate) fn new(update_location_rx: UnboundedReceiver<Option<Location>>) -> Self {
+    pub(crate) fn new(location_rx: watch::Receiver<Option<Location>>) -> Self {
         Self {
-            update_location_rx,
+            location_rx,
             latest_known_location: None,
         }
     }
@@ -240,7 +236,7 @@ impl GeoIpProvider {
     /// Get the initial location, or timeout early to not disrupt too much the connecting phase.
     pub(crate) async fn initial_location(&mut self) -> Option<Location> {
         self.latest_known_location =
-            tokio::time::timeout(TIMEOUT_INITIAL_LOCATION, self.update_location_rx.recv())
+            tokio::time::timeout(TIMEOUT_INITIAL_LOCATION, self.location_rx.changed())
                 .await
                 .inspect_err(|_| {
                     tracing::warn!(
@@ -248,7 +244,9 @@ impl GeoIpProvider {
                         TIMEOUT_INITIAL_LOCATION.as_secs()
                     )
                 })
-                .ok()??;
+                .ok()?
+                .ok()
+                .and_then(|_| self.location_rx.borrow_and_update().clone());
         self.latest_known_location.clone()
     }
 
@@ -256,9 +254,10 @@ impl GeoIpProvider {
     /// previously.
     pub(crate) async fn new_location(&mut self) -> Option<Location> {
         loop {
-            // if recv() returns None, there will never be a new location because the fetcher is gone
+            // if changed() fails, there will never be a new location because the fetcher is gone
             // So we should return from the loop
-            let Some(latest_location) = self.update_location_rx.recv().await? else {
+            self.location_rx.changed().await.ok()?;
+            let Some(latest_location) = self.location_rx.borrow_and_update().clone() else {
                 tracing::debug!(
                     "Received empty location, because of an API error, not updating it as new location"
                 );
@@ -379,7 +378,7 @@ pub mod tests {
     async fn geo_ip_fetcher_fetch_keeps_in_flight_query() {
         let client = PendingGeoIpClient::default();
         let (command_tx, command_rx) = mpsc::unbounded_channel();
-        let (location_tx, _location_rx) = mpsc::unbounded_channel();
+        let (location_tx, _location_rx) = watch::channel(None);
         let fetcher = GeoIpFetcher::new(
             true,
             Box::new(client.clone()),

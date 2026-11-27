@@ -82,9 +82,9 @@ use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
-    DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
-    VpnTopologyServiceHandle,
+    NodeIdentity, UserAgent, VpnTopologyService, VpnTopologyServiceHandle,
     config::GlobalConfig,
+    default_dns_servers::DefaultDnsServers,
     gateway_directory::{
         self, GatewayCache, GatewayCacheHandle, GatewayClient, GatewayMinPerformance,
     },
@@ -140,6 +140,7 @@ pub enum VpnServiceCommand {
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetAutoConnect(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
+    SetEnableQuad9(oneshot::Sender<()>, bool),
     SetCustomDns(
         oneshot::Sender<Result<(), SetCustomDnsError>>,
         Vec<DnsServer>,
@@ -481,6 +482,9 @@ pub struct NymVpnService {
     // Unlocked with the authorization token obtained in the user's session
     #[cfg(target_os = "macos")]
     authorization_service: AuthorizationService,
+
+    // List of default DNS servers that can be affected by user location or exit gateway
+    default_dns_servers: DefaultDnsServers,
 }
 
 impl NymVpnService {
@@ -822,10 +826,12 @@ impl NymVpnService {
             nym_file_updater::FileUpdater::new().map_err(Error::CreateFileUpdater)?;
         tokio::spawn(file_updater.run(services_shutdown_token.child_token()));
 
+        let default_dns_servers = DefaultDnsServers::new(tunnel_settings.default_dns.enable_quad9);
         let state_machine_handle = TunnelStateMachine::spawn(TunnelStateMachineArguments {
             command_receiver,
             event_sender,
             nym_config,
+            default_dns_servers: default_dns_servers.clone(),
             tunnel_settings,
             tunnel_constants,
             account_command_tx: account_command_tx.clone(),
@@ -898,6 +904,7 @@ impl NymVpnService {
             split_tunnel_pid_manager,
             #[cfg(target_os = "macos")]
             authorization_service: AuthorizationService::default(),
+            default_dns_servers,
         })
     }
 
@@ -1235,6 +1242,10 @@ impl NymVpnService {
             }
             VpnServiceCommand::SetEnableCustomDns(tx, enable_custom_dns) => {
                 self.handle_set_enable_custom_dns(enable_custom_dns).await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetEnableQuad9(tx, enable_quad9) => {
+                self.handle_set_enable_quad9(enable_quad9).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetCustomDns(tx, dns_servers) => {
@@ -1676,6 +1687,12 @@ impl NymVpnService {
         }
     }
 
+    async fn handle_set_enable_quad9(&mut self, enable_quad9: bool) {
+        if self.config_manager.set_enable_quad9(enable_quad9).await {
+            self.update_tunnel_settings_with_throttle();
+        }
+    }
+
     async fn handle_set_custom_dns(
         &mut self,
         mut dns_servers: Vec<DnsServer>,
@@ -1807,7 +1824,8 @@ impl NymVpnService {
     }
 
     fn handle_get_default_dns(&self) -> Vec<DnsServer> {
-        DEFAULT_DNS_SERVERS_CONFIG
+        self.default_dns_servers
+            .get_dns_servers()
             .iter()
             .flat_map(dns_servers_from_hickory_config)
             .collect()
