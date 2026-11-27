@@ -99,7 +99,6 @@ class VpnService :
 	private lateinit var connectivity: VpnConnectivityBridge
 	private lateinit var api: VpnServiceApi
 
-	// the public API for always-on lockdown (API 29+); the hidden settings keys may not be readable at this target SDK
 	private fun systemBlocksWithoutVpn(): Boolean? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) isAlwaysOn && isLockdownEnabled else null
 
 	override fun onCreate() {

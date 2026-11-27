@@ -3,23 +3,14 @@ package net.nymtech.nymvpn.ui.screens.main.components
 import android.content.Context
 import android.provider.Settings
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -30,13 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,11 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.common.animations.Pulse
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.model.Marker
-import net.nymtech.nymvpn.ui.model.MarkerMode
-import net.nymtech.nymvpn.ui.model.MarkerState
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -56,314 +37,86 @@ import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.ErrorStateReason
 
-private const val OUTER_RADIUS = 82.4f
-private const val MIDDLE_RADIUS = 68.4f
-private const val INNER_RADIUS = 54.4f
-private const val ARC_STROKE = 5.5f
-private const val LABEL_OFFSET = 14f
-
-// the face sits inside the inner ring with a small gap
-private const val FACE_SIZE = (INNER_RADIUS - ARC_STROKE - 6f) * 2f
-
-// Error rings each lose a segment centred on 3 o'clock (0 degrees here), so the state reads without colour.
-private const val ERROR_GAP = 0.1f
-private const val ERROR_START = 360f * ERROR_GAP / 2f
-private const val ERROR_SWEEP = 360f * (1f - ERROR_GAP)
-private const val ERROR_ALPHA = 0.85f
-
-// Blocked: only the outer ring, in the error colour, with a gap that turns once every 4 s
-// (track and fill together, so the gap stays open). Still, the gap ends at 12 o'clock.
-private const val BLOCKED_SWEEP = 360f * (1f - 0.15f)
-private const val BLOCKED_TURN_MS = 4000
-
-// Stopping: the fills hold their place and fade to 15%.
-private const val STOPPING_ALPHA = 0.15f
-private const val STOPPING_FADE_MS = 600
-
 @Composable
-fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: Tunnel.Mode, connectionTime: String? = null, modifier: Modifier = Modifier) {
+fun ConnectionStatus(connectionState: ConnectionState, lockdown: Boolean, vpnMode: Tunnel.Mode, connectionTime: String? = null, modifier: Modifier = Modifier) {
 	val context = LocalContext.current
-	val nymColors = LocalNymColors.current
-	val track = nymColors.markerTrack
-	val errorRed = nymColors.markerError
-	// read again on resume: the user can turn animations off in system settings with this screen open
 	val resumes = rememberResumeCount()
 	val animationsOff = remember(context, resumes) { areAnimationsOff(context) }
+	// blocked: a live session waiting for the network while the system holds traffic
+	val isBlocked = connectionState == ConnectionState.WaitingForConnection && lockdown
+	val isUnprotected = connectionState == ConnectionState.Disconnected ||
+		connectionState == ConnectionState.Offline ||
+		(connectionState == ConnectionState.WaitingForConnection && !isBlocked)
 
-	// a failure reported by the backend reads as an error even once the tunnel is down
-	val phase = if (connectionState is ConnectionState.Error || connectionState is ConnectionState.StartFailure) MarkerState.ERROR else marker.state
-	val isError = phase == MarkerState.ERROR
-	val isConnected = phase == MarkerState.CONNECTED
-	val isCanceling = phase == MarkerState.STOPPING
-	val isBlocked = phase == MarkerState.BLOCKED
-	val isConnecting = phase == MarkerState.CONNECTING
-
-	// stopping keeps the last fills and fades them to 15%, as on iOS and desktop
-	// a plain holder, not state: it only remembers the last live fills for the next phase
-	val lastFills = remember { arrayOf(RingFillTargets(0f, 0f, 0f)) }
-	val fills = remember(phase, marker.step) {
-		if (isCanceling) lastFills[0] else ringFillTargets(phase, marker.step).also { lastFills[0] = it }
-	}
-	val (targetOuter, targetMiddle, targetInner) = fills
-	val fillAlpha by animateFloatAsState(
-		targetValue = if (isCanceling) STOPPING_ALPHA else 1f,
-		animationSpec = tween(if (isCanceling) STOPPING_FADE_MS else 200, easing = FastOutSlowInEasing),
-		label = "fillAlpha",
-	)
-	val sweepMs = if (vpnMode.isTwoHop()) 800 else 1200
-
-	val outerSweep by animateFloatAsState(
-		targetValue = targetOuter,
-		animationSpec = tween(sweepMs, easing = FastOutSlowInEasing),
-		label = "outerSweep",
-	)
-	val middleSweep by animateFloatAsState(
-		targetValue = targetMiddle,
-		animationSpec = tween(sweepMs, easing = FastOutSlowInEasing),
-		label = "middleSweep",
-	)
-	val innerSweep by animateFloatAsState(
-		targetValue = targetInner,
-		animationSpec = tween(sweepMs, easing = FastOutSlowInEasing),
-		label = "innerSweep",
-	)
-
-	val pulse = rememberInfiniteTransition(label = "arcPulse")
-
-	// Blocked
-	val blockedTurn by pulse.animateFloat(
-		initialValue = 0f,
-		targetValue = 360f,
-		animationSpec = infiniteRepeatable(
-			animation = tween(BLOCKED_TURN_MS, easing = LinearEasing),
-			repeatMode = RepeatMode.Restart,
-		),
-		label = "blockedTurn",
-	)
-	val blockedStart = -90f + if (animationsOff) 0f else blockedTurn
-
-	// Connected
-	val connectedGlow by pulse.animateFloat(
-		initialValue = 0.10f,
-		targetValue = 0.32f,
-		animationSpec = infiniteRepeatable(
-			animation = tween(1400, easing = FastOutSlowInEasing),
-			repeatMode = RepeatMode.Reverse,
-		),
-		label = "connectedGlow",
-	)
-
-	// Canceling
-	val cancelingGlow by pulse.animateFloat(
-		initialValue = 0.04f,
-		targetValue = 0.22f,
-		animationSpec = infiniteRepeatable(
-			animation = tween(900, easing = FastOutSlowInEasing),
-			repeatMode = RepeatMode.Reverse,
-		),
-		label = "cancelingGlow",
-	)
-
-	val fillColor = when {
-		isError || isBlocked -> errorRed.copy(alpha = ERROR_ALPHA)
-		isConnecting -> nymColors.markerConnecting
-		isCanceling -> MaterialTheme.colorScheme.primary.copy(alpha = fillAlpha)
-		else -> MaterialTheme.colorScheme.primary
-	}
-
-	val connectedLabel = if (vpnMode.isTwoHop()) stringResource(R.string.connection_status_fast_mode) else stringResource(R.string.connection_status_anonymous)
-	val failedLabel = stringResource(R.string.connection_failed)
-	val disconnectingLabel = stringResource(R.string.disconnecting)
-	val notProtectedLabel = stringResource(R.string.connection_status_not_protected)
-	val offlineLabel = stringResource(R.string.offline)
-	val blockedLabel = stringResource(R.string.connection_status_blocked)
-	val reconnectLine = stringResource(R.string.connection_status_offline_reconnect)
-	val blockedActionLine = stringResource(R.string.connection_status_blocked_action)
-	val noInternetLine = stringResource(R.string.connection_status_no_internet)
-
-	val isOffline = connectionState == ConnectionState.Offline || connectionState == ConnectionState.WaitingForConnection
-	val isConnectingStep = !isBlocked && connectionState is ConnectionState.Connecting
-	val currentLabel: String? = when {
-		isBlocked -> blockedLabel
-		phase == MarkerState.NOT_PROTECTED && isOffline -> notProtectedLabel
-		else -> when (connectionState) {
-			ConnectionState.Connected -> connectedLabel
-			is ConnectionState.Connecting -> connectionState.label.asString(context)
-			is ConnectionState.Error, is ConnectionState.StartFailure -> failedLabel
-			ConnectionState.Disconnecting -> disconnectingLabel
-			ConnectionState.Offline, ConnectionState.WaitingForConnection -> offlineLabel
-			ConnectionState.Disconnected -> notProtectedLabel
-		}
-	}
-	// blocked: how to release it; reconnect pending without the kill switch: will connect once online;
-	// offline with no session: not protected, no internet
-	val offlineLine: String? = when {
-		isBlocked -> blockedActionLine
-		phase == MarkerState.NOT_PROTECTED && connectionState == ConnectionState.WaitingForConnection -> reconnectLine
-		phase == MarkerState.NOT_PROTECTED && connectionState == ConnectionState.Offline -> noInternetLine
-		else -> null
-	}
-	val showPulse = isOffline && offlineLine == null
-
-	val labelAlpha by animateFloatAsState(
-		targetValue = if (currentLabel != null) 1f else 0f,
-		animationSpec = tween(250, easing = FastOutSlowInEasing),
-		label = "labelAlpha",
-	)
-	val timeAlpha by animateFloatAsState(
-		targetValue = if (connectionTime != null || offlineLine != null) 1f else 0f,
-		animationSpec = tween(250, easing = FastOutSlowInEasing),
-		label = "timeAlpha",
-	)
-
-	Column(
-		horizontalAlignment = Alignment.CenterHorizontally,
-		modifier = modifier,
-	) {
+	Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
 		Box(contentAlignment = Alignment.Center) {
-			Canvas(modifier = Modifier.size((OUTER_RADIUS * 2 + ARC_STROKE).dp)) {
-				val cx = size.width / 2f
-				val cy = size.height / 2f
-
-				if (isCanceling) {
-					for (radius in floatArrayOf(OUTER_RADIUS, MIDDLE_RADIUS, INNER_RADIUS)) {
-						val rPx = radius.dp.toPx()
-						drawArcGlow(
-							color = fillColor,
-							sweepAngle = 360f,
-							topLeft = Offset(cx - rPx, cy - rPx),
-							size = Size(rPx * 2f, rPx * 2f),
-							strokePx = ARC_STROKE.dp.toPx(),
-							glowIntensity = cancelingGlow,
-						)
-					}
-				}
-
-				for (radius in floatArrayOf(OUTER_RADIUS, MIDDLE_RADIUS, INNER_RADIUS)) {
-					val rPx = radius.dp.toPx()
-					val blockedRing = isBlocked && radius == OUTER_RADIUS
-					val (trackStart, trackSweep) = when {
-						isError -> ERROR_START to ERROR_SWEEP
-						blockedRing -> blockedStart to BLOCKED_SWEEP
-						else -> -90f to 360f
-					}
-					drawArc(
-						color = track,
-						startAngle = trackStart,
-						sweepAngle = trackSweep,
-						useCenter = false,
-						topLeft = Offset(cx - rPx, cy - rPx),
-						size = Size(rPx * 2f, rPx * 2f),
-						style = Stroke(width = ARC_STROKE.dp.toPx(), cap = if (isError || blockedRing) StrokeCap.Round else StrokeCap.Butt),
-					)
-				}
-
-				if (isConnected) {
-					for ((radius, sweep) in listOf(
-						OUTER_RADIUS to outerSweep,
-						MIDDLE_RADIUS to middleSweep,
-						INNER_RADIUS to innerSweep,
-					)) {
-						if (sweep > 0.5f) {
-							val rPx = radius.dp.toPx()
-							drawArcGlow(
-								color = fillColor,
-								sweepAngle = sweep,
-								topLeft = Offset(cx - rPx, cy - rPx),
-								size = Size(rPx * 2f, rPx * 2f),
-								strokePx = ARC_STROKE.dp.toPx(),
-								glowIntensity = connectedGlow,
-							)
-						}
-					}
-				}
-
-				for ((radius, sweep) in listOf(
-					OUTER_RADIUS to outerSweep,
-					MIDDLE_RADIUS to middleSweep,
-					INNER_RADIUS to innerSweep,
-				)) {
-					val rPx = radius.dp.toPx()
-					if (isError) {
-						drawArc(
-							color = fillColor,
-							startAngle = ERROR_START,
-							sweepAngle = ERROR_SWEEP,
-							useCenter = false,
-							topLeft = Offset(cx - rPx, cy - rPx),
-							size = Size(rPx * 2f, rPx * 2f),
-							style = Stroke(width = ARC_STROKE.dp.toPx(), cap = StrokeCap.Round),
-						)
-					} else if (sweep > 0.5f) {
-						val blockedRing = isBlocked && radius == OUTER_RADIUS
-						drawArc(
-							color = fillColor,
-							startAngle = if (blockedRing) blockedStart else -90f,
-							sweepAngle = if (blockedRing) minOf(sweep, BLOCKED_SWEEP) else sweep,
-							useCenter = false,
-							topLeft = Offset(cx - rPx, cy - rPx),
-							size = Size(rPx * 2f, rPx * 2f),
-							style = Stroke(width = ARC_STROKE.dp.toPx(), cap = StrokeCap.Round),
-						)
-					}
-				}
-			}
-
-			// Face: says the mode (two blocks for dVPN, the mix field for Mixnet), centred in the inner disk
+			ConnectionRings(connectionState = connectionState, isBlocked = isBlocked, vpnMode = vpnMode, animationsOff = animationsOff)
 			MarkerFace(
-				mode = marker.mode,
-				lit = phase != MarkerState.NOT_PROTECTED,
-				playing = isConnected && !animationsOff,
+				vpnMode = vpnMode,
+				lit = !isUnprotected,
+				playing = connectionState == ConnectionState.Connected && !animationsOff,
 				litColor = MaterialTheme.colorScheme.onPrimaryContainer,
-				unlitColor = track,
+				unlitColor = LocalNymColors.current.markerTrack,
 				modifier = Modifier.size(FACE_SIZE.dp),
 			)
 		}
-
-		// State label — always takes space to keep the circle position fixed
-		Column(
-			horizontalAlignment = Alignment.CenterHorizontally,
-			modifier = Modifier.alpha(labelAlpha),
-		) {
-			Spacer(Modifier.height(LABEL_OFFSET.dp))
-			Row(
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.Center,
-			) {
-				if (showPulse) {
-					Pulse(color = errorRed)
-					Spacer(Modifier.width(6.dp))
-				}
-				Text(
-					text = currentLabel ?: "",
-					// connecting steps sit below the state words: already the smallest label, so lighter weight
-					style = if (isConnectingStep) {
-						MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal)
-					} else {
-						MaterialTheme.typography.labelSmall
-					},
-					color = when {
-						isError -> errorRed
-						isConnected -> MaterialTheme.colorScheme.primary
-						showPulse -> errorRed
-						else -> MaterialTheme.colorScheme.onSurfaceVariant
-					},
-				)
-			}
-			Spacer(Modifier.height(8.dp))
-			Text(
-				text = offlineLine ?: connectionTime ?: "",
-				style = MaterialTheme.typography.labelSmall,
-				color = if (offlineLine != null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
-				modifier = Modifier.alpha(timeAlpha),
-			)
-		}
+		ConnectionStatusText(connectionState = connectionState, isBlocked = isBlocked, vpnMode = vpnMode, connectionTime = connectionTime)
 	}
 }
 
-/** Counts lifecycle resumes, so a value read from system settings can be keyed to be read again on return. */
+// both lines always take space, so the rings never move
 @Composable
-internal fun rememberResumeCount(): Int {
+private fun ConnectionStatusText(connectionState: ConnectionState, isBlocked: Boolean, vpnMode: Tunnel.Mode, connectionTime: String?) {
+	val context = LocalContext.current
+	val notProtectedLabel = stringResource(R.string.connection_status_not_protected)
+	val label = when (connectionState) {
+		ConnectionState.Connected -> stringResource(if (vpnMode.isTwoHop()) R.string.connection_status_fast_mode else R.string.connection_status_anonymous)
+		is ConnectionState.Connecting -> connectionState.label.asString(context)
+		is ConnectionState.Error, is ConnectionState.StartFailure -> stringResource(R.string.connection_failed)
+		ConnectionState.Disconnecting -> stringResource(R.string.disconnecting)
+		ConnectionState.WaitingForConnection -> if (isBlocked) stringResource(R.string.connection_status_blocked) else notProtectedLabel
+		ConnectionState.Disconnected, ConnectionState.Offline -> notProtectedLabel
+	}
+	val offlineCaption = when (connectionState) {
+		ConnectionState.WaitingForConnection -> stringResource(if (isBlocked) R.string.connection_status_blocked_action else R.string.connection_status_offline_reconnect)
+		ConnectionState.Offline -> stringResource(R.string.connection_status_no_internet)
+		else -> null
+	}
+	val caption = offlineCaption ?: connectionTime
+	val captionAlpha by animateFloatAsState(
+		targetValue = if (caption != null) 1f else 0f,
+		animationSpec = tween(250, easing = FastOutSlowInEasing),
+		label = "captionAlpha",
+	)
+
+	Column(horizontalAlignment = Alignment.CenterHorizontally) {
+		Spacer(Modifier.height(14.dp))
+		Text(
+			text = label,
+			style = if (connectionState is ConnectionState.Connecting) {
+				MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal)
+			} else {
+				MaterialTheme.typography.labelSmall
+			},
+			color = when {
+				connectionState.isFailure -> LocalNymColors.current.markerError
+				connectionState == ConnectionState.Connected -> MaterialTheme.colorScheme.primary
+				else -> MaterialTheme.colorScheme.onSurfaceVariant
+			},
+		)
+		Spacer(Modifier.height(8.dp))
+		Text(
+			text = caption ?: "",
+			style = MaterialTheme.typography.labelSmall,
+			color = if (offlineCaption != null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
+			modifier = Modifier.graphicsLayer { alpha = captionAlpha },
+		)
+	}
+}
+
+/** Counts lifecycle resumes, to key values read from system settings. */
+@Composable
+private fun rememberResumeCount(): Int {
 	var resumes by remember { mutableIntStateOf(0) }
 	LifecycleResumeEffect(Unit) {
 		resumes++
@@ -372,101 +125,43 @@ internal fun rememberResumeCount(): Int {
 	return resumes
 }
 
-/** Animator duration scale 0 (developer options or battery saver): hold animations still. */
 private fun areAnimationsOff(context: Context): Boolean = Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
 
-// Layered stroke glow
-private fun DrawScope.drawArcGlow(color: Color, sweepAngle: Float, topLeft: Offset, size: Size, strokePx: Float, glowIntensity: Float) {
-	if (sweepAngle <= 0.5f || glowIntensity <= 0.01f) return
-	val base = color.alpha
-	drawArc(
-		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.12f)),
-		startAngle = -90f,
-		sweepAngle = sweepAngle,
-		useCenter = false,
-		topLeft = topLeft,
-		size = size,
-		style = Stroke(width = strokePx * 5f),
-	)
-	drawArc(
-		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.3f)),
-		startAngle = -90f,
-		sweepAngle = sweepAngle,
-		useCenter = false,
-		topLeft = topLeft,
-		size = size,
-		style = Stroke(width = strokePx * 2.5f),
-	)
-}
-
-private data class RingFillTargets(val outer: Float, val middle: Float, val inner: Float)
-
-// Connecting fills ring by ring, outer first, each half then sealed: step 1 = outer half, 2 = outer full, ... 6 = inner full.
-private fun ringFillTargets(phase: MarkerState, step: Int?): RingFillTargets = when (phase) {
-	MarkerState.CONNECTED, MarkerState.ERROR -> RingFillTargets(360f, 360f, 360f)
-	MarkerState.BLOCKED -> RingFillTargets(360f, 0f, 0f)
-	MarkerState.CONNECTING -> {
-		val current = (step ?: 1).coerceIn(1, Marker.CONNECTING_STEP_COUNT)
-		RingFillTargets(ringSweep(current, 0), ringSweep(current, 1), ringSweep(current, 2))
-	}
-	MarkerState.NOT_PROTECTED, MarkerState.STOPPING -> RingFillTargets(0f, 0f, 0f)
-}
-
-private fun ringSweep(step: Int, ring: Int): Float = when {
-	step >= ring * 2 + 2 -> 360f
-	step == ring * 2 + 1 -> 180f
-	else -> 0f
-}
-
 @Composable
 @Preview(showBackground = true)
-private fun ArcPreviewConnectedDark() {
+private fun ConnectionStatusNotProtectedPreview() {
 	NymVPNTheme(Theme.DARK_MODE) {
 		Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
-			ConnectionStatus(
-				connectionState = ConnectionState.Disconnected,
-				marker = Marker(MarkerState.NOT_PROTECTED, MarkerMode.DVPN),
-				vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
-				connectionTime = "2.2.2.2",
-			)
+			ConnectionStatus(connectionState = ConnectionState.Disconnected, lockdown = false, vpnMode = Tunnel.Mode.TWO_HOP_MIXNET)
 		}
 	}
 }
 
 @Composable
 @Preview(showBackground = true)
-private fun ArcPreviewConnected() {
+private fun ConnectionStatusConnectedPreview() {
 	NymVPNTheme(Theme.LIGHT_MODE) {
 		Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
-			ConnectionStatus(
-				connectionState = ConnectionState.Connected,
-				marker = Marker(MarkerState.CONNECTED, MarkerMode.DVPN),
-				vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
-				connectionTime = "2.2.2.2",
-			)
+			ConnectionStatus(connectionState = ConnectionState.Connected, lockdown = false, vpnMode = Tunnel.Mode.TWO_HOP_MIXNET, connectionTime = "00:12:34")
 		}
 	}
 }
 
 @Composable
 @Preview(showBackground = true)
-private fun ArcPreviewError() {
+private fun ConnectionStatusErrorPreview() {
 	NymVPNTheme(Theme.DARK_MODE) {
-		ConnectionStatus(
-			connectionState = ConnectionState.Error(ErrorStateReason.InactiveSubscription),
-			marker = Marker(MarkerState.ERROR, MarkerMode.DVPN),
-			vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
-		)
+		ConnectionStatus(connectionState = ConnectionState.Error(ErrorStateReason.InactiveSubscription), lockdown = false, vpnMode = Tunnel.Mode.TWO_HOP_MIXNET)
 	}
 }
 
 @Composable
 @Preview(showBackground = true)
-private fun ArcPreviewConnecting() {
+private fun ConnectionStatusConnectingPreview() {
 	NymVPNTheme(Theme.DARK_MODE) {
 		ConnectionStatus(
-			connectionState = ConnectionState.Connecting(StringValue.DynamicString("Selecting gateways")),
-			marker = Marker(MarkerState.CONNECTING, MarkerMode.MIXNET, step = 4),
+			connectionState = ConnectionState.Connecting(StringValue.DynamicString("Choosing best servers"), step = 4),
+			lockdown = false,
 			vpnMode = Tunnel.Mode.FIVE_HOP_MIXNET,
 		)
 	}
@@ -474,12 +169,8 @@ private fun ArcPreviewConnecting() {
 
 @Composable
 @Preview(showBackground = true)
-private fun ArcPreviewBlocked() {
+private fun ConnectionStatusBlockedPreview() {
 	NymVPNTheme(Theme.LIGHT_MODE) {
-		ConnectionStatus(
-			connectionState = ConnectionState.WaitingForConnection,
-			marker = Marker(MarkerState.BLOCKED, MarkerMode.MIXNET),
-			vpnMode = Tunnel.Mode.FIVE_HOP_MIXNET,
-		)
+		ConnectionStatus(connectionState = ConnectionState.WaitingForConnection, lockdown = true, vpnMode = Tunnel.Mode.FIVE_HOP_MIXNET)
 	}
 }

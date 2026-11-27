@@ -37,10 +37,7 @@ interface VpnServiceApi {
 
 	fun getState(): Tunnel.State
 
-	/**
-	 * Whether the system holds traffic outside this VPN (always-on with "Block connections without VPN"),
-	 * read live from the running service. Null below API 29, where only the settings read is left.
-	 */
+	/** Always-on with "Block connections without VPN"; null below API 29. */
 	fun systemBlocksWithoutVpn(): Boolean? = null
 
 	suspend fun getConfig(): CoreVpnConfig

@@ -68,9 +68,7 @@ data class NymColors(
 	val favorite: Color = Color.Unspecified,
 	val currentValueIndicator: Color = Color.Unspecified,
 	val markerConnecting: Color = Color.Unspecified,
-	/** Marker ring tracks and the unlit face, as on iOS and desktop. */
 	val markerTrack: Color = Color.Unspecified,
-	/** Marker error red, as on iOS and desktop. */
 	val markerError: Color = Color.Unspecified,
 )
 

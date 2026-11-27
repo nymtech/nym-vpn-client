@@ -17,13 +17,9 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import kotlinx.coroutines.delay
-import net.nymtech.nymvpn.ui.model.MarkerMode
+import net.nymtech.vpn.backend.Tunnel
 
-// The marker's face says the mode. dVPN: an entry and an exit block, linked (2 hops). Mixnet: the three mix layers as
-// a 3x3 field, with the five hops lit (entry, one node per layer, exit); hollow nodes are the unused ones. While not
-// protected nothing is lit: dVPN shows only its outline, Mixnet only its nodes. While connected the face plays an
-// illustrative route: a packet steps through the hops, and the Mixnet route changes every two passes. It illustrates
-// how the network works; it is not a traffic meter. Drawn in an 80 x 80 box.
+// dVPN: entry and exit blocks, linked. Mixnet: three mix layers as a 3x3 field with the five hops of a route lit.
 
 private const val BOX = 80f
 private const val LINE_WIDTH = 2f
@@ -48,44 +44,38 @@ private val MIX_ROUTES: List<List<Offset>> = listOf(
 	listOf(MIX_ENTRY, Offset(24f, 40f), Offset(40f, 58f), Offset(56f, 40f), MIX_EXIT),
 )
 
-// the route lines, built once in box units and scaled at draw time (no path built per frame)
+// built once in box units, scaled at draw time
 private val MIX_ROUTE_PATHS: List<Path> = MIX_ROUTES.map { route ->
 	Path().apply {
 		route.forEachIndexed { i, point -> if (i == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y) }
 	}
 }
 
-// rhythm: the data line ticks (dVPN 80 ms, Mixnet 120 ms)
 private const val DVPN_TICK_MS = 80L
 private const val MIX_TICK_MS = 120L
-private const val DVPN_TICKS_PER_HOP = 3 // entry, link, exit: 240 ms each
-private const val MIX_TICKS_PER_HOP = 2 // 240 ms per hop
-private const val MIX_PASS = 6 // five hops and one rest beat
+private const val DVPN_TICKS_PER_HOP = 3
+private const val MIX_TICKS_PER_HOP = 2
+
+// five hops and one rest beat
+private const val MIX_PASS = 6
 private const val MIX_PASSES_PER_ROUTE = 2
 private const val DIM = 0.32f
 private const val TRAIL = 0.6f
 private const val ROUTE_ALPHA = 0.4f
 
-/**
- * Decorative: no content description. [lit] is false while not protected (drawn in [unlitColor], the ring track grey).
- * [playing] runs the illustrative route; pass false when animations are off so the face holds still, all lit.
- */
+/** Decorative, no content description. [lit] is false while not protected; [playing] steps a packet through the hops. */
 @Composable
-fun MarkerFace(mode: MarkerMode, lit: Boolean, playing: Boolean, litColor: Color, unlitColor: Color, modifier: Modifier = Modifier) {
+fun MarkerFace(vpnMode: Tunnel.Mode, lit: Boolean, playing: Boolean, litColor: Color, unlitColor: Color, modifier: Modifier = Modifier) {
 	val play = lit && playing
-	val tick = rememberTick(play, if (mode == MarkerMode.MIXNET) MIX_TICK_MS else DVPN_TICK_MS)
+	val tick = rememberTick(play, if (vpnMode.isTwoHop()) DVPN_TICK_MS else MIX_TICK_MS)
 	val color = if (lit) litColor else unlitColor
 	Canvas(modifier = modifier) {
 		val scale = size.minDimension / BOX
-		when (mode) {
-			MarkerMode.DVPN -> drawDvpnFace(color, lit, play, tick, scale)
-			MarkerMode.MIXNET -> drawMixnetFace(color, lit, play, tick, scale)
-		}
+		if (vpnMode.isTwoHop()) drawDvpnFace(color, lit, play, tick, scale) else drawMixnetFace(color, lit, play, tick, scale)
 	}
 }
 
-// counts ticks while running; resets to 0 when stopped. Each tick waits for a drawn frame,
-// so the loop pauses while the app is in the background.
+// waits for a drawn frame on every tick, so it pauses in the background
 @Composable
 private fun rememberTick(running: Boolean, tickMs: Long): Int {
 	var tick by remember { mutableIntStateOf(0) }
@@ -101,7 +91,7 @@ private fun rememberTick(running: Boolean, tickMs: Long): Int {
 }
 
 private fun DrawScope.drawDvpnFace(color: Color, lit: Boolean, playing: Boolean, tick: Int, scale: Float) {
-	// 0 entry, 1 link, 2 exit; -1 when still
+	// 0 entry, 1 link, 2 exit, -1 still
 	val hop = if (playing) (tick / DVPN_TICKS_PER_HOP) % 3 else -1
 	val alphaOf = { i: Int -> if (hop < 0 || hop == i) 1f else DIM }
 	drawLine(color = color, start = DVPN_LINK_START * scale, end = DVPN_LINK_END * scale, strokeWidth = LINE_WIDTH * scale, alpha = alphaOf(1))
@@ -113,11 +103,10 @@ private fun DrawScope.drawMixnetFace(color: Color, lit: Boolean, playing: Boolea
 	val step = tick / MIX_TICKS_PER_HOP
 	val routeIndex = if (playing) (step / (MIX_PASS * MIX_PASSES_PER_ROUTE)) % MIX_ROUTES.size else 0
 	val route = MIX_ROUTES[routeIndex]
-	// index of the lit hop; -1 when still
+	// lit hop, -1 still
 	val hop = if (playing) step % MIX_PASS else -1
 
 	if (lit) {
-		// the stroke is in box units too, so it scales with the path exactly as before
 		this.scale(scale = scale, pivot = Offset.Zero) {
 			drawPath(path = MIX_ROUTE_PATHS[routeIndex], color = color, alpha = if (playing) ROUTE_ALPHA else 1f, style = Stroke(width = LINE_WIDTH))
 		}
@@ -147,7 +136,7 @@ private fun DrawScope.drawNode(color: Color, center: Offset, scale: Float) {
 	drawCircle(color = color, radius = NODE_R * scale, center = center * scale, style = Stroke(width = NODE_STROKE * scale))
 }
 
-// A square at [topLeft] with a centred outline; filled, the outline is folded in so one alpha covers both.
+// filled squares fold the outline in, so one alpha covers both
 private fun DrawScope.drawSquare(color: Color, topLeft: Offset, side: Float, filled: Boolean, alpha: Float, scale: Float) {
 	if (filled) {
 		val half = LINE_WIDTH / 2f

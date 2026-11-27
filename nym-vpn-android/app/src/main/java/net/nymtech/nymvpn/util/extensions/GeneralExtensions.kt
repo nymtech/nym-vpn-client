@@ -43,7 +43,7 @@ fun isVpnAlwaysOn(context: Context): Boolean = try {
 
 private const val ALWAYS_ON_VPN_LOCKDOWN = "always_on_vpn_lockdown"
 
-/** "Block connections without VPN": with always-on, the system holds traffic when the tunnel is down. */
+/** "Block connections without VPN"; only meaningful together with [isVpnAlwaysOn]. */
 fun isVpnLockdown(context: Context): Boolean = try {
 	Settings.Secure.getInt(context.contentResolver, ALWAYS_ON_VPN_LOCKDOWN, 0) == 1
 } catch (ex: SecurityException) {
