@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     net::IpAddr,
     path::PathBuf,
     time::{Duration, Instant},
@@ -212,6 +212,9 @@ pub struct GatewayCache {
     // The cached gateways and their last updated time, `None` when the age is unknown (stale)
     cached_gateways: HashMap<GatewayType, (GatewayList, Option<Instant>)>,
 
+    // Gateway list types whose last refresh failed; not refetched until something changes
+    failed_refreshes: HashSet<GatewayType>,
+
     // The cached full node list (with nr_address) for SOCKS5
     cached_nymnodes: Option<(NymNodeList, Instant)>,
 
@@ -250,6 +253,7 @@ impl GatewayCache {
             connectivity_handle,
             command_rx,
             cached_gateways: HashMap::default(),
+            failed_refreshes: HashSet::default(),
             cached_nymnodes: None,
             is_performed_initial_refresh: false,
             paused: false,
@@ -300,11 +304,13 @@ impl GatewayCache {
                         Command::Pause(paused) => {
                             tracing::info!("Gateway caching is {}", if paused { "Paused" } else { "Resumed" });
                             self.paused = paused;
+                            self.failed_refreshes.clear();
                         }
                     }
                 }
                 Some(status) = self.connectivity_handle.next() => {
                     if status.is_online() && !self.paused {
+                        self.failed_refreshes.clear();
                         self.perform_initial_fetch_once().await;
                     }
                 }
@@ -373,6 +379,7 @@ impl GatewayCache {
         let new_config = gateway_client.get_config();
 
         self.gateway_client = gateway_client;
+        self.failed_refreshes.clear();
 
         // Invalidate cache immediately if gateway performance change
         if new_config.min_gateway_performance() != old_config.min_gateway_performance() {
@@ -383,6 +390,7 @@ impl GatewayCache {
 
     fn clear_cache(&mut self) {
         tracing::debug!("Clearing gateway cache due to environment change");
+        self.failed_refreshes.clear();
         self.cached_gateways.clear();
         self.cached_nymnodes = None;
         // Reset the initial refresh flag so we fetch fresh data
@@ -435,6 +443,7 @@ impl GatewayCache {
                 }
                 Ok((gw_type, Err(err))) => {
                     tracing::debug!("Failed to refresh gateways for {gw_type:?}: {err}");
+                    self.failed_refreshes.insert(gw_type);
                 }
                 Err(err) => {
                     tracing::error!("Failed to join on refresh task: {err}");
@@ -467,6 +476,7 @@ impl GatewayCache {
             tracing::warn!("Failed to persist gateway cache for {gw_type:?} to disk: {err}");
         }
 
+        self.failed_refreshes.remove(&gw_type);
         self.cached_gateways
             .insert(gw_type, (refreshed_gateways.clone(), Some(Instant::now())));
         refreshed_gateways
@@ -479,12 +489,24 @@ impl GatewayCache {
             return Ok(gw_list.clone());
         }
 
+        if self.failed_refreshes.contains(&gw_type)
+            && let Some((gw_list, _)) = self.cached_gateways.get(&gw_type)
+        {
+            return Ok(gw_list.clone());
+        }
+
         if self.connectivity_handle.connectivity().await.is_offline() {
             tracing::warn!("Not refreshing gateways for {gw_type:?} because we are not connected");
             return Err(Error::Offline);
         }
 
-        let raw = self.gateway_client.lookup_gateways_raw(gw_type).await?;
+        let raw = self
+            .gateway_client
+            .lookup_gateways_raw(gw_type)
+            .await
+            .inspect_err(|_| {
+                self.failed_refreshes.insert(gw_type);
+            })?;
         Ok(self.store_and_cache(gw_type, raw).await)
     }
 
