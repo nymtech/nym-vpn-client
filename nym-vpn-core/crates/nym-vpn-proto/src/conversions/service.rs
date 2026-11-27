@@ -25,6 +25,11 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .transpose()?
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.custom_dns"))?;
 
+        let default_dns = value
+            .default_dns
+            .map(nym_vpn_lib_types::DefaultDnsSettings::from)
+            .unwrap_or_default();
+
         let mixnet_traffic = value
             .mixnet_traffic
             .map(nym_vpn_lib_types::MixnetTrafficConfig::from)
@@ -88,6 +93,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
             residential_exit: value.residential_exit,
             custom_dns,
+            default_dns,
             mixnet_traffic,
             network_stats,
             split_tunnel,
@@ -105,6 +111,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
         let entry_point = Some(proto::EntryNode::from(value.entry_point));
         let exit_point = Some(proto::ExitNode::from(value.exit_point));
         let custom_dns = Some(proto::CustomDnsSettings::from(value.custom_dns));
+        let default_dns = Some(proto::DefaultDnsSettings::from(value.default_dns));
         let mixnet_traffic = Some(proto::MixnetTrafficConfig::from(value.mixnet_traffic));
         let network_stats = Some(proto::NetworkStatsConfig::from(value.network_stats));
         let split_tunnel = Some(proto::SplitTunnelSettings::from(value.split_tunnel));
@@ -132,6 +139,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
             residential_exit: value.residential_exit,
             custom_dns,
+            default_dns,
             mixnet_traffic,
             network_stats,
             split_tunnel,

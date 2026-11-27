@@ -8,6 +8,7 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.net.VpnService
 import android.os.Build
 import android.provider.Settings
 import android.service.quicksettings.TileService
@@ -25,6 +26,14 @@ import java.util.concurrent.ConcurrentHashMap
 private const val BASELINE_HEIGHT = 2201
 private const val BASELINE_WIDTH = 1080
 private const val BASELINE_DENSITY = 2.625
+
+/**
+ * [VpnService.prepare] throws IllegalStateException("Unavailable in lockdown mode") when a
+ * built-in (IKEv2/IPsec) system VPN profile is set as always-on: the platform then refuses
+ * every other VPN app. Failure = the system is blocking us, not a missing consent.
+ */
+fun Context.prepareVpn(): Result<Intent?> = runCatching { VpnService.prepare(this) }
+	.onFailure { Timber.w(it, "VpnService.prepare failed") }
 
 val Context.actionBarSize
 	get() = theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))

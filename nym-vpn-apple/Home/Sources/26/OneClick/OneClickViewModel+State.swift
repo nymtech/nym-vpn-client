@@ -127,7 +127,9 @@ extension OneClickViewModel {
             return .disconnecting
         case .error:
             return .stop
-        case .offline, .offlineReconnect:
+        case .offlineReconnect:
+            return .blocked
+        case .offline:
             return .noInternet
         case .connecting, .reasserting, .restarting:
             return .connecting

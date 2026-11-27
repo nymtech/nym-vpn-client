@@ -120,7 +120,7 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
 mod tests {
     use std::sync::Arc;
 
-    use tokio::sync::RwLock;
+    use tokio::sync::{RwLock, watch};
 
     use crate::tunnel_state_machine::tunnel::gateway_provider::{
         SelectionResult,
@@ -149,7 +149,7 @@ mod tests {
     async fn run_algo() {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let (_tunnel_monitor_event_sender_tx, tunnel_monitor_event_sender_rx) = mpsc::channel(1);
-        let (_update_location_tx, update_location_rx) = mpsc::unbounded_channel();
+        let (_location_tx, location_rx) = watch::channel(None);
         let (selection_tx, _selection_rx) = mpsc::channel(10);
         let shutdown_token = CancellationToken::new();
         let possible_gateways_ids = [
@@ -163,7 +163,7 @@ mod tests {
             tunnel_settings_rx,
             tunnel_monitor_event_sender_rx,
             MockGatewayCache::new(gateways.clone()),
-            GeoIpProvider::new(update_location_rx),
+            GeoIpProvider::new(location_rx),
             BlacklistedGateways::new(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.clone(),

@@ -7,7 +7,7 @@ use futures::{FutureExt, future::Fuse};
 use tokio::{sync::mpsc::UnboundedSender, task::JoinHandle, time::Instant};
 use tokio_util::sync::CancellationToken;
 
-use nym_common::trace_err_chain;
+use nym_common::{ErrorExt, trace_err_chain};
 
 use super::ConnectionProbe;
 
@@ -264,10 +264,12 @@ where
                         Err(err) => {
                             if err.is_timeout() {
                                 if let Some(ident) = err.probe_identifier() {
-                                    tracing::warn!("Probe timed out: {ident}");
+                                    tracing::warn!(skip_sentry = true, "Probe timed out: {ident}");
                                 } else {
-                                    tracing::warn!("Probe timed out");
+                                    tracing::warn!(skip_sentry = true, "Probe timed out");
                                 }
+                            } else if err.skip_sentry() {
+                                tracing::error!(skip_sentry = true, "{}", err.display_chain());
                             } else {
                                 trace_err_chain!(err);
                             }

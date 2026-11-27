@@ -10,6 +10,7 @@ import net.nymtech.vpn.model.config.ConfigResult
 import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
+import net.nymtech.vpn.model.account.CreateAccountResult
 import net.nymtech.vpn.model.freepass.FreepassResult
 import net.nymtech.vpn.model.pairing.PairingCommandResult
 import nym_vpn_lib_types.AccountControllerState
@@ -37,6 +38,9 @@ interface VpnServiceApi {
 
 	fun getState(): Tunnel.State
 
+	/** Always-on with "Block connections without VPN"; null below API 29. */
+	fun systemBlocksWithoutVpn(): Boolean? = null
+
 	suspend fun getConfig(): CoreVpnConfig
 
 	suspend fun applyUpdate(patch: CoreVpnConfigUpdate): ConfigResult
@@ -55,7 +59,7 @@ interface VpnServiceApi {
 
 	suspend fun getStoredMnemonic(): String
 
-	suspend fun createAccount()
+	suspend fun createAccount(freepass: String? = null): CreateAccountResult
 
 	suspend fun registerAccount(token: String?): String
 	suspend fun refreshAccount()
@@ -89,7 +93,5 @@ interface VpnServiceApi {
 	suspend fun verifiedPairingPin(sessionId: UInt): PairingCommandResult<Unit>
 	suspend fun cancelPairing(): PairingCommandResult<Unit>
 
-	// Free pass: redeem creates the stored account with the pass, apply adds it to the stored account.
 	suspend fun redeemFreepass(code: String): FreepassResult
-	suspend fun applyFreepass(code: String): FreepassResult
 }

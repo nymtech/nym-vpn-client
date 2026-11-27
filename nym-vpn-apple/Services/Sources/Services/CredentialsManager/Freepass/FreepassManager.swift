@@ -12,10 +12,6 @@ import NymVPNLib
 public final class FreepassManager {
     public static let shared = FreepassManager(credentialsManager: .shared)
 
-#if os(iOS)
-    static let accountCreationTimeout: Duration = .seconds(30)
-#endif
-
     private let credentialsManager: CredentialsManager
 #if os(macOS)
     private let grpcManager = GRPCManager.shared
@@ -27,16 +23,18 @@ public final class FreepassManager {
         self.credentialsManager = credentialsManager
     }
 
-    /// Not cancellable, so a local account never outlives a failed redeem.
+    /// Redeems run one at a time.
     public func redeem(code: String) async -> FreepassResult {
         let previous = queue
         let task = Task { @MainActor [unowned self] in
             await previous?.value
             switch await isAccountStored() {
             case true:
-                return await applyToStoredAccount(code)
+                // Core registers an account the API doesn't know yet.
+                return await call { try await $0.redeemFreepass(code: code) }
             case false:
-                return await createAccount(code)
+                // A rejected code leaves no account.
+                return await call { try await $0.createAccount(freepass: code) }
             case nil:
                 return FreepassResult.failed(.unknown)
             }
@@ -70,58 +68,6 @@ private extension FreepassManager {
         }
     }
 
-#if os(iOS)
-    // Core registers an account the API doesn't know yet.
-    func applyToStoredAccount(_ code: String) async -> FreepassResult {
-        await call { try await $0.applyFreepass(code: code) }
-    }
-
-    func createAccount(_ code: String) async -> FreepassResult {
-        guard await createLocalAccount() else { return .failed(.unknown) }
-        let result = await call { try await $0.redeemFreepass(code: code) }
-        // A timeout or unknown failure may still have redeemed.
-        if case let .failed(error) = result, error.isRejection {
-            do {
-                try await credentialsManager.removeCredential()
-            } catch {
-                logger.warning("Removing the local account failed: \(String(describing: type(of: error)))")
-            }
-        }
-        return result
-    }
-
-    // The Rust call can't be cancelled, so it's raced against the timeout.
-    func createLocalAccount() async -> Bool {
-        await withCheckedContinuation { continuation in
-            let outcome = CreationOutcome(continuation)
-            Task { @MainActor [credentialsManager, logger] in
-                do {
-                    try await credentialsManager.createMnemonic()
-                    outcome.finish(created: true)
-                } catch {
-                    logger.warning("Account creation failed: \(String(describing: type(of: error)))")
-                    outcome.finish(created: false)
-                }
-            }
-            Task { @MainActor [logger] in
-                try? await Task.sleep(for: Self.accountCreationTimeout)
-                if outcome.finish(created: false) {
-                    logger.warning("Account creation timed out")
-                }
-            }
-        }
-    }
-#elseif os(macOS)
-    func applyToStoredAccount(_ code: String) async -> FreepassResult {
-        await call { try await $0.redeemFreepass(code: code) }
-    }
-
-    // The daemon asks the user to confirm, so there's no timeout.
-    func createAccount(_ code: String) async -> FreepassResult {
-        await call { try await $0.createAccount(freepass: code) }
-    }
-#endif
-
     func call(_ body: (AccountClient) async throws -> Void) async -> FreepassResult {
         do {
 #if os(iOS)
@@ -135,24 +81,6 @@ private extension FreepassManager {
         }
     }
 }
-
-#if os(iOS)
-private final class CreationOutcome: @unchecked Sendable {
-    private var continuation: CheckedContinuation<Bool, Never>?
-
-    init(_ continuation: CheckedContinuation<Bool, Never>) {
-        self.continuation = continuation
-    }
-
-    @discardableResult
-    func finish(created: Bool) -> Bool {
-        guard let continuation else { return false }
-        self.continuation = nil
-        continuation.resume(returning: created)
-        return true
-    }
-}
-#endif
 
 extension FreepassError {
 #if os(iOS)

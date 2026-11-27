@@ -32,7 +32,7 @@ final class ConnectionStatusViewModelTests: XCTestCase {
         viewModel.lastDisplayedStep = .establishingConnection
         ConnectionManager.shared.lastError = ErrorReason(.needsRelaxedIndependenceCriteria)
 
-        XCTAssertEqual(viewModel.arcProgressState, .awaitingGatewayConsent)
+        XCTAssertEqual(viewModel.arcProgressState, .awaitingGatewayConsent(.establishingConnection))
     }
 
     func testIndependenceErrorDoesNotUseEstablishingConnectionStepArc() {
@@ -68,11 +68,71 @@ final class ConnectionStatusViewModelTests: XCTestCase {
         let viewModel = makeViewModel()
         viewModel.status = .error
         ConnectionManager.shared.lastError = ErrorReason(.needsRelaxedIndependenceCriteria)
-        XCTAssertEqual(viewModel.arcProgressState, .awaitingGatewayConsent)
+        guard case .awaitingGatewayConsent = viewModel.arcProgressState else {
+            return XCTFail("Independence error must use the awaitingGatewayConsent arc")
+        }
 
         ConnectionManager.shared.lastError = nil
         if case .awaitingGatewayConsent = viewModel.arcProgressState {
             XCTFail("Cleared independence error must not keep awaitingGatewayConsent arc")
         }
+    }
+
+    func testOfflineMidSessionIsBlocked() {
+        let viewModel = makeViewModel()
+        viewModel.status = .offlineReconnect
+        viewModel.isOnline = false
+
+        XCTAssertEqual(viewModel.arcProgressState, .blocked)
+    }
+
+    func testOfflineWithNoSessionIsOffline() {
+        let viewModel = makeViewModel()
+        viewModel.status = .offline
+        viewModel.isOnline = false
+
+        XCTAssertEqual(viewModel.arcProgressState, .offline)
+    }
+
+    func testErrorWhileOfflineStillReadsAsError() {
+        let viewModel = makeViewModel()
+        viewModel.status = .error
+        viewModel.isOnline = false
+        ConnectionManager.shared.lastError = nil
+
+        XCTAssertEqual(viewModel.arcProgressState, .failed)
+    }
+
+    func testConnectedWhileNetworkDropsKeepsTunnelState() {
+        let viewModel = makeViewModel()
+        viewModel.status = .connected
+        viewModel.isOnline = false
+
+        XCTAssertEqual(viewModel.arcProgressState, .connected)
+    }
+
+    func testCancelingHoldsTheLastDisplayedStep() {
+        let viewModel = makeViewModel()
+        viewModel.status = .disconnecting
+        viewModel.lastDisplayedStep = .choosingBestServers
+
+        XCTAssertEqual(viewModel.arcProgressState, .canceling(.choosingBestServers))
+    }
+
+    func testIndependenceErrorWithNoReachedStepHoldsTheOuterRing() {
+        let viewModel = makeViewModel()
+        viewModel.status = .error
+        viewModel.lastDisplayedStep = nil
+        ConnectionManager.shared.lastError = ErrorReason(.needsRelaxedIndependenceCriteria)
+
+        XCTAssertEqual(viewModel.arcProgressState, .awaitingGatewayConsent(.authenticatingAccount))
+    }
+
+    func testOfflineMidSessionIsBlockedEvenWhileTheNetworkReadsOnline() {
+        let viewModel = makeViewModel()
+        viewModel.status = .offlineReconnect
+        viewModel.isOnline = true
+
+        XCTAssertEqual(viewModel.arcProgressState, .blocked)
     }
 }

@@ -21,6 +21,11 @@ pub trait ProbeError: std::error::Error + Send + 'static {
     ///
     /// For example: for ICMP probe it would return the sequence as a string.
     fn probe_identifier(&self) -> Option<String>;
+
+    /// Returns true if the error should not be reported to Sentry.
+    fn skip_sentry(&self) -> bool {
+        false
+    }
 }
 
 /// Type alias for boxed probe error.

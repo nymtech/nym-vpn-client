@@ -1,8 +1,10 @@
 package net.nymtech.nymvpn.ui.screens.main
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -14,6 +16,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.nymtech.connectivity.NetworkStatus
@@ -22,6 +26,7 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.backend.VpnServiceConnectionManager
 import nym_vpn_lib_types.TentativeGateways
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
@@ -29,8 +34,9 @@ import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.screens.main.panel.PanelState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
-import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.ErrorStateReason
+import net.nymtech.nymvpn.util.extensions.isVpnAlwaysOn
+import net.nymtech.nymvpn.util.extensions.isVpnLockdown
 import timber.log.Timber
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -42,10 +48,28 @@ constructor(
 	private val vpnConfigRepository: VpnConfigRepository,
 	private val backendManager: BackendManager,
 	private val networkService: NetworkService,
+	private val serviceConnection: VpnServiceConnectionManager,
+	@ApplicationContext private val context: Context,
 ) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-main-vm"
+	}
+
+	private val lockdownRefresh = MutableStateFlow(0)
+
+	/** Always-on with "Block connections without VPN". Read from the running service, system settings as the fallback. */
+	val lockdown: StateFlow<Boolean> = combine(
+		serviceConnection.apiFlow,
+		backendManager.stateFlow.map { it.tunnelState }.distinctUntilChanged(),
+		lockdownRefresh,
+	) { api, _, _ ->
+		api?.systemBlocksWithoutVpn() ?: (isVpnAlwaysOn(context) && isVpnLockdown(context))
+	}.distinctUntilChanged().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+	/** Call on resume: lockdown can change in system settings while the app is in the background. */
+	fun refreshLockdown() {
+		lockdownRefresh.value++
 	}
 
 	private val _connectionSeconds = MutableStateFlow<Long?>(null)
@@ -222,47 +246,7 @@ constructor(
 	}
 
 	private fun resolveConnectionState(managerState: TunnelManagerState, networkStatus: NetworkStatus): ConnectionState {
-		val baseState = when {
-			managerState.isRestarting && networkStatus == NetworkStatus.Disconnected ->
-				ConnectionState.Offline
-			managerState.isRestarting && managerState.tunnelState == Tunnel.State.Down ->
-				ConnectionState.Disconnecting
-			managerState.isRestarting ->
-				ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
-			managerState.tunnelState is Tunnel.State.Offline ->
-				// only a reconnect-armed session is "waiting"; see Tunnel.State.Offline
-				if (managerState.tunnelState.reconnect) {
-					ConnectionState.WaitingForConnection
-				} else {
-					ConnectionState.Offline
-				}
-			managerState.tunnelState !is Tunnel.State.Down &&
-				managerState.tunnelState !is Tunnel.State.Error &&
-				networkStatus == NetworkStatus.Disconnected ->
-				ConnectionState.WaitingForConnection
-			managerState.tunnelState == Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected ->
-				ConnectionState.Offline
-			else ->
-				ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
-		}
-
-		val resolved = when (val event = managerState.backendUiEvent) {
-			is BackendUiEvent.BandwidthAlert, null -> baseState
-			is BackendUiEvent.Failure -> {
-				if (event.reason is ErrorStateReason.NeedsRelaxedIndependenceCriteria) {
-					// Modal handles this; don't display a hard error state
-					baseState
-				} else {
-					val isSubError = event.reason is ErrorStateReason.InactiveSubscription ||
-						event.reason is ErrorStateReason.InactiveAccount
-					val isAccountReady = managerState.accountState is AccountControllerState.ReadyToConnect ||
-						managerState.accountState is AccountControllerState.Decentralised
-					if (isSubError && isAccountReady) baseState else ConnectionState.Error(event.reason)
-				}
-			}
-			is BackendUiEvent.StartFailure -> ConnectionState.StartFailure(event.exception)
-		}
-
+		val resolved = ConnectionState.resolve(managerState, networkStatus)
 		Timber.tag(TAG).d(
 			"resolveConnectionState tunnelState=%s backendUiEvent=%s -> %s",
 			managerState.tunnelState,

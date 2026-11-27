@@ -82,9 +82,9 @@ use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
-    DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
-    VpnTopologyServiceHandle,
+    NodeIdentity, UserAgent, VpnTopologyService, VpnTopologyServiceHandle,
     config::GlobalConfig,
+    default_dns_servers::DefaultDnsServers,
     gateway_directory::{
         self, GatewayCache, GatewayCacheHandle, GatewayClient, GatewayMinPerformance,
     },
@@ -140,6 +140,7 @@ pub enum VpnServiceCommand {
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetAutoConnect(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
+    SetEnableQuad9(oneshot::Sender<()>, bool),
     SetCustomDns(
         oneshot::Sender<Result<(), SetCustomDnsError>>,
         Vec<DnsServer>,
@@ -251,7 +252,6 @@ pub enum VpnServiceCommand {
     ),
     HandleSubscriptionPayment(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     IsTrialEligible(oneshot::Sender<Result<bool, AccountCommandError>>, ()),
-    ApplyFreepass(oneshot::Sender<Result<(), AccountCommandError>>, String),
     RedeemFreepass(oneshot::Sender<Result<(), AccountCommandError>>, String),
     GetDeeplink(
         oneshot::Sender<Result<String, AccountCommandError>>,
@@ -481,6 +481,9 @@ pub struct NymVpnService {
     // Unlocked with the authorization token obtained in the user's session
     #[cfg(target_os = "macos")]
     authorization_service: AuthorizationService,
+
+    // List of default DNS servers that can be affected by user location or exit gateway
+    default_dns_servers: DefaultDnsServers,
 }
 
 impl NymVpnService {
@@ -822,10 +825,12 @@ impl NymVpnService {
             nym_file_updater::FileUpdater::new().map_err(Error::CreateFileUpdater)?;
         tokio::spawn(file_updater.run(services_shutdown_token.child_token()));
 
+        let default_dns_servers = DefaultDnsServers::new(tunnel_settings.default_dns.enable_quad9);
         let state_machine_handle = TunnelStateMachine::spawn(TunnelStateMachineArguments {
             command_receiver,
             event_sender,
             nym_config,
+            default_dns_servers: default_dns_servers.clone(),
             tunnel_settings,
             tunnel_constants,
             account_command_tx: account_command_tx.clone(),
@@ -898,6 +903,7 @@ impl NymVpnService {
             split_tunnel_pid_manager,
             #[cfg(target_os = "macos")]
             authorization_service: AuthorizationService::default(),
+            default_dns_servers,
         })
     }
 
@@ -1164,7 +1170,11 @@ impl NymVpnService {
         self.handle_service_command(command).await;
         let elapsed = start.elapsed();
         if elapsed.as_millis() > 100 {
-            tracing::warn!("{command_str} took {} ms to execute", elapsed.as_millis());
+            tracing::warn!(
+                skip_sentry = true,
+                "{command_str} took {} ms to execute",
+                elapsed.as_millis()
+            );
         }
     }
 
@@ -1235,6 +1245,10 @@ impl NymVpnService {
             }
             VpnServiceCommand::SetEnableCustomDns(tx, enable_custom_dns) => {
                 self.handle_set_enable_custom_dns(enable_custom_dns).await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetEnableQuad9(tx, enable_quad9) => {
+                self.handle_set_enable_quad9(enable_quad9).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetCustomDns(tx, dns_servers) => {
@@ -1388,9 +1402,6 @@ impl NymVpnService {
             }
             VpnServiceCommand::IsTrialEligible(tx, ()) => {
                 self.handle_is_trial_eligible(tx);
-            }
-            VpnServiceCommand::ApplyFreepass(tx, code) => {
-                self.handle_apply_freepass(tx, code);
             }
             VpnServiceCommand::RedeemFreepass(tx, code) => {
                 self.handle_redeem_freepass(tx, code);
@@ -1676,6 +1687,12 @@ impl NymVpnService {
         }
     }
 
+    async fn handle_set_enable_quad9(&mut self, enable_quad9: bool) {
+        if self.config_manager.set_enable_quad9(enable_quad9).await {
+            self.update_tunnel_settings_with_throttle();
+        }
+    }
+
     async fn handle_set_custom_dns(
         &mut self,
         mut dns_servers: Vec<DnsServer>,
@@ -1807,7 +1824,8 @@ impl NymVpnService {
     }
 
     fn handle_get_default_dns(&self) -> Vec<DnsServer> {
-        DEFAULT_DNS_SERVERS_CONFIG
+        self.default_dns_servers
+            .get_dns_servers()
             .iter()
             .flat_map(dns_servers_from_hickory_config)
             .collect()
@@ -2505,7 +2523,7 @@ impl NymVpnService {
         });
     }
 
-    fn handle_apply_freepass(
+    fn handle_redeem_freepass(
         &self,
         completion_tx: oneshot::Sender<Result<(), AccountCommandError>>,
         code: String,
@@ -2516,34 +2534,6 @@ impl NymVpnService {
             let result = account_command_tx.apply_freepass(code).await;
             if result.is_ok() {
                 // Pick up the new subscription without waiting for the next sync.
-                if let Err(err) = account_command_tx.refresh_account_state(true).await {
-                    tracing::warn!("Failed to refresh account after applying free pass: {err}");
-                }
-            }
-            completion_tx.send(result).ok();
-        });
-    }
-
-    fn handle_redeem_freepass(
-        &self,
-        completion_tx: oneshot::Sender<Result<(), AccountCommandError>>,
-        code: String,
-    ) {
-        let account_command_tx = self.account_command_tx.clone();
-
-        tokio::spawn(async move {
-            let result = async {
-                let stored_account = account_command_tx
-                    .get_stored_account()
-                    .await?
-                    .ok_or(AccountCommandError::NoAccountStored)?;
-                account_command_tx
-                    .redeem_freepass(stored_account, code)
-                    .await
-            }
-            .await;
-            if result.is_ok() {
-                // Pick up the new account and subscription without waiting for the next sync.
                 if let Err(err) = account_command_tx.refresh_account_state(true).await {
                     tracing::warn!("Failed to refresh account after redeeming free pass: {err}");
                 }
