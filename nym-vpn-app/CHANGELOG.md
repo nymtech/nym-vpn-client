@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - [Linux] The deb package now depends on `polkit-1-auth-agent`, so a polkit authentication agent is installed together with the app. This dependency used to come with `nym-vpnd` (https://github.com/nymtech/nym-vpn-client/pull/7175)
+- Split tunneling shows one warning above the app list instead of several notes (https://github.com/nymtech/nym-vpn-client/pull/7229)
 
 ## [2026.16.1] - 2026-11-19
 
