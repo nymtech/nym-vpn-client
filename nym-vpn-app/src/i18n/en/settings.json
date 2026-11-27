@@ -1,7 +1,8 @@
 {
   "ad-block": {
     "title": "Block ads",
-    "desc": "Blocking ads and tracker",
+    "desc-on": "Blocking ads and trackers",
+    "desc-off": "Ads and trackers allowed",
     "errors": {
       "failed": "Failed to enable ad blocking"
     }
@@ -31,7 +32,7 @@
     "title": "Notifications",
     "server-family-reminders": {
       "title": "Server family reminders",
-      "description": "Keeps reminding you of shared family"
+      "description": "Warn me when the selected entry and exit servers belong to the same operator family."
     },
     "desktop-notifications": {
       "title": "Desktop notifications"
@@ -44,7 +45,7 @@
     },
     "title": "Support & feedback",
     "faq": "Check the FAQ",
-    "contact": "Contact us",
+    "contact": "Contact support",
     "telegram": "Chat on Telegram",
     "github": "Open a GitHub issue",
     "matrix": "Join us on Matrix",
@@ -208,7 +209,7 @@
       "error": "Failed to change the Nym connection setting"
     }
   },
-  "display-theme": "Display mode",
+  "display-theme": "Display theme",
   "language-system": "System language",
   "quit": "Quit NymVPN",
   "info": {
@@ -217,8 +218,8 @@
     "network-name": "Network"
   },
   "autostart": {
-    "title": "Launch on device startup",
-    "desc": "Start app when device boots"
+    "title": "Launch at startup",
+    "desc": "Start the app when your device boots"
   },
   "killswitch": {
     "title": "Kill switch",
@@ -252,7 +253,7 @@
     "reset-to-default": "Reset to default",
     "intro": "Routes app and wallet traffic through the Nym mixnet for enhanced privacy via a SOCKS5 proxy for apps and HTTP RPC proxy for wallets.",
     "error-gateway-not-supported": "Server does not support SOCKS5",
-    "error-unknown": "Failed to toggle SOCKS5 proxy",
+    "error-unknown": "Failed to change the proxy setting",
     "snackbar-enabled": "Proxy successfully enabled",
     "snackbar-disabled": "Proxy successfully disabled"
   },
@@ -268,7 +269,7 @@
     "account-id-description": "Safe to share. Use this to <support>connect with Nym Support</support>.",
     "device-id": "Device ID",
     "logout": "Log out",
-    "title": "Account",
+    "your-account": "Your account",
     "account-linked": "Backup login method linked via Privy.",
     "account-not-linked": "<button>Add a social login</button> method to your account.",
     "get-started": "Get started",
@@ -336,8 +337,9 @@
   },
   "geo-exclusion": {
     "title": "Geo-exclusion",
+    "menu-desc": "Specific IP ranges connect directly",
     "beta": "Beta",
-    "enable": "Enable Geo-exclusion",
+    "enable": "Enable geo-exclusion",
     "description": "Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.",
     "beta-note": "Beta version: China and Russia only for now. More regions coming.",
     "warning": "Traffic to excluded regions bypasses the VPN.",
@@ -403,7 +405,6 @@
     "protection": "Protection",
     "connection": "Connection",
     "routing": "Routing",
-    "mixnet": "Mixnet",
     "app": "App",
     "help-data": "Help and data"
   },

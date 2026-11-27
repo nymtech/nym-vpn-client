@@ -2,7 +2,7 @@ import { ReactNode, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { useAutostart, useToast } from '../../hooks';
+import { useAutostart, useLogout, useToast } from '../../hooks';
 import { routes } from '../../router';
 import { dispatch, useMainState } from '../../store';
 import { useExit } from '../../state';
@@ -19,12 +19,18 @@ import { InfoData } from './info-data';
 import SettingsGroup, { Setting } from './SettingsGroup';
 
 function Settings() {
-  const { ipv6Support, allowLan, enableAdBlocking, enableConflictDetection } =
-    useMainState();
+  const {
+    ipv6Support,
+    allowLan,
+    enableAdBlocking,
+    enableConflictDetection,
+    account,
+  } = useMainState();
 
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
   const { exit } = useExit();
+  const { logout, loading: logoutLoading } = useLogout();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const { add } = useToast();
   const [query, setQuery] = useState('');
@@ -96,18 +102,27 @@ function Settings() {
       title: t('sections.protection'),
       settings: [
         {
-          title: t('killswitch.title'),
-          desc: t('killswitch.desc'),
-          leadingIcon: 'remove_moderator',
-        },
-        {
           title: t('ad-block.title'),
-          desc: t('ad-block.desc'),
+          desc: enableAdBlocking
+            ? t('ad-block.desc-on')
+            : t('ad-block.desc-off'),
           leadingIcon: 'gpp_maybe',
           onClick: handleAdBlock,
           trailing: (
             <Switch checked={enableAdBlocking} onChange={handleAdBlock} />
           ),
+        },
+        {
+          title: t('killswitch.title'),
+          desc: t('killswitch.desc'),
+          leadingIcon: 'remove_moderator',
+        },
+        {
+          title: t('mixnet-tuning.title'),
+          desc: t('mixnet-tuning.desc'),
+          leadingIcon: 'visibility_off',
+          onClick: () => navigate(routes.mixnetTuning),
+          trailing: chevron,
         },
       ],
     },
@@ -115,24 +130,6 @@ function Settings() {
       key: 'connection',
       title: t('sections.connection'),
       settings: [
-        {
-          title: t('anti-censorship.title', { ns: 'settings' }),
-          leadingIcon: 'campaign',
-          onClick: () => navigate(routes.antiCensorship),
-          trailing: chevron,
-        },
-        {
-          title: t('profiles.title', { ns: 'common' }),
-          leadingIcon: 'local_fire_department',
-          onClick: () => navigate(routes.profiles),
-          trailing: chevron,
-        },
-        {
-          title: t('dns.title'),
-          leadingIcon: 'dns',
-          onClick: () => navigate(routes.dns),
-          trailing: chevron,
-        },
         {
           title: t('ipv6-support.title'),
           desc: t('ipv6-support.desc'),
@@ -161,6 +158,25 @@ function Settings() {
             />
           ),
         },
+        {
+          title: t('anti-censorship.title', { ns: 'settings' }),
+          leadingIcon: 'campaign',
+          onClick: () => navigate(routes.antiCensorship),
+          trailing: chevron,
+        },
+        {
+          title: t('profiles.title', { ns: 'common' }),
+          desc: t('profiles.menu-desc', { ns: 'common' }),
+          leadingIcon: 'local_fire_department',
+          onClick: () => navigate(routes.profiles),
+          trailing: chevron,
+        },
+        {
+          title: t('dns.title'),
+          leadingIcon: 'dns',
+          onClick: () => navigate(routes.dns),
+          trailing: chevron,
+        },
       ],
     },
     {
@@ -179,6 +195,7 @@ function Settings() {
         {
           title: t('geo-exclusion.title'),
           titleTrailing: <BetaPill />,
+          desc: t('geo-exclusion.menu-desc'),
           leadingIcon: 'public',
           onClick: () => navigate(routes.geoExclusion),
           trailing: chevron,
@@ -187,21 +204,8 @@ function Settings() {
           title: t('app-proxy.title'),
           titleTrailing: <BetaPill />,
           desc: t('app-proxy.menu-desc'),
-          leadingIcon: 'lan',
+          leadingIcon: 'alt_route',
           onClick: () => navigate(routes.socks5),
-          trailing: chevron,
-        },
-      ],
-    },
-    {
-      key: 'mixnet',
-      title: t('sections.mixnet'),
-      settings: [
-        {
-          title: t('mixnet-tuning.title'),
-          desc: t('mixnet-tuning.desc'),
-          leadingIcon: 'visibility_off',
-          onClick: () => navigate(routes.mixnetTuning),
           trailing: chevron,
         },
       ],
@@ -210,12 +214,6 @@ function Settings() {
       key: 'app',
       title: t('sections.app'),
       settings: [
-        {
-          title: t('appearance', { ns: 'common' }),
-          leadingIcon: 'view_comfy',
-          onClick: () => navigate(routes.appearance),
-          trailing: chevron,
-        },
         {
           title: t('autostart.title'),
           desc: t('autostart.desc'),
@@ -227,6 +225,12 @@ function Settings() {
               onChange={handleAutostartChanged}
             />
           ),
+        },
+        {
+          title: t('appearance', { ns: 'common' }),
+          leadingIcon: 'view_comfy',
+          onClick: () => navigate(routes.appearance),
+          trailing: chevron,
         },
         {
           title: t('notifications.title'),
@@ -255,6 +259,7 @@ function Settings() {
         },
         {
           title: t('legal.title'),
+          leadingIcon: 'gavel',
           onClick: () => navigate(routes.legal),
           trailing: chevron,
         },
@@ -301,6 +306,16 @@ function Settings() {
         <p className="text-text-secondary px-5 text-sm select-none">
           {t('no-results-found.title', { ns: 'node-location' })}
         </p>
+      )}
+      {account && (
+        <Button
+          variant="grey"
+          onClick={() => logout()}
+          disabled={logoutLoading}
+          loading={logoutLoading}
+        >
+          {t('account.logout')}
+        </Button>
       )}
       <Button variant="destructive" onClick={exit}>
         {t('quit')}

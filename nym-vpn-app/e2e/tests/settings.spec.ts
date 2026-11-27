@@ -15,7 +15,7 @@ test.describe('Settings', () => {
   });
 
   test('renders all settings correctly', async () => {
-    await expect(settingsPage.row('Account')).toBeVisible();
+    await expect(settingsPage.row('Your account')).toBeVisible();
     await expect(settingsPage.row('Support &')).toBeVisible();
     await expect(settingsPage.row('Kill switch')).toBeVisible();
     await expect(settingsPage.row('Block ads')).toBeVisible();
@@ -23,11 +23,14 @@ test.describe('Settings', () => {
     await expect(settingsPage.row('Bypass LAN')).toBeVisible();
     await expect(settingsPage.row('Customize DNS')).toBeVisible();
     await expect(settingsPage.row('Anti-censorship')).toBeVisible();
+    await expect(settingsPage.row('Connection profiles')).toBeVisible();
+    await expect(settingsPage.row('Mixnet tuning')).toBeVisible();
     await expect(settingsPage.row('App & wallet proxy')).toBeVisible();
-    await expect(settingsPage.row('Launch on')).toBeVisible();
+    await expect(settingsPage.row('Launch at startup')).toBeVisible();
     await expect(settingsPage.row('Appearance')).toBeVisible();
     await expect(settingsPage.row('Data, privacy')).toBeVisible();
     await expect(settingsPage.row('Legal')).toBeVisible();
+    await expect(settingsPage.logoutButton).toBeVisible();
     await expect(settingsPage.quitButton).toBeVisible();
     await expect(settingsPage.appVersion).toBeVisible();
     await expect(settingsPage.daemonVersion).toBeVisible();
@@ -56,7 +59,7 @@ test.describe('Settings', () => {
 
     await settingsPage.search('');
     await expect(settingsPage.noResults).toBeHidden();
-    await expect(settingsPage.row('Account')).toBeVisible();
+    await expect(settingsPage.row('Your account')).toBeVisible();
     await expect(settingsPage.row('Legal')).toBeVisible();
   });
 

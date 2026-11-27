@@ -44,7 +44,9 @@ class SettingsPage {
     this.searchInput = page.getByPlaceholder('Search settings');
     this.noResults = page.getByText('No results found.');
 
-    this.accountRow = page.getByRole('button', { name: /Account/ }).first();
+    this.accountRow = page
+      .getByRole('button', { name: /Your account/ })
+      .first();
     this.logoutButton = page.getByRole('button', { name: /Log ?out/i });
     this.accountId = page.getByText('Account ID', { exact: true });
     this.deviceId = page.getByText('Device ID', { exact: true });

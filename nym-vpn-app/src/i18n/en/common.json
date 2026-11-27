@@ -18,7 +18,8 @@
   "close": "Close",
   "restart": "Restart",
   "profiles": {
-    "title": "Profiles",
+    "title": "Connection profiles",
+    "menu-desc": "Let us help you connect",
     "intro": "Profiles are connection templates you can use to connect quickly with the best type of server configuration for you.",
     "error": "Failed to apply profile",
     "learnMore": "Learn more about profiles here",

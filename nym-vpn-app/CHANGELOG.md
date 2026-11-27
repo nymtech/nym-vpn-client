@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Settings are now grouped into labeled sections with a search field to quickly find any setting by name (https://github.com/nymtech/nym-vpn-client/pull/7169)
+- Settings: switches come first in each section, Mixnet tuning moves into Protection, Account becomes "Your account", Profiles becomes "Connection profiles", and a grey Log out button sits at the bottom of Settings (https://github.com/nymtech/nym-vpn-client/pull/7169)
 - [Linux] The deb package now depends on `polkit-1-auth-agent`, so a polkit authentication agent is installed together with the app. This dependency used to come with `nym-vpnd` (https://github.com/nymtech/nym-vpn-client/pull/7175)
 
 ## [2026.16.1] - 2026-11-19

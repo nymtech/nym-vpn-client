@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import Spinner from './Spinner';
 
 export type ButtonVariant =
-  'primary' | 'outlined' | 'destructive' | 'destructive-outlined';
+  'primary' | 'outlined' | 'grey' | 'destructive' | 'destructive-outlined';
 
 const variantStyles: Record<ButtonVariant, string[]> = {
   primary: [
@@ -20,6 +20,12 @@ const variantStyles: Record<ButtonVariant, string[]> = {
     'data-active:bg-transparent',
     'data-disabled:border-black/50 data-disabled:text-black/50 data-disabled:cursor-not-allowed',
     'dark:data-disabled:border-white/50 dark:data-disabled:text-white/50',
+  ],
+  grey: [
+    'bg-text-primary/10 text-text-primary',
+    'hover:bg-text-primary/15',
+    'data-active:bg-text-primary/20',
+    'data-disabled:bg-secondary',
   ],
   destructive: [
     'bg-status-error text-white',
@@ -41,6 +47,9 @@ const loadingStyles: Record<ButtonVariant, string[]> = {
   ],
   outlined: [
     'group-data-disabled:border-black/50 group-data-disabled:border-b-transparent',
+  ],
+  grey: [
+    'group-data-disabled:border-text-primary/50 group-data-disabled:border-b-transparent',
   ],
   destructive: [
     'group-data-disabled:border-status-error/50 group-data-disabled:border-b-transparent',

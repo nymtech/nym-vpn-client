@@ -109,7 +109,7 @@ export default function TopBar() {
         },
       },
       '/settings/account': {
-        title: t('account.title', { ns: 'settings' }),
+        title: t('account.your-account', { ns: 'settings' }),
         leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
