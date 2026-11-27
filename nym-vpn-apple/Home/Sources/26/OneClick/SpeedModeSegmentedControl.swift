@@ -46,6 +46,10 @@ private extension SpeedModeSegmentedControl {
                 Capsule()
                     .fill(isSelected ? Color.Nym.surface : Color.clear)
             )
+            .overlay(
+                Capsule()
+                    .strokeBorder(isSelected ? Color.Nym.primary : Color.clear, lineWidth: Constants.selectedBorderWidth)
+            )
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -105,5 +109,6 @@ private extension SpeedModeSegmentedControl {
         static let iconPadding: CGFloat = 4
         static let segmentVerticalPadding: CGFloat = 8
         static let animationDuration: Double = 0.2
+        static let selectedBorderWidth: CGFloat = 1
     }
 }

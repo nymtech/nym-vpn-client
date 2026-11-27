@@ -39,5 +39,12 @@ import Testing
     @Test func missingBridgeSettingFailsToDecode() throws {
         #expect(try MixnetConfig.from(jsonString: json(bridge: [:])) == nil)
     }
+
+    @Test func missingTransportPreferenceDefaultsToAuto() throws {
+        let config = try #require(
+            MixnetConfig.from(jsonString: json(bridge: ["bridgeMode": "auto", "isQuicEnabled": false]))
+        )
+        #expect(config.transportPreference == .auto)
+    }
 }
 #endif

@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -75,7 +76,8 @@ internal fun ModeTabs(selected: ConnectMode, onSelect: (ConnectMode) -> Unit, mo
 				.width(tabWidth)
 				.fillMaxHeight()
 				.clip(RoundedCornerShape(23.dp))
-				.background(MaterialTheme.colorScheme.surface),
+				.background(MaterialTheme.colorScheme.surface)
+				.border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(23.dp)),
 		)
 
 		Row(modifier = Modifier.fillMaxSize()) {

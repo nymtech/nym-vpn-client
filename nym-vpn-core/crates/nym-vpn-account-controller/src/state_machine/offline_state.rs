@@ -48,8 +48,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
             Some(command) = command_rx.recv() => {
                 // Intentionnally no command grouping for clarity
                 match command {
-                    AccountCommand::CreateAccount(return_sender) => {
-                        return_sender.send(handler::handle_create_account(shared_state).await)
+                    AccountCommand::CreateAccount(return_sender, Some(_)) => return_no_connectivity(return_sender),
+                    AccountCommand::CreateAccount(return_sender, None) => {
+                        return_sender.send(handler::handle_create_account(shared_state, None).await)
                     },
                     AccountCommand::StoreAccount(return_sender, account) => {
                         return_sender.send(handler::handle_store_account(shared_state, account).await)

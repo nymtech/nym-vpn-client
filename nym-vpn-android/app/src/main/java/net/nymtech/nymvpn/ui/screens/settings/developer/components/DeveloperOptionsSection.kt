@@ -5,12 +5,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -28,7 +28,6 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeveloperOptionsSection(
 	appUiState: AppUiState,
@@ -72,7 +71,7 @@ fun DeveloperOptionsSection(
 							readOnly = true,
 							textStyle = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onPrimaryContainer),
 							trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = environmentExpanded) },
-							modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
+							modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
 						)
 						ExposedDropdownMenu(
 							expanded = environmentExpanded,
@@ -121,7 +120,7 @@ fun DeveloperOptionsSection(
 							readOnly = true,
 							textStyle = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onPrimaryContainer),
 							trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = credentialExpanded) },
-							modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
+							modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
 						)
 						ExposedDropdownMenu(
 							expanded = credentialExpanded,

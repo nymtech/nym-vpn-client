@@ -12,12 +12,12 @@ use tokio_util::sync::CancellationToken;
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType,
-    GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, PrivyDerivationMessage, Profile, RecentGateways, Socks5Settings,
-    Socks5Status, SplitApp, SplitTunnelExcludedProcessList, StoreAccountRequest, StoredAccountMode,
-    SystemMessage, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig,
-    VpnServiceInfo,
+    BridgeTransport, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
+    GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice,
+    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Profile, QrUrl, RecentGateways,
+    Socks5Settings, Socks5Status, SplitApp, SplitTunnelExcludedProcessList, StoreAccountRequest,
+    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::authorization_token::AuthorizationToken;
@@ -175,6 +175,17 @@ impl RpcClient {
 
     pub async fn set_fronting_mode(&self, fronting_mode: FrontingMode) -> Result<()> {
         self.inner.clone().set_fronting_mode(fronting_mode).await?;
+        Ok(())
+    }
+
+    pub async fn set_transport_preference(
+        &self,
+        transport_preference: Option<BridgeTransport>,
+    ) -> Result<()> {
+        self.inner
+            .clone()
+            .set_transport_preference(transport_preference)
+            .await?;
         Ok(())
     }
 
@@ -345,6 +356,38 @@ impl RpcClient {
         } else {
             Ok(())
         }
+    }
+
+    pub async fn create_account(&self, freepass: Option<String>) -> Result<()> {
+        let response = self.inner.clone().create_account(freepass).await?;
+        if let Some(err) = response.error {
+            Err(RpcError::from(Arc::new(err)))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub async fn redeem_freepass(&self, code: String) -> Result<()> {
+        let response = self.inner.clone().redeem_freepass(code).await?;
+        if let Some(err) = response.error {
+            Err(RpcError::from(Arc::new(err)))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub async fn start_pairing(&self) -> Result<QrUrl> {
+        Ok(self.inner.clone().start_pairing().await?)
+    }
+
+    pub async fn verified_pairing_pin(&self, session_id: u32) -> Result<()> {
+        self.inner.clone().verified_pairing_pin(session_id).await?;
+        Ok(())
+    }
+
+    pub async fn cancel_pairing_process(&self) -> Result<()> {
+        self.inner.clone().cancel_pairing_process().await?;
+        Ok(())
     }
 
     pub async fn get_autologin_deeplink(

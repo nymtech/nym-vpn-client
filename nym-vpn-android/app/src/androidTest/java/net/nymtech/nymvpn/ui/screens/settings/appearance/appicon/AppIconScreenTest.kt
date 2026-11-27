@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.appearance.appicon
 
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -24,7 +24,7 @@ class AppIconScreenTest {
 			AppIconScreen(currentIcon = AppIcon.DEFAULT, canSwitch = true, onIconSelect = { selected = it })
 		}
 
-		composeRule.onNodeWithText(label(R.string.app_icon_calculator)).performClick()
+		composeRule.onNodeWithText(label(R.string.app_icon_label_calculator)).performClick()
 		composeRule.onNodeWithText(label(R.string.app_icon_change_title)).assertExists()
 
 		composeRule.onNodeWithText(label(R.string.app_icon_change_confirm)).performClick()
@@ -39,8 +39,8 @@ class AppIconScreenTest {
 			AppIconScreen(currentIcon = AppIcon.DEFAULT, canSwitch = true, onIconSelect = { selected = it })
 		}
 
-		composeRule.onNodeWithText(label(R.string.app_icon_notes)).performClick()
-		composeRule.onNodeWithText(label(R.string.app_icon_change_cancel)).performClick()
+		composeRule.onNodeWithText(label(R.string.app_icon_label_notes)).performClick()
+		composeRule.onNodeWithText(label(R.string.cancel)).performClick()
 
 		composeRule.onNodeWithText(label(R.string.app_icon_change_title)).assertDoesNotExist()
 		assert(selected == null) { "expected no icon selected after cancel, got $selected" }
@@ -55,7 +55,7 @@ class AppIconScreenTest {
 
 		composeRule.onNodeWithText(label(R.string.app_icon_disconnect_first)).assertExists()
 
-		composeRule.onNodeWithText(label(R.string.app_icon_calculator)).performClick()
+		composeRule.onNodeWithText(label(R.string.app_icon_label_calculator)).performClick()
 		composeRule.onNodeWithText(label(R.string.app_icon_change_title)).assertDoesNotExist()
 		assert(selected == null) { "expected no icon selected while VPN is connected, got $selected" }
 	}

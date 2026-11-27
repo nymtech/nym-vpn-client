@@ -7,11 +7,16 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.ui.common.events.UiEvent
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
+import net.nymtech.vpn.model.config.ConfigResult
 import nym_vpn_lib_types.BridgeMode
+import nym_vpn_lib_types.BridgeTransport
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -38,6 +43,19 @@ class CensorshipViewModel @Inject constructor(private val vpnConfigRepository: V
 			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetStealthMode(enabled))
 		}.onFailure {
 			Timber.e(it, "Failed to update stealth mode setting")
+		}
+	}
+
+	fun onTransportPreferenceSelected(preference: BridgeTransport?) = viewModelScope.launch {
+		runCatching {
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetTransportPreference(preference))
+		}.onSuccess { result ->
+			if (result is ConfigResult.Failed) {
+				Timber.e("Failed to update transport preference setting: ${result.message}")
+				SnackbarController.showMessage(StringValue.StringResource(R.string.censorship_transport_preference_error))
+			}
+		}.onFailure {
+			Timber.e(it, "Failed to update transport preference setting")
 		}
 	}
 }

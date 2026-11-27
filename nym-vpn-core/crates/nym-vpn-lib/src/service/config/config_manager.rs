@@ -186,10 +186,30 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_transport_preference(
+        &mut self,
+        transport_preference: Option<nym_vpn_lib_types::BridgeTransport>,
+    ) {
+        if self.config.transport_preference != transport_preference {
+            self.config.transport_preference = transport_preference;
+            self.save_config_and_send_event().await;
+        }
+    }
+
     pub async fn set_residential_exit(&mut self, residential_only: bool) {
         if self.config.residential_exit != residential_only {
             self.config.residential_exit = residential_only;
             self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_auto_connect(&mut self, auto_connect: bool) -> bool {
+        if self.config.auto_connect == auto_connect {
+            false
+        } else {
+            self.config.auto_connect = auto_connect;
+            self.save_config_and_send_event().await;
+            true
         }
     }
 
@@ -579,6 +599,7 @@ impl VpnServiceConfigManager {
                 #[cfg(any(target_os = "android", target_os = "ios"))]
                 multihop_mode: WireguardMultihopMode::Netstack,
                 bridge_mode: self.config.bridge_mode,
+                transport_preference: self.config.transport_preference,
             },
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),
