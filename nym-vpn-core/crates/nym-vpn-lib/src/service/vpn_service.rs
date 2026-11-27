@@ -23,7 +23,7 @@ use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
-    time::{Duration, Instant},
+    time::Duration,
 };
 use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
@@ -926,7 +926,7 @@ impl NymVpnService {
         loop {
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {
-                    self.handle_service_command_timed(command).await;
+                    self.handle_service_command(command).await;
                 }
                 Some(event) = self.event_receiver.recv() => {
                     self.handle_tunnel_event(event);
@@ -1162,17 +1162,6 @@ impl NymVpnService {
             &self.user_agent,
         )
         .await;
-    }
-
-    // Wrap handle_service_command in timing code to log long-running commands
-    async fn handle_service_command_timed(&mut self, command: VpnServiceCommand) {
-        let start = Instant::now();
-        let command_str = command.to_string();
-        self.handle_service_command(command).await;
-        let elapsed = start.elapsed();
-        if elapsed.as_millis() > 100 {
-            tracing::warn!("{command_str} took {} ms to execute", elapsed.as_millis());
-        }
     }
 
     async fn handle_service_command(&mut self, command: VpnServiceCommand) {
