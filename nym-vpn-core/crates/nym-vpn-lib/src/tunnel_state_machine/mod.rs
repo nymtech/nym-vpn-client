@@ -15,6 +15,7 @@ mod ipv6_availability;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod route_handler;
 mod states;
+mod transport_preference;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 mod tun_ipv6;
 #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -87,11 +88,11 @@ use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle, NodeIdentity};
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, BridgeMode, ConflictDetected,
-    ConnectionData, DiagnosticsSuggestionReason, DnsServer, EntryPoint, ErrorStateReason,
-    EstablishConnectionData, EstablishConnectionState, ExitPoint, GatewayIndependence,
-    GatewaySelectionAlgorithmConfig, GeoExclusionSettings, SelectorFallbackState,
-    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, BridgeMode, BridgeTransport,
+    ConflictDetected, ConnectionData, DiagnosticsSuggestionReason, DnsServer, EntryPoint,
+    ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
+    GatewayIndependence, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
+    SelectorFallbackState, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -614,6 +615,7 @@ pub enum WireguardMultihopMode {
 pub struct WireguardTunnelOptions {
     pub multihop_mode: WireguardMultihopMode,
     pub bridge_mode: BridgeMode,
+    pub transport_preference: Option<BridgeTransport>,
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
@@ -1758,6 +1760,13 @@ pub enum Error {
 
     #[error("gateway provider shut down")]
     GatewayProviderDown,
+
+    #[error(
+        "the pinned bridge transport has no usable candidates for this gateway right now \
+         (it may lack that transport, or the network may have disabled TLS/SSH bridge \
+         fallback since the preference was set)"
+    )]
+    TransportPreferenceUnavailable,
 }
 
 impl Error {
@@ -1791,6 +1800,8 @@ impl Error {
             #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
             Self::Tunnel(e) => e.error_state_reason()?,
+            // Retryable, same as an ordinary bridge-connect failure (`Transport(_)` above).
+            Self::TransportPreferenceUnavailable => None?,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::ConfigureTunnelProvider(_) => ErrorStateReason::TunnelProvider,
             #[cfg(target_os = "ios")]

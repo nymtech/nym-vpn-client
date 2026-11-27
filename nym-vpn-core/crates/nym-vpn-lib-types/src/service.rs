@@ -18,7 +18,7 @@ use time::OffsetDateTime;
 use ts_rs::TS;
 
 use crate::{
-    EntryPoint, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
+    BridgeTransport, EntryPoint, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
     NetworkStatisticsConfig, NymNetworkDetails, NymVpnNetwork,
 };
 
@@ -46,6 +46,8 @@ pub struct VpnServiceConfig {
     pub enable_ad_blocking: bool,
     pub enable_conflict_detection: bool,
     pub fronting_mode: FrontingMode,
+    /// Pin bridge connections to one transport; `None` keeps today's QUIC-first-then-fallback.
+    pub transport_preference: Option<BridgeTransport>,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -56,6 +58,7 @@ pub struct VpnServiceConfig {
     pub geo_exclusion: GeoExclusionSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
     pub gateway_independence: GatewayIndependence,
+    pub auto_connect: bool,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -97,6 +100,7 @@ impl fmt::Display for VpnServiceConfig {
             self.gateway_selection_algorithm_config
         )?;
         writeln!(f, "gateway independence: {}", self.gateway_independence)?;
+        writeln!(f, "auto_connect: {}", self.auto_connect)?;
 
         Ok(())
     }
@@ -119,6 +123,7 @@ impl Default for VpnServiceConfig {
             enable_ad_blocking: false,
             enable_conflict_detection: true,
             fronting_mode: FrontingMode::default(),
+            transport_preference: None,
             netstack: false,
             min_gateway_vpn_performance: None,
             residential_exit: false,
@@ -129,6 +134,7 @@ impl Default for VpnServiceConfig {
             geo_exclusion: GeoExclusionSettings::default(),
             gateway_selection_algorithm_config: Default::default(),
             gateway_independence: Default::default(),
+            auto_connect: false,
         }
     }
 }

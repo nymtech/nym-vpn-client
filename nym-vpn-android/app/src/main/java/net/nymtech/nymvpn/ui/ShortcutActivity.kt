@@ -1,7 +1,10 @@
 package net.nymtech.nymvpn.ui
 
+import android.graphics.Color.TRANSPARENT
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
@@ -42,6 +45,10 @@ class ShortcutActivity : FragmentActivity() {
 	@Inject lateinit var deviceAuthManager: DeviceAuthManager
 
 	override fun onCreate(savedInstanceState: Bundle?) {
+		enableEdgeToEdge(
+			statusBarStyle = SystemBarStyle.auto(TRANSPARENT, TRANSPARENT),
+			navigationBarStyle = SystemBarStyle.auto(TRANSPARENT, TRANSPARENT),
+		)
 		super.onCreate(savedInstanceState)
 
 		if (savedInstanceState != null) {

@@ -83,6 +83,14 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err) => {
                 Self::PairingDerivingSharedSecret(err)
             }
+            proto::account_command_error::ErrorDetail::RateLimited(_) => Self::RateLimited,
+            proto::account_command_error::ErrorDetail::FreepassInvalid(_) => Self::FreepassInvalid,
+            proto::account_command_error::ErrorDetail::FreepassAlreadyRedeemed(_) => {
+                Self::FreepassAlreadyRedeemed
+            }
+            proto::account_command_error::ErrorDetail::RecurringSubscriptionActive(_) => {
+                Self::RecurringSubscriptionActive
+            }
         })
     }
 }
@@ -230,6 +238,24 @@ impl From<AccountCommandError> for proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::DeeplinkError(
                     message,
                 )),
+            },
+            AccountCommandError::RateLimited => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::RateLimited(true)),
+            },
+            AccountCommandError::FreepassInvalid => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::FreepassInvalid(
+                    true,
+                )),
+            },
+            AccountCommandError::FreepassAlreadyRedeemed => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::FreepassAlreadyRedeemed(true),
+                ),
+            },
+            AccountCommandError::RecurringSubscriptionActive => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::RecurringSubscriptionActive(true),
+                ),
             },
             // Reported as an `Unauthenticated` status instead.
             error @ AccountCommandError::UserPresenceRequired => proto::AccountCommandError {

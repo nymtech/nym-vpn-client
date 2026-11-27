@@ -130,6 +130,7 @@ class VpnTunController(private val service: VpnService) {
 		unbindProcessFromUnderlyingNetwork()
 	}
 
+	@Suppress("DEPRECATION")
 	private fun bindProcessToUnderlyingNetwork() {
 		val cm = service.getSystemService(ConnectivityManager::class.java) ?: return
 		val candidates = cm.allNetworks.mapNotNull { network ->

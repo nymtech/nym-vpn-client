@@ -234,7 +234,6 @@
 	<string name="settings_reset_app_title">Atur ulang data aplikasi</string>
 	<string name="settings_system_status_title">Status sistem</string>
 	<string name="settings_mixnet_tuning_title">Penyesuaian Mixnet</string>
-	<string name="settings_mixnet_tuning_description">Sesuaikan parameter Mixnet Anda</string>
 	<string name="settings_quit_title">Keluar dari NymVPN</string>
 	<string name="settings_app_version_line">Versi aplikasi: %1$s</string>
 	<string name="settings_language_help_title">Bantuan dalam penerjemahan</string>
@@ -437,7 +436,6 @@
 	<string name="passphrase_info_keeps_anonymous">Menjaga anonimitas Anda</string>
 	<string name="passphrase_info_belongs">Hanya milikmu (penyimpanan mandiri)</string>
 	<!-- Account screen -->
-	<string name="account_title">Akun dan perangkat</string>
 	<string name="account_info_manage_button">Kelola langganan Anda</string>
 	<string name="account_info_renew_auth_title">Perpanjang langganan Anda</string>
 	<string name="account_info_link_auth_subtitle">Konfirmasi bahwa ini Anda untuk menambahkan login melalui media sosial</string>
@@ -493,7 +491,6 @@
 	<string name="logs_download_button">Simpan sebagai file saja</string>
 	<string name="logs_saved">\"File log disimpan di folder Unduhan Anda\"</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling_info_msg">Atur setiap aplikasi agar menggunakan NymVPN atau terhubung secara langsung.</string>
 	<string name="split_tunneling_search_apps_hint">Cari aplikasi</string>
 	<string name="split_tunneling_apps">Aplikasi</string>
 	<string name="split_tunneling_direct">Langsung</string>

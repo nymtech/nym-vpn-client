@@ -1,4 +1,3 @@
-#if os(iOS)
 import SwiftUI
 import ImpactGenerator
 import Theme
@@ -19,7 +18,9 @@ struct RedeemCodeView: View {
                     .padding(.vertical, NymSpacing.section)
             }
             .scrollIndicators(.never)
+#if os(iOS)
             .scrollDismissesKeyboard(.interactively)
+#endif
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background {
@@ -87,8 +88,12 @@ private extension RedeemCodeView {
             TextField("redeemCode.placeholder".localizedString, text: $viewModel.code)
                 .nymTextStyle(.bodyLarge)
                 .foregroundStyle(Color.Nym.textPrimary)
+#if os(iOS)
                 .keyboardType(.asciiCapable)
                 .textInputAutocapitalization(.never)
+#elseif os(macOS)
+                .textFieldStyle(.plain)
+#endif
                 .autocorrectionDisabled()
                 .submitLabel(.done)
                 .focused($isFocused)
@@ -133,4 +138,3 @@ private extension RedeemCodeView {
         viewModel.submit()
     }
 }
-#endif
