@@ -87,5 +87,9 @@ async fn delete_device_propagates_non_success_response() {
         .await
         .expect_err("non-success response must fail");
 
-    assert!(error.to_string().contains("failed to delete device"));
+    let status = error
+        .http_client_error()
+        .and_then(nym_http_api_client::HttpClientError::status_code)
+        .map(|status| status.as_u16());
+    assert_eq!(status, Some(500));
 }

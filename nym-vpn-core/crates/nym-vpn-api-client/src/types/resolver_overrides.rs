@@ -5,7 +5,6 @@ use std::{
     net::{IpAddr, SocketAddr},
 };
 
-use itertools::{Either, Itertools};
 use tokio::task::JoinSet;
 
 use nym_common::ErrorExt;
@@ -63,30 +62,29 @@ impl ResolverOverrides {
         // Execute all resolution tasks in parallel
         let results = join_set.join_all().await;
 
-        // Collect successful and failed resolutions
-        let (successes, failures): (Vec<(String, HashSet<SocketAddr>)>, HashSet<String>) = results
-            .into_iter()
-            .partition_map(|(domain, result)| match result {
-                Ok(addresses) => Either::Left((domain, HashSet::from_iter(addresses))),
-                Err(_) => Either::Right(domain),
-            });
+        let mut overrides = HashMap::new();
+        let mut failures = Vec::new();
+        for (domain, result) in results {
+            match result {
+                Ok(addresses) => {
+                    overrides.insert(domain, HashSet::from_iter(addresses));
+                }
+                Err(VpnApiClientError::DnsResolution {
+                    failures: domain_failures,
+                }) => failures.extend(domain_failures),
+                Err(err) => return Err(err),
+            }
+        }
 
         if failures.is_empty() {
             tracing::debug!(
                 "Successfully resolved domains in parallel: {:?}",
-                successes.iter().map(|v| v.0.as_str()).collect::<Vec<_>>()
+                overrides.keys().collect::<Vec<_>>()
             );
 
-            Ok(Self {
-                overrides: HashMap::from_iter(successes),
-            })
+            Ok(Self { overrides })
         } else {
-            // At least one resolution failed.
-            tracing::warn!("Failed to resolve one or more URLs: {:?}", failures);
-
-            Err(VpnApiClientError::HostnamesResolutionError {
-                hostnames: failures,
-            })
+            Err(VpnApiClientError::DnsResolution { failures })
         }
     }
 
@@ -191,7 +189,11 @@ mod test {
         expected.insert("non-existent.nymtech.net".to_string());
         match result {
             Ok(_) => panic!("unreachable"),
-            Err(VpnApiClientError::HostnamesResolutionError { hostnames }) => {
+            Err(VpnApiClientError::DnsResolution { failures }) => {
+                let hostnames = failures
+                    .into_iter()
+                    .map(|failure| failure.hostname)
+                    .collect::<HashSet<_>>();
                 assert_eq!(hostnames, expected)
             }
             Err(e) => panic!("unexpected err: {e}"),

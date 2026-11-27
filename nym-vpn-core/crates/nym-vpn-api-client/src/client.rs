@@ -123,7 +123,7 @@ impl VpnApiClient {
     ) -> Result<Self> {
         let api_urls = network.nym_vpn_api_urls();
         if api_urls.is_empty() {
-            return Err(VpnApiClientError::CreateVpnApiClient(Box::new(
+            return Err(VpnApiClientError::HttpClient(Box::new(
                 HttpClientError::NoUrlsProvided,
             )));
         }
@@ -426,7 +426,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetAccount)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn delete_account(&self, account: &VpnAccount) -> Result<NymVpnAccountResponse> {
@@ -436,7 +436,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::DeleteAccount)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     async fn post_account<B>(
@@ -454,7 +454,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::PostAccount)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     async fn register_apple_account<B>(&self, body: &B) -> Result<NymVpnRegisterAccountResponse>
@@ -511,7 +511,7 @@ impl VpnApiClient {
         self.get_json_with_retry(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
             .await
             .map_err(Box::new)
-            .map_err(VpnApiClientError::GetHealth)
+            .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_wellknown_envs(&self) -> Result<crate::response::RegisteredNetworksResponse> {
@@ -527,7 +527,7 @@ impl VpnApiClient {
             )
             .await
             .map_err(Box::new)
-            .map_err(VpnApiClientError::GetWellknownEnvs)
+            .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_wellknown_discovery(
@@ -547,7 +547,7 @@ impl VpnApiClient {
             )
             .await
             .map_err(Box::new)
-            .map_err(VpnApiClientError::GetWellknownDiscovery)
+            .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_account_summary(
@@ -566,7 +566,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetAccountSummary)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_account_summary_with_device(
@@ -588,7 +588,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetAccountSummaryWithDevice)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn link_account(
@@ -630,7 +630,7 @@ impl VpnApiClient {
         .await
         .inspect_err(|e| tracing::error!("Failed to link account: {e:?}"))
         .map_err(Box::new)
-        .map_err(VpnApiClientError::LinkPrivyAccount)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn pair_account(
@@ -658,7 +658,7 @@ impl VpnApiClient {
         .await
         .inspect_err(|e| tracing::error!("Failed to pair account: {e:?}"))
         .map_err(Box::new)
-        .map_err(VpnApiClientError::PairAccount)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn check_pairing_account(
@@ -686,7 +686,7 @@ impl VpnApiClient {
         .await
         .inspect_err(|e| tracing::error!("Failed to check pairing account status: {e:?}"))
         .map_err(Box::new)
-        .map_err(VpnApiClientError::CheckPairingAccount)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn confirm_pin(
@@ -718,7 +718,7 @@ impl VpnApiClient {
         .await
         .inspect_err(|e| tracing::error!("Failed to confirm pairing account PIN: {e:?}"))
         .map_err(Box::new)
-        .map_err(VpnApiClientError::ConfirmPairingPinAccount)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn try_to_pair_to_account(
@@ -746,7 +746,7 @@ impl VpnApiClient {
             .await
             .inspect_err(|e| tracing::error!("Failed trying to pair to account: {e:?}"))
             .map_err(Box::new)
-            .map_err(VpnApiClientError::TryToPairToAccount)
+            .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn try_to_get_secret_account(
@@ -772,7 +772,7 @@ impl VpnApiClient {
         .await
         .inspect_err(|e| tracing::error!("Failed to get pairing account secret: {e:?}"))
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetPairingSecretAccount)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn share_secret_account(
@@ -804,7 +804,7 @@ impl VpnApiClient {
         .await
         .inspect_err(|e| tracing::error!("Failed to share secret account: {e:?}"))
         .map_err(Box::new)
-        .map_err(VpnApiClientError::SharePairingSecretAccount)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_canonical_account_identity(
@@ -824,7 +824,7 @@ impl VpnApiClient {
         .await
         .inspect_err(|e| tracing::error!("Failed to get canonical account identity: {e:?}"))
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetCanonicalAccountIdentity)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     // DEVICES
@@ -842,7 +842,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetDevices)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn register_device(
@@ -868,7 +868,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::RegisterDevice)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_active_devices(&self, account: &VpnAccount) -> Result<NymVpnDevicesResponse> {
@@ -885,7 +885,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetActiveDevices)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_device_by_id(
@@ -906,7 +906,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetDeviceById)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn update_device(
@@ -933,7 +933,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::UpdateDevice)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     // ZK-NYM
@@ -961,7 +961,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::DeleteDevice)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_device_zk_nyms(
@@ -983,7 +983,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetDeviceZkNyms)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn request_zk_nym(
@@ -1020,7 +1020,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::RequestZkNym)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_zk_nyms_available_for_download(
@@ -1043,7 +1043,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetDeviceZkNyms)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_zk_nym_by_id(
@@ -1067,7 +1067,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetZkNymById)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn confirm_zk_nym_download_by_id(
@@ -1091,7 +1091,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::ConfirmZkNymDownloadById)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     // FREEPASS
@@ -1112,7 +1112,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetFreePasses)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn apply_freepass(
@@ -1135,7 +1135,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::ApplyFreepass)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     /// Creates the account on the API and applies the free pass to it in one request.
@@ -1158,7 +1158,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::RedeemFreepass)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     // SUBSCRIPTIONS
@@ -1179,7 +1179,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetSubscriptions)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn create_subscription(&self, account: &VpnAccount) -> Result<NymVpnSubscription> {
@@ -1201,7 +1201,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::CreateSubscription)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_active_subscriptions(
@@ -1221,7 +1221,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetActiveSubscriptions)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     /// Asks the API for the account's Apple introductory-offer eligibility. `compact_jws` is a
@@ -1253,7 +1253,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::CheckAppleIntroOfferEligibility)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_usage(&self, account: &VpnAccount) -> Result<NymVpnUsagesResponse> {
@@ -1269,7 +1269,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetUsage)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     // GATEWAYS
@@ -1289,7 +1289,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetGateways)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_gateways_by_type(
@@ -1333,7 +1333,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetVpnGateways)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_vpn_gateway_countries(
@@ -1354,7 +1354,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetVpnGatewayCountries)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_gateway_countries(
@@ -1373,7 +1373,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetGatewayCountries)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_entry_gateways(
@@ -1392,7 +1392,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetEntryGateways)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_entry_gateway_countries(
@@ -1412,7 +1412,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetEntryGatewayCountries)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_exit_gateways(
@@ -1431,7 +1431,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetExitGateways)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_exit_gateway_countries(
@@ -1451,7 +1451,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetExitGatewayCountries)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     // DIRECTORY ZK-NYM
@@ -1473,7 +1473,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookPartialVerificationKeys)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_directory_zk_nyms_ticketbook_master_verification_key(
@@ -1493,7 +1493,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookMasterVerificationKey)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_directory_zk_nyms_ticketbook_aggregated_coin_indices_signatures(
@@ -1513,7 +1513,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookAggregatedCoinIndicesSignatures)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_directory_zk_nyms_ticketbook_aggregated_expiration_date_signatures(
@@ -1540,7 +1540,7 @@ impl VpnApiClient {
         )
         .await
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookAggregatedExpirationDateSignatures)
+        .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_wellknown_current_env(&self) -> Result<NymWellknownDiscoveryItem> {
@@ -1557,7 +1557,7 @@ impl VpnApiClient {
             )
             .await
             .map_err(Box::new)
-            .map_err(VpnApiClientError::GetVpnNetworkDetails)
+            .map_err(VpnApiClientError::HttpClient)
     }
 
     pub async fn get_geo_ip(&self) -> Result<NymUserGeoIpLocationResponse> {
@@ -1569,7 +1569,7 @@ impl VpnApiClient {
             )
             .await
             .map_err(Box::new)
-            .map_err(VpnApiClientError::GetGeoIp)
+            .map_err(VpnApiClientError::HttpClient)
     }
 }
 
@@ -1606,7 +1606,7 @@ impl RemoteTimeProvider for VpnApiRemoteTimeProvider {
             .get_json(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
             .await
             .map_err(Box::new)
-            .map_err(VpnApiClientError::GetHealth)?;
+            .map_err(VpnApiClientError::HttpClient)?;
 
         Ok(res.timestamp_utc)
     }

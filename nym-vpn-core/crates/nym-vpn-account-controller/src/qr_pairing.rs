@@ -192,7 +192,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                 }
                 Ok(response.inner)
             }
-            Some(Err(VpnApiClientError::CheckPairingAccount(e))) if e.is_timeout() => {
+            Some(Err(VpnApiClientError::HttpClient(e))) if e.is_timeout() => {
                 tracing::debug!("Timeout on checking the pairing");
                 Ok(None)
             }
@@ -253,7 +253,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
             ))
             .await
         {
-            Some(Err(VpnApiClientError::ConfirmPairingPinAccount(e))) if e.is_timeout() => {
+            Some(Err(VpnApiClientError::HttpClient(e))) if e.is_timeout() => {
                 tracing::debug!("Timeout on confirming the PIN");
                 Ok(None)
             }
@@ -413,7 +413,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                 tracing::debug!("Received account secret mnemonic, pairing completed");
                 Ok(Some(parsed_mnemonic))
             }
-            Some(Err(VpnApiClientError::GetPairingSecretAccount(e))) if e.is_timeout() => {
+            Some(Err(VpnApiClientError::HttpClient(e))) if e.is_timeout() => {
                 tracing::debug!("Timeout on checking the pairing");
                 Ok(None)
             }
@@ -931,12 +931,12 @@ mod tests {
 
             let process = db
                 .active_process(qr_pub_key, Some(&account.id()))
-                .map_err(VpnApiClientError::CheckPairingAccount)?;
+                .map_err(VpnApiClientError::HttpClient)?;
             let inner = match &process.state {
                 PairingState::Empty => None,
                 PairingState::SharedPin(data) => Some(data.pairing_response.clone()),
                 PairingState::ConfirmedPin { .. } | PairingState::SharedSecret { .. } => {
-                    return Err(VpnApiClientError::CheckPairingAccount(api_error(
+                    return Err(VpnApiClientError::HttpClient(api_error(
                         "400: the process already advanced",
                     )));
                 }
@@ -954,7 +954,7 @@ mod tests {
         ) -> Result<StatusOk, VpnApiClientError> {
             let mut db = self.api_db.lock().await;
             if db.reject_pin_confirmations {
-                return Err(VpnApiClientError::ConfirmPairingPinAccount(api_error(
+                return Err(VpnApiClientError::HttpClient(api_error(
                     "500: PIN confirmation refused",
                 )));
             }
@@ -962,9 +962,9 @@ mod tests {
             let account_id = account.id();
             let process = db
                 .active_process(qr_pub_key, Some(&account_id))
-                .map_err(VpnApiClientError::ConfirmPairingPinAccount)?;
+                .map_err(VpnApiClientError::HttpClient)?;
             let PairingState::SharedPin(data) = &process.state else {
-                return Err(VpnApiClientError::ConfirmPairingPinAccount(api_error(
+                return Err(VpnApiClientError::HttpClient(api_error(
                     "400: not in the step of PIN confirmation",
                 )));
             };
@@ -979,7 +979,7 @@ mod tests {
             };
             if db.time_out_next_pin_confirmation {
                 db.time_out_next_pin_confirmation = false;
-                return Err(VpnApiClientError::ConfirmPairingPinAccount(timeout_error()));
+                return Err(VpnApiClientError::HttpClient(timeout_error()));
             }
 
             Ok(StatusOk {
@@ -999,10 +999,10 @@ mod tests {
 
             let process = db
                 .active_process(remote_qr_pub_key, None)
-                .map_err(VpnApiClientError::TryToPairToAccount)?;
+                .map_err(VpnApiClientError::HttpClient)?;
             if !matches!(process.state, PairingState::Empty) {
                 // first come, first served: a second scan might be a MitM attempt
-                return Err(VpnApiClientError::TryToPairToAccount(api_error(
+                return Err(VpnApiClientError::HttpClient(api_error(
                     "400: pairing request has already been submitted for this QR public key",
                 )));
             }
@@ -1036,10 +1036,10 @@ mod tests {
 
             let process = db
                 .active_process(remote_qr_pub_key, None)
-                .map_err(VpnApiClientError::GetPairingSecretAccount)?;
+                .map_err(VpnApiClientError::HttpClient)?;
             let check_token = |token: &str| {
                 if pairing_token != token {
-                    return Err(VpnApiClientError::GetPairingSecretAccount(api_error(
+                    return Err(VpnApiClientError::HttpClient(api_error(
                         "401: provided token is not correct",
                     )));
                 }
@@ -1047,7 +1047,7 @@ mod tests {
             };
             let response = match &process.state {
                 PairingState::Empty => {
-                    return Err(VpnApiClientError::GetPairingSecretAccount(api_error(
+                    return Err(VpnApiClientError::HttpClient(api_error(
                         "400: pairing process not started",
                     )));
                 }
@@ -1080,21 +1080,21 @@ mod tests {
             let account_id = account.id();
             let process = db
                 .active_process(qr_pub_key, Some(&account_id))
-                .map_err(VpnApiClientError::SharePairingSecretAccount)?;
+                .map_err(VpnApiClientError::HttpClient)?;
             let token = match &process.state {
                 PairingState::Empty => {
-                    return Err(VpnApiClientError::SharePairingSecretAccount(api_error(
+                    return Err(VpnApiClientError::HttpClient(api_error(
                         "400: process was not started",
                     )));
                 }
                 PairingState::SharedPin(_) => {
-                    return Err(VpnApiClientError::SharePairingSecretAccount(api_error(
+                    return Err(VpnApiClientError::HttpClient(api_error(
                         "400: pin should be confirmed first",
                     )));
                 }
                 PairingState::ConfirmedPin { token, .. } => token.clone(),
                 PairingState::SharedSecret { .. } => {
-                    return Err(VpnApiClientError::SharePairingSecretAccount(api_error(
+                    return Err(VpnApiClientError::HttpClient(api_error(
                         "400: secret was already shared",
                     )));
                 }

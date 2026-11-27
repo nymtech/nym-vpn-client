@@ -6,7 +6,7 @@ use std::net::{IpAddr, SocketAddr};
 use nym_common::trace_err_chain;
 use nym_http_api_client::HickoryDnsResolver;
 
-use crate::error::{Result, VpnApiClientError};
+use crate::error::{DnsResolutionFailure, Result, VpnApiClientError};
 
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     tracing::debug!("Trying to resolve hostname: {hostname}");
@@ -17,9 +17,11 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
         .await
         .map_err(|err| {
             trace_err_chain!(err, "Failed to resolve hostname");
-            VpnApiClientError::DnsResolutionFailure {
-                hostname: hostname.to_string(),
-                source: err,
+            VpnApiClientError::DnsResolution {
+                failures: vec![DnsResolutionFailure {
+                    hostname: hostname.to_owned(),
+                    source: err,
+                }],
             }
         })?
         .collect::<Vec<_>>();
