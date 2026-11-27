@@ -585,3 +585,55 @@ pub fn setup_logging_with_file_remover(
         }
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    use super::*;
+
+    struct CountingLayer(Arc<AtomicUsize>);
+
+    impl<S: Subscriber> Layer<S> for CountingLayer {
+        fn on_event(&self, _event: &Event<'_>, _ctx: Context<'_, S>) {
+            self.0.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    fn is_sent(emit: impl FnOnce()) -> bool {
+        let count = Arc::new(AtomicUsize::new(0));
+        let subscriber = tracing_subscriber::registry()
+            .with(CountingLayer(count.clone()).with_filter(SentryFilter));
+        tracing::subscriber::with_default(subscriber, emit);
+        count.load(Ordering::SeqCst) == 1
+    }
+
+    #[test]
+    fn sends_event_without_skip_sentry_field() {
+        assert!(is_sent(|| tracing::warn!("message")));
+    }
+
+    #[test]
+    fn skips_event_with_skip_sentry_true() {
+        assert!(!is_sent(|| tracing::warn!(skip_sentry = true, "message")));
+    }
+
+    #[test]
+    fn sends_event_with_skip_sentry_false() {
+        assert!(is_sent(|| tracing::warn!(skip_sentry = false, "message")));
+    }
+
+    #[test]
+    fn skips_event_from_skipped_target() {
+        assert!(!is_sent(
+            || tracing::warn!(target: "nym_bridges::forward", "message")
+        ));
+    }
+
+    #[test]
+    fn sends_event_from_submodule_of_skipped_target() {
+        assert!(is_sent(
+            || tracing::warn!(target: "nym_bridges::forward::submodule", "message")
+        ));
+    }
+}
