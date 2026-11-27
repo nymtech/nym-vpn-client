@@ -35,7 +35,14 @@ const BACKUP_LOG_EXTENSION: &str = "old.log";
 const SKIP_SENTRY_FIELD: &str = "skip_sentry";
 
 /// Third-party targets whose events are not sent to Sentry.
-static SKIP_SENTRY_TARGETS: [&str; 1] = ["hickory_net::h2"];
+static SKIP_SENTRY_TARGETS: [&str; 6] = [
+    "hickory_net::h2",
+    "hickory_server::server",
+    "nym_bridges::forward",
+    "nym_client_core::client::real_messages_control::real_traffic_stream::sending_delay_controller",
+    "nym_http_api_client::dns",
+    "nym_ip_packet_client::listener",
+];
 
 static INFO_TARGETS: [&str; 16] = [
     "hyper",

@@ -1170,7 +1170,11 @@ impl NymVpnService {
         self.handle_service_command(command).await;
         let elapsed = start.elapsed();
         if elapsed.as_millis() > 100 {
-            tracing::warn!("{command_str} took {} ms to execute", elapsed.as_millis());
+            tracing::warn!(
+                skip_sentry = true,
+                "{command_str} took {} ms to execute",
+                elapsed.as_millis()
+            );
         }
     }
 
