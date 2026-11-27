@@ -105,6 +105,7 @@ function Logs() {
         title={t('logs.actions.delete.title')}
         description={t('logs.actions.delete.description')}
         confirmButtonText={t('logs.actions.delete.confirmButtonText')}
+        confirmVariant="destructive"
         cancelButtonText={t('logs.actions.delete.cancelButtonText')}
         isOpen={deleteOpen}
         isLoading={deleting}
