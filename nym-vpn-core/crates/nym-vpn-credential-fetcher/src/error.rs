@@ -113,10 +113,9 @@ impl VpnApiFetcherError {
         )
     }
 
-    // Returning a closure that takes the error as input, to simplify callsite
-    pub(crate) fn vpn_api_error(endpoint: &str) -> impl FnOnce(VpnApiClientError) -> Self {
-        |err| match VpnApiError::try_from(err) {
-            Ok(VpnApiError::Response(source)) => {
+    pub(crate) fn from_vpn_api_error(endpoint: &str, err: VpnApiClientError) -> Self {
+        match VpnApiError::from(&err) {
+            VpnApiError::Response(source) => {
                 if source.code_reference_id.as_deref() == Some(FAIR_USAGE_DEPLETED_CODE_ID) {
                     Self::BandwidthExceeded
                 } else if source.code_reference_id.as_deref() == Some(UPSTREAM_UNAVAILABLE_CODE_ID)
@@ -129,18 +128,17 @@ impl VpnApiFetcherError {
                     }
                 }
             }
-            Ok(VpnApiError::StatusCode { code, msg }) => Self::ApiStatusCodeError {
+            VpnApiError::StatusCode { code, msg } => Self::ApiStatusCodeError {
                 endpoint: endpoint.into(),
                 msg,
                 status_code: code,
             },
-            Ok(VpnApiError::Timeout(_)) => Self::Timeout {
+            VpnApiError::Timeout(_) => Self::Timeout {
                 endpoint: endpoint.into(),
             },
-
-            Err(source) => Self::Transport {
+            VpnApiError::Other(_) => Self::Transport {
                 endpoint: endpoint.into(),
-                source: Box::new(source),
+                source: Box::new(err),
             },
         }
     }

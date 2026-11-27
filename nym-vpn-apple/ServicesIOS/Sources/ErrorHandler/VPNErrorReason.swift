@@ -71,6 +71,8 @@ public enum VPNErrorReason: LocalizedError {
                 self = .vpnApi(details: String("\(code): \(message)"))
             case let .Response(errorResponse):
                 self = .vpnApi(details: errorResponse.message)
+            case let .Other(details):
+                self = .vpnApi(details: details)
             }
         case .VpnApiTimeout:
             self = .vpnApiTimeout

@@ -113,6 +113,7 @@ impl TryFrom<proto::VpnApiError> for VpnApiError {
             proto::vpn_api_error::ErrorDetail::Response(vpn_api_error_response) => {
                 Self::Response(vpn_api_error_response.into())
             }
+            proto::vpn_api_error::ErrorDetail::Other(msg) => Self::Other(msg),
         })
     }
 }
@@ -318,6 +319,7 @@ impl From<VpnApiError> for proto::VpnApiError {
             VpnApiError::Response(vpn_api_error_response) => {
                 proto::vpn_api_error::ErrorDetail::Response(vpn_api_error_response.into())
             }
+            VpnApiError::Other(msg) => proto::vpn_api_error::ErrorDetail::Other(msg),
         };
         Self {
             error_detail: Some(error_detail),

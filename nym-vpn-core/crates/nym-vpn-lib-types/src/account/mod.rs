@@ -183,6 +183,9 @@ pub enum VpnApiError {
 
     #[error(transparent)]
     Response(#[from] VpnApiErrorResponse),
+
+    #[error("{0}")]
+    Other(String),
 }
 
 impl VpnApiError {
@@ -190,7 +193,7 @@ impl VpnApiError {
         match self {
             VpnApiError::Response(err) => err.message.clone(),
             VpnApiError::StatusCode { .. } => self.to_string(),
-            VpnApiError::Timeout(_) => self.to_string(),
+            VpnApiError::Timeout(_) | VpnApiError::Other(_) => self.to_string(),
         }
     }
 
@@ -211,33 +214,24 @@ impl VpnApiError {
     }
 }
 
-// That should disappear when reworking those errors
 #[cfg(feature = "nym-type-conversions")]
-impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
-    type Error = nym_vpn_api_client::error::VpnApiClientError;
+impl From<&nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
+    fn from(err: &nym_vpn_api_client::error::VpnApiClientError) -> Self {
+        use nym_vpn_api_client::error::HttpClientError;
 
-    fn try_from(err: nym_vpn_api_client::error::VpnApiClientError) -> Result<Self, Self::Error> {
-        let err = match VpnApiErrorResponse::try_from(err) {
-            Ok(err) => return Ok(Self::Response(err)),
-            Err(err) => err,
-        };
+        let http_err = err.http_client_error();
 
-        if err
-            .http_client_error()
-            .is_some_and(nym_vpn_api_client::error::HttpClientError::is_timeout)
-        {
-            return Ok(Self::Timeout(err.to_string()));
-        }
-
-        match err
-            .http_client_error()
-            .and_then(nym_vpn_api_client::error::HttpClientError::status_code)
-        {
-            Some(code) => Ok(Self::StatusCode {
+        if let Some(response) = nym_vpn_api_client::response::extract_error_response(err) {
+            Self::Response(response.into())
+        } else if http_err.is_some_and(HttpClientError::is_timeout) {
+            Self::Timeout(err.to_string())
+        } else if let Some(code) = http_err.and_then(HttpClientError::status_code) {
+            Self::StatusCode {
                 code: code.into(),
                 msg: err.to_string(),
-            }),
-            None => Err(err),
+            }
+        } else {
+            Self::Other(err.to_string())
         }
     }
 }
