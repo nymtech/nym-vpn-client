@@ -331,6 +331,6 @@ private extension SettingsFlowCoordinator {
     }
 
     func accountAndDevicesDestination() -> some View {
-        AccountAndDevicesView(path: $flowState.path, onSessionEvent: { flowState.onSessionEvent?($0) })
+        AccountAndDevicesView(path: $flowState.path)
     }
 }

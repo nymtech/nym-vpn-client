@@ -14,7 +14,6 @@ public struct SettingsView: View {
     @StateObject private var viewModel: SettingsViewModel
     @State private var searchText = ""
     @FocusState private var isSearchFocused: Bool
-    @State private var isLogoutConfirmationDisplayed = false
 #if os(macOS)
     @State private var autologinState = AutologinState()
 #endif
@@ -45,13 +44,6 @@ private extension SettingsView {
                     Spacer()
                         .frame(height: NymSpacing.section)
                     settingsList()
-                    logoutButton()
-                    Spacer()
-                        .frame(height: NymSpacing.section)
-                    appVersionText()
-                        .onTapGesture(count: 3) {
-                            viewModel.navigateToSantasMenu()
-                        }
                 }
                 .padding(.horizontal, NymSpacing.large)
             }
@@ -71,8 +63,22 @@ private extension SettingsView {
             onRetry: { autologinState.start(kind: .autologinRenew, using: credentialsManager) }
         )
 #endif
+#if os(iOS)
+        .fullScreenCover(isPresented: $viewModel.isCodeEntryPresented) {
+            FreepassOrPairingEntryView(startsWithScanner: true) { outcome in
+                viewModel.handleCodeEntry(outcome)
+            }
+            .interactiveDismissDisabled()
+        }
+#elseif os(macOS)
+        .sheet(isPresented: $viewModel.isCodeEntryPresented) {
+            FreepassCodeEntryView { outcome in
+                viewModel.handleCodeEntry(outcome)
+            }
+        }
+#endif
         .logoutDialog(
-            isPresented: $isLogoutConfirmationDisplayed,
+            isPresented: $viewModel.isLogoutConfirmationDisplayed,
             credentialsManager: credentialsManager,
             connectionManager: connectionManager,
             onLoggedOut: { viewModel.navigateToRoot() }
@@ -103,49 +109,42 @@ private extension SettingsView {
 
     @ViewBuilder
     func settingsList() -> some View {
-        let sections = visibleSections()
+        let sections = SettingsSearch.filter(viewModel.sections, query: searchText) { viewModel.blocks(for: $0) }
         if sections.isEmpty && !viewModel.sections.isEmpty {
             sectionHeader("search.noResults".localizedString)
         } else {
             ForEach(sections, id: \.self) { section in
-                sectionHeader(section.kind.title)
-                    .accessibilityAddTraits(.isHeader)
-                if section.kind == .account && !viewModel.isSignedIn {
-                    getStartedButton()
-                } else {
-                    SettingsList(viewModel: SettingsListViewModel(sections: [section]))
+                if let title = section.kind.title {
+                    sectionHeader(title)
+                        .accessibilityAddTraits(.isHeader)
                 }
+                ForEach(section.blocks.filter(\.isAboveRows), id: \.self) { block($0) }
+                if !section.rows.isEmpty {
+                    SettingsList(
+                        viewModel: SettingsListViewModel(
+                            sections: [SettingsSection(kind: section.kind, viewModels: section.rows)]
+                        )
+                    )
+                }
+                ForEach(section.blocks.filter { !$0.isAboveRows }, id: \.self) { block($0) }
             }
         }
     }
 
-    func getStartedButton() -> some View {
-        NymButton("home.getStarted".localizedString, style: .primary) {
-            viewModel.getStarted()
-        }
-    }
-
-    /// Grey on purpose: the red Log out lives in Your account, never two red buttons together.
     @ViewBuilder
-    func logoutButton() -> some View {
-        if viewModel.isSignedIn && searchText.trimmingCharacters(in: .whitespaces).isEmpty {
-            NymButton(
-                "settings.logout".localizedString,
-                style: .secondary,
-                foregroundColor: Color.Nym.textSecondary,
-                borderColor: Color.Nym.textSecondary
-            ) {
-                isLogoutConfirmationDisplayed = true
+    func block(_ block: SettingsBlock) -> some View {
+        switch block {
+        case .getStarted:
+            NymButton(block.title, style: .primary) {
+                viewModel.getStarted()
             }
-            .padding(.top, NymSpacing.large)
-        }
-    }
-
-    /// All sections, or while searching only the rows whose title matches, under their section header.
-    func visibleSections() -> [SettingsSection<AppSettingsSectionKind>] {
-        let getStarted = viewModel.isSignedIn ? nil : "home.getStarted".localizedString
-        return SettingsSearch.filter(viewModel.sections, query: searchText) { kind in
-            kind == .account ? getStarted : nil
+            .padding(.bottom, NymSpacing.large)
+        case .appVersion:
+            appVersionText(block.title)
+                .padding(.top, NymSpacing.section)
+                .onTapGesture(count: 3) {
+                    viewModel.navigateToSantasMenu()
+                }
         }
     }
 
@@ -159,10 +158,10 @@ private extension SettingsView {
         }
     }
 
-    func appVersionText() -> some View {
+    func appVersionText(_ title: String) -> some View {
         VStack(spacing: 0) {
             HStack {
-                Text(viewModel.versionTitle)
+                Text(title)
                     .foregroundStyle(Color.Nym.textSecondary)
                     .nymTextStyle(.bodySmall)
                     .padding(.bottom, NymSpacing.large)

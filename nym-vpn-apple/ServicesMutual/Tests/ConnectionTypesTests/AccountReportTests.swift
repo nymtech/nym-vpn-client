@@ -155,6 +155,7 @@ struct AccountReportTests {
 
     /// Extracts button title keys from the Account view sources:
     ///  - `title: "KEY".localizedString` on SettingsListItem button rows
+    ///  - `NymButton("KEY".localizedString` buttons
     ///  - the renew row `Text("settings.account.renewNow".localizedString)`
     ///
     /// Non-button `title:` args (navbar `CustomNavBar`, copyable `SettingsCopyableContentCell`
@@ -187,7 +188,7 @@ struct AccountReportTests {
         ]
 
         var keys = Set<String>()
-        let titleRegex = try NSRegularExpression(pattern: #"title:\s*"([^"]+)"\.localizedString"#)
+        let titleRegex = try NSRegularExpression(pattern: #"(?:title:\s*|NymButton\(\s*)"([^"]+)"\.localizedString"#)
         for m in titleRegex.matches(in: source, range: NSRange(source.startIndex..., in: source)) {
             if let r = Range(m.range(at: 1), in: source) {
                 let key = String(source[r])

@@ -19,18 +19,18 @@ import Theme
 @MainActor public class SettingsViewModel: SettingsFlowState {
     public typealias AppSettingsSection = SettingsSection<AppSettingsSectionKind>
 
-    private let appSettings: AppSettings
-    private let configurationManager: ConfigurationManager
-    private let connectionManager: ConnectionManager
+    let appSettings: AppSettings
+    let configurationManager: ConfigurationManager
+    let connectionManager: ConnectionManager
     private let externalLinkManager: ExternalLinkManager
     private let featureFlagsManager: FeatureFlagsManager
-    private let impactGenerator: ImpactGenerator
+    let impactGenerator: ImpactGenerator
 #if os(iOS)
-    private let purchasesManager: PurchasesManager
+    let purchasesManager: PurchasesManager
 #endif
 
-    @ObservedObject private var credentialsManager: CredentialsManager
-    private var cancellables = Set<AnyCancellable>()
+    @ObservedObject var credentialsManager: CredentialsManager
+    var cancellables = Set<AnyCancellable>()
 
     let settingsTitle = "settings".localizedString
 #if os(macOS)
@@ -38,6 +38,8 @@ import Theme
 #endif
     @Published var sections: [AppSettingsSection] = []
     @Published var accountIdentifier: String?
+    @Published var isCodeEntryPresented = false
+    @Published var isLogoutConfirmationDisplayed = false
 #if os(macOS)
     var autologinState: AutologinState?
 #endif
@@ -97,10 +99,23 @@ import Theme
     }
 #endif
 
+    var isSignedIn: Bool {
+        appSettings.isCredentialImported
+    }
+
     func navigateBack() {
         guard !path.isEmpty else { return }
         impactGenerator.softImpact()
         path.removeLast()
+    }
+
+    func navigateToRoot() {
+        path = NavigationPath()
+    }
+
+    func navigate(to link: SettingLink) {
+        impactGenerator.softImpact()
+        path.append(link)
     }
 
     func navigateToSantasMenu() {
@@ -111,112 +126,45 @@ import Theme
 #endif
     }
 
-    /// Use to reload sections and acc renewal info
-    func reloadSections() {
-        configureSections()
-    }
-
-    var isSignedIn: Bool {
-        appSettings.isCredentialImported
-    }
-
     /// Back to the signed-out home screen, where Get started lives.
     func getStarted() {
         impactGenerator.softImpact()
         navigateToRoot()
     }
 
-    func navigateToRoot() {
-        path = NavigationPath()
+    /// Use to reload sections and acc renewal info
+    func reloadSections() {
+        configureSections()
     }
 
     func updateAccountSectionOnly() {
-        let updated = appSettings.isCredentialImported ? accountSection() : signedOutAccountSection()
+        let updated = accountSection()
         if let index = sections.firstIndex(where: { $0.kind == .account }) {
             sections[index] = updated
         } else {
             sections.insert(updated, at: 0)
         }
     }
-}
 
-private extension SettingsViewModel {
-    func navigateToPrivacyAndData() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.privacyAndData)
+    func blocks(for kind: AppSettingsSectionKind) -> [SettingsBlock] {
+        switch kind {
+        case .account:
+            isSignedIn ? [] : [.getStarted]
+        case .footer:
+            [.appVersion(versionTitle)]
+        case .protection, .connection, .routing, .app, .helpAndData:
+            []
+        }
     }
 
-    func navigateToAppearance() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.appearance)
-    }
-
-    func navigateToSupportAndFeedback() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.support)
-    }
-
-    func navigateToLegal() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.legal)
-    }
-
-    func navigateToAccount() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.accountAndDevices)
-    }
-
-    func navigateToPlanPurchase() {
-        impactGenerator.softImpact()
+    func copyToPasteboard(text: String) {
+        impactGenerator.success()
 #if os(iOS)
-        path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+        UIPasteboard.general.string = text
 #elseif os(macOS)
-        autologinState?.start(kind: .autologinRenew, using: credentialsManager)
+        NSPasteboard.general.prepareForNewContents()
+        NSPasteboard.general.setString(text, forType: .string)
 #endif
-    }
-
-    #if os(macOS)
-    func navigateToProxy() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.proxy)
-    }
-    #endif
-
-    func navigateToDns() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.dns)
-    }
-
-    func navigateToMixnetTuning() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.mixnetTuning)
-    }
-
-    func navigateToProfiles() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.profiles)
-    }
-
-#if os(macOS)
-    func navigateToGeoExclusion() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.geoExclusion)
-    }
-
-    func navigateToSplitTunneling() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.splitTunnel)
-    }
-#endif
-
-    func navigateToCensorship() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.censorship)
-    }
-
-    func navigateToNotifications() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.notifications)
     }
 }
 
@@ -269,329 +217,19 @@ private extension SettingsViewModel {
     /// Configures sections, to reload all the content - use reloadSections
     func configureSections() {
         Task {
-            var newSections = [AppSettingsSection]()
-            newSections.append(appSettings.isCredentialImported ? accountSection() : signedOutAccountSection())
-            newSections.append(
-                contentsOf: vpnSections() + [
-                    appSection(),
-                    helpAndDataSection()
-                ]
-            )
+            let newSections = [
+                accountSection(),
+                protectionSection(),
+                connectionSection(),
+                routingSection(),
+                appSection(),
+                helpAndDataSection(),
+                footerSection()
+            ]
+            .compactMap { $0 }
             await MainActor.run {
                 sections = newSections
             }
         }
-    }
-}
-
-// MARK: - Helpers -
-private extension SettingsViewModel {
-    func isAutoRenewEnabled(accountSummary: AccountSummary) -> Bool {
-#if os(iOS)
-        purchasesManager.isAutoRenewEnabled || accountSummary.isAutoRenewEnabled
-#elseif os(macOS)
-        accountSummary.isAutoRenewEnabled
-#endif
-    }
-}
-
-// MARK: - Sections -
-private extension SettingsViewModel {
-    func accountSection() -> AppSettingsSection {
-        let subtitle: AttributedString
-        if let accountSummary = credentialsManager.accountSummary {
-            if let planText = accountSummary.planValidUntilAttributedString {
-                if accountSummary.isActive,
-                   isAutoRenewEnabled(accountSummary: accountSummary),
-                   !accountSummary.isExpiringSoon,
-                   !accountSummary.isExpiringWarning {
-                    var second = AttributedString("* \("autoRenews".localizedString)")
-                    second.foregroundColor = Color.Nym.textSecondary
-                    subtitle = planText + AttributedString("\n") + second
-                } else {
-                    subtitle = planText
-                }
-            } else if accountSummary.subscription?.status == .pending {
-                var confirmingPayment = AttributedString("confirmingPayment".localizedString)
-                confirmingPayment.foregroundColor = Color.Nym.error
-                subtitle = confirmingPayment
-            } else {
-                var first = AttributedString("noActivePlan".localizedString)
-                first.foregroundColor = Color.Nym.error
-                var second = AttributedString("\n\( "purchasePlan.chooseMyPlan".localizedString)")
-                second.foregroundColor = Color.Nym.primary
-                subtitle = first + second
-            }
-        } else {
-            subtitle = AttributedString("requestingZkNyms".localizedString)
-        }
-
-        return AppSettingsSection(
-            kind: .account,
-            viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.yourAccount".localizedString,
-                    attributtedSubtitle: subtitle,
-                    systemImageName: "person.crop.circle",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToAccount()
-                        }
-                    }
-                )
-            ]
-        )
-    }
-
-    /// Signed out: the section carries no rows, SettingsView draws the Get started button in it.
-    func signedOutAccountSection() -> AppSettingsSection {
-        AppSettingsSection(kind: .account, viewModels: [])
-    }
-
-    func appSection() -> AppSettingsSection {
-        AppSettingsSection(
-            kind: .app,
-            viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.appearance".localizedString,
-                    imageName: "appearance",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToAppearance()
-                        }
-                    }
-                ),
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.notifications.title".localizedString,
-                    systemImageName: "bell",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToNotifications()
-                        }
-                    }
-                )
-            ]
-        )
-    }
-
-    // swiftlint:disable:next function_body_length
-    func vpnSections() -> [AppSettingsSection] {
-        var protection = [SettingsListItemViewModel]()
-        var connection = [SettingsListItemViewModel]()
-#if os(macOS)
-        var routing = [SettingsListItemViewModel]()
-#else
-        let routing = [SettingsListItemViewModel]()
-#endif
-        let adBlockSubtitle = appSettings.isAdBlockerEnabled
-        ? "settings.adblock.subtitle.on".localizedString
-        : "settings.adblock.subtitle.off".localizedString
-
-        let adBlockViewModel = SettingsListItemViewModel(
-            accessory: .toggle(
-                isOn: Binding(
-                    get: { [appSettings] in appSettings.isAdBlockerEnabled },
-                    set: { [connectionManager] newValue in connectionManager.setAdBlocking(newValue) }
-                )
-            ),
-            title: "settings.adblock.title".localizedString,
-            subtitle: adBlockSubtitle,
-            systemImageName: "exclamationmark.shield",
-            action: {}
-        )
-        appSettings.$isAdBlockerEnabledPublisher
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { isOn in
-                adBlockViewModel.subtitle = AttributedString(
-                    isOn
-                        ? "settings.adblock.subtitle.on".localizedString
-                        : "settings.adblock.subtitle.off".localizedString
-                )
-            }
-            .store(in: &cancellables)
-        protection.append(adBlockViewModel)
-        protection.append(
-            SettingsListItemViewModel(
-                accessory: .empty,
-                title: "settings.killswitch.title".localizedString,
-                subtitle: "settings.killswitch.subtitle".localizedString,
-                systemImageName: "power",
-                isHoveredHighlightDisabled: true,
-                action: {}
-            )
-        )
-        protection.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.mixnetTuning.title".localizedString,
-                subtitle: "settings.mixnetTuning.subtitle".localizedString,
-                systemImageName: "eye.slash",
-                action: { [weak self] in
-                    self?.navigateToMixnetTuning()
-                }
-            )
-        )
-#if os(macOS)
-        connection.append(
-            SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: Binding(
-                        get: { [appSettings] in appSettings.isIPv6TrafficEnabled },
-                        set: { [connectionManager] newValue in connectionManager.setIPv6TrafficEnabled(newValue) }
-                    )
-                ),
-                title: "settings.ipv6.title".localizedString,
-                subtitle: "settings.ipv6.subtitle".localizedString,
-                imageName: "powerplug.portrait",
-                action: {}
-            )
-        )
-#endif
-        connection.append(
-            SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: Binding(
-                        get: { [appSettings] in appSettings.isLanBypassEnabled },
-                        set: { [connectionManager] newValue in connectionManager.setLanBypassEnabled(newValue) }
-                    )
-                ),
-                title: "settings.lanBypass.title".localizedString,
-                subtitle: "settings.lanBypass.subtitle".localizedString,
-                imageName: "lan",
-                action: {}
-            )
-        )
-        connection.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.censorship.title".localizedString,
-                imageName: "domain",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToCensorship()
-                    }
-                }
-            )
-        )
-        connection.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.profiles.title".localizedString,
-                subtitle: "settings.profiles.subtitle".localizedString,
-                imageName: "profiles",
-                action: { [weak self] in
-                    self?.navigateToProfiles()
-                }
-            )
-        )
-        connection.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.dns.title".localizedString,
-                imageName: "dns",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToDns()
-                    }
-                }
-            )
-        )
-#if os(macOS)
-        routing.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.splitTunnel".localizedString,
-                imageName: "arrow.trianglehead.branch",
-                action: { [weak self] in
-                    self?.navigateToSplitTunneling()
-                }
-            )
-        )
-        routing.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.geoExclusion".localizedString,
-                subtitle: "settings.geoExclusion.subtitle".localizedString,
-                imageName: "pin",
-                badge: "general.beta".localizedString,
-                action: { [weak self] in
-                    self?.navigateToGeoExclusion()
-                }
-            )
-        )
-        routing.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.proxy.title".localizedString,
-                subtitle: "settings.proxy.subtitle".localizedString,
-                imageName: "proxy",
-                badge: "general.beta".localizedString,
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToProxy()
-                    }
-                }
-            )
-        )
-#endif
-
-        return [
-            AppSettingsSection(kind: .protection, viewModels: protection),
-            AppSettingsSection(kind: .connection, viewModels: connection),
-            AppSettingsSection(kind: .routing, viewModels: routing)
-        ]
-        .filter { !$0.viewModels.isEmpty }
-    }
-
-    func helpAndDataSection() -> AppSettingsSection {
-        let viewModels = [
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.supportAndFeedback".localizedString,
-                imageName: "support",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToSupportAndFeedback()
-                    }
-                }
-            ),
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.privacyAndData".localizedString,
-                systemImageName: "lock.doc",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToPrivacyAndData()
-                    }
-                }
-            ),
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "legal".localizedString,
-                systemImageName: "doc.text",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToLegal()
-                    }
-                }
-            )
-        ]
-        return AppSettingsSection(kind: .helpAndData, viewModels: viewModels)
-    }
-}
-
-extension SettingsViewModel {
-    func copyToPasteboard(text: String) {
-        impactGenerator.success()
-#if os(iOS)
-        UIPasteboard.general.string = text
-#elseif os(macOS)
-        NSPasteboard.general.prepareForNewContents()
-        NSPasteboard.general.setString(text, forType: .string)
-#endif
     }
 }

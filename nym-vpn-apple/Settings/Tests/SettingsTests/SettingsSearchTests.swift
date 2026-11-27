@@ -1,45 +1,75 @@
 import XCTest
+import Theme
 import UIComponents
 @testable import Settings
 
 final class SettingsSearchTests: XCTestCase {
-    private func row(_ title: String) -> SettingsListItemViewModel {
-        SettingsListItemViewModel(accessory: .arrow, title: title, action: {})
+    private func row(_ title: String, _ subtitle: String? = nil) -> SettingsListItemViewModel {
+        SettingsListItemViewModel(accessory: .arrow, title: title, subtitle: subtitle, action: {})
     }
 
     private var sections: [SettingsSection<AppSettingsSectionKind>] {
         [
-            SettingsSection(kind: .protection, viewModels: [row("Kill switch"), row("Block ads")]),
+            SettingsSection(kind: .account, viewModels: [row("Redeem a code")]),
+            SettingsSection(kind: .protection, viewModels: [row("Block ads", "Blocking ads and trackers"), row("Kill switch")]),
             SettingsSection(kind: .connection, viewModels: [row("Anti-censorship"), row("Customize DNS")]),
-            SettingsSection(kind: .app, viewModels: [row("Apparence"), row("Écran")])
+            SettingsSection(kind: .app, viewModels: [row("Apparence"), row("Écran")]),
+            SettingsSection(kind: .footer, viewModels: [row("Log out")])
         ]
     }
 
-    func testEmptyQueryKeepsEverySection() {
-        XCTAssertEqual(SettingsSearch.filter(sections, query: "  ").map(\.kind), [.protection, .connection, .app])
+    private func blocks(_ kind: AppSettingsSectionKind) -> [SettingsBlock] {
+        switch kind {
+        case .account:
+            [.getStarted]
+        case .footer:
+            [.appVersion("Version 2.2.2")]
+        default:
+            []
+        }
     }
 
-    func testMatchStaysUnderItsSection() {
-        let result = SettingsSearch.filter(sections, query: "dns")
+    private func filter(_ query: String) -> [SettingsSearchSection] {
+        SettingsSearch.filter(sections, query: query, blocks: blocks)
+    }
+
+    private func titles(_ result: [SettingsSearchSection]) -> [[String]] {
+        result.map { $0.blocks.map(\.title) + $0.rows.map(\.title) }
+    }
+
+    func testBlankQueryKeepsEverySectionInOrder() {
+        let result = filter("  ")
+        XCTAssertEqual(result.map(\.kind), [.account, .protection, .connection, .app, .footer])
+        XCTAssertEqual(result.first?.blocks, [.getStarted])
+    }
+
+    func testRowTitleMatchStaysUnderItsSection() {
+        let result = filter(" dns ")
         XCTAssertEqual(result.map(\.kind), [.connection])
-        XCTAssertEqual(result.first?.viewModels.map(\.title), ["Customize DNS"])
+        XCTAssertEqual(titles(result), [["Customize DNS"]])
     }
 
     func testMatchIgnoresCaseAndAccents() {
-        let result = SettingsSearch.filter(sections, query: "ECRAN")
-        XCTAssertEqual(result.first?.viewModels.map(\.title), ["Écran"])
+        XCTAssertEqual(titles(filter("ECRAN")), [["Écran"]])
+    }
+
+    func testRowSubtitleMatchKeepsThatRow() {
+        XCTAssertEqual(titles(filter("trackers")), [["Block ads"]])
+    }
+
+    func testSectionTitleMatchKeepsTheWholeSection() {
+        let result = filter("settings.section.protection".localizedString)
+        XCTAssertEqual(result.map(\.kind), [.protection])
+        XCTAssertEqual(titles(result), [["Block ads", "Kill switch"]])
+    }
+
+    func testBlocksAreFoundByTheirTitles() {
+        XCTAssertEqual(titles(filter(SettingsBlock.getStarted.title)), [[SettingsBlock.getStarted.title]])
+        XCTAssertEqual(titles(filter("version")), [["Version 2.2.2"]])
+        XCTAssertEqual(titles(filter("log out")), [["Log out"]])
     }
 
     func testNoMatchReturnsNothing() {
-        XCTAssertEqual(SettingsSearch.filter(sections, query: "zzz").count, 0)
-    }
-
-    func testRowlessSectionMatchesOnItsTitle() {
-        let signedOut = [SettingsSection<AppSettingsSectionKind>(kind: .account, viewModels: [])] + sections
-        let getStarted: (AppSettingsSectionKind) -> String? = { $0 == .account ? "Get started" : nil }
-
-        XCTAssertEqual(SettingsSearch.filter(signedOut, query: "", rowlessTitle: getStarted).first?.kind, .account)
-        XCTAssertEqual(SettingsSearch.filter(signedOut, query: "get st", rowlessTitle: getStarted).map(\.kind), [.account])
-        XCTAssertEqual(SettingsSearch.filter(signedOut, query: "dns", rowlessTitle: getStarted).map(\.kind), [.connection])
+        XCTAssertTrue(filter("zzz").isEmpty)
     }
 }

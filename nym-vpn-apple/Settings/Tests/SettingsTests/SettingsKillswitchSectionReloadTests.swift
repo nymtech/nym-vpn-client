@@ -65,7 +65,7 @@ final class SettingsKillswitchSectionReloadTests: XCTestCase {
         XCTAssertNotNil(viewModel.sections.first { $0.kind == .account })
     }
 
-    func testSettingsLayoutFollowsReviewedOrder() async {
+    func testSignedOutLayout() async {
         let wasSignedIn = AppSettings.shared.isCredentialImported
         defer { AppSettings.shared.isCredentialImported = wasSignedIn }
         AppSettings.shared.isCredentialImported = false
@@ -75,7 +75,8 @@ final class SettingsKillswitchSectionReloadTests: XCTestCase {
         func titles(_ kind: AppSettingsSectionKind) -> [String]? {
             viewModel.sections.first { $0.kind == kind }?.viewModels.map(\.title)
         }
-        XCTAssertEqual(titles(.account), [], "signed out: the Account section holds only the Get started button")
+        XCTAssertEqual(titles(.account), ["settings.redeemCode".localizedString])
+        XCTAssertEqual(viewModel.blocks(for: .account), [.getStarted])
         XCTAssertEqual(
             titles(.protection),
             ["settings.adblock.title", "settings.killswitch.title", "settings.mixnetTuning.title"].map(\.localizedString)
@@ -84,22 +85,29 @@ final class SettingsKillswitchSectionReloadTests: XCTestCase {
             titles(.connection).map { Array($0.suffix(3)) },
             ["settings.censorship.title", "settings.profiles.title", "settings.dns.title"].map(\.localizedString)
         )
-        let allTitles = viewModel.sections.flatMap { $0.viewModels.map(\.title) }
-        XCTAssertFalse(allTitles.contains("settings.systemStatus".localizedString))
-        XCTAssertFalse(allTitles.contains("settings.redeemCode".localizedString))
-        XCTAssertFalse(allTitles.contains("settings.passphrase".localizedString))
+        XCTAssertEqual(titles(.footer), [])
+        XCTAssertEqual(viewModel.blocks(for: .footer), [.appVersion(viewModel.versionTitle)])
+        XCTAssertEqual(viewModel.sections.last?.kind, .footer)
     }
 
-    func testSignedInShowsOneYourAccountRow() async {
+    func testSignedInLayout() async {
         let wasSignedIn = AppSettings.shared.isCredentialImported
         defer { AppSettings.shared.isCredentialImported = wasSignedIn }
         AppSettings.shared.isCredentialImported = true
         let viewModel = makeViewModel()
         await waitForSections(viewModel)
 
+        var accountTitles = ["settings.yourAccount".localizedString]
+#if os(iOS)
+        accountTitles.append("settings.passphrase".localizedString)
+#endif
+        accountTitles.append("settings.redeemCode".localizedString)
         let account = viewModel.sections.filter { $0.kind == .account }
         XCTAssertEqual(account.count, 1)
-        XCTAssertEqual(account.first?.viewModels.map(\.title), ["settings.yourAccount".localizedString])
+        XCTAssertEqual(account.first?.viewModels.map(\.title), accountTitles)
+        XCTAssertEqual(viewModel.blocks(for: .account), [])
+        let footer = viewModel.sections.first { $0.kind == .footer }
+        XCTAssertEqual(footer?.viewModels.map(\.title), ["settings.logout".localizedString])
     }
 
     private func waitForSections(_ viewModel: SettingsViewModel) async {

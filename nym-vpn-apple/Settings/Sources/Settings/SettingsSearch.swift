@@ -1,26 +1,39 @@
 import Foundation
 import UIComponents
 
-/// Filters settings rows by title, keeping each match under its own section.
+struct SettingsSearchSection: Hashable {
+    let kind: AppSettingsSectionKind
+    let rows: [SettingsListItemViewModel]
+    let blocks: [SettingsBlock]
+}
+
 enum SettingsSearch {
-    /// `rowlessTitle` names what a section with no rows draws instead (the signed-out
-    /// Get started button), so a search for that title keeps the section.
-    static func filter<Kind: SettingsSectionKind>(
-        _ sections: [SettingsSection<Kind>],
+    /// Matching rows and blocks per section, in display order; a section title match keeps the whole section.
+    static func filter(
+        _ sections: [SettingsSection<AppSettingsSectionKind>],
         query: String,
-        rowlessTitle: (Kind) -> String? = { _ in nil }
-    ) -> [SettingsSection<Kind>] {
+        blocks: (AppSettingsSectionKind) -> [SettingsBlock] = { _ in [] }
+    ) -> [SettingsSearchSection] {
         let query = query.trimmingCharacters(in: .whitespaces)
-        guard !query.isEmpty else { return sections }
-        func matches(_ title: String) -> Bool {
-            title.range(of: query, options: [.caseInsensitive, .diacriticInsensitive], locale: .current) != nil
+        func matches(_ text: String?) -> Bool {
+            guard let text else { return false }
+            return text.range(of: query, options: [.caseInsensitive, .diacriticInsensitive], locale: .current) != nil
         }
         return sections.compactMap { section in
-            if section.viewModels.isEmpty, let title = rowlessTitle(section.kind) {
-                return matches(title) ? section : nil
+            let sectionBlocks = blocks(section.kind)
+            let result: SettingsSearchSection
+            if query.isEmpty || matches(section.kind.title) {
+                result = SettingsSearchSection(kind: section.kind, rows: section.viewModels, blocks: sectionBlocks)
+            } else {
+                result = SettingsSearchSection(
+                    kind: section.kind,
+                    rows: section.viewModels.filter { row in
+                        matches(row.title) || matches(row.subtitle.map { String($0.characters) })
+                    },
+                    blocks: sectionBlocks.filter { matches($0.title) }
+                )
             }
-            let hits = section.viewModels.filter { matches($0.title) }
-            return hits.isEmpty ? nil : SettingsSection(kind: section.kind, viewModels: hits)
+            return result.rows.isEmpty && result.blocks.isEmpty ? nil : result
         }
     }
 }

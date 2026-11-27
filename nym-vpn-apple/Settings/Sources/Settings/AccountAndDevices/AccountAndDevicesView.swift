@@ -32,10 +32,8 @@ import Theme
     @State var isRefreshingAccount = false
     @State var autologinState = AutologinState()
     @State var isPairDevicePresented = false
-    @State var isCodeEntryPresented = false
 
-    @Binding var path: NavigationPath
-    let onSessionEvent: (SessionEvent) -> Void
+    @Binding private var path: NavigationPath
 
     public var body: some View {
         GeometryReader { geometry in
@@ -48,8 +46,6 @@ import Theme
                         if credentialsManager.isValidCredentialImported {
                             accountStatusSection()
                             nymAccountSection()
-                            pairDeviceSection()
-                            passphraseAndRedeemSection()
                             accountIdentifier()
                             accountIdText()
                             deviceIdentifier()
@@ -59,8 +55,11 @@ import Theme
                                 manageSubscription()
                             }
 #endif
-                            if appSettings.isCredentialImported {
-                                logoutButton()
+                            VStack(spacing: NymSpacing.large) {
+                                pairDeviceButton()
+                                if appSettings.isCredentialImported {
+                                    logoutButton()
+                                }
                             }
                         }
                     }
@@ -77,18 +76,6 @@ import Theme
         .navigationBarBackButtonHidden(true)
 #if os(iOS)
         .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
-        .fullScreenCover(isPresented: $isCodeEntryPresented) {
-            FreepassOrPairingEntryView(startsWithScanner: true) { outcome in
-                handleCodeEntry(outcome)
-            }
-            .interactiveDismissDisabled()
-        }
-#elseif os(macOS)
-        .sheet(isPresented: $isCodeEntryPresented) {
-            FreepassCodeEntryView { outcome in
-                handleCodeEntry(outcome)
-            }
-        }
 #endif
         .sheet(
             isPresented: $isPairDevicePresented,
@@ -130,9 +117,8 @@ import Theme
         }
     }
 
-    public init(path: Binding<NavigationPath>, onSessionEvent: @escaping (SessionEvent) -> Void) {
+    public init(path: Binding<NavigationPath>) {
         _path = path
-        self.onSessionEvent = onSessionEvent
     }
 }
 
@@ -250,17 +236,9 @@ extension AccountAndDevicesView {
     }
 
     func logoutButton() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .empty,
-                title: "settings.logout".localizedString,
-                type: .destructive,
-                position: .init(isFirst: true, isLast: true),
-                action: {
-                    isLogoutConfirmationDisplayed = true
-                }
-            )
-        )
+        NymButton("settings.logout".localizedString, style: .surface, foregroundColor: .Nym.error) {
+            isLogoutConfirmationDisplayed = true
+        }
     }
 
     func cell(title: String, subtitle: String, systemImageName: String, imageSize: CGFloat) -> some View {

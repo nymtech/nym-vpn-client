@@ -1,6 +1,7 @@
 import Theme
 import UIComponents
 
+/// Settings sections in display order; a nil `title` means no header.
 public enum AppSettingsSectionKind: SettingsSectionKind {
     case account
     case protection
@@ -8,8 +9,9 @@ public enum AppSettingsSectionKind: SettingsSectionKind {
     case routing
     case app
     case helpAndData
+    case footer
 
-    var title: String {
+    var title: String? {
         switch self {
         case .account:
             "settings.section.account".localizedString
@@ -23,6 +25,8 @@ public enum AppSettingsSectionKind: SettingsSectionKind {
             "settings.section.app".localizedString
         case .helpAndData:
             "settings.section.helpAndData".localizedString
+        case .footer:
+            nil
         }
     }
 }
