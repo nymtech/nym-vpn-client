@@ -618,7 +618,7 @@ pub unsafe extern "system" fn wg_logger_callback(
 
         match wg_log_level {
             WgLogLevel::Error => tracing::error!(skip_sentry = true, "{trimmed_str}"),
-            WgLogLevel::Verbose => tracing::trace!("{trimmed_str}"),
+            WgLogLevel::Verbose => tracing::trace!(skip_sentry = true, "{trimmed_str}"),
         }
     }
 }
