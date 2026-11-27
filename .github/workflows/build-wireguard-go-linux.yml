@@ -1,7 +1,6 @@
 name: build-wireguard-go-linux
 on:
   pull_request:
-    types: [opened]
     paths:
       - "wireguard/**"
       - ".github/workflows/build-wireguard-go-linux.yml"
@@ -37,7 +36,15 @@ jobs:
         id: cache
         with:
           path: build/lib
-          key: libwg-${{ matrix.os }}-go${{ env.GOLANG_VERSION }}-${{ hashFiles('.github/workflows/build-wireguard-go-linux.yml', 'wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: >-
+            libwg-${{ matrix.os }}-go${{ env.GOLANG_VERSION }}-${{ hashFiles(
+              '.github/workflows/build-wireguard-go-linux.yml',
+              'wireguard/libwg/**/*.go',
+              'wireguard/libwg/**/*.diff',
+              'wireguard/libwg/**/*.mod',
+              'wireguard/libwg/**/go.sum',
+              'wireguard/build-wireguard-go.sh'
+            ) }}
 
       - name: Install system dependencies
         if: steps.cache.outputs.cache-hit != 'true'

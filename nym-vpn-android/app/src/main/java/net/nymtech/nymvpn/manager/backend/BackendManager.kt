@@ -5,6 +5,8 @@ import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.model.RecentGateways
+import net.nymtech.vpn.model.account.CreateAccountResult
+import net.nymtech.vpn.model.freepass.FreepassResult
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AutologinResponse
 import nym_vpn_lib_types.DeeplinkKind
@@ -33,7 +35,10 @@ interface BackendManager {
 	suspend fun getSystemMessages(): List<SystemMessage>
 	suspend fun getGateways(gatewayType: GatewayType): List<NymGateway>
 	suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways?
-	suspend fun createAccount()
+
+	// With a free pass, a rejected code leaves no account.
+	suspend fun createAccount(freepass: String? = null): CreateAccountResult
+	suspend fun redeemFreepass(code: String): FreepassResult
 	suspend fun registerAccount(purchaseToken: String?): String
 	suspend fun refreshAccount()
 	suspend fun getMnemonic(): List<String>

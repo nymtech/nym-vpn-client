@@ -213,6 +213,16 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_enable_quad9(&mut self, enable_quad9: bool) -> bool {
+        if self.config.default_dns.enable_quad9 == enable_quad9 {
+            false
+        } else {
+            self.config.default_dns.enable_quad9 = enable_quad9;
+            self.save_config_and_send_event().await;
+            true
+        }
+    }
+
     pub async fn set_enable_custom_dns(&mut self, enable_custom_dns: bool) -> bool {
         if self.config.custom_dns.enabled == enable_custom_dns {
             false
@@ -606,6 +616,7 @@ impl VpnServiceConfigManager {
             entry_point: Box::new(self.config.entry_point.clone()),
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
+            default_dns: self.config.default_dns,
             split_tunnel,
             geo_exclusion_settings,
             gateway_selection_algorithm_config: self

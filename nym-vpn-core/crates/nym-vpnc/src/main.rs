@@ -102,7 +102,7 @@ pub enum Command {
         subcommand: commands::auto_connect::Command,
     },
 
-    /// DNS
+    /// Default and Custom DNS settings
     Dns {
         #[command(subcommand)]
         subcommand: commands::dns::Command,

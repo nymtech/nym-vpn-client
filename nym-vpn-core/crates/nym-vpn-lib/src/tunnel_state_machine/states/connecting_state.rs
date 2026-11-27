@@ -163,6 +163,12 @@ impl ConnectingState {
             return OfflineState::enter(true, selected_gateways, shared_state).await;
         }
 
+        shared_state.update_default_dns_servers(
+            selected_gateways
+                .as_ref()
+                .map(|gateways| gateways.exit_gateway()),
+        );
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = {
             let mut bridge_endpoints = Vec::new();
@@ -198,7 +204,9 @@ impl ConnectingState {
                 lp_entry_endpoints,
                 api_endpoints,
                 // Allow default DNS servers when connecting since those are used by http/client
-                dns_servers: shared_state.tunnel_settings.allowed_default_dns_endpoints(),
+                dns_servers: shared_state
+                    .dns_options_resolver()
+                    .allowed_default_dns_endpoints(),
                 tunnel_interface: None,
                 #[cfg(target_os = "macos")]
                 redirect_interface,
@@ -500,6 +508,8 @@ impl ConnectingState {
             use_bridges: self.use_bridges,
             bridge_fallback: self.bridge_fallback,
             user_agent: shared_state.user_agent.clone(),
+            #[cfg(target_os = "android")]
+            default_dns_servers: shared_state.default_dns_servers.clone(),
             #[cfg(not(target_os = "android"))]
             filtering_resolver_addr: shared_state.filtering_resolver.listen_addr(),
         };
@@ -669,6 +679,8 @@ impl ConnectingState {
                 .map_or_else(|| "none".to_string(), |ipr| ipr.to_string())
         );
 
+        shared_state.update_default_dns_servers(Some(exit_gateway));
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let set_policy_result = {
             if self.use_bridges {
@@ -679,6 +691,9 @@ impl ConnectingState {
             self.firewall_policy_params.ws_entry_endpoints = gateways.entry_gateway().endpoints();
             self.firewall_policy_params.lp_entry_endpoints =
                 gateways.entry_gateway().lp_endpoints();
+            self.firewall_policy_params.dns_servers = shared_state
+                .dns_options_resolver()
+                .allowed_default_dns_endpoints();
             Self::set_firewall_policy(shared_state, &self.firewall_policy_params)
         };
         self.selected_gateways = Some(*gateways);
@@ -690,7 +705,6 @@ impl ConnectingState {
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
         {
-            let _ = shared_state; // Avoid unused variable warning
             Ok(())
         }
     }

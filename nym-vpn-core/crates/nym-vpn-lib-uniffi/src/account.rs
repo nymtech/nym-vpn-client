@@ -333,29 +333,8 @@ impl NymAccountController {
     }
 
     /// Redeems a free pass code on the signed-in account, then refreshes the account state.
-    pub async fn apply_freepass(&self, code: String) -> Result<(), VpnError> {
-        self.account_command_sender.apply_freepass(code).await?;
-        if let Err(err) = self
-            .account_command_sender
-            .refresh_account_state(true)
-            .await
-        {
-            tracing::warn!("Failed to refresh account after applying free pass: {err}");
-        }
-        Ok(())
-    }
-
-    /// Creates the stored account on the API with the free pass applied. The account state is
-    /// refreshed afterwards.
     pub async fn redeem_freepass(&self, code: String) -> Result<(), VpnError> {
-        let account = self
-            .account_command_sender
-            .get_stored_account()
-            .await?
-            .ok_or(VpnError::NoAccountStored)?;
-        self.account_command_sender
-            .redeem_freepass(account, code)
-            .await?;
+        self.account_command_sender.apply_freepass(code).await?;
         if let Err(err) = self
             .account_command_sender
             .refresh_account_state(true)
@@ -395,10 +374,10 @@ impl NymAccountController {
         Ok(())
     }
 
-    /// Generate the account mnemonic locally and store it.
-    pub async fn create_account(&self) -> Result<(), VpnError> {
+    /// Generate the account mnemonic locally and store it, after redeeming the free pass if given.
+    pub async fn create_account(&self, freepass: Option<String>) -> Result<(), VpnError> {
         self.account_command_sender
-            .create_account_command(None)
+            .create_account_command(freepass)
             .await
             .map_err(VpnError::from)
     }
