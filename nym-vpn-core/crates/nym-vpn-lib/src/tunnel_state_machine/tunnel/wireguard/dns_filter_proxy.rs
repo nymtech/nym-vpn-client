@@ -272,7 +272,7 @@ async fn blocked_domain(dns_payload: &[u8], dns_filter: &DnsFilter) -> Option<St
     }
 
     for query in msg.queries.iter() {
-        let domain = query.name().to_string();
+        let domain = query.name().to_ascii();
         let domain = domain.trim_end_matches('.');
         tracing::trace!("DNS proxy: checking domain '{domain}'");
         let decision = dns_filter.should_block(domain).await;

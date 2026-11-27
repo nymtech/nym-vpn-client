@@ -47,13 +47,6 @@ pub enum AdBlockerError {
         error: std::string::FromUtf8Error,
     },
 
-    #[error("failed to create adblock engine request for URL {url}")]
-    CreateRequest {
-        url: String,
-        #[source]
-        error: ::adblock::request::RequestError,
-    },
-
     #[error("unknown line reader error")]
     UnknownLineReadError(#[source] std::io::Error),
 
