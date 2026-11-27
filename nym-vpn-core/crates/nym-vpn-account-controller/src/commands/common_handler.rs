@@ -7,8 +7,8 @@ use nym_vpn_api_client::{
     types::VpnAccountMode,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, DeeplinkKind, NymVpnSubscription, StorableAccount,
-    StoredAccountMode, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, DeeplinkKind, StorableAccount, StoredAccountMode,
+    VpnAccountSummary,
 };
 
 use crate::{
@@ -238,18 +238,28 @@ async fn handle_is_trial_eligible<C: ConnectivityMonitor>(
 async fn handle_apply_freepass<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     code: String,
-) -> Result<NymVpnSubscription, AccountCommandError> {
+) -> Result<(), AccountCommandError> {
     let account = shared_state
         .vpn_api_account
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
-    let subscription = shared_state
+    match shared_state
         .vpn_api_client
-        .apply_freepass(account, code)
-        .await?;
-
-    Ok(NymVpnSubscription::try_from(&subscription)?)
+        .apply_freepass(account, code.clone())
+        .await
+    {
+        Ok(_) => Ok(()),
+        // An account the API hasn't seen yet is registered by redeeming the pass instead.
+        Err(err) if err.is_account_not_found() => {
+            shared_state
+                .vpn_api_client
+                .redeem_freepass(account, code)
+                .await?;
+            Ok(())
+        }
+        Err(err) => Err(err.into()),
+    }
 }
 
 /// The denying Apple introductory-offer token, or `None` when the account may be offered a free

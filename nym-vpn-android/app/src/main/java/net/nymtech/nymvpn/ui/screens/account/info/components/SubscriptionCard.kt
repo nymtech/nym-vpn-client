@@ -76,7 +76,7 @@ fun SubscriptionSection(subscriptionState: SubscriptionUiState?, bandwidthState:
 				ExpiredCard(onRenewClick)
 			}
 
-			subscriptionState?.expiryState == ExpiryState.PENDING -> {
+			subscriptionState.expiryState == ExpiryState.PENDING -> {
 				ExpiredCard(onRenewClick)
 				Spacer(modifier = Modifier.height(8.dp))
 				ContactSupportText(onContactSupportClick)

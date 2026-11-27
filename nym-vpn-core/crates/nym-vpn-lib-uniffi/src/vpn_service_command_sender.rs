@@ -6,14 +6,14 @@ use std::sync::Arc;
 use nym_common::ErrorExt;
 use nym_vpn_lib::service::{
     AccountLinksError, ClientRequest, GeoExclusionConfigError, ListGatewaysError,
-    SetCustomDnsError, VpnServiceCommand,
+    SetCustomDnsError, SetTransportPreferenceError, VpnServiceCommand,
 };
 use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
-    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, NymVpnSubscription,
+    BridgeTransport, DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags,
+    FrontingMode, Gateway, GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig,
     ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways,
     RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, StoredAccountMode,
     SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType, VpnAccountSummary,
@@ -28,6 +28,7 @@ enum NymVpnServiceCommandInnerError {
     AccountLinks(#[source] AccountLinksError),
     GeoExclusionConfig(#[source] GeoExclusionConfigError),
     SetCustomDns(#[source] SetCustomDnsError),
+    SetTransportPreference(#[source] SetTransportPreferenceError),
 }
 
 impl NymVpnServiceCommandInnerError {
@@ -39,6 +40,7 @@ impl NymVpnServiceCommandInnerError {
             Self::AccountLinks(err) => err.display_chain(),
             Self::GeoExclusionConfig(err) => err.display_chain(),
             Self::SetCustomDns(err) => err.display_chain(),
+            Self::SetTransportPreference(err) => err.display_chain(),
         }
     }
 }
@@ -52,6 +54,7 @@ impl std::fmt::Display for NymVpnServiceCommandInnerError {
             Self::AccountLinks(err) => write!(f, "{}", err),
             Self::GeoExclusionConfig(err) => write!(f, "{}", err),
             Self::SetCustomDns(err) => write!(f, "{}", err),
+            Self::SetTransportPreference(err) => write!(f, "{}", err),
         }
     }
 }
@@ -201,6 +204,19 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
+    pub async fn set_transport_preference(
+        &self,
+        transport_preference: Option<BridgeTransport>,
+    ) -> Result<()> {
+        Ok(self
+            .send_and_wait(
+                VpnServiceCommand::SetTransportPreference,
+                transport_preference,
+            )
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::SetTransportPreference)?)
+    }
+
     pub async fn set_disable_ipv6(&self, disable_ipv6: bool) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::SetDisableIPv6, disable_ipv6)
             .await
@@ -321,7 +337,7 @@ impl NymVpnServiceCommandSender {
         Ok(self
             .send_and_wait(
                 VpnServiceCommand::CreateAccount,
-                ClientRequest::new(None, ()),
+                ClientRequest::new(None, None),
             )
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
@@ -451,9 +467,8 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
-    /// Redeems a free pass code on the signed-in account and returns the subscription it grants.
-    /// The account state is refreshed afterwards.
-    pub async fn apply_freepass(&self, code: String) -> Result<NymVpnSubscription> {
+    /// Redeems a free pass code on the signed-in account, then refreshes the account state.
+    pub async fn apply_freepass(&self, code: String) -> Result<()> {
         Ok(self
             .send_and_wait(VpnServiceCommand::ApplyFreepass, code)
             .await?

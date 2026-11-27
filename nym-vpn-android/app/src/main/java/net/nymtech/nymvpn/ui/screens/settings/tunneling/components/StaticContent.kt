@@ -35,15 +35,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun StaticContent(uiState: SplitTunnelingUiState, onQueryChange: (String) -> Unit, onSelectAllDirectAppsClick: () -> Unit, onSelectAllVpnPassThroughClick: () -> Unit) {
-	Text(
-		text = stringResource(R.string.split_tunneling_info_msg),
-		style = MaterialTheme.typography.bodyMedium,
-		color = MaterialTheme.colorScheme.onPrimaryContainer,
-		modifier = Modifier.padding(top = 8.dp.scaledHeight()),
-	)
-
-	Spacer(modifier = Modifier.height(16.dp.scaledHeight()))
-	WarningCard(stringResource(R.string.split_tunneling_dns_warning))
+	WarningCard(stringResource(R.string.split_tunneling_exclude_warning))
 
 	CustomTextField(
 		value = uiState.query,

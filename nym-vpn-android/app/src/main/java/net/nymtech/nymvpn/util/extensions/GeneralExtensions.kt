@@ -5,6 +5,7 @@ import android.provider.Settings
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
+import net.nymtech.vpn.util.extensions.countryLocale
 import java.util.Locale
 import java.util.MissingResourceException
 import kotlin.time.Duration
@@ -21,7 +22,7 @@ fun String.capitalize(locale: Locale): String = this.replaceFirstChar { if (it.i
 
 fun String.truncateWithEllipsis(length: Int): String = if (this.length <= length) this else "${take(length)}..."
 
-fun NymGateway.toLocale(): Locale? = twoLetterCountryISO?.let { Locale(it, it) }
+fun NymGateway.toLocale(): Locale? = twoLetterCountryISO?.let(::countryLocale)
 
 // Locale.isO3Country throws MissingResourceException for codes without an ISO3 mapping
 // (user-assigned codes like "XK"/Kosovo on older ICU data, e.g. Android 9)

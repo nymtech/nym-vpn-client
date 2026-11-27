@@ -4,30 +4,18 @@ import Theme
 import UIComponents
 
 @MainActor
-final class ScannedCodeValidator: QRScanValidator {
+final class PairingQrValidator: QRScanValidator {
     static let retryAfter: Duration = .seconds(3)
 
     private let pairingManager: PairingManager
-    private let freepassManager: FreepassManager
 
-    init(pairingManager: PairingManager = .shared, freepassManager: FreepassManager = .shared) {
+    init(pairingManager: PairingManager = .shared) {
         self.pairingManager = pairingManager
-        self.freepassManager = freepassManager
     }
 
     func validate(_ contents: String) async throws -> QRScanValidation {
-        switch ScannedQRCode.parse(contents) {
-        case let .pairing(publicKey):
-            await validatePairing(publicKey)
-        case let .freepass(code):
-            await validateFreepass(code)
-        case nil:
-            .invalid()
-        }
-    }
-
-    private func validatePairing(_ publicKey: String) async -> QRScanValidation {
-        switch await pairingManager.onScannedKey(publicKey) {
+        guard let publicKey = PairingQrCode.parsePublicKey(contents) else { return .invalid() }
+        return switch await pairingManager.onScannedKey(publicKey) {
         case .success:
             .valid
         case .failure(.invalidCode):
@@ -42,15 +30,6 @@ final class ScannedCodeValidator: QRScanValidator {
             .invalid(message: "pairing.error.vpnConnected".localizedString, retryAfter: Self.retryAfter)
         case .failure(.notSignedIn), .failure(.sessionEnded), .failure(.unknown):
             .invalid(message: "pairing.error.genericRetrying".localizedString, retryAfter: Self.retryAfter)
-        }
-    }
-
-    private func validateFreepass(_ code: String) async -> QRScanValidation {
-        switch await freepassManager.redeem(code: code) {
-        case .redeemed:
-            .valid
-        case let .failed(error):
-            .invalid(message: error.localizedMessage, retryAfter: error.isFinal ? nil : Self.retryAfter)
         }
     }
 }

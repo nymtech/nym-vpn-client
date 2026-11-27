@@ -1,4 +1,3 @@
-#if os(iOS)
 import SwiftUI
 import Theme
 import UIComponents
@@ -28,4 +27,3 @@ struct PairingPinView: View {
             .joined(separator: " ")
     }
 }
-#endif

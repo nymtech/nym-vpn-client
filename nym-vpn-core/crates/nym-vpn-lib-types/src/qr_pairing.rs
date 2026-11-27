@@ -12,7 +12,6 @@ pub struct QrUrl {
 #[derive(Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct QrPairingConfirmation {
-    pub pin_code: String,
     /// Identifies the started pairing process in its `TunnelEvent::Pairing` events
     pub session_id: u32,
 }

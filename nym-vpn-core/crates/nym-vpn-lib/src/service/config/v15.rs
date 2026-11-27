@@ -85,6 +85,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_ad_blocking: value.enable_ad_blocking,
             enable_conflict_detection: value.enable_conflict_detection,
             fronting_mode,
+            transport_preference: None,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
@@ -95,6 +96,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             geo_exclusion,
             gateway_selection_algorithm_config,
             gateway_independence,
+            auto_connect: false,
         })
     }
 }

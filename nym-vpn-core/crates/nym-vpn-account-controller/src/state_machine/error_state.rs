@@ -77,7 +77,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
             },
             Some(command) = command_rx.recv() => {
                 match command {
-                    AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::CreateAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
                     AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
                     AccountCommand::RegisterAccount(return_sender, account, platform) => {
                         let res = handler::handle_register_account(shared_state, account, platform).await;
@@ -161,7 +161,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                     },
                     AccountCommand::VpnApiFirewallUp(return_sender) => {
                        shared_state.set_firewall_state(true);
-                        return_sender.send(Ok(()));
+                       return_sender.send(Ok(()));
                     },
 
                     AccountCommand::Common(common_command) => {

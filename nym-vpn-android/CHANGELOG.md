@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Home screen: the connection rings show the new connection marker. Connecting fills the rings in yellow step by step, an error breaks every ring at the same point, and losing the network mid-session with "Block connections without VPN" on shows "Kill switch is blocking traffic". The centre shows the mode: two linked blocks for dVPN, the mix layers for Mixnet, with the route playing while connected. The connecting steps drop the "(n/7)" counter and use a lighter label than the state words. (https://github.com/nymtech/nym-vpn-client/pull/7096)
+- Free pass errors come from the core instead of matching API responses in the app (https://github.com/nymtech/nym-vpn-client/pull/7197)
+- QR sign-in: take PIN code from event stream instead of return value of library call (https://github.com/nymtech/nym-vpn-client/pull/7193)
+- Split tunneling shows one warning above the app list instead of two notes (https://github.com/nymtech/nym-vpn-client/pull/7230)
+
+### Fixed
+- Home screen: the selected connection mode now has an outline in the brand colour, so it is clear which one is on, also in dark mode
 
 ## [2026.16.0] - 2026-11-18
 

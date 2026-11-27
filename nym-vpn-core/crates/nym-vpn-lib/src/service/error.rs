@@ -20,6 +20,12 @@ pub enum SetCustomDnsError {
 }
 
 #[derive(Debug, thiserror::Error)]
+pub enum SetTransportPreferenceError {
+    #[error("TLS/SSH bridge transports are disabled on this network")]
+    FallbackTransportsDisabled,
+}
+
+#[derive(Debug, thiserror::Error)]
 pub enum SetNetworkError {
     #[error("failed to read config")]
     ReadConfig {
