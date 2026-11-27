@@ -16,6 +16,7 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.vpn.model.account.CreateAccountResult
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -39,15 +40,16 @@ class GeneratingViewModel @Inject constructor(private val backendManager: Backen
 			viewModelScope.launch {
 				Timber.tag(TAG).i("CreateAccountRequested")
 
-				runCatching {
-					backendManager.createAccount()
-					Timber.tag(TAG).i("CreateAccountSuccess")
-
-					_readyForSelectPlan.value = true
-				}.onFailure { t ->
-					Timber.tag(TAG).e(t, "AccountSetupFailed")
-					_error.emit(Unit)
-					SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
+				when (val result = backendManager.createAccount()) {
+					CreateAccountResult.Created -> {
+						Timber.tag(TAG).i("CreateAccountSuccess")
+						_readyForSelectPlan.value = true
+					}
+					is CreateAccountResult.Failed -> {
+						Timber.tag(TAG).e("AccountSetupFailed: %s", result.error)
+						_error.emit(Unit)
+						SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
+					}
 				}
 			}
 		} else {

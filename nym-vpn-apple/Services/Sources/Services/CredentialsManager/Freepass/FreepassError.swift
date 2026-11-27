@@ -14,8 +14,4 @@ public enum FreepassError: Equatable, Sendable {
     public var isFinal: Bool {
         self == .invalidCode || self == .alreadyRedeemed || self == .subscriptionActive
     }
-
-    var isRejection: Bool {
-        self != .server && self != .unknown
-    }
 }
