@@ -29,15 +29,17 @@ import Theme
 
     @State private var isPresentedManageSubscription = false
     @State var isLogoutConfirmationDisplayed = false
-    @State var isLogoutLoading = false
-    @State var logoutProgressText: String?
     @State var isRefreshingAccount = false
     @State var autologinState = AutologinState()
 #if os(iOS)
     @State var isPairDevicePresented = false
+    @State var isCodeEntryPresented = false
 #endif
 
-    @Binding private var path: NavigationPath
+    @Binding var path: NavigationPath
+#if os(iOS)
+    let onSessionEvent: (SessionEvent) -> Void
+#endif
 
     public var body: some View {
         GeometryReader { geometry in
@@ -52,6 +54,7 @@ import Theme
                             nymAccountSection()
 #if os(iOS)
                             pairDeviceSection()
+                            passphraseAndRedeemSection()
 #endif
                             accountIdentifier()
                             accountIdText()
@@ -85,25 +88,24 @@ import Theme
                 isPairDevicePresented = false
             }
         }
+        .fullScreenCover(isPresented: $isCodeEntryPresented) {
+            CodeEntryView(startsWithScanner: true) { outcome in
+                handleCodeEntry(outcome)
+            }
+            .interactiveDismissDisabled()
+        }
 #endif
         .autologinOverlay(state: autologinState, onRetry: { navigateToAccount() })
         .background {
             Color.Nym.background
                 .ignoresSafeArea()
         }
-        .overlay {
-            if isLogoutConfirmationDisplayed {
-                ActionDialogView(
-                    viewModel: ActionDialogViewModel(
-                        isDisplayed: $isLogoutConfirmationDisplayed,
-                        configuration: logoutDialogConfiguration,
-                        impactGenerator: .shared,
-                        isLoading: $isLogoutLoading,
-                        loadingTextOverride: $logoutProgressText
-                    )
-                )
-            }
-        }
+        .logoutDialog(
+            isPresented: $isLogoutConfirmationDisplayed,
+            credentialsManager: credentialsManager,
+            connectionManager: connectionManager,
+            onLoggedOut: { navigateToRoot() }
+        )
         .task {
             await credentialsManager.updateAccountSummary()
             showAllowanceReachedSnackbarIfNeeded()
@@ -124,16 +126,23 @@ import Theme
         }
     }
 
+#if os(iOS)
+    public init(path: Binding<NavigationPath>, onSessionEvent: @escaping (SessionEvent) -> Void) {
+        _path = path
+        self.onSessionEvent = onSessionEvent
+    }
+#elseif os(macOS)
     public init(path: Binding<NavigationPath>) {
         _path = path
     }
+#endif
 }
 
 // MARK: - Views -
 extension AccountAndDevicesView {
     func navbar() -> some View {
         CustomNavBar(
-            title: "settings.account".localizedString,
+            title: "settings.yourAccount".localizedString,
             leftButton: CustomNavBarButton(type: .back, action: { navigateBack() })
         )
     }
@@ -329,20 +338,5 @@ extension AccountAndDevicesView {
                 )
             }
         }
-    }
-
-    @MainActor
-    func logout() async {
-        await credentialsManager.beginLogout()
-        defer { credentialsManager.endLogout() }
-
-        if LogoutTeardownPolicy.needsDisconnectWait(for: connectionManager.currentTunnelStatus) {
-            logoutProgressText = "disconnecting".localizedString
-        }
-        await connectionManager.disconnectBeforeLogout()
-
-        logoutProgressText = "settings.loggingOut".localizedString
-        try? await credentialsManager.removeCredential()
-        logoutProgressText = nil
     }
 }

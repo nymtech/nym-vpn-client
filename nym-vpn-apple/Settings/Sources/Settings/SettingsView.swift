@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import ConnectionManager
 import ConnectionTypes
 import CredentialsManager
 import Device
@@ -9,9 +10,11 @@ import Theme
 
 public struct SettingsView: View {
     @EnvironmentObject private var credentialsManager: CredentialsManager
+    @EnvironmentObject private var connectionManager: ConnectionManager
     @StateObject private var viewModel: SettingsViewModel
     @State private var searchText = ""
     @FocusState private var isSearchFocused: Bool
+    @State private var isLogoutConfirmationDisplayed = false
 #if os(macOS)
     @State private var autologinState = AutologinState()
 #endif
@@ -42,6 +45,7 @@ private extension SettingsView {
                     Spacer()
                         .frame(height: NymSpacing.section)
                     settingsList()
+                    logoutButton()
                     Spacer()
                         .frame(height: NymSpacing.section)
                     appVersionText()
@@ -67,14 +71,12 @@ private extension SettingsView {
             onRetry: { autologinState.start(kind: .autologinRenew, using: credentialsManager) }
         )
 #endif
-#if os(iOS)
-        .fullScreenCover(isPresented: $viewModel.isCodeEntryPresented) {
-            CodeEntryView(startsWithScanner: true) { outcome in
-                viewModel.handleCodeEntry(outcome)
-            }
-            .interactiveDismissDisabled()
-        }
-#endif
+        .logoutDialog(
+            isPresented: $isLogoutConfirmationDisplayed,
+            credentialsManager: credentialsManager,
+            connectionManager: connectionManager,
+            onLoggedOut: { viewModel.navigateToRoot() }
+        )
         .onAppear {
 #if os(macOS)
             viewModel.autologinState = autologinState
@@ -108,8 +110,34 @@ private extension SettingsView {
             ForEach(sections, id: \.self) { section in
                 sectionHeader(section.kind.title)
                     .accessibilityAddTraits(.isHeader)
-                SettingsList(viewModel: SettingsListViewModel(sections: [section]))
+                if section.kind == .account && !viewModel.isSignedIn {
+                    getStartedButton()
+                } else {
+                    SettingsList(viewModel: SettingsListViewModel(sections: [section]))
+                }
             }
+        }
+    }
+
+    func getStartedButton() -> some View {
+        NymButton("home.getStarted".localizedString, style: .primary) {
+            viewModel.getStarted()
+        }
+    }
+
+    /// Grey on purpose: the red Log out lives in Your account, never two red buttons together.
+    @ViewBuilder
+    func logoutButton() -> some View {
+        if viewModel.isSignedIn && searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+            NymButton(
+                "settings.logout".localizedString,
+                style: .secondary,
+                foregroundColor: Color.Nym.textSecondary,
+                borderColor: Color.Nym.textSecondary
+            ) {
+                isLogoutConfirmationDisplayed = true
+            }
+            .padding(.top, NymSpacing.large)
         }
     }
 

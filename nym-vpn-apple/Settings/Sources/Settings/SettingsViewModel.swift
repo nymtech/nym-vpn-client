@@ -38,9 +38,6 @@ import Theme
 #endif
     @Published var sections: [AppSettingsSection] = []
     @Published var accountIdentifier: String?
-#if os(iOS)
-    @Published var isCodeEntryPresented = false
-#endif
 #if os(macOS)
     var autologinState: AutologinState?
 #endif
@@ -119,17 +116,25 @@ import Theme
         configureSections()
     }
 
+    var isSignedIn: Bool {
+        appSettings.isCredentialImported
+    }
+
+    /// Back to the signed-out home screen, where Get started lives.
+    func getStarted() {
+        impactGenerator.softImpact()
+        navigateToRoot()
+    }
+
+    func navigateToRoot() {
+        path = NavigationPath()
+    }
+
     func updateAccountSectionOnly() {
-        guard appSettings.isCredentialImported else {
-            sections.removeAll { $0.kind == .account }
-            return
-        }
-        let updated = accountSection()
+        let updated = appSettings.isCredentialImported ? accountSection() : signedOutAccountSection()
         if let index = sections.firstIndex(where: { $0.kind == .account }) {
             sections[index] = updated
         } else {
-            // signed in now: the account section replaces the signed-out redeem section
-            sections.removeAll { $0.kind == .redeemCode }
             sections.insert(updated, at: 0)
         }
     }
@@ -156,11 +161,6 @@ private extension SettingsViewModel {
         path.append(SettingLink.legal)
     }
 
-    func navigateToSystemStatus() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.systemStatus)
-    }
-
     func navigateToAccount() {
         impactGenerator.softImpact()
         path.append(SettingLink.accountAndDevices)
@@ -173,11 +173,6 @@ private extension SettingsViewModel {
 #elseif os(macOS)
         autologinState?.start(kind: .autologinRenew, using: credentialsManager)
 #endif
-    }
-
-    func navigateToPassphrase() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.passphrase)
     }
 
     #if os(macOS)
@@ -275,13 +270,7 @@ private extension SettingsViewModel {
     func configureSections() {
         Task {
             var newSections = [AppSettingsSection]()
-            if appSettings.isCredentialImported {
-                newSections.append(accountSection())
-            } else {
-#if os(iOS)
-                newSections.append(AppSettingsSection(kind: .redeemCode, viewModels: [redeemCodeItem()]))
-#endif
-            }
+            newSections.append(appSettings.isCredentialImported ? accountSection() : signedOutAccountSection())
             newSections.append(
                 contentsOf: vpnSections() + [
                     appSection(),
@@ -294,25 +283,6 @@ private extension SettingsViewModel {
         }
     }
 }
-
-#if os(iOS)
-// MARK: - Code entry -
-extension SettingsViewModel {
-    func handleCodeEntry(_ outcome: CodeEntryOutcome) {
-        isCodeEntryPresented = false
-        if outcome != .cancelled {
-            path = NavigationPath()
-        }
-        Task { [credentialsManager, onSessionEvent] in
-            await CodeEntryOutcomeHandler.handle(
-                outcome,
-                credentialsManager: credentialsManager,
-                sendSessionEvent: { onSessionEvent?($0) }
-            )
-        }
-    }
-}
-#endif
 
 // MARK: - Helpers -
 private extension SettingsViewModel {
@@ -356,53 +326,28 @@ private extension SettingsViewModel {
             subtitle = AttributedString("requestingZkNyms".localizedString)
         }
 
-        var viewModels = [
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.account".localizedString,
-                attributtedSubtitle: subtitle,
-                systemImageName: "person.crop.circle",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToAccount()
+        return AppSettingsSection(
+            kind: .account,
+            viewModels: [
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "settings.yourAccount".localizedString,
+                    attributtedSubtitle: subtitle,
+                    systemImageName: "person.crop.circle",
+                    action: { [weak self] in
+                        Task { @MainActor in
+                            self?.navigateToAccount()
+                        }
                     }
-                }
-            )
-        ]
-#if os(iOS)
-        viewModels.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.passphrase".localizedString,
-                imageName: "key",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToPassphrase()
-                    }
-                }
-            )
+                )
+            ]
         )
-        viewModels.append(redeemCodeItem())
-#endif
-        return AppSettingsSection(kind: .account, viewModels: viewModels)
     }
 
-#if os(iOS)
-    /// Shown without an account too.
-    func redeemCodeItem() -> SettingsListItemViewModel {
-        SettingsListItemViewModel(
-            accessory: .arrow,
-            title: "settings.redeemCode".localizedString,
-            systemImageName: "ticket",
-            action: { [weak self] in
-                Task { @MainActor in
-                    self?.impactGenerator.softImpact()
-                    self?.isCodeEntryPresented = true
-                }
-            }
-        )
+    /// Signed out: the section carries no rows, SettingsView draws the Get started button in it.
+    func signedOutAccountSection() -> AppSettingsSection {
+        AppSettingsSection(kind: .account, viewModels: [])
     }
-#endif
 
     func appSection() -> AppSettingsSection {
         AppSettingsSection(
@@ -441,17 +386,6 @@ private extension SettingsViewModel {
 #else
         let routing = [SettingsListItemViewModel]()
 #endif
-        var mixnet = [SettingsListItemViewModel]()
-        protection.append(
-            SettingsListItemViewModel(
-                accessory: .empty,
-                title: "settings.killswitch.title".localizedString,
-                subtitle: "settings.killswitch.subtitle".localizedString,
-                systemImageName: "power",
-                isHoveredHighlightDisabled: true,
-                action: {}
-            )
-        )
         let adBlockSubtitle = appSettings.isAdBlockerEnabled
         ? "settings.adblock.subtitle.on".localizedString
         : "settings.adblock.subtitle.off".localizedString
@@ -480,6 +414,57 @@ private extension SettingsViewModel {
             }
             .store(in: &cancellables)
         protection.append(adBlockViewModel)
+        protection.append(
+            SettingsListItemViewModel(
+                accessory: .empty,
+                title: "settings.killswitch.title".localizedString,
+                subtitle: "settings.killswitch.subtitle".localizedString,
+                systemImageName: "power",
+                isHoveredHighlightDisabled: true,
+                action: {}
+            )
+        )
+        protection.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.mixnetTuning.title".localizedString,
+                subtitle: "settings.mixnetTuning.subtitle".localizedString,
+                systemImageName: "eye.slash",
+                action: { [weak self] in
+                    self?.navigateToMixnetTuning()
+                }
+            )
+        )
+#if os(macOS)
+        connection.append(
+            SettingsListItemViewModel(
+                accessory: .toggle(
+                    isOn: Binding(
+                        get: { [appSettings] in appSettings.isIPv6TrafficEnabled },
+                        set: { [connectionManager] newValue in connectionManager.setIPv6TrafficEnabled(newValue) }
+                    )
+                ),
+                title: "settings.ipv6.title".localizedString,
+                subtitle: "settings.ipv6.subtitle".localizedString,
+                imageName: "powerplug.portrait",
+                action: {}
+            )
+        )
+#endif
+        connection.append(
+            SettingsListItemViewModel(
+                accessory: .toggle(
+                    isOn: Binding(
+                        get: { [appSettings] in appSettings.isLanBypassEnabled },
+                        set: { [connectionManager] newValue in connectionManager.setLanBypassEnabled(newValue) }
+                    )
+                ),
+                title: "settings.lanBypass.title".localizedString,
+                subtitle: "settings.lanBypass.subtitle".localizedString,
+                imageName: "lan",
+                action: {}
+            )
+        )
         connection.append(
             SettingsListItemViewModel(
                 accessory: .arrow,
@@ -513,36 +498,6 @@ private extension SettingsViewModel {
                         self?.navigateToDns()
                     }
                 }
-            )
-        )
-#if os(macOS)
-        connection.append(
-            SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: Binding(
-                        get: { [appSettings] in appSettings.isIPv6TrafficEnabled },
-                        set: { [connectionManager] newValue in connectionManager.setIPv6TrafficEnabled(newValue) }
-                    )
-                ),
-                title: "settings.ipv6.title".localizedString,
-                subtitle: "settings.ipv6.subtitle".localizedString,
-                imageName: "powerplug.portrait",
-                action: {}
-            )
-        )
-#endif
-        connection.append(
-            SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: Binding(
-                        get: { [appSettings] in appSettings.isLanBypassEnabled },
-                        set: { [connectionManager] newValue in connectionManager.setLanBypassEnabled(newValue) }
-                    )
-                ),
-                title: "settings.lanBypass.title".localizedString,
-                subtitle: "settings.lanBypass.subtitle".localizedString,
-                imageName: "lan",
-                action: {}
             )
         )
 #if os(macOS)
@@ -583,23 +538,11 @@ private extension SettingsViewModel {
             )
         )
 #endif
-        mixnet.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.mixnetTuning.title".localizedString,
-                subtitle: "settings.mixnetTuning.subtitle".localizedString,
-                systemImageName: "eye.slash",
-                action: { [weak self] in
-                    self?.navigateToMixnetTuning()
-                }
-            )
-        )
 
         return [
             AppSettingsSection(kind: .protection, viewModels: protection),
             AppSettingsSection(kind: .connection, viewModels: connection),
-            AppSettingsSection(kind: .routing, viewModels: routing),
-            AppSettingsSection(kind: .mixnet, viewModels: mixnet)
+            AppSettingsSection(kind: .routing, viewModels: routing)
         ]
         .filter { !$0.viewModels.isEmpty }
     }
@@ -619,7 +562,7 @@ private extension SettingsViewModel {
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.privacyAndData".localizedString,
-                systemImageName: "exclamationmark.shield",
+                systemImageName: "lock.doc",
                 action: { [weak self] in
                     Task { @MainActor in
                         self?.navigateToPrivacyAndData()
@@ -629,17 +572,11 @@ private extension SettingsViewModel {
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "legal".localizedString,
+                systemImageName: "doc.text",
                 action: { [weak self] in
                     Task { @MainActor in
                         self?.navigateToLegal()
                     }
-                }
-            ),
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.systemStatus".localizedString,
-                action: { [weak self] in
-                    self?.navigateToSystemStatus()
                 }
             )
         ]

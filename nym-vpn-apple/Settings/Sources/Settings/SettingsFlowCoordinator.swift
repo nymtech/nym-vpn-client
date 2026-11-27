@@ -331,6 +331,10 @@ private extension SettingsFlowCoordinator {
     }
 
     func accountAndDevicesDestination() -> some View {
+#if os(iOS)
+        AccountAndDevicesView(path: $flowState.path, onSessionEvent: { flowState.onSessionEvent?($0) })
+#elseif os(macOS)
         AccountAndDevicesView(path: $flowState.path)
+#endif
     }
 }

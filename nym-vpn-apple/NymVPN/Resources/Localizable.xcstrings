@@ -5997,7 +5997,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "DNS customization"
+            "value" : "Customize DNS"
           }
         }
       }
@@ -14164,7 +14164,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enable Geo-exclusion"
+            "value" : "Enable geo-exclusion"
           }
         }
       }
@@ -14186,7 +14186,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geo Exclusion couldn't start. Reconnect and try again."
+            "value" : "Geo-exclusion couldn't start. Reconnect and try again."
           }
         }
       }
@@ -25714,7 +25714,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Blocking ads and tracker"
+            "value" : "Blocking ads and trackers"
           }
         }
       }
@@ -26039,7 +26039,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "App Icon"
+            "value" : "App icon"
           }
         }
       }
@@ -28022,7 +28022,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manage Subscription"
+            "value" : "Manage subscription"
           }
         }
       }
@@ -28405,17 +28405,6 @@
         }
       }
     },
-    "settings.section.mixnet" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mixnet"
-          }
-        }
-      }
-    },
     "settings.section.protection" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28590,6 +28579,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Server monitoring"
+          }
+        }
+      }
+    },
+    "settings.yourAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account"
           }
         }
       }
@@ -28875,7 +28875,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This feature requires Full Disc Access, that you can enable in system settings."
+            "value" : "This feature requires Full Disk Access, that you can enable in system settings."
           }
         }
       }

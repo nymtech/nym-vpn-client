@@ -173,13 +173,13 @@ struct AccountReportTests {
         for f in files { source += try String(contentsOf: f, encoding: .utf8) }
 
         // Non-button `title:` args we must NOT treat as buttons:
-        //  - navbar title (CustomNavBar): "settings.account"
+        //  - navbar title (CustomNavBar): "settings.yourAccount"
         //  - copyable content cells (cell(title:…) → SettingsCopyableContentCell):
         //    "settings.accountID", "settings.deviceId"
         //  - refresh-failure snackbar (SnackbarItem(title:…)): "settings.account.refreshFailed"
         //  - allowance-reached snackbar (SnackbarItem(title:…)): "settings.account.allowanceReached.title"
         let nonButtonTitleKeys: Set<String> = [
-            "settings.account",
+            "settings.yourAccount",
             "settings.accountID",
             "settings.deviceId",
             "settings.account.refreshFailed",
