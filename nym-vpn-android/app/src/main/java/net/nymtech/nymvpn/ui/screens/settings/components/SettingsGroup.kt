@@ -15,3 +15,22 @@ fun SettingsGroup(items: List<SelectionItem>, modifier: Modifier = Modifier, bac
 		modifier = modifier,
 	)
 }
+
+/** Consecutive rows share one [SettingsGroup]; blocks are drawn on their own. */
+@Composable
+fun SettingsEntryList(entries: List<SettingsEntry>) {
+	var index = 0
+	while (index < entries.size) {
+		when (val entry = entries[index]) {
+			is SettingsBlock -> {
+				entry.content()
+				index++
+			}
+			is SettingsRow -> {
+				val rows = entries.drop(index).takeWhile { it is SettingsRow }.filterIsInstance<SettingsRow>()
+				SettingsGroup(items = rows.map { it.item })
+				index += rows.size
+			}
+		}
+	}
+}

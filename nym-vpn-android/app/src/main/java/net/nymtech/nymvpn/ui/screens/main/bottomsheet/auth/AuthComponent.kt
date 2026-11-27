@@ -114,10 +114,11 @@ fun AuthComponent(
 			val redeemCodeViewModel: RedeemCodeViewModel = hiltViewModel()
 			val redeemCodeUiState by redeemCodeViewModel.uiState.collectAsStateWithLifecycle()
 			val openAcceptedCode = rememberOpenAcceptedCode(accountStored = false)
-			LaunchedEffect(Unit) { redeemCodeViewModel.accepted.collect(openAcceptedCode) }
+			LaunchedEffect(Unit) { redeemCodeViewModel.accepted.collect { openAcceptedCode(it, redeemCodeViewModel.uiState.value.connectAfter) } }
 			RedeemCodeView(
 				uiState = redeemCodeUiState,
 				onCodeChange = redeemCodeViewModel::onCodeChange,
+				onConnectAfterChange = redeemCodeViewModel::onConnectAfterChange,
 				onSubmit = redeemCodeViewModel::submit,
 				// Like the sheet, a redeem in flight keeps the screen open.
 				onBackClick = { if (!redeemCodeUiState.loading) localNavController.popBackStack() },

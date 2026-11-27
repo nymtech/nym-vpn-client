@@ -239,7 +239,6 @@
 	<string name="settings_reset_app_title">Скинути дані програми</string>
 	<string name="settings_system_status_title">Стан системи</string>
 	<string name="settings_mixnet_tuning_title">Налаштування Mixnet</string>
-	<string name="settings_mixnet_tuning_description">Точно налаштуйте параметри вашої мережі Mixnet</string>
 	<string name="settings_quit_title">Вийти з NymVPN</string>
 	<string name="settings_app_version_line">Версія програми: %1$s</string>
 	<string name="settings_language_help_title">Допоможіть з перекладом</string>
@@ -448,7 +447,6 @@
 	<string name="passphrase_info_keeps_anonymous">Зберігає вашу анонімність</string>
 	<string name="passphrase_info_belongs">Належить тільки вам (самоконтроль)</string>
 	<!-- Account screen -->
-	<string name="account_title">Обліковий запис та пристрої</string>
 	<string name="account_info_manage_button">Керуйте своєю підпискою</string>
 	<string name="account_info_renew_auth_title">Подовжити підписку</string>
 	<string name="account_info_link_auth_subtitle">Підтвердьте, що це ви, щоб додати вхід через соціальні мережі</string>

@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,14 +17,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.toClipEntry
@@ -58,8 +56,6 @@ import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
-import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
 import net.nymtech.nymvpn.ui.common.deviceauth.DeviceAuthAction
 import net.nymtech.nymvpn.ui.common.deviceauth.rememberDeviceAuth
 import net.nymtech.nymvpn.ui.common.deviceauth.rememberScreenLockGate
@@ -67,6 +63,7 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountActionCard
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountInfoCard
+import net.nymtech.nymvpn.ui.screens.account.info.components.AccountButton
 import net.nymtech.nymvpn.ui.screens.account.info.components.BandwidthUiState
 import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PairDeviceDialog
@@ -86,7 +83,6 @@ import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
-import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
@@ -328,54 +324,23 @@ fun AccountInfoScreenContent(
 		)
 		Spacer(Modifier.height(16.dp))
 		if (isMnemonicStored) {
-			OutlineStyledButton(
+			AccountButton(
+				text = stringResource(R.string.pair_device_button),
 				onClick = onPairDeviceClick,
-				content = {
-					Text(
-						stringResource(R.string.pair_device_button),
-						style = MaterialTheme.typography.titleMedium,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-				},
-				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
-				shape = RoundedCornerShape(12.dp),
 			)
 			Spacer(Modifier.height(16.dp))
-			OutlineStyledButton(
+			AccountButton(
+				text = stringResource(R.string.log_out),
 				onClick = onLogoutClick,
-				content = {
-					Text(
-						stringResource(R.string.log_out),
-						style = MaterialTheme.typography.bodyLarge,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-				},
-				borderColor = LocalNymColors.current.buttonErrorBorder,
-				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
-				shape = RoundedCornerShape(12.dp),
+				textColor = LocalNymColors.current.buttonErrorText,
 			)
-			Spacer(Modifier.height(8.dp))
-			TransparentButton(
+			Spacer(Modifier.height(16.dp))
+			AccountButton(
+				text = stringResource(R.string.account_info_delete_button),
 				onClick = onDeleteAccountClick,
-				content = {
-					Row(
-						horizontalArrangement = Arrangement.spacedBy(8.dp),
-						verticalAlignment = Alignment.CenterVertically,
-					) {
-						Text(
-							stringResource(R.string.account_info_delete_button),
-							style = MaterialTheme.typography.bodyLarge,
-							color = LocalNymColors.current.buttonErrorText,
-						)
-						Icon(
-							imageVector = Icons.Outlined.Lock,
-							contentDescription = null,
-							tint = LocalNymColors.current.buttonErrorText,
-							modifier = Modifier.size(18.dp),
-						)
-					}
-				},
-				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+				textColor = LocalNymColors.current.buttonErrorText,
+				containerColor = Color.Transparent,
+				trailingIcon = Icons.Outlined.Lock,
 			)
 		}
 	}
