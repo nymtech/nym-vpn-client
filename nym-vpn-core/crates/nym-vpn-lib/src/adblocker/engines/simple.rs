@@ -30,10 +30,10 @@ use crate::{
     dns_filter::{DnsFilterDecision, DnsFilterStrategy, DnsFilterT},
 };
 
-/// Soft heap limit that advises SQLite to free up memory
-const SQL_SOFT_HEAP_LIMIT: usize = 7 * 1024 * 1024;
-/// Hard heap limit that enforces a strict ceiling on total heap memory usage
-const SQL_HARD_HEAP_LIMIT: usize = 8 * 1024 * 1024;
+/// Page cache budget in KiB shared by all connections, sized for the iOS network extension.
+///
+/// Heap limit pragmas are not used because they apply to all SQLite connections in the process.
+const SQL_PAGE_CACHE_BUDGET_KIB: u32 = 8 * 1024;
 /// Minimum number of idle connections to the database
 const SQL_MIN_CONNECTIONS: u32 = 10;
 /// Maximum number of concurrent connections to the database
@@ -263,8 +263,11 @@ async fn open_db(db_path: &Path) -> Result<SqlitePool> {
         .create_if_missing(true)
         .journal_mode(SqliteJournalMode::Wal)
         .disable_statement_logging()
-        .pragma("soft_heap_limit", SQL_SOFT_HEAP_LIMIT.to_string())
-        .pragma("hard_heap_limit", SQL_HARD_HEAP_LIMIT.to_string());
+        // Negative cache size is in KiB rather than pages
+        .pragma(
+            "cache_size",
+            format!("-{}", SQL_PAGE_CACHE_BUDGET_KIB / SQL_MAX_CONNECTIONS),
+        );
 
     let pool = SqlitePoolOptions::new()
         .max_connections(SQL_MAX_CONNECTIONS)

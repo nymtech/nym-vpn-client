@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Linux, macOS] Refuse starting `nym-vpnd` if something else is accepting connection on `nym-vpn.sock` to prevent overwriting active UDS socket file. Note: only debug macOS builds use UDS, release builds use XPC that already handles that properly. (https://github.com/nymtech/nym-vpn-client/pull/7200)
 - [Linux] The `nym-vpnd` deb package no longer depends on `polkit-1-auth-agent`, so installing it on a system without a desktop doesn't pull in a graphical polkit agent. The dependency moved to the `nym-vpn-app` deb package. On a headless install, run `nym-vpnc` as root or add your user to the `nym-vpn` group (https://github.com/nymtech/nym-vpn-client/pull/7175)
+- [iOS] Limit adblocker SQLite memory per connection instead of setting process-wide heap limits that affected other SQLite databases (https://github.com/nymtech/nym-vpn-client/pull/6963)
+
 
 
 ## [2026.16.0] - 2026-11-18
