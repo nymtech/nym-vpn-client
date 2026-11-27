@@ -23,12 +23,6 @@ pub enum Error {
 
     #[error("no accounts in wallet")]
     NoAccounts,
-
-    #[error("subscription expiry parse error: {0}")]
-    SubscriptionExpiryParseError(time::error::Parse),
-
-    #[error("traffic reset time parse error: {0}")]
-    TrafficResetTimeParseError(time::error::Parse),
 }
 
 /// Defines the mode of operation of the associated account.
