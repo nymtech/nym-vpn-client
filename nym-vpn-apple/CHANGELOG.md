@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - iOS, macOS: Data, privacy & logs is reordered to match desktop and Android, and Run diagnostics now sits on it and starts the run as soon as the diagnostic screen opens (https://github.com/nymtech/nym-vpn-client/pull/7242)
 - iOS: Debug logging is now "Your debug logs" in Data, privacy & logs, with an info sheet explaining what it does (https://github.com/nymtech/nym-vpn-client/pull/7138)
-- iOS, macOS: the Logs screen's "Export all" button now reads "Share logs", as on Android and desktop (https://github.com/nymtech/nym-vpn-client/pull/7242)
+- iOS, macOS: Logs is now "View & share logs", with a line saying logs stay on this device, and its "Export all" button reads "Share logs", as on Android and desktop (https://github.com/nymtech/nym-vpn-client/pull/7242)
 - iOS, macOS: Free pass errors come from the core instead of matching API responses in the app (https://github.com/nymtech/nym-vpn-client/pull/7197)
 
 ### Fixed

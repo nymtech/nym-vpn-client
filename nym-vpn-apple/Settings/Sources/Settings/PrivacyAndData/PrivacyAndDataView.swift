@@ -82,6 +82,7 @@ private extension PrivacyAndDataView {
             viewModel: SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "logs".localizedString,
+                subtitle: "logs.description".localizedString,
                 imageName: "logs",
                 position: SettingsListItemPosition(isFirst: true, isLast: true),
                 action: {

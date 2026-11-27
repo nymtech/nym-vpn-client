@@ -17376,7 +17376,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Logs (stored locally)"
+            "value" : "View & share logs"
           }
         },
         "es" : {
@@ -17657,6 +17657,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您是否确定删除所有日志？"
+          }
+        }
+      }
+    },
+    "logs.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostic logs stored locally only"
           }
         }
       }
