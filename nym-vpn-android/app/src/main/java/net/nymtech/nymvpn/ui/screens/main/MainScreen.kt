@@ -248,7 +248,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	LaunchedEffect(loginProcessing) {
 		if (loginProcessing) {
-			bottomSheetContent = MainBottomSheetContent.LoginProcessing
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing(autoConnect = autoStart)
 		}
 	}
 
@@ -267,7 +267,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
-	if (autoStart && !didAutoStart && uiState.connectionState is ConnectionState.Disconnected) {
+	// With login processing, it connects once processing succeeds.
+	if (autoStart && !loginProcessing && !didAutoStart && uiState.connectionState is ConnectionState.Disconnected) {
 		LaunchedEffect(Unit) {
 			didAutoStart = true
 			onConnectPressed()
@@ -403,7 +404,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		},
 		onAuthSuccess = { bottomSheetContent = MainBottomSheetContent.Hidden },
 		onLoginProcessingStart = {
-			bottomSheetContent = MainBottomSheetContent.LoginProcessing
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing()
 		},
 		authSheetMinHeightPx = authSheetHeightPx,
 		onAuthSheetHeightChange = { height -> authSheetHeightPx = height },
