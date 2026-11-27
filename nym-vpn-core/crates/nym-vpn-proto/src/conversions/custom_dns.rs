@@ -196,3 +196,19 @@ fn decode_port(port: Option<u32>) -> Result<Option<u16>, ConversionError> {
     })
     .transpose()
 }
+
+impl From<proto::DefaultDnsSettings> for nym_vpn_lib_types::DefaultDnsSettings {
+    fn from(value: proto::DefaultDnsSettings) -> Self {
+        Self {
+            enable_quad9: value.enable_quad9,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::DefaultDnsSettings> for proto::DefaultDnsSettings {
+    fn from(value: nym_vpn_lib_types::DefaultDnsSettings) -> Self {
+        Self {
+            enable_quad9: value.enable_quad9,
+        }
+    }
+}

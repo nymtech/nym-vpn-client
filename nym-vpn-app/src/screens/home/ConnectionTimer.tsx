@@ -4,10 +4,12 @@ import { AnimatePresence, motion } from 'motion/react';
 import dayjs from 'dayjs';
 import { useAppStore } from '../../store';
 import { ScrambleIn } from '../../ui/ScrambleIn';
+import { markerMode } from './marker/markerState';
 
 function ConnectionTimer() {
   const state = useAppStore((s) => s.state);
   const tunnelConnectedAt = useAppStore((s) => s.tunnelConnectedAt);
+  const vpnMode = useAppStore((s) => s.vpnMode);
   const [connectionTime, setConnectionTime] = useState('00:00:00');
   const { t } = useTranslation('home');
 
@@ -43,8 +45,13 @@ function ConnectionTimer() {
         data-testid="connection-timer"
       >
         <ScrambleIn
-          text={t('connection-time')}
-          className="text-text-secondary text-base"
+          key={vpnMode}
+          text={t(
+            markerMode(vpnMode) === 'mixnet'
+              ? 'protection-mixnet'
+              : 'protection-dvpn',
+          )}
+          className="text-brand-primary text-base"
           scrambledClassName="text-[9px] text-[#8b8b90]/50"
           scrambleSpeed={20}
         />
@@ -53,7 +60,7 @@ function ConnectionTimer() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="text-text-primary text-base"
+          className="text-brand-primary text-base"
           data-testid="connection-time-value"
         >
           {connectionTime}

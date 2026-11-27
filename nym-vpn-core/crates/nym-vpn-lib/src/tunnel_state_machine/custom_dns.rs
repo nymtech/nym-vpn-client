@@ -1,6 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(not(target_os = "android"))]
 use std::sync::Arc;
 
 use hickory_resolver::config::{NameServerConfig, ProtocolConfig};
@@ -8,6 +9,7 @@ use hickory_resolver::config::{NameServerConfig, ProtocolConfig};
 use nym_firewall::{Endpoint, TransportProtocol};
 use nym_vpn_lib_types::{DnsServer, PlainDnsProtocol};
 
+#[cfg(not(target_os = "android"))]
 pub trait DnsServerExt {
     /// Returns `NameServerConfig` compatible with hickory
     fn to_name_server_config(&self) -> NameServerConfig;
@@ -17,6 +19,7 @@ pub trait DnsServerExt {
     fn firewall_endpoints(&self) -> Vec<Endpoint>;
 }
 
+#[cfg(not(target_os = "android"))]
 impl DnsServerExt for DnsServer {
     fn to_name_server_config(&self) -> NameServerConfig {
         match self {
@@ -121,7 +124,7 @@ pub fn dns_servers_from_hickory_config(ns: &NameServerConfig) -> Vec<DnsServer> 
 
         match &conn.protocol {
             ProtocolConfig::Udp | ProtocolConfig::Tcp => {
-                let ip_proto = if matches!(conn.protocol, ProtocolConfig::Udp) {
+                let ip_proto = if conn.protocol.to_protocol().is_datagram() {
                     PlainDnsProtocol::Udp
                 } else {
                     PlainDnsProtocol::Tcp
@@ -176,6 +179,7 @@ pub fn dns_servers_from_hickory_config(ns: &NameServerConfig) -> Vec<DnsServer> 
     servers
 }
 
+#[cfg(not(target_os = "android"))]
 fn set_port(config: &mut NameServerConfig, port: u16) {
     if port != 0 {
         for conn in config.connections.iter_mut() {

@@ -1,6 +1,8 @@
 {
   "failed-to-disconnect": "Failed to disconnect",
   "not-protected": "Not protected",
+  "blocked": "Kill switch is blocking traffic",
+  "blocked-action": "Disconnect to disable it",
   "status": {
     "connected": "Tap to disconnect",
     "disconnected": "Tap to connect",
@@ -9,15 +11,16 @@
     "error": "Error",
     "offline": "No internet"
   },
-  "offline-message": "Your device has no internet connection",
-  "offline-reconnect-message": "Will connect once device goes online",
+  "offline-message": "No internet connection found",
+  "offline-reconnect-message": "Will connect once your device goes online",
   "last-hop": "Exit",
   "first-hop": "Entry",
   "nym-entry-server": "Entry server",
   "nym-exit-server": "Exit server",
   "connected-directly": "Connected directly",
   "connected-via-bridge": "Connected via {{transport}} bridge",
-  "connection-time": "Connection time",
+  "protection-dvpn": "dVPN protection",
+  "protection-mixnet": "Mixnet protection",
   "random-server": "Random server",
   "safest-server-selection": "Auto server selection",
   "fastest-server-selection": "Fastest server selection",

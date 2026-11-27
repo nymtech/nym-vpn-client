@@ -320,6 +320,16 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_enable_quad9(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
+        let enable_quad9 = request.into_inner();
+
+        self.send_and_wait(VpnServiceCommand::SetEnableQuad9, enable_quad9)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set enable Quad9: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_custom_dns(
         &self,
         request: tonic::Request<proto::DnsServerList>,
@@ -1047,7 +1057,7 @@ impl NymVpnService for CommandInterface {
         let code = request.into_inner();
 
         let result = self
-            .send_and_wait(VpnServiceCommand::ApplyFreepass, code)
+            .send_and_wait(VpnServiceCommand::RedeemFreepass, code)
             .await?;
 
         account_command_response(result)
