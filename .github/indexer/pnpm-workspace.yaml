@@ -1,0 +1,9 @@
+# Build the indexer package's dist/ on install (its `prepare`), and skip the
+# grammars' native builds: the code chunker loads each grammar as WebAssembly.
+allowBuilds:
+  '@nymproject/retrieval-indexer': true
+  tree-sitter-go: false
+  tree-sitter-javascript: false
+  tree-sitter-python: false
+  tree-sitter-rust: false
+  tree-sitter-typescript: false

@@ -18,10 +18,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -30,10 +28,11 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
+import net.nymtech.nymvpn.util.extensions.rememberCopyToClipboard
 
 @Composable
 fun DetailsSectionIdentity(identity: String, buildVersion: String?) {
-	val clipboardManager = LocalClipboardManager.current
+	val copyToClipboard = rememberCopyToClipboard()
 	val context = LocalContext.current
 	val copiedText = stringResource(R.string.diagnostic_copied)
 	val copyContentDescription = stringResource(R.string.details_copy_identity)
@@ -61,7 +60,7 @@ fun DetailsSectionIdentity(identity: String, buildVersion: String?) {
 				modifier = Modifier
 					.fillMaxWidth()
 					.clickable {
-						clipboardManager.setText(AnnotatedString(identity))
+						copyToClipboard(identity)
 						Toast.makeText(context, copiedText, Toast.LENGTH_SHORT).show()
 					},
 			) {

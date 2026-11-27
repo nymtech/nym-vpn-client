@@ -493,7 +493,6 @@
 	<string name="logs_download_button">Simpan sebagai file saja</string>
 	<string name="logs_saved">\"File log disimpan di folder Unduhan Anda\"</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling_info_msg">Atur setiap aplikasi agar menggunakan NymVPN atau terhubung secara langsung.</string>
 	<string name="split_tunneling_search_apps_hint">Cari aplikasi</string>
 	<string name="split_tunneling_apps">Aplikasi</string>
 	<string name="split_tunneling_direct">Langsung</string>

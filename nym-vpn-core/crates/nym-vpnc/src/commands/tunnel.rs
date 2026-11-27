@@ -3,11 +3,32 @@
 
 use anyhow::Result;
 
-use nym_vpn_lib_types::BridgeMode;
+use nym_vpn_lib_types::{BridgeMode, BridgeTransport};
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
 use clap::builder::ValueParser;
+
+/// Transport preference, with an extra `auto` to clear back to no preference.
+#[derive(Debug, Clone, Copy, clap::ValueEnum)]
+pub enum TransportPreferenceArg {
+    /// No preference: use whichever transport connects
+    Auto,
+    Quic,
+    Tls,
+    Ssh,
+}
+
+impl From<TransportPreferenceArg> for Option<BridgeTransport> {
+    fn from(value: TransportPreferenceArg) -> Self {
+        match value {
+            TransportPreferenceArg::Auto => None,
+            TransportPreferenceArg::Quic => Some(BridgeTransport::Quic),
+            TransportPreferenceArg::Tls => Some(BridgeTransport::Tls),
+            TransportPreferenceArg::Ssh => Some(BridgeTransport::Ssh),
+        }
+    }
+}
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -38,6 +59,11 @@ pub struct SetParams {
     /// on always uses a bridge, off never does.
     #[arg(long, value_enum)]
     bridge_mode: Option<BridgeMode>,
+
+    /// Pin the bridge transport to use when bridging (ignored unless a bridge is in use); auto
+    /// clears the pin and lets the client pick
+    #[arg(long, value_enum)]
+    transport_preference: Option<TransportPreferenceArg>,
 
     /// Set the average delay for a loop cover packet (milliseconds)
     #[arg(
@@ -93,6 +119,7 @@ impl Command {
                 println!("Two-hop: {}", display_on_off(config.enable_two_hop));
                 println!("Netstack: {}", display_on_off(config.netstack));
                 println!("Circumvention transports: {:?}", config.bridge_mode);
+                println!("Transport preference: {:?}", config.transport_preference);
                 println!("Mixnet traffic configuration: {}", config.mixnet_traffic);
                 println!("Gateway independence: {}", config.gateway_independence);
 
@@ -113,6 +140,12 @@ impl Command {
 
                 if let Some(bridge_mode) = params.bridge_mode {
                     rpc_client.set_bridge_mode(bridge_mode).await?;
+                }
+
+                if let Some(transport_preference) = params.transport_preference {
+                    rpc_client
+                        .set_transport_preference(transport_preference.into())
+                        .await?;
                 }
 
                 if params.loop_cover_stream_average_delay.is_some()

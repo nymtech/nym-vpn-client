@@ -32,6 +32,10 @@ import javax.inject.Singleton
 object AppModule {
 
 	@Singleton
+	@Provides
+	fun provideContext(@ApplicationContext context: Context): Context = context
+
+	@Singleton
 	@ApplicationScope
 	@Provides
 	fun providesApplicationScope(@DefaultDispatcher defaultDispatcher: CoroutineDispatcher): CoroutineScope = CoroutineScope(SupervisorJob() + defaultDispatcher)

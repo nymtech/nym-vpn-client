@@ -104,7 +104,7 @@ fun CustomTextField(
 					subtitle?.invoke()
 				}
 			},
-			contentPadding = OutlinedTextFieldDefaults.contentPadding(top = 12.dp, bottom = 12.dp),
+			contentPadding = OutlinedTextFieldDefaults.contentPaddingWithoutLabel(top = 12.dp, bottom = 12.dp),
 			leadingIcon = leading,
 			trailingIcon = trailingIcon,
 			singleLine = singleLine,
@@ -127,10 +127,10 @@ fun CustomTextField(
 			interactionSource = interactionSource,
 			placeholder = placeholder,
 			container = {
-				OutlinedTextFieldDefaults.ContainerBox(
-					enabled,
+				OutlinedTextFieldDefaults.Container(
+					enabled = enabled,
 					isError = isError,
-					interactionSource,
+					interactionSource = interactionSource,
 					colors = TextFieldDefaults.colors().copy(
 						errorContainerColor = containerColor,
 						disabledLabelColor = MaterialTheme.colorScheme.onSurface,

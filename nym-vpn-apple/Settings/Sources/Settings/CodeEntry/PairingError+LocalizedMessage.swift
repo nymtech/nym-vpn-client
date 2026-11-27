@@ -1,4 +1,3 @@
-#if os(iOS)
 import CredentialsManager
 import Theme
 
@@ -20,4 +19,3 @@ extension PairingError {
         }
     }
 }
-#endif

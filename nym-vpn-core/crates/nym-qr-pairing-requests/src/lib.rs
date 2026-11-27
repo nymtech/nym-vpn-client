@@ -16,11 +16,24 @@ pub struct PairingCheckRequestBody {
     pub pubkey: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct PairingConfirmPinRequestBody {
+    pub account_id: String,
+    pub pubkey: String,
+    #[serde(with = "nym_serde_helpers::base64")]
+    pub enc_pin_code: Vec<u8>,
+    #[serde(with = "nym_serde_helpers::base64")]
+    pub nonce: Vec<u8>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TryToPairRequestBody {
     pub own_pubkey: String,
     pub remote_pubkey: String,
-    pub pin_code: String,
+    #[serde(with = "nym_serde_helpers::base64")]
+    pub encrypted_pin_code: Vec<u8>,
+    #[serde(with = "nym_serde_helpers::base64")]
+    pub nonce: Vec<u8>,
     pub token: String,
 }
 
@@ -49,7 +62,10 @@ pub struct NymVpnPairingResponse {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnPairingFinalisedResponse {
-    pub pin_code: String,
+    #[serde(with = "nym_serde_helpers::base64")]
+    pub encrypted_pin_code: Vec<u8>,
+    #[serde(with = "nym_serde_helpers::base64")]
+    pub nonce: Vec<u8>,
     pub remote_pub_key: String,
 }
 
@@ -61,6 +77,8 @@ pub struct NymVpnPairingCheckResponse {
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct NymVpnGetPairingSecretResponse {
-    pub inner: Option<SharePairSecretBody>,
+pub enum NymVpnGetPairingSecretResponse {
+    Nothing,
+    PinConfirmation(PairingConfirmPinRequestBody),
+    Secret(SharePairSecretBody),
 }

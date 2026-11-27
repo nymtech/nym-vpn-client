@@ -1,11 +1,12 @@
-#if os(iOS)
 import SwiftUI
 import CredentialsManager
 import UIComponents
 
 extension AccountAndDevicesView {
+    /// Passphrase is iOS only; Redeem a code shows on both platforms.
     func passphraseAndRedeemSection() -> some View {
         VStack(spacing: 0) {
+#if os(iOS)
             SettingsListItem(
                 viewModel: SettingsListItemViewModel(
                     accessory: .arrow,
@@ -18,12 +19,13 @@ extension AccountAndDevicesView {
                     }
                 )
             )
+#endif
             SettingsListItem(
                 viewModel: SettingsListItemViewModel(
                     accessory: .arrow,
                     title: "settings.redeemCode".localizedString,
                     systemImageName: "ticket",
-                    position: SettingsListItemPosition(isFirst: false, isLast: true),
+                    position: SettingsListItemPosition(isFirst: redeemIsFirst, isLast: true),
                     action: {
                         impactGenerator.softImpact()
                         isCodeEntryPresented = true
@@ -33,13 +35,13 @@ extension AccountAndDevicesView {
         }
     }
 
-    func handleCodeEntry(_ outcome: CodeEntryOutcome) {
+    func handleCodeEntry(_ outcome: FreepassOrPairingOutcome) {
         isCodeEntryPresented = false
         if outcome != .cancelled {
             path = NavigationPath()
         }
         Task { [credentialsManager, onSessionEvent] in
-            await CodeEntryOutcomeHandler.handle(
+            await FreepassOrPairingOutcomeHandler.handle(
                 outcome,
                 credentialsManager: credentialsManager,
                 sendSessionEvent: { onSessionEvent($0) }
@@ -47,4 +49,13 @@ extension AccountAndDevicesView {
         }
     }
 }
+
+private extension AccountAndDevicesView {
+    var redeemIsFirst: Bool {
+#if os(iOS)
+        false
+#else
+        true
 #endif
+    }
+}

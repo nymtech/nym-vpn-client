@@ -1,4 +1,3 @@
-#if os(iOS)
 import SwiftUI
 import Theme
 import UIComponents
@@ -36,4 +35,3 @@ struct PairingStatusView: View {
         }
     }
 }
-#endif

@@ -18,7 +18,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class RedeemCodeViewModel @Inject constructor(private val validator: ScannedCodeValidator) : ViewModel() {
+class RedeemCodeViewModel @Inject constructor(private val validator: ScannedCodeRouter) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(RedeemCodeUiState())
 	val uiState: StateFlow<RedeemCodeUiState> = _uiState.asStateFlow()

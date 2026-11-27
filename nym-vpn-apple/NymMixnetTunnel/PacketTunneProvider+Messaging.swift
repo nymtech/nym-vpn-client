@@ -57,6 +57,12 @@ extension PacketTunnelProvider {
             }
             return nil
 
+        case let .setTransportPreference(preference):
+            await runCommand {
+                try await $0.setTransportPreference(transportPreference: preference.bridgeTransport)
+            }
+            return nil
+
         case let .setDisableIpv6(disabled):
             await runCommand { try await $0.setDisableIpv6(disableIpv6: disabled) }
             return nil

@@ -12,14 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS: Sign in by scanning a QR code from a signed-in device (https://github.com/nymtech/nym-vpn-client/pull/7122)
 - iOS: Redeem a free pass by scanning or typing a code, from Welcome, the plan screen or Settings (https://github.com/nymtech/nym-vpn-client/pull/7122)
 - iOS: Reusable QR scanner in UIComponents for on-device scanning (https://github.com/nymtech/nym-vpn-client/pull/7122)
+- macOS: Redeem a free pass from Settings, whether signed in or out (https://github.com/nymtech/nym-vpn-client/pull/7178)
+- macOS: Pair a device from Account & Devices by showing a QR code and confirming the PIN (https://github.com/nymtech/nym-vpn-client/pull/7178)
 
 ### Changed
 
 - Settings are now grouped into labeled sections with a search field to quickly find any setting by name ([#7171](https://github.com/nymtech/nym-vpn-client/pull/7171))
 - iOS: Debug logging is now "Your troubleshooting detail" in Data, privacy & logs, with an info sheet explaining what it does (https://github.com/nymtech/nym-vpn-client/pull/7138)
+- iOS, macOS: Free pass errors come from the core instead of matching API responses in the app (https://github.com/nymtech/nym-vpn-client/pull/7197)
+- macOS: Split tunneling shows one warning above the app list instead of several notes (https://github.com/nymtech/nym-vpn-client/pull/7228)
 
 ### Fixed
 
+- Home screen: the selected connection mode now has an outline in the brand colour, so it is clear which one is on, also in dark mode
 - iOS: The VPN connection's error reporting follows the "Your app errors & crashes" setting (https://github.com/nymtech/nym-vpn-client/pull/7138)
 
 ## [2026.16.0] - 2026-11-18

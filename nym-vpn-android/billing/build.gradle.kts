@@ -4,7 +4,9 @@ plugins {
 
 android {
 	namespace = "net.nymtech.billing"
-	compileSdk = Constants.COMPILE_SDK
+	compileSdk {
+		version = release(Constants.COMPILE_SDK) { minorApiLevel = Constants.COMPILE_SDK_MINOR }
+	}
 
 	defaultConfig {
 		minSdk = Constants.MIN_SDK

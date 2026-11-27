@@ -6,6 +6,6 @@ import net.nymtech.qrscanner.QrScanValidator
 import javax.inject.Inject
 
 @HiltViewModel
-class QrScanViewModel @Inject constructor(validator: ScannedCodeValidator) :
+class QrScanViewModel @Inject constructor(validator: ScannedCodeRouter) :
 	ViewModel(),
 	QrScanValidator by validator

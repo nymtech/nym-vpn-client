@@ -313,6 +313,7 @@ pub struct BridgeAddress {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 pub enum BridgeTransport {
     Quic,
     Tls,
