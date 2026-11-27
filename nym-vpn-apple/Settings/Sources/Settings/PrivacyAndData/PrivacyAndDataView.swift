@@ -23,18 +23,28 @@ public struct PrivacyAndDataView: View {
             navbar()
             Spacer()
                 .frame(height: 24)
-            VStack(spacing: 0) {
-                logsSection()
-                Spacer()
-                    .frame(height: 24)
-                diagnosticToolSection()
-                Spacer()
-                    .frame(height: 24)
-                statisticsSection()
-                Spacer()
-                    .frame(height: 24)
-                errorReportingSection()
+            ScrollView {
+                VStack(spacing: 0) {
+                    statisticsSection()
+                    Spacer()
+                        .frame(height: 24)
+                    errorReportingSection()
+                    Spacer()
+                        .frame(height: 24)
+#if os(iOS)
+                    diagnosticsSection()
+                    Spacer()
+                        .frame(height: 24)
+#endif
+                    logsSection()
+                    Spacer()
+                        .frame(height: 24)
+                    diagnosticToolSection()
+                }
+                // The screen ignores the bottom safe area, so leave room for the home indicator.
+                .padding(.bottom, 40)
             }
+            .scrollIndicators(.never)
             .frame(maxWidth: MagicNumbers.maxWidth)
             .padding(.horizontal, 16)
             Spacer()
@@ -67,17 +77,12 @@ private extension PrivacyAndDataView {
         )
     }
 
-    @ViewBuilder
     func logsSection() -> some View {
-#if os(iOS)
-        diagnosticsSection()
-        Spacer()
-            .frame(height: 24)
-#endif
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "logs".localizedString,
+                subtitle: "logs.description".localizedString,
                 imageName: "logs",
                 position: SettingsListItemPosition(isFirst: true, isLast: true),
                 action: {
@@ -92,7 +97,7 @@ private extension PrivacyAndDataView {
         // TestFlight builds always log at debug level, so show the toggle locked on.
         let isTestFlight = ConfigurationManager.shared.isTestFlight
         return TelemetryOptInCard(
-            icon: "stethoscope",
+            icon: "doc.text.magnifyingglass",
             title: "welcomeOptIns.diagnostics.title".localizedString,
             subtitle: isTestFlight
                 ? "welcomeOptIns.diagnostics.testFlight".localizedString
@@ -114,17 +119,13 @@ private extension PrivacyAndDataView {
 #endif
 
     func diagnosticToolSection() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.diagnosticTool".localizedString,
-                systemImageName: "waveform.path.ecg.rectangle",
-                position: SettingsListItemPosition(isFirst: true, isLast: true),
-                action: {
-                    navigateToDiagnosticTool()
-                }
-            )
-        )
+        GenericButton(title: "settings.diagnosticTool.run".localizedString)
+            .onTapGesture {
+                navigateToDiagnosticTool()
+            }
+            .accessibilityAction {
+                navigateToDiagnosticTool()
+            }
     }
 
     func statisticsSection() -> some View {

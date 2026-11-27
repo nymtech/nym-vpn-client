@@ -18,6 +18,11 @@ extension GRPCManager {
     }
 
     public func runDiagnostic() async throws -> String? {
-        try await client.runDiagnostic()
+        do {
+            return try await client.runDiagnostic()
+        } catch {
+            logger.error("Diagnostic run failed: \(error)")
+            throw error
+        }
     }
 }

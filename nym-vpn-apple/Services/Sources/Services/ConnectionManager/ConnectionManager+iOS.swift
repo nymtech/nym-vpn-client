@@ -3,6 +3,7 @@ import Combine
 import NetworkExtension
 import os
 import AppSettings
+import Logging
 import ConfigurationManager
 import ConnectionTypes
 import NymLogger
@@ -14,10 +15,12 @@ import TunnelStatus
 
 // MARK: - Setup -
 extension ConnectionManager {
-    static let configLogger = Logger(
+    static let configLogger = os.Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "NymVPN",
         category: "ConnectionManager.config"
     )
+    // swift-log, not os.Logger: only swift-log reaches the log files people share from Logs.
+    static let diagnosticLogger = Logging.Logger(label: "ConnectionManager.diagnostic")
 
     func setupTunnelManagerObservers() {
         tunnelsManager.$isLoaded
@@ -213,16 +216,24 @@ extension ConnectionManager {
 
     @MainActor
     public func runDiagnostic() async -> String? {
-        guard let environment = ConfigurationManager.shared.networkEnv else { return nil }
-        return try? await NymVPNLib.runDiagnostic(
-            params: DiagnosticRunParams(
-                gateway: nil,
-                skipDns: false,
-                skipHttp: false,
-                skipHybridTransport: false
-            ),
-            environment: environment
-        )
+        guard let environment = ConfigurationManager.shared.networkEnv else {
+            Self.diagnosticLogger.error("Diagnostic run skipped: no network environment")
+            return nil
+        }
+        do {
+            return try await NymVPNLib.runDiagnostic(
+                params: DiagnosticRunParams(
+                    gateway: nil,
+                    skipDns: false,
+                    skipHttp: false,
+                    skipHybridTransport: false
+                ),
+                environment: environment
+            )
+        } catch {
+            Self.diagnosticLogger.error("Diagnostic run failed: \(error.localizedDescription)")
+            return nil
+        }
     }
 }
 

@@ -95,6 +95,7 @@ let package = Package(
                 "PathManager",
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "NymLogger", package: "ServicesMutual"),
+                .product(name: "Logging", package: "swift-log"),
                 .product(name: "TunnelStatus", package: "ServicesMutual"),
                 "GatewayManager",
                 "NotificationMessages",

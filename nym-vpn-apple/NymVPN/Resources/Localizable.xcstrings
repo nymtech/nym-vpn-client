@@ -17376,7 +17376,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Logs (stored locally)"
+            "value" : "View & share logs"
           }
         },
         "es" : {
@@ -17661,6 +17661,17 @@
         }
       }
     },
+    "logs.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostic logs stored locally only"
+          }
+        }
+      }
+    },
     "logs.export" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17679,7 +17690,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Export all"
+            "value" : "Share logs"
           }
         },
         "es" : {
@@ -26962,6 +26973,17 @@
         }
       }
     },
+    "settings.diagnosticTool.rerun" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Re-run diagnostics"
+          }
+        }
+      }
+    },
     "settings.diagnosticTool.run" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32716,7 +32738,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your troubleshooting detail"
+            "value" : "Your debug logs"
           }
         }
       }

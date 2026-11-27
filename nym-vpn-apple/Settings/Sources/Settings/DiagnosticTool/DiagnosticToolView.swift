@@ -16,7 +16,9 @@ struct DiagnosticToolView: View {
 
     @Binding private var path: NavigationPath
     @State private var reportText: String?
-    @State private var isLoading = false
+    // Starts true: the run begins as soon as the screen opens, so the first frame is the spinner.
+    @State private var isLoading = true
+    @State private var hasStarted = false
     init(path: Binding<NavigationPath>) {
         _path = path
     }
@@ -29,14 +31,34 @@ struct DiagnosticToolView: View {
             )
             ScrollView {
                 VStack(spacing: 24) {
-                    runButton()
-                    shareButton()
-                    reportSection()
+                    if isLoading {
+                        loadingView()
+                    } else {
+                        rerunButton()
+                        if reportText == nil {
+                            failedText()
+                        } else {
+                            shareButton()
+                            reportSection()
+                        }
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 24)
             }
             .scrollIndicators(.never)
+        }
+        .task {
+            guard !hasStarted else { return }
+            hasStarted = true
+            runDiagnostics()
+        }
+        // The spinner is swapped out with no focus change, so tell VoiceOver how the run ended.
+        // onChange only fires while this page is shown, so a run finishing after leaving stays quiet.
+        .onChange(of: isLoading) { _, loading in
+            guard !loading else { return }
+            let outcome = reportText == nil ? "settings.diagnosticTool.failed" : "settings.diagnosticTool.report"
+            AccessibilityNotification.Announcement(outcome.localizedString).post()
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -48,15 +70,32 @@ struct DiagnosticToolView: View {
 }
 
 private extension DiagnosticToolView {
-    func runButton() -> some View {
-        GenericButton(
-            title: "settings.diagnosticTool.run".localizedString,
-            isLoading: $isLoading
-        )
-        .onTapGesture {
-            guard !isLoading else { return }
-            runDiagnostics()
-        }
+    func loadingView() -> some View {
+        ProgressView()
+            .controlSize(.large)
+            .tint(Color.Nym.primary)
+            .frame(maxWidth: .infinity)
+            .padding(.top, 24)
+    }
+
+    func failedText() -> some View {
+        Text("settings.diagnosticTool.failed".localizedString)
+            .foregroundStyle(Color.Nym.error)
+            .nymTextStyle(.bodyDefault)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    func rerunButton() -> some View {
+        GenericButton(title: "settings.diagnosticTool.rerun".localizedString)
+            .onTapGesture {
+                guard !isLoading else { return }
+                runDiagnostics()
+            }
+            .accessibilityAction {
+                guard !isLoading else { return }
+                runDiagnostics()
+            }
     }
 
     @ViewBuilder
@@ -65,7 +104,7 @@ private extension DiagnosticToolView {
 #if os(macOS)
             GenericButton(
                 title: "settings.diagnosticTool.share".localizedString,
-                style: .accentBorderOnly
+                style: .primaryBorderOnly
             )
             .onTapGesture {
                 exportReport()
@@ -74,7 +113,7 @@ private extension DiagnosticToolView {
             ShareLink(item: reportText) {
                 GenericButton(
                     title: "settings.diagnosticTool.share".localizedString,
-                    style: .accentBorderOnly
+                    style: .primaryBorderOnly
                 )
             }
             .buttonStyle(.plain)
@@ -100,7 +139,7 @@ private extension DiagnosticToolView {
 
                 Text(reportText)
                     .foregroundStyle(Color.Nym.textSecondary)
-                    .nymTextStyle(.bodySmall)
+                    .font(.system(.caption, design: .monospaced))
                     .textSelection(.enabled)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -127,7 +166,6 @@ private extension DiagnosticToolView {
 #endif
             await MainActor.run {
                 reportText = formatJSON(result)
-                    ?? "settings.diagnosticTool.failed".localizedString
                 isLoading = false
             }
         }
