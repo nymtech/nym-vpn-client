@@ -117,13 +117,15 @@ export function NewBottomComponent() {
     }
 
     switch (state) {
+      // blocked (offline-auto-reconnect): the session is still up and holding
+      // traffic, so the button ends it, as on Android and iOS
       case 'connected':
+      case 'offline-auto-reconnect':
         return t('status.connected');
       case 'disconnected':
       case 'unknown':
         return t('status.disconnected');
       case 'connecting':
-      case 'offline-auto-reconnect':
         return t('status.connecting');
       case 'disconnecting':
         return t('status.disconnecting');
