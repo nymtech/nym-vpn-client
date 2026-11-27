@@ -290,6 +290,10 @@
     "account-id-description": "Safe to share. Use this to <support>connect with Nym Support</support>.",
     "device-id": "Device ID",
     "logout": "Log out",
+    "logout-confirm": {
+      "title": "Log out of this device?",
+      "desc": "This disconnects the VPN and removes your account from this device. Without your passphrase, you can't log back in."
+    },
     "your-account": "Your account",
     "account-linked": "Backup login method linked via Privy.",
     "account-not-linked": "<button>Add a social login</button> method to your account.",

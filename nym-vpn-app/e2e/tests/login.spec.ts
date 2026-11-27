@@ -29,7 +29,7 @@ test.describe('Login', () => {
   });
 
   test('logs out correctly', async ({ page }) => {
-    await settingsPage.logoutButton.click();
+    await settingsPage.logout();
 
     await expect(settingsPage.toast).toBeVisible();
     await expect(page).toHaveURL(/\/settings$/);
@@ -37,7 +37,7 @@ test.describe('Login', () => {
   });
 
   test('walks from logout to the passphrase form', async ({ page }) => {
-    await settingsPage.logoutButton.click();
+    await settingsPage.logout();
     await expect(settingsPage.getStartedButton).toBeVisible();
 
     await settingsPage.getStartedButton.click();
@@ -62,7 +62,7 @@ test.describe('Login', () => {
   });
 
   test('logs in correctly', async ({ page }) => {
-    await settingsPage.logoutButton.click();
+    await settingsPage.logout();
     await settingsPage.getStartedButton.click();
     await page.getByRole('button', { name: 'Get Started' }).click();
     await page.getByRole('button', { name: 'Log in to my account' }).click();

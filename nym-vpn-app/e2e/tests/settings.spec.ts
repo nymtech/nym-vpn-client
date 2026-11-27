@@ -76,6 +76,24 @@ test.describe('Settings', () => {
     await expect(settingsPage.logoutButton).toBeHidden();
   });
 
+  test('Log out asks first: Cancel keeps the account, Log out ends it', async () => {
+    await settingsPage.logoutButton.click();
+    await expect(settingsPage.logoutDialogTitle).toBeVisible();
+    await expect(settingsPage.logoutDialog).toContainText(
+      "Without your passphrase, you can't log back in.",
+    );
+
+    await settingsPage.logoutDialog
+      .getByRole('button', { name: 'Cancel' })
+      .click();
+    await expect(settingsPage.logoutDialogTitle).toBeHidden();
+    await expect(settingsPage.row('Your account')).toBeVisible();
+
+    await settingsPage.logout();
+    await expect(settingsPage.getStartedButton).toBeVisible();
+    await expect(settingsPage.logoutButton).toBeHidden();
+  });
+
   test('search finds the account row by its own title', async () => {
     await settingsPage.search('your account');
     await expect(settingsPage.row('Your account')).toBeVisible();

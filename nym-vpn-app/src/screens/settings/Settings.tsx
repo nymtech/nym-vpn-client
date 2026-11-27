@@ -2,7 +2,7 @@ import { ReactNode, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { useAutostart, useLogout, useToast } from '../../hooks';
+import { useAutostart, useToast } from '../../hooks';
 import { routes } from '../../router';
 import { dispatch, useMainState } from '../../store';
 import { useExit } from '../../state';
@@ -14,7 +14,7 @@ import {
   Switch,
   TextInput,
 } from '../../ui';
-import { AccountSettingRow } from './account';
+import { AccountSettingRow, LogoutButton } from './account';
 import { InfoData } from './info-data';
 import SettingsGroup, { Setting } from './SettingsGroup';
 
@@ -31,7 +31,6 @@ function Settings() {
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
   const { exit } = useExit();
-  const { logout, loading: logoutLoading } = useLogout();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const { add } = useToast();
   const [query, setQuery] = useState('');
@@ -329,16 +328,7 @@ function Settings() {
           {t('no-results-found.title', { ns: 'node-location' })}
         </p>
       )}
-      {showLogout && (
-        <Button
-          variant="grey"
-          onClick={() => logout()}
-          disabled={logoutLoading}
-          loading={logoutLoading}
-        >
-          {t('account.logout')}
-        </Button>
-      )}
+      {showLogout && <LogoutButton variant="grey" />}
       {showQuit && (
         <Button variant="destructive" onClick={exit}>
           {t('quit')}

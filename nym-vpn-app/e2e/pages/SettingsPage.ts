@@ -12,6 +12,8 @@ class SettingsPage {
   readonly noResults: Locator;
   readonly accountRow: Locator;
   readonly logoutButton: Locator;
+  readonly logoutDialog: Locator;
+  readonly logoutDialogTitle: Locator;
   readonly accountId: Locator;
   readonly deviceId: Locator;
   readonly getStartedButton: Locator;
@@ -48,6 +50,14 @@ class SettingsPage {
       .getByRole('button', { name: /Your account/ })
       .first();
     this.logoutButton = page.getByRole('button', { name: /Log ?out/i });
+    this.logoutDialog = page.getByRole('dialog', {
+      name: 'Log out of this device?',
+    });
+    // the dialog wrapper has no box of its own, so visibility is read off
+    // its title
+    this.logoutDialogTitle = this.logoutDialog.getByRole('heading', {
+      name: 'Log out of this device?',
+    });
     this.accountId = page.getByText('Account ID', { exact: true });
     this.deviceId = page.getByText('Device ID', { exact: true });
     this.getStartedButton = page.getByRole('button', { name: 'Get started' });
@@ -101,6 +111,13 @@ class SettingsPage {
 
   async search(term: string) {
     await this.searchInput.fill(term);
+  }
+
+  /** Log out, confirming in the dialog that Log out opens. */
+  async logout() {
+    await this.logoutButton.click();
+    await this.logoutDialog.getByRole('button', { name: 'Log out' }).click();
+    await this.logoutDialogTitle.waitFor({ state: 'hidden' });
   }
 
   async openRow(label: string | RegExp) {
