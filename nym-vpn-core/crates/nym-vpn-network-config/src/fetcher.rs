@@ -49,33 +49,57 @@ impl Fetcher {
 
     /// Fetch registered networks from the API.
     pub async fn fetch_registered_networks(&self) -> Result<RegisteredNetworks> {
-        self.vpn_api_client
-            .get_wellknown_envs()
-            .await
-            .map_err(Error::GetWellKnownEnvs)
-            .map(RegisteredNetworks::new)
-            .map(RegisteredNetworks::without_retired)
+        try_each_url(self.discovery.nym_vpn_api_urls().len(), || async {
+            self.vpn_api_client
+                .get_wellknown_envs()
+                .await
+                .map_err(Error::GetWellKnownEnvs)
+        })
+        .await
+        .map(RegisteredNetworks::new)
+        .map(RegisteredNetworks::without_retired)
     }
 
     /// Fetch discovery information from the API.
     pub async fn fetch_discovery(&self, network_name: &str) -> Result<Discovery> {
-        self.vpn_api_client
-            .get_wellknown_discovery(network_name)
-            .await
-            .map_err(Error::GetWellKnownDiscovery)
-            .and_then(Discovery::try_from)
+        try_each_url(self.discovery.nym_vpn_api_urls().len(), || async {
+            self.vpn_api_client
+                .get_wellknown_discovery(network_name)
+                .await
+                .map_err(Error::GetWellKnownDiscovery)
+        })
+        .await
+        .and_then(Discovery::try_from)
     }
 
     /// Fetch network details from the API.
     pub async fn fetch_network_details(&self) -> Result<Box<NymNetworkDetails>> {
-        self.api_client
-            .get_network_details_v2()
-            .await
-            .map(|response| response.network)
-            .map(Box::new)
-            .map_err(Box::new)
-            .map_err(Error::GetNetworkDetails)
+        try_each_url(self.discovery.nym_api_urls().len(), || async {
+            self.api_client
+                .get_network_details_v2()
+                .await
+                .map(|response| response.network)
+                .map(Box::new)
+                .map_err(Box::new)
+                .map_err(Error::GetNetworkDetails)
+        })
+        .await
     }
+}
+
+// A failed call moves the client on to its next host, so one call per url reaches all of them.
+async fn try_each_url<T, Fut>(urls: usize, call: impl Fn() -> Fut) -> Result<T>
+where
+    Fut: Future<Output = Result<T>>,
+{
+    let mut result = call().await;
+    for _ in 1..urls {
+        if result.is_ok() {
+            break;
+        }
+        result = call().await;
+    }
+    result
 }
 
 fn build_api_client(discovery: &Discovery, user_agent: Option<UserAgent>) -> Result<HttpApiClient> {
@@ -99,6 +123,30 @@ fn build_vpn_api_client(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn test_try_each_url_stops_at_the_first_success_or_after_every_url() {
+        use std::cell::Cell;
+
+        // (urls, call that succeeds, calls made, succeeded)
+        for (urls, succeeds_on, calls, ok) in [(3, 2, 2, true), (3, 9, 3, false), (1, 1, 1, true)] {
+            let made = Cell::new(0);
+            let result = try_each_url(urls, || {
+                made.set(made.get() + 1);
+                let call = made.get();
+                async move {
+                    if call >= succeeds_on {
+                        Ok(())
+                    } else {
+                        Err(Error::InvalidDiscoveryNetworking)
+                    }
+                }
+            })
+            .await;
+
+            assert_eq!((made.get(), result.is_ok()), (calls, ok));
+        }
+    }
 
     #[tokio::test]
     async fn test_discovery_fetch() {

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `apply_freepass` no longer returns the subscription, and registers an account the VPN API doesn't know yet (https://github.com/nymtech/nym-vpn-client/pull/7178)
+- The network config uses the discovery API URLs ahead of the nym-api ones, and retries a failed fetch against the next known host (https://github.com/nymtech/nym-vpn-client/pull/7248)
 - Account commands return `RateLimited`, `FreepassInvalid`, `FreepassAlreadyRedeemed` and `RecurringSubscriptionActive` errors instead of raw vpn-api errors (https://github.com/nymtech/nym-vpn-client/pull/7197)
 - uniffi `create_account` takes an optional free pass and redeems it before storing the account; `apply_freepass` is renamed to `redeem_freepass` (https://github.com/nymtech/nym-vpn-client/pull/7235)
 - Quad9 is no longer used as a default DNS server when the user or the exit gateway is in France (https://github.com/nymtech/nym-vpn-client/pull/7246)
