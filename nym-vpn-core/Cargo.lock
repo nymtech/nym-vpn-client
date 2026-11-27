@@ -8062,7 +8062,6 @@ dependencies = [
 name = "nym-vpn-network-config"
 version = "2026.17.0-beta.1"
 dependencies = [
- "async-trait",
  "itertools 0.15.0",
  "nym-common 2026.17.0-beta.1",
  "nym-http-api-client",
@@ -8081,7 +8080,6 @@ dependencies = [
  "tokio-util",
  "tracing",
  "url",
- "wiremock",
 ]
 
 [[package]]
