@@ -73,7 +73,7 @@ class SettingsPage {
     this.invalidDnsError = page.getByText('Invalid DNS address format');
     this.customDnsList = page.getByText(/Custom DNS servers \(\d\/\d\)/);
 
-    this.displayModeRow = page.getByRole('button', { name: /Display mode/ });
+    this.displayModeRow = page.getByRole('button', { name: /Display theme/ });
     this.languageRow = page.getByRole('button', { name: /Language/ });
     this.automaticTheme = page.getByRole('radio', { name: /Automatic/ });
     this.lightTheme = page.getByRole('radio', { name: /Light theme/ });
