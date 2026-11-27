@@ -81,9 +81,11 @@ internal fun ConnectionRings(connectionState: ConnectionState, isBlocked: Boolea
 		animateFloatAsState(fills.middle, sweepSpec, label = "middleSweep"),
 		animateFloatAsState(fills.inner, sweepSpec, label = "innerSweep"),
 	)
+	// stays faded while the fills drain to empty after stopping; full again once a state fills the rings
+	val isFaded = isStopping || fills == RingFills.EMPTY
 	val fillAlpha = animateFloatAsState(
-		targetValue = if (isStopping) STOPPING_ALPHA else 1f,
-		animationSpec = tween(if (isStopping) STOPPING_FADE_MS else 200, easing = FastOutSlowInEasing),
+		targetValue = if (isFaded) STOPPING_ALPHA else 1f,
+		animationSpec = tween(if (isFaded) STOPPING_FADE_MS else 200, easing = FastOutSlowInEasing),
 		label = "fillAlpha",
 	)
 	val blockedTurn = animateLoopAsState(isBlocked && !animationsOff, 0f, 360f, infiniteRepeatable(tween(BLOCKED_TURN_MS, easing = LinearEasing), RepeatMode.Restart))
@@ -107,7 +109,7 @@ internal fun ConnectionRings(connectionState: ConnectionState, isBlocked: Boolea
 				val bounds = Array(RADII.size) { Rect(center = size.center, radius = RADII[it].dp.toPx()) }
 
 				onDrawBehind {
-					val fillColor = if (isStopping) baseFill.copy(alpha = fillAlpha.value) else baseFill
+					val fillColor = baseFill.copy(alpha = baseFill.alpha * fillAlpha.value)
 					val blockedStart = TOP + blockedTurn.value
 
 					if (isStopping) bounds.forEach { ringGlow(it, fillColor, 360f, stoppingGlow.value, glows) }
