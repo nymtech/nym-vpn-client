@@ -39,11 +39,8 @@ pub enum VpnApiClientError {
     )]
     DnsResolution { failures: Vec<DnsResolutionFailure> },
 
-    #[error("the url {url} doesn't parse to a host and/or a port: {reason}")]
-    UrlError { url: url::Url, reason: String },
-
-    #[error("the url {url} is invalid")]
-    InvalidUrl { url: String },
+    #[error("invalid url {url}: {reason}")]
+    InvalidUrl { url: String, reason: String },
 
     #[error("account api client error: {0}")]
     AccountError(#[source] Box<AccountError>),

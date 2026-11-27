@@ -36,15 +36,15 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
 pub async fn url_to_socket_addr(unresolved_url: &url::Url) -> Result<Vec<SocketAddr>> {
     let port = unresolved_url
         .port_or_known_default()
-        .ok_or(VpnApiClientError::UrlError {
-            url: unresolved_url.clone(),
-            reason: "missing port".to_string(),
+        .ok_or(VpnApiClientError::InvalidUrl {
+            url: unresolved_url.to_string(),
+            reason: "missing port".to_owned(),
         })?;
     let hostname = unresolved_url
         .host_str()
-        .ok_or(VpnApiClientError::UrlError {
-            url: unresolved_url.clone(),
-            reason: "missing hostname".to_string(),
+        .ok_or(VpnApiClientError::InvalidUrl {
+            url: unresolved_url.to_string(),
+            reason: "missing hostname".to_owned(),
         })?;
 
     let ips = try_resolve_hostname(hostname).await?;
@@ -60,8 +60,9 @@ pub async fn url_to_socket_addr(unresolved_url: &url::Url) -> Result<Vec<SocketA
 
 /// Get at most one IPv4 and one IPv6 address of the specified URL.
 pub async fn str_to_socket_addr(unresolved_url: &str) -> Result<Vec<SocketAddr>> {
-    let url = url::Url::parse(unresolved_url).map_err(|_e| VpnApiClientError::InvalidUrl {
-        url: unresolved_url.to_string(),
+    let url = url::Url::parse(unresolved_url).map_err(|e| VpnApiClientError::InvalidUrl {
+        url: unresolved_url.to_owned(),
+        reason: e.to_string(),
     })?;
     url_to_socket_addr(&url).await
 }
