@@ -558,7 +558,6 @@
 	<string name="mixnet_tuning_delays_default">Varsayılan\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Mevcut\n%1$s</string>
 	<string name="mixnet_tuning_slider_faster_label">Daha Hızlı</string>
-	<string name="mixnet_tuning_slider_slower_label">Daha yavaş</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Anonimlik</string>
 	<string name="mixnet_tuning_link_text">Mixnet parametreleri hakkında daha fazla bilgi edinin</string>
 	<string name="mixnet_tuning_save_button">Özel ayarları kaydedin</string>

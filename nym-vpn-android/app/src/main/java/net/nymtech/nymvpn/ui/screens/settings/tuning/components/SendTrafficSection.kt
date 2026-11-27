@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,10 +29,9 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import nym_vpn_lib_types.ContinuousTrafficSendingRate
 
-// Reversed so the faster (2 Mbps) rate sits on the LEFT, matching the "Faster" label and the
-// delay slider's "drag-left = faster" direction. The stored value is the rate not the index,
-// so reversing only flips the slider's visual direction.
-private val RATES = ContinuousTrafficSendingRate.entries.reversed()
+// Slowest rate (0.7 Mbps) on the left, fastest (2 Mbps) on the right: a higher rate is a denser
+// cover stream, so "+ Anonymity" sits on the right as on the other tuning sliders.
+private val RATES = ContinuousTrafficSendingRate.entries
 
 @Composable
 fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boolean) -> Unit, trafficRate: ContinuousTrafficSendingRate, onTrafficRateChange: (ContinuousTrafficSendingRate) -> Unit) {
@@ -74,26 +74,34 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 			)
 
 			Column(modifier = Modifier.fillMaxWidth()) {
-				SliderRangeLabels(endLabel = stringResource(R.string.mixnet_tuning_slider_slower_label))
+				SliderRangeLabels(startLabel = stringResource(R.string.mixnet_tuning_slider_less_data_label))
 				DiscreteTuningSlider(
 					items = RATES,
 					selected = trafficRate,
 					onSelectedChange = onTrafficRateChange,
 					interactionSource = interactionSource,
+					modifier = Modifier.alpha(sliderAlpha(trafficEnabled)),
+					enabled = trafficEnabled,
 				)
 			}
 
 			DiscreteRateLabels(
-				labels = listOf(
-					stringResource(R.string.mixnet_tuning_traffic_on_high),
-					stringResource(R.string.mixnet_tuning_traffic_on_balanced),
-					stringResource(R.string.mixnet_tuning_traffic_on_low),
-				),
+				labels = RATES.map { rateLabel(it) },
 				selectedIndex = RATES.indexOf(trafficRate),
+				modifier = Modifier.alpha(sliderAlpha(trafficEnabled)),
 			)
 		}
 	}
 }
+
+@Composable
+private fun rateLabel(rate: ContinuousTrafficSendingRate): String = stringResource(
+	when (rate) {
+		ContinuousTrafficSendingRate.MS30 -> R.string.mixnet_tuning_traffic_on_low
+		ContinuousTrafficSendingRate.MS20 -> R.string.mixnet_tuning_traffic_on_balanced
+		ContinuousTrafficSendingRate.MS10 -> R.string.mixnet_tuning_traffic_on_high
+	},
+)
 
 @Composable
 @Preview

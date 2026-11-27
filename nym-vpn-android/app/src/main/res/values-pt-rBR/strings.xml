@@ -561,7 +561,6 @@
 15 ms</string>
 	<string name="mixnet_tuning_delays_current">Atual\n%1$s ms</string>
 	<string name="mixnet_tuning_slider_faster_label">Mais rápido</string>
-	<string name="mixnet_tuning_slider_slower_label">Mais lento</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Anonimato</string>
 	<string name="mixnet_tuning_link_text">Saiba mais sobre ajuste da mixnet</string>
 	<string name="mixnet_tuning_save_button">Salvar configurações personalizadas</string>

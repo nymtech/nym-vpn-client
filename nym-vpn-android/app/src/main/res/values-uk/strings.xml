@@ -565,7 +565,6 @@
 	<string name="mixnet_tuning_delays_default">За замовчуванням\n15 мс</string>
 	<string name="mixnet_tuning_delays_current">Поточний\n%1$s ms</string>
 	<string name="mixnet_tuning_slider_faster_label">Швидше</string>
-	<string name="mixnet_tuning_slider_slower_label">Працює повільніше</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Анонімність</string>
 	<string name="mixnet_tuning_link_text">Дізнайтеся більше про налаштування Mixnet</string>
 	<string name="mixnet_tuning_save_button">Зберегти власні налаштування</string>

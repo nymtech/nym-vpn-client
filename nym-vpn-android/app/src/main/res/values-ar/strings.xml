@@ -575,7 +575,6 @@
 	<string name="mixnet_tuning_delays_default">إفتراضي\n15 مللي ثانية</string>
 	<string name="mixnet_tuning_delays_current">الحالي\n%1$s مللي ثانية</string>
 	<string name="mixnet_tuning_slider_faster_label">أسرع</string>
-	<string name="mixnet_tuning_slider_slower_label">أبطأ</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ إخفاء الهوية</string>
 	<string name="mixnet_tuning_link_text">تعرف على المزيد حول ضبط Mixnet</string>
 	<string name="mixnet_tuning_save_button">حفظ الإعدادات المخصصة</string>

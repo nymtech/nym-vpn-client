@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -76,21 +77,29 @@ fun BackgroundCoverTrafficSection(enabled: Boolean, onEnable: (enabled: Boolean)
 					selected = rate,
 					onSelectedChange = onRateChange,
 					interactionSource = interactionSource,
+					modifier = Modifier.alpha(sliderAlpha(enabled)),
+					enabled = enabled,
 				)
 			}
 
 			DiscreteRateLabels(
-				labels = listOf(
-					stringResource(R.string.mixnet_tuning_traffic_off_low),
-					stringResource(R.string.mixnet_tuning_traffic_off_balanced),
-					stringResource(R.string.mixnet_tuning_traffic_off_medium),
-					stringResource(R.string.mixnet_tuning_traffic_off_high),
-				),
+				labels = RATES.map { rateLabel(it) },
 				selectedIndex = RATES.indexOf(rate),
+				modifier = Modifier.alpha(sliderAlpha(enabled)),
 			)
 		}
 	}
 }
+
+@Composable
+private fun rateLabel(rate: BackgroundCoverTrafficRate): String = stringResource(
+	when (rate) {
+		BackgroundCoverTrafficRate.MS200 -> R.string.mixnet_tuning_traffic_off_low
+		BackgroundCoverTrafficRate.MS40 -> R.string.mixnet_tuning_traffic_off_balanced
+		BackgroundCoverTrafficRate.MS20 -> R.string.mixnet_tuning_traffic_off_medium
+		BackgroundCoverTrafficRate.MS10 -> R.string.mixnet_tuning_traffic_off_high
+	},
+)
 
 @Composable
 @Preview

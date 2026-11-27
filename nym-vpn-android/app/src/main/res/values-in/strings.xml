@@ -554,7 +554,6 @@
 	<string name="mixnet_tuning_delays_default">Default\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Saat ini\n%1$s ms</string>
 	<string name="mixnet_tuning_slider_faster_label">Lebih cepat</string>
-	<string name="mixnet_tuning_slider_slower_label">Lebih lambat</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Anonimitas</string>
 	<string name="mixnet_tuning_link_text">Pelajari lebih lanjut tentang penyetelan Mixnet</string>
 	<string name="mixnet_tuning_save_button">Simpan pengaturan khusus</string>
