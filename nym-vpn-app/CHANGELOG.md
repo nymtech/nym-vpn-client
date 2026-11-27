@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Home screen: the selected connection mode now shows in the brand colour with an outline, so it is clear which one is on, also in dark mode
+- Home screen: the selected connection mode now shows in the brand colour with an outline, so it is clear which one is on, also in dark mode. In light mode the label takes the darker brand green so it stays readable (https://github.com/nymtech/nym-vpn-client/pull/7189)
 
 ## [2026.16.1] - 2026-11-19
 

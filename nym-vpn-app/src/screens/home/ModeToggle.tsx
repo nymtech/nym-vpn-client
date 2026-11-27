@@ -79,8 +79,10 @@ export const ModeToggle = () => {
             onClick={() => handleSelect(mode.id)}
             className={clsx(
               'relative flex flex-1 cursor-default items-center justify-center gap-1.5 rounded-full px-4.5 py-2.5 text-sm font-bold transition-colors',
+              // light mode takes the darker forest green so the 14px label
+              // reads at 4.5:1 on the pill; dark mode keeps the mint
               isSelected
-                ? 'text-brand-primary'
+                ? 'text-brand-primary-active dark:text-brand-primary'
                 : 'text-text-secondary hover:bg-surface-elev',
             )}
           >
