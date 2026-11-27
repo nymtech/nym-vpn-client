@@ -135,6 +135,7 @@ function DataAndPrivacy() {
         settings={[
           {
             title: t('logs.title'),
+            desc: t('logs.desc'),
             leadingIcon: 'sort',
             trailing: (
               <MsIcon icon="chevron_right" className="text-text-primary" />
