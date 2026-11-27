@@ -87,7 +87,7 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
     // Redeemed before storing, so a rejected free pass leaves no account behind.
     if let Some(code) = freepass {
         shared_state
-            .vpn_api_client
+            .vpn_api_client()
             .redeem_freepass(&vpn_account, code)
             .await?;
         tracing::debug!("Free pass redeemed, account registered with API");
@@ -121,7 +121,7 @@ pub(crate) async fn handle_register_account<C: ConnectivityMonitor>(
     let vpn_account = VpnAccount::try_from(account.clone())
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
     let account_token = shared_state
-        .vpn_api_client
+        .vpn_api_client()
         .register_account(&vpn_account, platform)
         .await?
         .account_token;
@@ -139,7 +139,7 @@ pub(crate) async fn handle_redeem_freepass<C: ConnectivityMonitor>(
     let vpn_account = VpnAccount::try_from(account)
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
     shared_state
-        .vpn_api_client
+        .vpn_api_client()
         .redeem_freepass(&vpn_account, code)
         .await?;
 
@@ -176,7 +176,7 @@ pub(crate) async fn handle_delete_account<C: ConnectivityMonitor>(
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
-    match shared_state.vpn_api_client.delete_account(account).await {
+    match shared_state.vpn_api_client().delete_account(account).await {
         Ok(_account_response) => tracing::info!("Account has been deleted"),
         // An account that was never registered only exists on this device
         Err(err) if err.is_account_not_found() => {
@@ -278,7 +278,7 @@ pub(crate) async fn handle_link_account<C: ConnectivityMonitor>(
         tracing::info!("Linking Privy account with API account");
 
         let _status_ok = shared_state
-            .vpn_api_client
+            .vpn_api_client()
             .link_account(current_account, &privy_vpn_account, "Social login")
             .await
             .inspect_err(|err| {
@@ -393,7 +393,7 @@ pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
         .ok_or(AccountCommandError::NoAccountStored)?;
 
     if let Err(e) = shared_state
-        .vpn_api_client
+        .vpn_api_client()
         .update_device(account, device, DeviceStatus::DeleteMe)
         .await
     {

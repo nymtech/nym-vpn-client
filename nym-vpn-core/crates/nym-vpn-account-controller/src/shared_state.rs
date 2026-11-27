@@ -9,7 +9,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, VpnAccountSummary};
-use std::sync::Arc;
+use std::sync::{Arc, PoisonError, RwLock};
 
 use nym_vpn_credential_fetcher::VpnApiCredentialFetcher;
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
@@ -36,8 +36,8 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// Wireguard keys database storage
     pub(crate) wireguard_keys_storage: WireguardKeysDb,
 
-    /// VPN API client
-    pub(crate) vpn_api_client: VpnApiClient,
+    /// VPN API client, replaced when the network environment changes
+    vpn_api_client: Arc<RwLock<VpnApiClient>>,
 
     /// Nyxd RPC client
     pub(crate) nyxd_client: NyxdClient,
@@ -83,7 +83,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         bandwidth_control_command_tx: BandwidthControllerRequestSender,
         config: AccountControllerConfig,
         wireguard_keys_storage: WireguardKeysDb,
-        vpn_api_client: VpnApiClient,
+        vpn_api_client: Arc<RwLock<VpnApiClient>>,
         nyxd_client: NyxdClient,
         vpn_api_account: Option<VpnAccount>,
         vpn_account_summary: Option<VpnAccountSummary>,
@@ -93,7 +93,12 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         cancel_token: CancellationToken,
     ) -> Self {
         let deeplinks = Deeplinks::default();
-        let qr_pairing_handler = QrPairingHandler::new(vpn_api_client.clone());
+        let qr_pairing_handler = QrPairingHandler::new(
+            vpn_api_client
+                .read()
+                .unwrap_or_else(PoisonError::into_inner)
+                .clone(),
+        );
 
         Self {
             connectivity_handle,
@@ -113,6 +118,17 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             qr_pairing_handler,
             cancel_token,
         }
+    }
+
+    pub(crate) fn vpn_api_client_handle(&self) -> Arc<RwLock<VpnApiClient>> {
+        self.vpn_api_client.clone()
+    }
+
+    pub(crate) fn vpn_api_client(&self) -> VpnApiClient {
+        self.vpn_api_client
+            .read()
+            .unwrap_or_else(PoisonError::into_inner)
+            .clone()
     }
 
     // Set the firewall_active flag to `active`. Returns wethere the status had to be updated or not
@@ -146,7 +162,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         };
 
         let fetcher = match VpnApiCredentialFetcher::new(
-            self.vpn_api_client.clone(),
+            self.vpn_api_client(),
             account,
             device,
             self.config.data_dir.clone(),

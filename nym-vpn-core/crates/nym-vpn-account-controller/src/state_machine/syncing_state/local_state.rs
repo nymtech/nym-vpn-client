@@ -96,7 +96,7 @@ impl SyncingLocalState {
             return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await;
         }
 
-        let vpn_api_client = shared_state.vpn_api_client.clone();
+        let vpn_api_client = shared_state.vpn_api_client();
 
         let (result_tx, result_rx) = oneshot::channel();
         let sync_cancel_token = CancellationToken::new();

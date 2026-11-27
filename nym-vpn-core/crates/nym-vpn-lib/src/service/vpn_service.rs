@@ -376,6 +376,10 @@ pub struct NymVpnService {
     // Send commands to the account controller
     account_command_tx: AccountCommandSender,
 
+    // Replace the account controller's VPN API client when the network changes
+    vpn_api_client: Arc<std::sync::RwLock<nym_vpn_api_client::VpnApiClient>>,
+    skew_manager: nym_vpn_api_client::SkewManager,
+
     // Receive state from account controller,
     account_state_rx: AccountStateReceiver,
 
@@ -658,6 +662,7 @@ impl NymVpnService {
 
         // These are used to interact with the account controller
         let account_command_tx = account_controller.get_command_sender();
+        let vpn_api_client_handle = account_controller.get_vpn_api_client_handle();
         let account_state_rx = account_controller.get_state_receiver();
         let wireguard_keys_db = account_controller.get_wireguard_keys_storage();
         let account_controller_handle = tokio::task::spawn(account_controller.run());
@@ -831,7 +836,7 @@ impl NymVpnService {
             account_command_tx: account_command_tx.clone(),
             account_state_rx: account_state_rx.clone(),
             bandwidth_command_tx: bandwidth_command_tx.clone(),
-            skew_manager,
+            skew_manager: skew_manager.clone(),
             statistics_event_sender: statistics_event_sender.clone(),
             topology_service: topology_service.clone(),
             connectivity_handle,
@@ -861,6 +866,8 @@ impl NymVpnService {
             tunnel_event_tx,
             log_file_remover_handle,
             account_command_tx,
+            vpn_api_client: vpn_api_client_handle,
+            skew_manager,
             account_state_rx,
             bandwidth_command_tx,
             target_state: TargetState::Unsecured,
@@ -1142,6 +1149,22 @@ impl NymVpnService {
         }
 
         tracing::info!("Network environment updated");
+
+        match nym_vpn_api_client::VpnApiClient::from_network(
+            new_network.nym_network_details(),
+            Some(self.user_agent.clone()),
+        )
+        .await
+        {
+            Ok(client) => {
+                *self
+                    .vpn_api_client
+                    .write()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner) =
+                    client.with_skew_manager(self.skew_manager.clone());
+            }
+            Err(err) => tracing::warn!("Failed to rebuild the VPN API client: {err}"),
+        }
 
         // Point the gateway client at the refreshed API endpoints
         crate::cache_refresh::update_caches_for_network(
