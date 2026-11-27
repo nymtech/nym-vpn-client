@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Analytics
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -19,16 +21,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.TelemetryInfoKind
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
+import net.nymtech.nymvpn.ui.theme.iconSize
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 /**
  * Shared card for a telemetry opt-in toggle on the Data & privacy screen:
- * title + info button, subtitle, an optional warning line, and a switch. Used by
+ * leading icon (same as onboarding), title + info button, subtitle, an optional
+ * warning line, and a switch. Used by
  * the connection (network stats) and monitoring (crash reports) sections so they
  * don't each duplicate the layout.
  */
@@ -55,6 +61,15 @@ fun TelemetryToggleCard(
 			horizontalArrangement = Arrangement.SpaceBetween,
 			verticalAlignment = Alignment.CenterVertically,
 		) {
+			// Decorative: the title beside it already names the card for TalkBack.
+			Icon(
+				kind.icon(),
+				contentDescription = null,
+				modifier = Modifier
+					.padding(end = 16.dp.scaledWidth())
+					.size(iconSize.scaledWidth()),
+				tint = MaterialTheme.colorScheme.onSurfaceVariant,
+			)
 			Column(modifier = Modifier.weight(1f)) {
 				Row(verticalAlignment = Alignment.CenterVertically) {
 					Text(
@@ -65,11 +80,14 @@ fun TelemetryToggleCard(
 					)
 					IconButton(
 						onClick = { onInfo(kind) },
-						modifier = Modifier.size(24.dp),
+						modifier = Modifier
+							.padding(start = 8.dp)
+							.size(24.dp),
 					) {
 						Icon(
 							Icons.Outlined.Info,
 							contentDescription = stringResource(R.string.optin_info_accessibility, title),
+							modifier = Modifier.size(18.dp),
 							tint = MaterialTheme.colorScheme.onBackground,
 						)
 					}
@@ -93,4 +111,9 @@ fun TelemetryToggleCard(
 			)
 		}
 	}
+}
+
+private fun TelemetryInfoKind.icon(): ImageVector = when (this) {
+	TelemetryInfoKind.CONNECTION -> Icons.Outlined.Analytics
+	TelemetryInfoKind.MONITORING -> Icons.Outlined.BugReport
 }

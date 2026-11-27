@@ -66,6 +66,14 @@ class NymVpn : Application() {
 		lateinit var instance: NymVpn
 			private set
 
+		/**
+		 * The core debug-log flag as this process first read it. The core sets its log level once
+		 * per process, so the logging card compares the chosen level with this to know a restart is due.
+		 */
+		@Volatile
+		var coreDebugLogAtStart: Boolean? = null
+			private set
+
 		fun getCPUArchitecture(): String = when (Build.SUPPORTED_ABIS.firstOrNull()) {
 			"arm64-v8a" -> "ARM64"
 			"armeabi-v7a" -> "ARM32"
@@ -136,6 +144,7 @@ class NymVpn : Application() {
 			}
 				.distinctUntilChanged()
 				.collect { (enabled, debugEnabled) ->
+					if (coreDebugLogAtStart == null) coreDebugLogAtStart = debugEnabled
 					applyLoggingConfig(enabled, debugEnabled)
 					if (enabled) {
 						ensureLogReaderStarted()

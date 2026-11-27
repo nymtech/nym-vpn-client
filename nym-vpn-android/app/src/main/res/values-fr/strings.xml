@@ -16,7 +16,6 @@
 	<string name="search">Rechercher</string>
 	<string name="is_selected">Sélectionné</string>
 	<string name="fastest">Le plus rapide</string>
-	<string name="logs">Logs</string>
 	<string name="support">Assistance</string>
 	<string name="terms_of_use">Conditions d\'utilisation</string>
 	<string name="privacy_policy">Politique de confidentialité</string>
@@ -251,7 +250,6 @@
 	<string name="settings_notifications_title">Notifications</string>
 	<string name="settings_power_managment_title">Gestion de l\'alimentation</string>
 	<string name="settings_shortcuts_title">Raccourcis de l\'application</string>
-	<string name="settings_logs_title">Logs &amp; données</string>
 	<string name="settings_legal_title">Mentions légales</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Certaines plages d\'adresses IP se connectent directement</string>
@@ -474,26 +472,15 @@
 	<string name="pin_code_copied">Copié !</string>
 	<string name="clipboard_sensitive_copied">Copié. Je vais essayer de vider le presse-papiers dans %1$d secondes</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">Activer les logs</string>
-	<string name="logs_enable_description">Activez pour le dépannage. Désactivez pour la confidentialité. Les logs restent sur votre appareil. Nym n\'y a jamais accès.</string>
-	<string name="logs_debug_enable_title">Activer la journalisation de débogage</string>
-	<string name="logs_debug_enable_description">Activez pour obtenir des logs DEBUG détaillés pour le débogage autonome ou le support. Augmente la consommation de batterie. La taille des logs peut être multipliée par 10.</string>
 	<string name="logs_tab_app">Application</string>
 	<string name="logs_tab_tunnel">Tunnel</string>
 	<string name="logs_tab_library">Bibliothèque</string>
 	<string name="logs_empty_placeholder">Aucun log pour l\'instant</string>
-	<string name="logs_share">Partager</string>
-	<string name="logs_download">Télécharger</string>
 	<string name="logs_delete">Supprimer</string>
 	<string name="logs_delete_title">Supprimer les logs NymVPN ?</string>
 	<string name="logs_delete_description">La suppression des logs améliore la confidentialité mais empêche le service d\'assistance de diagnostiquer vos problèmes de connexion.</string>
 	<string name="logs_delete_button">Supprimer les logs</string>
-	<string name="logs_share_title">Partager les logs NymVPN ?</string>
 	<string name="logs_share_description">Les fichiers de logs partagés peuvent être consultés par les destinataires et toute personne avec qui ils les partagent.</string>
-	<string name="logs_share_button">Partager quand même</string>
-	<string name="logs_download_title">Enregistrer les logs NymVPN en tant que fichier ?</string>
-	<string name="logs_download_description">Les logs enregistrés peuvent être consultés par d\'autres applications ou par toute personne ayant accès aux fichiers de votre appareil.</string>
-	<string name="logs_download_button">Enregistrer le fichier quand même</string>
 	<string name="logs_saved">Logs enregistrés dans le dossier Téléchargements</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_search_apps_hint">Rechercher des applications</string>
@@ -568,7 +555,6 @@
 	<string name="diagnostic_report_title">Rapport de diagnostic</string>
 	<string name="diagnostic_copy_report">Copier le rapport</string>
 	<string name="diagnostic_copied">Copié dans le presse-papiers</string>
-	<string name="diagnostic_error">Échec du diagnostic</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Protégez-vous des arnaques</string>
 	<string name="support_protect_description">Contactez le service d\'assistance de NymVPN uniquement via les canaux officiels listés ci-dessous. Nous ne vous demanderons jamais votre phrase de passe et ne vous contacterons jamais en premier via des messages directs.\n\nUn contact non sollicité ? C\'est probablement une arnaque.</string>

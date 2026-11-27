@@ -35,7 +35,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
 import net.nymtech.nymvpn.ui.screens.main.profiles.ProfilesPanel
-import net.nymtech.nymvpn.ui.screens.settings.logs.modal.LogsActionsMenu
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
@@ -49,7 +48,6 @@ fun NavBar(
 	onBackClick: (Route) -> Unit = {},
 	onNavBarEvent: (NavBarEvent) -> Unit = {},
 	serverLocationIsExit: Boolean = false,
-	logsEnabled: Boolean = false,
 	selectedProfile: Profile? = null,
 	onProfileClick: () -> Unit = {},
 	onProfileSelect: (Profile) -> Unit = {},
@@ -75,7 +73,7 @@ fun NavBar(
 	LaunchedEffect(navBarState) {
 		if (navBarState !is NavBarState.Main) profilesExpanded = false
 	}
-	LaunchedEffect(currentRoute, hideBackButton, logsEnabled, serverLocationIsExit, selectedProfile) {
+	LaunchedEffect(currentRoute, hideBackButton, serverLocationIsExit, selectedProfile) {
 		keyboardController?.hide()
 		val route = currentRoute ?: return@LaunchedEffect
 
@@ -114,17 +112,8 @@ fun NavBar(
 			)
 
 			route.startsWith(Route.Logs::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = R.string.logs,
+				titleRes = R.string.local_logs,
 				onBack = { navController.safePopBackStack() },
-				trailing = if (logsEnabled) {
-					NavBarState.Trailing.LogsMenu(
-						onDownload = { onNavBarEvent(NavBarEvent.LogsDownloadClicked) },
-						onShare = { onNavBarEvent(NavBarEvent.LogsShareClicked) },
-						onDelete = { onNavBarEvent(NavBarEvent.LogsDeleteClicked) },
-					)
-				} else {
-					NavBarState.Trailing.None
-				},
 			)
 
 			route.startsWith(Route.Support::class.qualifiedName!!) -> NavBarState.WithBack(
@@ -309,11 +298,6 @@ fun NavBar(
 								icon = Icons.Outlined.Info,
 								description = stringResource(R.string.info),
 								onClick = trailing.onClick,
-							)
-							is NavBarState.Trailing.LogsMenu -> LogsActionsMenu(
-								onDownload = trailing.onDownload,
-								onShare = trailing.onShare,
-								onDelete = trailing.onDelete,
 							)
 							NavBarState.Trailing.None -> {}
 						}

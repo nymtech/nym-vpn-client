@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,18 +23,31 @@ import javax.inject.Inject
 @HiltViewModel
 class DiagnosticViewModel @Inject constructor(private val backendManager: BackendManager, @IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
 
-	private val _uiState = MutableStateFlow(DiagnosticUiState())
+	// Starts loading: the run begins as soon as the screen opens, so the first frame is the spinner.
+	private val _uiState = MutableStateFlow(DiagnosticUiState(isLoading = true))
 	val uiState: StateFlow<DiagnosticUiState> = _uiState.asStateFlow()
 
-	fun runDiagnostics() = viewModelScope.launch(ioDispatcher) {
-		_uiState.update { it.copy(isLoading = true, error = null) }
-		runCatching {
-			backendManager.runDiagnostic()
-		}.onSuccess { report ->
-			_uiState.update { it.copy(isLoading = false, report = report) }
-		}.onFailure { t ->
-			Timber.e(t, "DiagnosticsRunFailed")
-			_uiState.update { it.copy(isLoading = false, error = t.message) }
+	private var runJob: Job? = null
+
+	init {
+		runDiagnostics()
+	}
+
+	fun runDiagnostics() {
+		// Ignore a tap while a run is active; loading is set here, not in the coroutine, so the button hides at once.
+		if (runJob?.isActive == true) return
+		_uiState.update { it.copy(isLoading = true, report = null) }
+		runJob = viewModelScope.launch(ioDispatcher) {
+			runCatching {
+				backendManager.runDiagnostic()
+			}.onSuccess { report ->
+				// Most failures arrive here as no report rather than an exception (core not ready, or a swallowed error).
+				if (report == null) Timber.w("DiagnosticsRunNoReport")
+				_uiState.update { it.copy(isLoading = false, report = report) }
+			}.onFailure { t ->
+				Timber.e(t, "DiagnosticsRunFailed")
+				_uiState.update { it.copy(isLoading = false) }
+			}
 		}
 	}
 

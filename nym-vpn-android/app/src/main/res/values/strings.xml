@@ -18,7 +18,6 @@
 	<string name="search">Search</string>
 	<string name="is_selected">Selected</string>
 	<string name="fastest">Fastest</string>
-	<string name="logs">Logs</string>
 	<string name="support">Support</string>
 	<string name="privacy_link" translatable="false">https://nym.com/vpn-privacy-statement</string>
 	<string name="terms_of_use">Terms of use</string>
@@ -107,7 +106,8 @@
 	<string name="try_another_server_name">Try another location or check the server name.</string>
 	<string name="docs_url" translatable="false">https://nym.com/docs</string>
 	<string name="servers">servers</string>
-	<string name="local_logs">Logs (stored locally)</string>
+	<string name="local_logs">View &amp; share logs</string>
+	<string name="local_logs_description">Diagnostic logs stored locally only</string>
 	<string name="logging_out">Logging out</string>
 	<string name="app_update_required">Your app is no longer supported. Please update to the latest version to continue
         using NymVPN.
@@ -271,7 +271,6 @@
 	<string name="settings_notifications_title">Notifications</string>
 	<string name="settings_power_managment_title">Power management</string>
 	<string name="settings_shortcuts_title">App shortcuts</string>
-	<string name="settings_logs_title">Logs &amp; data</string>
 	<string name="settings_legal_title">Legal</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Specific IP ranges connect directly</string>
@@ -526,26 +525,26 @@
 	<string name="pin_code_copied">Copied!</string>
 	<string name="clipboard_sensitive_copied">Copied. Will try to clear clipboard in %1$d seconds</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">Enable logging</string>
-	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>
-	<string name="logs_debug_enable_title">Enable debug logging</string>
-	<string name="logs_debug_enable_description">Turn on for detailed DEBUG logs for self-debugging or support. Increases battery consumption. Log size may grow up to 10x.</string>
 	<string name="logs_tab_app">App</string>
 	<string name="logs_tab_tunnel">Tunnel</string>
 	<string name="logs_tab_library">Library</string>
 	<string name="logs_empty_placeholder">No logs yet</string>
-	<string name="logs_share">Share</string>
-	<string name="logs_download">Download</string>
+	<string name="logs_level_title">Your app logs</string>
+	<string name="logs_level_off">Off</string>
+	<string name="logs_level_basic">Basic</string>
+	<string name="logs_level_debug">Debug</string>
+	<string name="logs_level_off_description">The app keeps no log of its own. The VPN still keeps a minimal log, on this device only.</string>
+	<string name="logs_level_basic_description">Keeps a record of what the app does, on this device only. Nym never has access.</string>
+	<string name="logs_level_debug_description">Adds detail for troubleshooting. Uses more battery, and logs can grow up to 10x larger.</string>
+	<string name="logs_share_logs">Share logs</string>
+	<string name="logs_save_logs">Save logs</string>
+	<string name="logs_show_live">Show live logs</string>
+	<string name="logs_off_hint">App logging is off. Turn it on in Data, privacy &amp; logs.</string>
 	<string name="logs_delete">Delete</string>
 	<string name="logs_delete_title">Delete NymVPN logs?</string>
 	<string name="logs_delete_description">Deleting logs improves privacy but prevents Support from diagnosing your connection issues.</string>
 	<string name="logs_delete_button">Delete logs</string>
-	<string name="logs_share_title">Share NymVPN logs?</string>
 	<string name="logs_share_description">Shared log files can be viewed by recipients and anyone they share them with.</string>
-	<string name="logs_share_button">Share anyway</string>
-	<string name="logs_download_title">Save NymVPN logs as file?</string>
-	<string name="logs_download_description">Saved logs may be accessed by other apps or anyone with access to your device\'s storage.</string>
-	<string name="logs_download_button">Save as file anyway</string>
 	<string name="logs_saved">Logs saved to your Downloads folder"</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_exclude_warning">Direct apps and their DNS lookups aren\'t protected by NymVPN.</string>
@@ -619,11 +618,12 @@
 	<string name="mixnet_tuning_restore_button">Restore default settings</string>
 	<!-- Diagnostic screen -->
 	<string name="diagnostic_run_button">Run diagnostics</string>
+	<string name="diagnostic_rerun_button">Re-run diagnostics</string>
 	<string name="diagnostic_share_button">Share report</string>
 	<string name="diagnostic_report_title">Diagnostic report</string>
 	<string name="diagnostic_copy_report">Copy report</string>
 	<string name="diagnostic_copied">Copied to clipboard</string>
-	<string name="diagnostic_error">Diagnostics failed</string>
+	<string name="diagnostic_failed">Failed to run diagnostics. Please try again.</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Protect yourself from scams</string>
 	<string name="support_protect_description">Only contact NymVPN support through the official channels listed below. We will never ask for your passphrase or contact you first via direct messages.\n\nReceived unexpected contact? It\'s likely a scam.</string>

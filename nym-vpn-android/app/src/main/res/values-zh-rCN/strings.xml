@@ -16,7 +16,6 @@
 	<string name="search">搜索</string>
 	<string name="is_selected">已选中</string>
 	<string name="fastest">最快</string>
-	<string name="logs">日志</string>
 	<string name="support">支持</string>
 	<string name="terms_of_use">使用条款</string>
 	<string name="privacy_policy">隐私声明</string>
@@ -251,7 +250,6 @@
 	<string name="settings_notifications_title">通知</string>
 	<string name="settings_power_managment_title">电量管理</string>
 	<string name="settings_shortcuts_title">应用快捷方式</string>
-	<string name="settings_logs_title">日志和数据</string>
 	<string name="settings_legal_title">法律</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">特定 IP 范围直接连接</string>
@@ -472,26 +470,15 @@
 	<string name="pin_code_copied">已复制！</string>
 	<string name="clipboard_sensitive_copied">已复制。将在 %1$d 秒后尝试清空剪贴板</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">启用日志记录</string>
-	<string name="logs_enable_description">启用该功能以排查故障。出于隐私保护请禁用该功能。日志保存在您的设备上。Nym 永远没有访问权限。</string>
-	<string name="logs_debug_enable_title">启用日志调试</string>
-	<string name="logs_debug_enable_description">开启详细的故障排查日志以进行自调试或支持。增加电池消耗。日志文件大小可能会增加超过十倍。</string>
 	<string name="logs_tab_app">应用</string>
 	<string name="logs_tab_tunnel">隧道</string>
 	<string name="logs_tab_library">库</string>
 	<string name="logs_empty_placeholder">暂无记录</string>
-	<string name="logs_share">分享</string>
-	<string name="logs_download">下载</string>
 	<string name="logs_delete">删除</string>
 	<string name="logs_delete_title">你要删除 NymVPN 日志吗？</string>
 	<string name="logs_delete_description">删除日志可以改善隐私，但是也会导致 Nym 团队无法使用日志诊断您的连接问题。</string>
 	<string name="logs_delete_button">删除日志</string>
-	<string name="logs_share_title">要分享 NymVPN 日志吗？</string>
 	<string name="logs_share_description">共享的日志文件可以被收件人和他们共享的任何人查看。</string>
-	<string name="logs_share_button">仍然分享</string>
-	<string name="logs_download_title">要把 NymVPN 日志另存为文件？</string>
-	<string name="logs_download_description">另存为的日志文件可能会被其他任何具有你的设备存储访问权限的应用程序或其他人访问。</string>
-	<string name="logs_download_button">仍然保存为文件</string>
 	<string name="logs_saved">保存日志到下载文件夹</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_search_apps_hint">搜索应用</string>
@@ -566,7 +553,6 @@
 	<string name="diagnostic_report_title">诊断报告</string>
 	<string name="diagnostic_copy_report">复制</string>
 	<string name="diagnostic_copied">已复制到剪贴板</string>
-	<string name="diagnostic_error">诊断失败</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️  保护您自己免遭诈骗</string>
 	<string name="support_protect_description">请使用以下列出的渠道联系 Nym 支持团队。我们从来不会索要您的助记词或者主动通过私信联系您。\n\n收到预料之外的消息？很有可能是诈骗。</string>

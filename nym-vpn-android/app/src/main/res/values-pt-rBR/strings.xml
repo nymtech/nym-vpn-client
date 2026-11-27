@@ -16,7 +16,6 @@
 	<string name="search">Pesquisar</string>
 	<string name="is_selected">Selecionado</string>
 	<string name="fastest">Mais rápido</string>
-	<string name="logs">Registros</string>
 	<string name="support">Suporte</string>
 	<string name="terms_of_use">Termos de uso</string>
 	<string name="privacy_policy">Declaração de privacidade</string>
@@ -253,7 +252,6 @@
 	<string name="settings_notifications_title">Notificações</string>
 	<string name="settings_power_managment_title">Gerenciamento de energia</string>
 	<string name="settings_shortcuts_title">Atalhos de aplicativos</string>
-	<string name="settings_logs_title">Registros &amp; dados</string>
 	<string name="settings_legal_title">Jurídico</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Intervalos específicos de IP se conectam diretamente</string>
@@ -477,26 +475,15 @@
 	<string name="pin_code_copied">Copiado!</string>
 	<string name="clipboard_sensitive_copied">Copiado. Vou tentar limpar a área de transferência em %1$d segundos</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">Ativar registros</string>
-	<string name="logs_enable_description">Ative para solucionar problemas. Desative para mais privacidade. Os registros ficam no seu dispositivo. A Nym nunca tem acesso.</string>
-	<string name="logs_debug_enable_title">Habilitar log de depuração</string>
-	<string name="logs_debug_enable_description">Ative para registros detalhados de depuração. Aumenta o consumo de bateria. O tamanho dos registros pode crescer até 10x.</string>
 	<string name="logs_tab_app">Aplicativo</string>
 	<string name="logs_tab_tunnel">Túnel</string>
 	<string name="logs_tab_library">Biblioteca</string>
 	<string name="logs_empty_placeholder">Ainda não há registros</string>
-	<string name="logs_share">Compartilhar</string>
-	<string name="logs_download">Baixar</string>
 	<string name="logs_delete">Deletar</string>
 	<string name="logs_delete_title">Excluir registros da NymVPN?</string>
 	<string name="logs_delete_description">Excluir os registros melhora sua privacidade, mas impede o suporte de diagnosticar problemas de conexão.</string>
 	<string name="logs_delete_button">Excluir registros</string>
-	<string name="logs_share_title">Compartilhar logs da NymVPN?</string>
 	<string name="logs_share_description">Arquivos de registro compartilhados podem ser vistos pelos destinatários e por qualquer pessoa com quem forem compartilhados.</string>
-	<string name="logs_share_button">Compartilhar mesmo assim</string>
-	<string name="logs_download_title">Salvar registros da NymVPN como arquivo?</string>
-	<string name="logs_download_description">Registros salvos podem ser acessados por outros apps ou por qualquer pessoa com acesso ao armazenamento do seu dispositivo.</string>
-	<string name="logs_download_button">Salvar como arquivo mesmo assim</string>
 	<string name="logs_saved">Registros salvos na pasta de downloads</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_search_apps_hint">Pesquisar aplicativos</string>
@@ -572,7 +559,6 @@
 	<string name="diagnostic_report_title">Relatório de diagnóstico</string>
 	<string name="diagnostic_copy_report">Copiar relatório</string>
 	<string name="diagnostic_copied">Copiado para área de transferência</string>
-	<string name="diagnostic_error">Falha no diagnóstico</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Proteja-se dos golpes</string>
 	<string name="support_protect_description">Use apenas os canais oficiais listados abaixo para falar com o suporte NymVPN. Nunca pediremos sua frase secreta nem entraremos em contato por mensagem direta.

@@ -8,11 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Data, privacy & logs: the Settings entry is renamed from "Logs & data", the screen is reordered to match iOS and desktop, and Run diagnostics now sits on it and starts the run as soon as the diagnostic screen opens (https://github.com/nymtech/nym-vpn-client/pull/7244)
+- Data, privacy & logs: logging is now one choice, Off, Basic or Debug, next to the other data choices. The Logs screen keeps Share logs, Save, Delete and the live view (https://github.com/nymtech/nym-vpn-client/pull/7244)
 - Free pass errors come from the core instead of matching API responses in the app (https://github.com/nymtech/nym-vpn-client/pull/7197)
 - QR sign-in: take PIN code from event stream instead of return value of library call (https://github.com/nymtech/nym-vpn-client/pull/7193)
 - Split tunneling shows one warning above the app list instead of two notes (https://github.com/nymtech/nym-vpn-client/pull/7230)
 
 ### Fixed
+- Diagnostics: a failed run now says "Failed to run diagnostics. Please try again." instead of showing raw error text, including when a run ends without a report (https://github.com/nymtech/nym-vpn-client/pull/7244)
 - Home screen: the selected connection mode now has an outline in the brand colour, so it is clear which one is on, also in dark mode
 
 ## [2026.16.0] - 2026-11-18

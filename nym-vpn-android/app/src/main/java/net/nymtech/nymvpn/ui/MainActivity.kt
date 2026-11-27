@@ -210,7 +210,6 @@ class MainActivity : AppCompatActivity() {
 									onBackClick = { onBackClickEventFromRoute = it },
 									onNavBarEvent = { navBarEvent = it },
 									serverLocationIsExit = serverLocationIsExit,
-									logsEnabled = appState.settings.logsEnabled,
 									selectedProfile = appState.currentProfile,
 									onProfileSelect = appViewModel::onProfileSelected,
 									onMainSettingsClick = { navController.goFromRoot(Route.Settings(false)) },
@@ -280,11 +279,7 @@ class MainActivity : AppCompatActivity() {
 								}
 
 								composable<Route.Logs> {
-									LogsScreen(
-										appUiState = appState,
-										navBarEvent = navBarEvent,
-										onNavBarEventConsume = consumeNavBarEvent,
-									)
+									LogsScreen(appUiState = appState)
 								}
 
 								composable<Route.Support> { SupportScreen() }

@@ -16,7 +16,6 @@
 	<string name="search">খুঁজুন </string>
 	<string name="is_selected">নির্বাচিত </string>
 	<string name="fastest">দ্ৰুততম</string>
-	<string name="logs">লগস </string>
 	<string name="support">সহায়তা</string>
 	<string name="terms_of_use">ব্যবহারের শর্তাবলী</string>
 	<string name="privacy_policy">গোপনীয়তা বিবৃতি</string>
@@ -251,7 +250,6 @@
 	<string name="settings_notifications_title">বিজ্ঞপ্তি</string>
 	<string name="settings_power_managment_title">বিদ্যুৎ ব্যবস্থাপনা</string>
 	<string name="settings_shortcuts_title">অ্যাপ শর্টকাট</string>
-	<string name="settings_logs_title">লগস &amp; ডেটা</string>
 	<string name="settings_legal_title">আইনি</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">নির্দিষ্ট আইপি পরিসর সরাসরি সংযুক্ত করে</string>
@@ -474,26 +472,15 @@
 	<string name="pin_code_copied">কপি করা হয়েছে!</string>
 	<string name="clipboard_sensitive_copied">কপি করা হয়েছে। %1$d সেকেন্ডে ক্লিপবোর্ড পরিষ্কার করার চেষ্টা করব</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">লগিং চালু করুন</string>
-	<string name="logs_enable_description">সমস্যা সমাধানের জন্য চালু করুন। গোপনীয়তার জন্য বন্ধ করুন। লগ আপনার ডিভাইসে সংরক্ষিত থাকবে। Nym-এর এতে কোনো অ্যাক্সেস থাকবে না।</string>
-	<string name="logs_debug_enable_title">ডিবাগ লগিং সক্রিয় করুন</string>
-	<string name="logs_debug_enable_description">সেলফ-ডিবাগিং বা সাপোর্টের জন্য বিস্তারিত ডিবাগ লগ পেতে এটি চালু করুন। এতে ব্যাটারির ব্যবহার বাড়ে। লগের সাইজ ১০ গুণ পর্যন্ত বাড়তে পারে।</string>
 	<string name="logs_tab_app">অ্যাপ</string>
 	<string name="logs_tab_tunnel">টানেল</string>
 	<string name="logs_tab_library">লাইব্রেরি</string>
 	<string name="logs_empty_placeholder">এখনো কোনো লগ নেই</string>
-	<string name="logs_share">শেয়ার করুন</string>
-	<string name="logs_download">ডাউনলোড</string>
 	<string name="logs_delete">মুছে ফেলুন</string>
 	<string name="logs_delete_title">NymVPN লগগুলো মুছে ফেলতে চান?</string>
 	<string name="logs_delete_description">লগ মুছে ফেললে গোপনীয়তা বাড়ে, কিন্তু এর ফলে সাপোর্ট টিম আপনার সংযোগের সমস্যা নির্ণয় করতে পারে না।</string>
 	<string name="logs_delete_button">লগ মুছুন</string>
-	<string name="logs_share_title">NymVPN লগ শেয়ার করবেন?</string>
 	<string name="logs_share_description">শেয়ার করা লগ ফাইলগুলো প্রাপক এবং তাদের সাথে শেয়ার করা যে কেউ দেখতে পারেন।</string>
-	<string name="logs_share_button">তবুও শেয়ার করুন</string>
-	<string name="logs_download_title">NymVPN লগগুলো ফাইল হিসেবে সংরক্ষণ করবেন?</string>
-	<string name="logs_download_description">সংরক্ষিত লগগুলো অন্যান্য অ্যাপ বা আপনার ডিভাইসের স্টোরেজে অ্যাক্সেস আছে এমন যে কেউ দেখতে পারে।</string>
-	<string name="logs_download_button">তবুও ফাইল হিসেবে সংরক্ষণ করুন</string>
 	<string name="logs_saved">লগসগুলো আপনার Downloads ফোল্ডারে সংরক্ষিত হয়েছে</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_search_apps_hint">অ্যাপ অনুসন্ধান করুন</string>
@@ -568,7 +555,6 @@
 	<string name="diagnostic_report_title">ডায়াগনস্টিক রিপোর্ট</string>
 	<string name="diagnostic_copy_report">প্রতিবেদন অনুলিপি করুন</string>
 	<string name="diagnostic_copied">ক্লিপবোর্ডে কপি করা হয়েছে</string>
-	<string name="diagnostic_error">ডায়াগনস্টিকস ব্যর্থ হয়েছে</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ প্রতারণা থেকে নিজেকে রক্ষা করুন</string>
 	<string name="support_protect_description">শুধুমাত্র নীচে তালিকাভুক্ত অফিসিয়াল চ্যানেলগুলির মাধ্যমে NymVPN সাপোর্টের সাথে যোগাযোগ করুন। আমরা কখনই আপনার পাসফ্রেজ চাইব না বা সরাসরি মেসেজের মাধ্যমে প্রথমে আপনার সাথে যোগাযোগ করব না।\n\nঅপ্রত্যাশিত যোগাযোগ পেয়েছেন? এটি সম্ভবত একটি স্ক্যাম।</string>
