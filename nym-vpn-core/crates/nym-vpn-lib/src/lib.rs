@@ -8,6 +8,7 @@ mod adblocker;
 mod bandwidth_monitor;
 pub mod cache_refresh;
 pub mod config;
+mod default_dns_servers;
 mod dns_filter;
 pub mod logging;
 mod mixnet;
@@ -24,9 +25,6 @@ pub mod tunnel_state_machine;
 pub mod wake_signal;
 mod wg_config;
 
-use std::sync::LazyLock;
-
-use hickory_resolver::config::{CLOUDFLARE, NameServerConfig, QUAD9};
 #[cfg(target_os = "windows")]
 pub use nym_split_tunnel::install_driver_service as install_split_tunnel_driver_service;
 #[cfg(target_os = "windows")]
@@ -48,20 +46,6 @@ pub use crate::{
     },
     tunnel_state_machine::tunnel::gateway_provider::GatewayProviderError,
 };
-
-/// Default DNS servers.
-static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<Vec<NameServerConfig>> = LazyLock::new(|| {
-    QUAD9
-        .tls()
-        .chain(QUAD9.https())
-        .chain(CLOUDFLARE.tls())
-        .chain(CLOUDFLARE.https())
-        .filter(|ns| {
-            // Exclude IPv6 addresses due to reliability issues
-            ns.ip.is_ipv4()
-        })
-        .collect::<Vec<_>>()
-});
 
 /// Routing table id used for routing all traffic through the tunnel.
 #[cfg(target_os = "linux")]

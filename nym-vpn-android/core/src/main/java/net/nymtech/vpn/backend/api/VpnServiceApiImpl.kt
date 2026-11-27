@@ -11,6 +11,8 @@ import net.nymtech.vpn.model.config.ConfigResult
 import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
+import net.nymtech.vpn.model.account.CreateAccountError
+import net.nymtech.vpn.model.account.CreateAccountResult
 import net.nymtech.vpn.model.freepass.FreepassError
 import net.nymtech.vpn.model.freepass.FreepassResult
 import net.nymtech.vpn.model.pairing.PairingCommandResult
@@ -39,7 +41,7 @@ import timber.log.Timber
 /**
  * API implementation. Delegates to VpnCoreController.
  */
-internal class VpnServiceApiImpl(private val core: VpnCoreController, override val events: Flow<VpnServiceEvent>) : VpnServiceApi {
+internal class VpnServiceApiImpl(private val core: VpnCoreController, override val events: Flow<VpnServiceEvent>, private val lockdownProbe: () -> Boolean? = { null }) : VpnServiceApi {
 
 	companion object {
 		private const val TAG = "core-vpn"
@@ -48,6 +50,8 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 	override suspend fun init(request: ConnectInitRequest): ConnectResult = core.init(request)
 
 	override fun getState(): Tunnel.State = core.state
+
+	override fun systemBlocksWithoutVpn(): Boolean? = lockdownProbe()
 
 	override suspend fun getConfig(): CoreVpnConfig = core.getConfig()
 
@@ -77,9 +81,12 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun getStoredMnemonic(): String = core.requireCoreSender { it.getStoredMnemonic() }
 
-	override suspend fun createAccount() {
+	override suspend fun createAccount(freepass: String?): CreateAccountResult {
 		Timber.tag(TAG).d("createAccount requested")
-		core.requireCoreSender { it.createAccount() }
+		return core.withCoreSenderResult(FreepassError, { CreateAccountResult.Failed(CreateAccountError.from(it)) }) {
+			it.createAccount(freepass)
+			CreateAccountResult.Created
+		}
 	}
 
 	override suspend fun registerAccount(token: String?): String {
@@ -147,15 +154,11 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun cancelPairing(): PairingCommandResult<Unit> = pairingCall { PairingCommandResult.Ok(it.cancelPairingProcess()) }
 
-	override suspend fun redeemFreepass(code: String): FreepassResult = freepassCall { it.redeemFreepass(code) }
-
-	override suspend fun applyFreepass(code: String): FreepassResult = freepassCall { it.applyFreepass(code) }
+	override suspend fun redeemFreepass(code: String): FreepassResult = core.withCoreSenderResult(FreepassError, FreepassResult::Failed) {
+		it.redeemFreepass(code)
+		FreepassResult.Redeemed
+	}
 
 	private suspend fun <T> pairingCall(block: suspend (NymVpnServiceCommandSender) -> PairingCommandResult<T>): PairingCommandResult<T> =
 		core.withCoreSenderResult(PairingError, { PairingCommandResult.Failed(it) }, block)
-
-	private suspend fun freepassCall(block: suspend (NymVpnServiceCommandSender) -> Unit): FreepassResult = core.withCoreSenderResult(FreepassError, FreepassResult::Failed) {
-		block(it)
-		FreepassResult.Redeemed
-	}
 }

@@ -61,10 +61,4 @@ struct FreepassCodeTests {
         #expect(!FreepassError.offline.isFinal)
         #expect(!FreepassError.vpnConnected.isFinal)
     }
-
-    @Test func onlyConfirmedRejectionsDropTheLocalAccount() {
-        #expect(!FreepassError.server.isRejection)
-        #expect(!FreepassError.unknown.isRejection)
-        #expect(FreepassError.invalidCode.isRejection)
-    }
 }

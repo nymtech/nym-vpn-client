@@ -4,21 +4,32 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use anyhow::{Result, anyhow, bail};
-use clap::{Arg, ArgAction, ArgMatches};
+use clap::{Arg, ArgAction, ArgMatches, builder::ValueParserFactory};
 use nym_vpn_lib_types::{DnsServer, PlainDnsProtocol};
 use nym_vpn_proto::rpc_client::RpcClient;
 use url::{Host, Url};
 
+use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
+
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
+    /// Manage custom DNS servers
+    Custom {
+        #[command(subcommand)]
+        subcommand: CustomCommand,
+    },
+
+    /// Manage default DNS servers
+    Default {
+        #[command(subcommand)]
+        subcommand: DefaultCommand,
+    },
+}
+
+#[derive(Debug, Clone, clap::Subcommand)]
+pub enum CustomCommand {
     /// Get custom DNS servers
     Get,
-
-    /// Enable custom DNS
-    Enable,
-
-    /// Disable custom DNS
-    Disable,
 
     /// Set custom DNS servers
     ///
@@ -44,9 +55,9 @@ pub enum Command {
     ///
     /// --hostname and --query set NAME and PATH for the transport option right before them, e.g.
     ///
-    ///   nym-vpnc dns set --tls 1.1.1.1 --hostname cloudflare-dns.com --plain 9.9.9.9
-    ///   nym-vpnc dns set --https 8.8.8.8 --hostname dns.google --query /dns-query
-    ///   nym-vpnc dns set --url tls://dns.google --url https://8.8.8.8/dns-query#dns.google
+    ///   nym-vpnc dns custom set --tls 1.1.1.1 --hostname cloudflare-dns.com --plain 9.9.9.9
+    ///   nym-vpnc dns custom set --https 8.8.8.8 --hostname dns.google --query /dns-query
+    ///   nym-vpnc dns custom set --url tls://dns.google --url https://8.8.8.8/dns-query#dns.google
     #[command(verbatim_doc_comment)]
     Set {
         #[command(flatten)]
@@ -56,14 +67,53 @@ pub enum Command {
     /// Clear custom DNS servers
     Clear,
 
+    /// Enable custom DNS
+    Enable,
+
+    /// Disable custom DNS
+    Disable,
+}
+
+#[derive(Debug, Clone, clap::Subcommand)]
+pub enum DefaultCommand {
     /// Get default DNS servers
-    GetDefault,
+    Get,
+
+    /// Get or set whether Quad9 can be used as a default DNS server
+    ///
+    /// Quad9 is never used when the user or the exit gateway is in France.
+    Quad9 {
+        #[command(subcommand)]
+        subcommand: Quad9Command,
+    },
+}
+
+#[derive(Debug, Clone, clap::Subcommand)]
+pub enum Quad9Command {
+    /// Get whether Quad9 can be used as a default DNS server
+    Get,
+
+    /// Set whether Quad9 can be used as a default DNS server
+    Set {
+        /// Enable or disable Quad9
+        #[arg(value_parser = BooleanOption::value_parser())]
+        enabled: BooleanOption,
+    },
 }
 
 impl Command {
+    pub async fn execute(self, rpc_client: RpcClient) -> Result<()> {
+        match self {
+            Command::Custom { subcommand } => subcommand.execute(rpc_client).await,
+            Command::Default { subcommand } => subcommand.execute(rpc_client).await,
+        }
+    }
+}
+
+impl CustomCommand {
     pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
         match self {
-            Command::Get => {
+            CustomCommand::Get => {
                 let config = rpc_client.get_config().await?;
                 println!(
                     "Custom DNS: {}",
@@ -79,34 +129,58 @@ impl Command {
                 }
                 Ok(())
             }
-            Command::Enable => {
+            CustomCommand::Enable => {
                 rpc_client.set_enable_custom_dns(true).await?;
                 Ok(())
             }
-            Command::Disable => {
+            CustomCommand::Disable => {
                 rpc_client.set_enable_custom_dns(false).await?;
                 Ok(())
             }
-            Command::Set { servers } => {
+            CustomCommand::Set { servers } => {
                 if servers.dns_servers.is_empty() {
                     bail!(
-                        "Use `nym-vpnc dns clear` instead if you intend to remove all custom DNS."
+                        "Use `nym-vpnc dns custom clear` instead if you intend to remove all custom DNS."
                     );
                 }
                 let dns_servers = servers.resolve().await?;
                 rpc_client.set_custom_dns(dns_servers).await?;
                 Ok(())
             }
-            Command::Clear => {
+            CustomCommand::Clear => {
                 rpc_client.set_custom_dns(Vec::new()).await?;
                 Ok(())
             }
-            Command::GetDefault => {
+        }
+    }
+}
+
+impl DefaultCommand {
+    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
+        match self {
+            DefaultCommand::Get => {
                 let default_dns = rpc_client.get_default_dns().await?;
                 println!("Default DNS:");
                 for dns_server in default_dns {
                     println!("{}", dns_server)
                 }
+                Ok(())
+            }
+            DefaultCommand::Quad9 { subcommand } => subcommand.execute(rpc_client).await,
+        }
+    }
+}
+
+impl Quad9Command {
+    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
+        match self {
+            Quad9Command::Get => {
+                let config = rpc_client.get_config().await?;
+                println!("Quad9: {}", display_on_off(config.default_dns.enable_quad9));
+                Ok(())
+            }
+            Quad9Command::Set { enabled } => {
+                rpc_client.set_enable_quad9(*enabled).await?;
                 Ok(())
             }
         }

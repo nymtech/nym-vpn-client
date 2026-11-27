@@ -2,7 +2,6 @@ name: build-wireguard-go-mac
 
 on:
   pull_request:
-    types: [opened]
     paths:
       - "wireguard/**"
       - ".github/workflows/build-wireguard-go-mac.yml"
@@ -39,7 +38,15 @@ jobs:
         id: cache
         with:
           path: build/lib
-          key: libwg-macos-go${{ env.GOLANG_VERSION }}-${{ hashFiles('.github/workflows/build-wireguard-go-mac.yml', 'wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: >-
+            libwg-macos-go${{ env.GOLANG_VERSION }}-${{ hashFiles(
+              '.github/workflows/build-wireguard-go-mac.yml',
+              'wireguard/libwg/**/*.go',
+              'wireguard/libwg/**/*.diff',
+              'wireguard/libwg/**/*.mod',
+              'wireguard/libwg/**/go.sum',
+              'wireguard/build-wireguard-go.sh'
+            ) }}
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
