@@ -16,6 +16,8 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.model.RecentGateways
+import net.nymtech.vpn.model.account.CreateAccountResult
+import net.nymtech.vpn.model.freepass.FreepassResult
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AutologinResponse
@@ -162,7 +164,8 @@ private class FakeBackendManager(initialAccountState: AccountControllerState = A
 	override suspend fun getGateways(gatewayType: GatewayType): List<NymGateway> = emptyList()
 
 	override suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways? = null
-	override suspend fun createAccount() = unsupported()
+	override suspend fun createAccount(freepass: String?): CreateAccountResult = unsupported()
+	override suspend fun redeemFreepass(code: String): FreepassResult = unsupported()
 	override suspend fun registerAccount(purchaseToken: String?): String = unsupported()
 	override suspend fun getMnemonic(): List<String> = emptyList()
 	override suspend fun getAccountState(): AccountControllerState = managerState.value.accountState

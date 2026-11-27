@@ -4,6 +4,7 @@
 mod circumvention;
 mod config_manager;
 mod custom_dns;
+mod default_dns;
 mod entry_exit;
 mod gateway_independence;
 mod gateway_selection_algorithm;
@@ -50,6 +51,7 @@ use tokio::{
 use crate::service::config::{
     circumvention::v9::FrontingMode,
     custom_dns::v15::CustomDnsSettings,
+    default_dns::v16::DefaultDnsSettings,
     entry_exit::v3::{EntryPoint, ExitPoint},
     gateway_independence::v11::GatewayIndependence,
     gateway_selection_algorithm::v12::GatewaySelectionAlgorithmConfig,
@@ -233,6 +235,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
         let exit_point = ExitPoint::try_from(&value.exit_point)?;
 
         let custom_dns = CustomDnsSettings::from(&value.custom_dns);
+        let default_dns = DefaultDnsSettings::from(&value.default_dns);
 
         let mixnet_traffic = MixnetTrafficConfig::from(&value.mixnet_traffic);
 
@@ -263,6 +266,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
             custom_dns,
+            default_dns,
             mixnet_traffic,
             network_stats,
             split_tunnel,

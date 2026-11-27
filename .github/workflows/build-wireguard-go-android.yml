@@ -1,7 +1,6 @@
 name: build-wireguard-go-android
 on:
   pull_request:
-    types: [opened]
     paths:
       - "wireguard/**"
       - ".github/workflows/build-wireguard-go-android.yml"
@@ -29,7 +28,17 @@ jobs:
         id: cache
         with:
           path: build/lib
-          key: libwg-android-go${{ env.GOLANG_VERSION }}-${{ hashFiles('.github/workflows/build-wireguard-go-android.yml', 'wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: >-
+            libwg-android-go${{ env.GOLANG_VERSION }}-ndk${{ env.NDK_VERSION }}-${{ hashFiles(
+              '.github/workflows/build-wireguard-go-android.yml',
+              'wireguard/libwg/**/*.go',
+              'wireguard/libwg/**/*.diff',
+              'wireguard/libwg/**/*.mod',
+              'wireguard/libwg/**/go.sum',
+              'wireguard/libwg/Android.mk',
+              'wireguard/libwg/build-android.sh',
+              'wireguard/build-wireguard-go.sh'
+            ) }}
 
       - name: Install system dependencies
         if: steps.cache.outputs.cache-hit != 'true'

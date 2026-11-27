@@ -1,33 +1,30 @@
 package net.nymtech.nymvpn.manager.freepass
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.nymvpn.manager.backend.BackendManager
-import net.nymtech.nymvpn.manager.backend.VpnServiceConnectionManager
+import net.nymtech.vpn.model.account.CreateAccountError
+import net.nymtech.vpn.model.account.CreateAccountResult
 import net.nymtech.vpn.model.freepass.FreepassError
 import net.nymtech.vpn.model.freepass.FreepassResult
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.time.Duration.Companion.seconds
 
 @Singleton
-class NymFreepassManager @Inject constructor(private val connectionManager: VpnServiceConnectionManager, private val backendManager: BackendManager) : FreepassManager {
+class NymFreepassManager @Inject constructor(private val backendManager: BackendManager) : FreepassManager {
 
 	private val mutex = Mutex()
 
-	// Not cancellable, so a local account never outlives a failed redeem.
-	override suspend fun redeem(code: String): FreepassResult = withContext(NonCancellable) {
-		mutex.withLock {
-			when (isAccountStored()) {
-				true -> applyToStoredAccount(code)
-				false -> createAccount(code)
-				null -> FreepassResult.Failed(FreepassError.UNKNOWN)
+	override suspend fun redeem(code: String): FreepassResult = mutex.withLock {
+		when (isAccountStored()) {
+			true -> backendManager.redeemFreepass(code)
+			false -> when (val result = backendManager.createAccount(freepass = code)) {
+				CreateAccountResult.Created -> FreepassResult.Redeemed
+				is CreateAccountResult.Failed -> FreepassResult.Failed(result.error.toFreepassError())
 			}
+			null -> FreepassResult.Failed(FreepassError.UNKNOWN)
 		}
 	}
 
@@ -40,34 +37,17 @@ class NymFreepassManager @Inject constructor(private val connectionManager: VpnS
 		null
 	}
 
-	// Core registers an account the API doesn't know yet.
-	private suspend fun applyToStoredAccount(code: String): FreepassResult = connectionManager.withApiResult(FreepassError, FreepassResult::Failed) { it.applyFreepass(code) }
-
-	private suspend fun createAccount(code: String): FreepassResult {
-		val created = try {
-			// The core waits for its initialization, so the wait is bounded.
-			withTimeoutOrNull(ACCOUNT_CREATION_TIMEOUT) { backendManager.createAccount() } != null
-		} catch (e: CancellationException) {
-			throw e
-		} catch (e: Exception) {
-			Timber.tag(TAG).w("Account creation failed: %s", e::class.java.simpleName)
-			false
-		}
-		if (!created) return FreepassResult.Failed(FreepassError.UNKNOWN)
-		val result = connectionManager.withApiResult(FreepassError, FreepassResult::Failed) { it.redeemFreepass(code) }
-		// A timeout or unknown failure may still have redeemed, so only a confirmed rejection drops the local account.
-		if (result is FreepassResult.Failed && result.error.isRejection) {
-			runCatching { backendManager.removeMnemonic() }
-				.onFailure { Timber.tag(TAG).w("Removing the local account failed: %s", it::class.java.simpleName) }
-		}
-		return result
+	private fun CreateAccountError.toFreepassError(): FreepassError = when (this) {
+		CreateAccountError.FREEPASS_INVALID -> FreepassError.INVALID_CODE
+		CreateAccountError.FREEPASS_ALREADY_REDEEMED -> FreepassError.ALREADY_REDEEMED
+		CreateAccountError.SUBSCRIPTION_ACTIVE -> FreepassError.SUBSCRIPTION_ACTIVE
+		CreateAccountError.RATE_LIMITED -> FreepassError.RATE_LIMITED
+		CreateAccountError.OFFLINE -> FreepassError.OFFLINE
+		CreateAccountError.SERVER -> FreepassError.SERVER
+		CreateAccountError.UNKNOWN -> FreepassError.UNKNOWN
 	}
-
-	private val FreepassError.isRejection: Boolean
-		get() = this != FreepassError.SERVER && this != FreepassError.UNKNOWN
 
 	private companion object {
 		const val TAG = "freepass"
-		val ACCOUNT_CREATION_TIMEOUT = 30.seconds
 	}
 }

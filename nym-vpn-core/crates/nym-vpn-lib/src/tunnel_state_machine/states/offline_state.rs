@@ -182,6 +182,10 @@ impl TunnelStateHandler for OfflineState {
 
                         shared_state.set_tunnel_settings(tunnel_settings, false).await;
 
+                        if diff.default_dns_changed() {
+                            shared_state.update_default_dns_servers(None);
+                        }
+
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         if diff.split_tunnel_changed() || diff.geo_exclusion_enabled_changed() {
                             let _ = shared_state.set_split_tunnel_exclude_paths().await;

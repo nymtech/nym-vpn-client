@@ -118,7 +118,7 @@ impl ConnectedState {
                 bridge_candidate_endpoints,
                 ws_entry_endpoints: ws_endpoints,
                 dns_config: AllowedDns::new_with_tunnel_dns(
-                    shared_state.tunnel_settings.allowed_dns_endpoints(),
+                    shared_state.dns_options_resolver().allowed_dns_endpoints(),
                 ),
                 tunnel_interface: tunnel_interface.clone(),
                 #[cfg(target_os = "macos")]
@@ -221,7 +221,7 @@ impl ConnectedState {
 
     #[cfg(not(target_os = "android"))]
     async fn set_dns(&self, shared_state: &mut SharedState) -> Result<()> {
-        let dns_config = shared_state.tunnel_settings.resolver_config();
+        let dns_config = shared_state.dns_options_resolver().resolver_config();
 
         #[cfg(any(target_os = "linux", target_os = "windows", target_os = "ios"))]
         let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
