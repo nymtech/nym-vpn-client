@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Home screen: the connection rings show the new connection marker. Connecting fills the rings in yellow step by step, an error breaks every ring at the same point, and losing the network mid-session shows "Kill switch is blocking traffic" instead of an error. The centre shows the mode: two linked blocks for dVPN, the mix layers for Mixnet, with the route playing while connected. The connecting steps drop the "(n/7)" counter and use a smaller label than the state words. Connected shows "dVPN protection" or "Mixnet protection" in green above the timer, stopping reads "Disconnecting", and the rings fill more slowly in Mixnet mode, as on iOS and Android. (https://github.com/nymtech/nym-vpn-client/pull/7094)
-- Home screen: while the kill switch is blocking traffic the button reads "Tap to disconnect" instead of "Tap to cancel", and after a disconnect the rings stay faded while they empty instead of flashing back to full strength, as on iOS and Android
+- Home screen: while the kill switch is blocking traffic the button reads "Tap to disconnect" instead of "Tap to cancel", and after a disconnect the rings stay faded while they empty instead of flashing back to full strength, as on iOS and Android (https://github.com/nymtech/nym-vpn-client/pull/7254)
 - [Linux] The deb package now depends on `polkit-1-auth-agent`, so a polkit authentication agent is installed together with the app. This dependency used to come with `nym-vpnd` (https://github.com/nymtech/nym-vpn-client/pull/7175)
 
 ## [2026.16.1] - 2026-11-19
