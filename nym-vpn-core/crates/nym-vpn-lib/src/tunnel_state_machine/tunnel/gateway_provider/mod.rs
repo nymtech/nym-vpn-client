@@ -338,7 +338,10 @@ impl<C: GatewayCache> GatewayProvider<C> {
                 gateway_identifier
             );
         } else {
-            tracing::warn!("Blacklisted gateway {gateway_identifier} ({reason})");
+            tracing::warn!(
+                skip_sentry = true,
+                "Blacklisted gateway {gateway_identifier} ({reason})"
+            );
             // Re-create gateway selection stream to reflect the addition to the blacklist.
             let (latest_tunnel_settings, use_bridges) =
                 self.latest_tunnel_settings.lock().await.clone();

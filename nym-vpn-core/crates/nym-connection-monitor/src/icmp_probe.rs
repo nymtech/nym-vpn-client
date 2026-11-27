@@ -175,6 +175,10 @@ impl ProbeError for IcmpProbeError {
             _ => None,
         }
     }
+
+    fn skip_sentry(&self) -> bool {
+        matches!(self.inner, IcmpProbeInnerError::Send(_))
+    }
 }
 
 impl From<IcmpProbeError> for BoxedProbeError {
