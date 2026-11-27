@@ -1,17 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use sentry::{ClientInitGuard, Level};
+use sentry::ClientInitGuard;
 use std::time::Duration;
-
-static EXCLUDED_ERRORS: [&str; 6] = [
-    "offline",
-    "client is not authenticated",
-    "connection reset",
-    "connection refused",
-    "connection closed",
-    "connection timed out",
-];
 
 pub fn init_sentry() -> Option<ClientInitGuard> {
     let Some(dsn) = sentry_dsn() else {
@@ -27,18 +18,7 @@ pub fn init_sentry() -> Option<ClientInitGuard> {
         .sample_rate(1.0)
         .traces_sample_rate(1.0)
         .shutdown_timeout(Duration::from_secs(2))
-        .server_name("nym")
-        .before_send(|mut event| {
-            if matches!(event.level, Level::Error | Level::Warning)
-                && let Some(message) = &event.message
-                && EXCLUDED_ERRORS
-                    .iter()
-                    .any(|err| message.to_lowercase().contains(err))
-            {
-                event.level = Level::Debug; // Change level to Debug
-            }
-            Some(event)
-        });
+        .server_name("nym");
 
     println!("Sentry monitoring enabled");
     let guard = sentry::init(opts);

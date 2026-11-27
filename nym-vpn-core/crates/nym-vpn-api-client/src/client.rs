@@ -242,7 +242,7 @@ impl VpnApiClient {
         get.retry(backon::ConstantBuilder::default())
             .notify(|err: &HttpClientError, dur: Duration| {
                 tracing::warn!("Failed to get JSON: {}", err);
-                tracing::warn!("retrying after {:?}", dur);
+                tracing::warn!(skip_sentry = true, "retrying after {:?}", dur);
             })
             .await
     }
@@ -263,7 +263,7 @@ impl VpnApiClient {
         post.retry(backon::ConstantBuilder::default())
             .notify(|err: &HttpClientError, dur: Duration| {
                 tracing::warn!("Failed to post JSON: {}", err);
-                tracing::warn!("retrying after {:?}", dur);
+                tracing::warn!(skip_sentry = true, "retrying after {:?}", dur);
             })
             .await
     }

@@ -143,7 +143,10 @@ impl SyncingNetworkState {
                         Ok(None)
                     }
                     Err(_elapsed) => {
-                        tracing::warn!("optimistic account summary sync timed out");
+                        tracing::warn!(
+                            skip_sentry = true,
+                            "optimistic account summary sync timed out"
+                        );
                         Ok(None)
                     }
                 }

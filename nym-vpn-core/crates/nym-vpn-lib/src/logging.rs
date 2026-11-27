@@ -31,6 +31,12 @@ use nym_vpn_lib_types::LogPath;
 
 const BACKUP_LOG_EXTENSION: &str = "old.log";
 
+/// Events and spans carrying this field (e.g. `tracing::warn!(skip_sentry = true, ...)`) are not sent to Sentry.
+const SKIP_SENTRY_FIELD: &str = "skip_sentry";
+
+/// Third-party targets whose events are not sent to Sentry.
+static SKIP_SENTRY_TARGETS: [&str; 1] = ["hickory_net::h2"];
+
 static INFO_TARGETS: [&str; 16] = [
     "hyper",
     "netlink_proto",
@@ -478,7 +484,11 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
                         matches!(*md.level(), Level::INFO | Level::DEBUG)
                     })),
                 )
-                .and_then(sentry_tracing::ErrorLayer::new().with_filter(LevelFilter::WARN)),
+                .and_then(sentry_tracing::ErrorLayer::new().with_filter(LevelFilter::WARN))
+                .with_filter(filter_fn(|md| {
+                    md.fields().field(SKIP_SENTRY_FIELD).is_none()
+                        && !SKIP_SENTRY_TARGETS.contains(&md.target())
+                })),
         )
     } else {
         None
