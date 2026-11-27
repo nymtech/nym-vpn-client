@@ -106,7 +106,8 @@
 	<string name="try_another_server_name">Try another location or check the server name.</string>
 	<string name="docs_url" translatable="false">https://nym.com/docs</string>
 	<string name="servers">servers</string>
-	<string name="local_logs">Logs (stored locally)</string>
+	<string name="local_logs">View &amp; share logs</string>
+	<string name="local_logs_description">Diagnostic logs stored locally only</string>
 	<string name="logging_out">Logging out</string>
 	<string name="app_update_required">Your app is no longer supported. Please update to the latest version to continue
         using NymVPN.
@@ -544,7 +545,6 @@
 	<string name="logs_delete_description">Deleting logs improves privacy but prevents Support from diagnosing your connection issues.</string>
 	<string name="logs_delete_button">Delete logs</string>
 	<string name="logs_share_description">Shared log files can be viewed by recipients and anyone they share them with.</string>
-	<string name="logs_download_description">Saved logs may be accessed by other apps or anyone with access to your device\'s storage.</string>
 	<string name="logs_saved">Logs saved to your Downloads folder"</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>

@@ -499,7 +499,6 @@
 	<string name="logs_delete_description">حذف السجلات يحسن الخصوصية ولكن يمنع الدعم من تشخيص مشاكل الاتصال الخاصة بك.</string>
 	<string name="logs_delete_button">حذف السجلات</string>
 	<string name="logs_share_description">ملفات السجل المشتركة يمكن مشاهدتها من قبل المستلمين وأي شخص يتقاسمونها معهم.</string>
-	<string name="logs_download_description">يمكن الوصول إلى السجلات المحفوظة بواسطة تطبيقات أخرى أو أي شخص لديه حق الوصول إلى تخزين جهازك.</string>
 	<string name="logs_saved">Logs saved to downloads folder</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">تعيين كل تطبيق لاستخدام NymVPN أو الاتصال مباشرة.</string>

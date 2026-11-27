@@ -484,7 +484,6 @@
 	<string name="logs_delete_description">Excluir os registros melhora sua privacidade, mas impede o suporte de diagnosticar problemas de conexão.</string>
 	<string name="logs_delete_button">Excluir registros</string>
 	<string name="logs_share_description">Arquivos de registro compartilhados podem ser vistos pelos destinatários e por qualquer pessoa com quem forem compartilhados.</string>
-	<string name="logs_download_description">Registros salvos podem ser acessados por outros apps ou por qualquer pessoa com acesso ao armazenamento do seu dispositivo.</string>
 	<string name="logs_saved">Registros salvos na pasta de downloads</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Defina para cada app usar o NymVPN ou conectar diretamente.</string>

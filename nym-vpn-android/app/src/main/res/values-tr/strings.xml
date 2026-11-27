@@ -482,7 +482,6 @@
 </string>
 	<string name="logs_delete_button">Kayıtları sil</string>
 	<string name="logs_share_description">Paylaşılan kayıt dosyalarını alıcılar ve dosyayı paylaştıkları kişiler görüntüleyebilir.</string>
-	<string name="logs_download_description">Kaydedilen kayıtlar, diğer uygulamalar veya cihazınızın depolama alanına erişimi olan kişiler tarafından görüntülenebilir.</string>
 	<string name="logs_saved">Kayıtlar, indirilenler klasörüne kaydedildi</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Her uygulama için ayrı ayrı, NymVPN üzerinden mi yoksa doğrudan mı bağlanacağınızı seçin.</string>

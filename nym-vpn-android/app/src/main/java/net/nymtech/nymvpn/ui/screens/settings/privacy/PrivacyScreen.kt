@@ -123,6 +123,13 @@ fun PrivacyScreen(
 							stringResource(R.string.local_logs),
 						)
 					},
+					description = {
+						Text(
+							text = stringResource(R.string.local_logs_description),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onBackground,
+						)
+					},
 					onClick = onLogsClick,
 				),
 			),

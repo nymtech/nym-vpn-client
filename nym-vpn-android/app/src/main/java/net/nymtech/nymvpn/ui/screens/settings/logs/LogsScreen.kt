@@ -236,35 +236,27 @@ fun LogsScreenContent(state: LogsViewState, actions: LogsActions, modifier: Modi
 			)
 		}
 
-		// Save writes to shared storage, so it carries its own privacy line, as Share does.
-		Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-			Row(
-				horizontalArrangement = Arrangement.spacedBy(8.dp),
-				modifier = Modifier.fillMaxWidth(),
-			) {
-				OutlineStyledButton(
-					onClick = actions.onSave,
-					enabled = !state.busy,
-					content = {
-						Text(
-							text = stringResource(R.string.logs_save_logs),
-							style = MaterialTheme.typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onPrimaryContainer,
-						)
-					},
-					borderColor = MaterialTheme.colorScheme.onPrimaryContainer,
-					modifier = Modifier
-						.weight(1f)
-						.height(44.dp.scaledHeight()),
-					shape = RoundedCornerShape(12.dp),
-				)
-				DeleteLogsButton(onClick = actions.onDelete, modifier = Modifier.weight(1f))
-			}
-			Text(
-				text = stringResource(R.string.logs_download_description),
-				style = MaterialTheme.typography.bodySmall,
-				color = MaterialTheme.colorScheme.onBackground,
+		Row(
+			horizontalArrangement = Arrangement.spacedBy(8.dp),
+			modifier = Modifier.fillMaxWidth(),
+		) {
+			OutlineStyledButton(
+				onClick = actions.onSave,
+				enabled = !state.busy,
+				content = {
+					Text(
+						text = stringResource(R.string.logs_save_logs),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
+					)
+				},
+				borderColor = MaterialTheme.colorScheme.onPrimaryContainer,
+				modifier = Modifier
+					.weight(1f)
+					.height(44.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
 			)
+			DeleteLogsButton(onClick = actions.onDelete, modifier = Modifier.weight(1f))
 		}
 
 		Card(
