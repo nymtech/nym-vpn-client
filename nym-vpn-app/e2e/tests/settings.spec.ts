@@ -49,7 +49,31 @@ test.describe('Settings', () => {
     await expect(settingsPage.row('Kill switch')).toContainText(
       'Always on to protect your data',
     );
+    await expect(settingsPage.quitButton).toBeHidden();
+  });
+
+  test('search matches a row by its description', async () => {
+    await settingsPage.search('local network');
+    await expect(settingsPage.row('Bypass LAN')).toBeVisible();
+    await expect(settingsPage.row('Kill switch')).toBeHidden();
+  });
+
+  test('search on a section heading keeps the whole section', async () => {
+    await settingsPage.search('routing');
+    await expect(settingsPage.row('Split tunneling')).toBeVisible();
+    await expect(settingsPage.row('App & wallet proxy')).toBeVisible();
+    await expect(settingsPage.row('Legal')).toBeHidden();
+  });
+
+  test('search finds Log out and Quit like any other item', async () => {
+    await settingsPage.search('log out');
+    await expect(settingsPage.logoutButton).toBeVisible();
+    await expect(settingsPage.quitButton).toBeHidden();
+    await expect(settingsPage.noResults).toBeHidden();
+
+    await settingsPage.search('quit');
     await expect(settingsPage.quitButton).toBeVisible();
+    await expect(settingsPage.logoutButton).toBeHidden();
   });
 
   test('search finds the account row by its own title', async () => {
@@ -61,12 +85,13 @@ test.describe('Settings', () => {
   test('search with no match shows no results and clearing restores the list', async () => {
     await settingsPage.search('zzz');
     await expect(settingsPage.noResults).toBeVisible();
-    await expect(settingsPage.quitButton).toBeVisible();
+    await expect(settingsPage.quitButton).toBeHidden();
 
     await settingsPage.search('');
     await expect(settingsPage.noResults).toBeHidden();
     await expect(settingsPage.row('Your account')).toBeVisible();
     await expect(settingsPage.row('Legal')).toBeVisible();
+    await expect(settingsPage.quitButton).toBeVisible();
   });
 
   test('closes settings screen correctly', async ({ page }) => {

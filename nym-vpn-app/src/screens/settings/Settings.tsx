@@ -273,11 +273,18 @@ function Settings() {
     text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
   const search = fold(query.trim());
   const matches = (text: string) => fold(text).includes(search);
-  // while searching, keep only matching rows, each under its own section header
+  // a row matches on its title or its plain-text description
+  const rowMatches = (s: Setting) =>
+    matches(s.title) || (typeof s.desc === 'string' && matches(s.desc));
+  // while searching, keep only matching rows under their section header;
+  // a match on the header keeps the whole section
   const visibleSections = sections
     .map((section) => ({
       ...section,
-      settings: section.settings.filter((s) => !search || matches(s.title)),
+      settings:
+        !search || matches(section.title)
+          ? section.settings
+          : section.settings.filter(rowMatches),
     }))
     .filter((section) => section.settings.length > 0);
   // the account section matches on its heading and on the titles it shows
@@ -291,7 +298,11 @@ function Settings() {
     : [t('account.get-started')];
   const showAccount =
     !search || [t('sections.account'), ...accountTitles].some(matches);
-  const noResults = !showAccount && visibleSections.length === 0;
+  // Log out and Quit are searchable too, like any other item
+  const showLogout = !!account && (!search || matches(t('account.logout')));
+  const showQuit = !search || matches(t('quit'));
+  const noResults =
+    !showAccount && visibleSections.length === 0 && !showLogout && !showQuit;
 
   return (
     <PageAnim className="flex h-full flex-col gap-4">
@@ -318,7 +329,7 @@ function Settings() {
           {t('no-results-found.title', { ns: 'node-location' })}
         </p>
       )}
-      {account && (
+      {showLogout && (
         <Button
           variant="grey"
           onClick={() => logout()}
@@ -328,9 +339,11 @@ function Settings() {
           {t('account.logout')}
         </Button>
       )}
-      <Button variant="destructive" onClick={exit}>
-        {t('quit')}
-      </Button>
+      {showQuit && (
+        <Button variant="destructive" onClick={exit}>
+          {t('quit')}
+        </Button>
+      )}
       <InfoData />
     </PageAnim>
   );
