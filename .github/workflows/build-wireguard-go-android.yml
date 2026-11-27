@@ -1,7 +1,6 @@
 name: build-wireguard-go-android
 on:
   pull_request:
-    types: [opened]
     paths:
       - "wireguard/**"
       - ".github/workflows/build-wireguard-go-android.yml"

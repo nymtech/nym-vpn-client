@@ -1,7 +1,6 @@
 name: build-wireguard-go-linux
 on:
   pull_request:
-    types: [opened]
     paths:
       - "wireguard/**"
       - ".github/workflows/build-wireguard-go-linux.yml"

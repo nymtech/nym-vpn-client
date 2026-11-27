@@ -2,7 +2,6 @@ name: build-wireguard-go-mac
 
 on:
   pull_request:
-    types: [opened]
     paths:
       - "wireguard/**"
       - ".github/workflows/build-wireguard-go-mac.yml"
