@@ -84,6 +84,14 @@ debug = false
 inherits = "release"
 debug = false
 
+# Used to extract UniFFI metadata since uniffi-bindgen cannot read static libs larger than 4 GiB.
+# See https://github.com/mozilla/uniffi-rs/issues/3093
+[profile.uniffi-metadata]
+inherits = "release"
+lto = false
+opt-level = 0
+debug = false
+
 # debug symbols are extracted and stripped by gradle
 [profile.android]
 inherits = "release"
