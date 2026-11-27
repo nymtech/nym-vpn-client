@@ -2609,7 +2609,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Authenticating account"
+            "value" : "Setting up your account"
           }
         },
         "es" : {
@@ -2822,7 +2822,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Establishing connection"
+            "value" : "Establishing server connection"
           }
         },
         "es" : {
@@ -2923,7 +2923,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Starting NymVPN"
+            "value" : "Initializing NymVPN"
           }
         },
         "es" : {
@@ -3024,7 +3024,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registering with servers"
+            "value" : "Registering anonymously with servers"
           }
         },
         "es" : {

@@ -11,6 +11,8 @@ public enum OneClickConnectState: Equatable {
     case connected
     case disconnecting
     case noInternet
+    /// Offline mid-session with the kill switch holding traffic: the only way out is Disconnect.
+    case blocked
     case noSubscription
 }
 

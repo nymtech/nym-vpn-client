@@ -320,9 +320,11 @@ private extension ArcProgressView {
     var labelColor: Color {
         switch state {
         case .failed:
-            return Constants.errorFill
-        case .connected, .step, .awaitingGatewayConsent:
+            return Color.Nym.error
+        case .connected, .awaitingGatewayConsent:
             return Color.Nym.primary
+        case .step:
+            return Color.Nym.textSecondary
         case .blocked:
             return Color.Nym.textSecondary
         case .disconnected, .offline, .canceling:
@@ -502,7 +504,6 @@ private extension ArcProgressView {
 
         static let fastFill      = Color.Nym.primary
         static let track         = Color.white.opacity(0.15)
-        static let errorFill     = Color.Nym.error.opacity(0.60)
         static let errorFillOpacity: Double = 0.85
         /// Error gap: 10% of the circle, centred on 3 o'clock.
         static let errorGap: CGFloat = 0.1
