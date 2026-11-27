@@ -15,6 +15,50 @@ test.describe('Connection', () => {
     await expect(mainPage.statusText).toBeVisible();
   });
 
+  test('blocked offers to disconnect, not to cancel', async ({ page }) => {
+    await mainPage.connectButton.click();
+    await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
+
+    // offline mid-session: the kill switch holds traffic until reconnect
+    await page.evaluate(() =>
+      (
+        window as unknown as {
+          __TAURI_INTERNALS__: {
+            invoke: (cmd: string, args: unknown) => Promise<unknown>;
+          };
+        }
+      ).__TAURI_INTERNALS__.invoke('plugin:event|emit', {
+        event: 'tunnel-state',
+        payload: { state: { offline: { reconnect: true } }, error: null },
+      }),
+    );
+
+    await expect(mainPage.statusText).toHaveText(
+      'Kill switch is blocking traffic',
+    );
+    await expect(mainPage.disconnectButton).toBeVisible();
+    await expect(mainPage.cancelButton).toHaveCount(0);
+  });
+
+  test('rings stay faded once disconnected', async ({ page }) => {
+    const fills = page
+      .getByTestId('connection-rings')
+      .locator('circle[stroke-opacity]');
+    await expect(fills).toHaveCount(3);
+
+    await mainPage.connectButton.click();
+    await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
+    for (const ring of await fills.all()) {
+      await expect(ring).toHaveAttribute('stroke-opacity', '1');
+    }
+
+    await mainPage.disconnectButton.click();
+    await expect(mainPage.connectButton).toBeVisible({ timeout: 15_000 });
+    for (const ring of await fills.all()) {
+      await expect(ring).toHaveAttribute('stroke-opacity', '0.15');
+    }
+  });
+
   test('connects to VPN correctly', async () => {
     await expect(mainPage.statusText).toHaveText('Not protected');
 

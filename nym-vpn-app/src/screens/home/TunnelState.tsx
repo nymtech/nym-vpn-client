@@ -190,12 +190,14 @@ export function TunnelState() {
       : phase === 'connecting'
         ? CONNECTING_CLR
         : FILL;
-  const strokeOpacity =
-    phase === 'canceling'
-      ? 0.15
-      : phase === 'error' || phase === 'blocked'
-        ? 0.85
-        : 1;
+  // rings stay faded while they drain to empty after a disconnect, as on
+  // Android, so they never flash back to full strength on the way out
+  const isFaded = phase === 'canceling' || phase === 'disconnected';
+  const strokeOpacity = isFaded
+    ? 0.15
+    : phase === 'error' || phase === 'blocked'
+      ? 0.85
+      : 1;
 
   // ring fill pace matches iOS and Android: slower in Mixnet mode
   const fillMs =
@@ -207,7 +209,7 @@ export function TunnelState() {
       ? 'stroke-opacity 600ms ease-in, stroke-dashoffset 0ms'
       : phase === 'error'
         ? 'stroke-dashoffset 0ms, stroke 200ms ease, stroke-opacity 200ms ease'
-        : `stroke-dashoffset ${fillMs}ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease`;
+        : `stroke-dashoffset ${fillMs}ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity ${isFaded ? 600 : 200}ms ease${isFaded ? '-in' : ''}`;
 
   // ─── Label text ───────────────────────────────────────────────────────────
   const label = useMemo((): string | null => {
@@ -253,6 +255,7 @@ export function TunnelState() {
       <div style={{ position: 'relative', width: SIZE, height: SIZE }}>
         {/* SVG rings: rotated so arc starts at top (12 o'clock) */}
         <svg
+          data-testid="connection-rings"
           width={SIZE}
           height={SIZE}
           viewBox={`0 0 ${SIZE} ${SIZE}`}
