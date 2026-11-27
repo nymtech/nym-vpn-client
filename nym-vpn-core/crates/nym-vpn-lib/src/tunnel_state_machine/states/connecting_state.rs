@@ -46,8 +46,8 @@ use nym_gateway_directory::{BlacklistReason, ResolvedConfig};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 use nym_vpn_lib_types::{
-    BridgeMode, EstablishConnectionData, EstablishConnectionState, GatewayLightInfo,
-    SelectorFallbackState, TunnelType,
+    BridgeMode, EntryPoint, EstablishConnectionData, EstablishConnectionState, ExitPoint,
+    GatewayLightInfo, SelectorFallbackState, TunnelType,
 };
 
 /// Initial delay between retry attempts.
@@ -302,7 +302,16 @@ impl ConnectingState {
     async fn reconnect(self, shared_state: &mut SharedState) -> NextTunnelState {
         let next_attempt = self.retry_attempt.saturating_add(1);
 
-        match reconnect_decision(next_attempt) {
+        let tunnel_settings = &shared_state.tunnel_settings;
+        let pinned_gateways = matches!(
+            tunnel_settings.entry_point.as_ref(),
+            EntryPoint::Gateway { .. }
+        ) && matches!(
+            tunnel_settings.exit_point.as_ref(),
+            ExitPoint::Gateway { .. }
+        );
+
+        match reconnect_decision(next_attempt, pinned_gateways) {
             ReconnectDecision::Retry { reset_gateways } => {
                 let use_bridges = match shared_state
                     .tunnel_settings
@@ -1212,7 +1221,8 @@ impl ConnectingPolicyParameters {
 }
 
 /// Maximum number of consecutive reconnect attempts before transitioning to the error
-/// state instead of silently retrying forever.
+/// state instead of silently retrying forever. Pinned entry and exit gateways have nothing
+/// to fail over to, so they keep retrying with backoff.
 const MAX_RECONNECT_ATTEMPTS: u32 = 3;
 
 /// Decision on what to do for the given reconnect attempt.
@@ -1224,8 +1234,8 @@ enum ReconnectDecision {
     Abort,
 }
 
-fn reconnect_decision(next_attempt: u32) -> ReconnectDecision {
-    if next_attempt >= MAX_RECONNECT_ATTEMPTS {
+fn reconnect_decision(next_attempt: u32, pinned_gateways: bool) -> ReconnectDecision {
+    if next_attempt >= MAX_RECONNECT_ATTEMPTS && !pinned_gateways {
         ReconnectDecision::Abort
     } else {
         ReconnectDecision::Retry {
@@ -1256,13 +1266,13 @@ mod test {
     #[test]
     fn reconnect_keeps_gateways_on_odd_attempts_and_resets_on_even() {
         assert_eq!(
-            reconnect_decision(1),
+            reconnect_decision(1, false),
             ReconnectDecision::Retry {
                 reset_gateways: false
             }
         );
         assert_eq!(
-            reconnect_decision(2),
+            reconnect_decision(2, false),
             ReconnectDecision::Retry {
                 reset_gateways: true
             }
@@ -1272,7 +1282,7 @@ mod test {
     #[test]
     fn reconnect_retries_below_max_attempts() {
         assert!(matches!(
-            reconnect_decision(MAX_RECONNECT_ATTEMPTS - 1),
+            reconnect_decision(MAX_RECONNECT_ATTEMPTS - 1, false),
             ReconnectDecision::Retry { .. }
         ));
     }
@@ -1280,14 +1290,26 @@ mod test {
     #[test]
     fn reconnect_aborts_once_max_attempts_reached() {
         assert_eq!(
-            reconnect_decision(MAX_RECONNECT_ATTEMPTS),
+            reconnect_decision(MAX_RECONNECT_ATTEMPTS, false),
             ReconnectDecision::Abort,
             "the reconnect loop must not retry silently forever"
         );
         assert_eq!(
-            reconnect_decision(MAX_RECONNECT_ATTEMPTS + 5),
+            reconnect_decision(MAX_RECONNECT_ATTEMPTS + 5, false),
             ReconnectDecision::Abort
         );
+    }
+
+    #[test]
+    fn reconnect_never_aborts_for_pinned_gateways() {
+        assert!(matches!(
+            reconnect_decision(MAX_RECONNECT_ATTEMPTS, true),
+            ReconnectDecision::Retry { .. }
+        ));
+        assert!(matches!(
+            reconnect_decision(MAX_RECONNECT_ATTEMPTS + 100, true),
+            ReconnectDecision::Retry { .. }
+        ));
     }
 
     #[test]
