@@ -45,16 +45,12 @@ impl ResolverOverrides {
             };
 
             join_set.spawn(async move {
-                let result = url_to_socket_addr(&url, Some((1, 1)))
-                    .await
-                    .inspect_err(|err| {
-                        tracing::warn!(
-                            "{}",
-                            err.display_chain_with_msg(format!(
-                                "Failed to resolve domain {domain}"
-                            ))
-                        );
-                    });
+                let result = url_to_socket_addr(&url).await.inspect_err(|err| {
+                    tracing::warn!(
+                        "{}",
+                        err.display_chain_with_msg(format!("Failed to resolve domain {domain}"))
+                    );
+                });
                 (domain, result)
             });
         }
