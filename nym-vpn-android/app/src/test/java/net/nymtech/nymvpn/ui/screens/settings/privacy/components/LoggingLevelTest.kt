@@ -9,7 +9,7 @@ class LoggingLevelTest {
 	fun from_readsEveryStoredCombination() {
 		assertEquals(LoggingLevel.OFF, LoggingLevel.from(logsEnabled = false, debugEnabled = false))
 		assertEquals(LoggingLevel.OFF, LoggingLevel.from(logsEnabled = false, debugEnabled = true))
-		assertEquals(LoggingLevel.STANDARD, LoggingLevel.from(logsEnabled = true, debugEnabled = false))
+		assertEquals(LoggingLevel.BASIC, LoggingLevel.from(logsEnabled = true, debugEnabled = false))
 		assertEquals(LoggingLevel.DEBUG, LoggingLevel.from(logsEnabled = true, debugEnabled = true))
 	}
 

@@ -148,7 +148,7 @@ fun PrivacyScreen(
 internal fun PreviewPrivacyScreen() {
 	NymVPNTheme(Theme.default()) {
 		PrivacyScreen(
-			choices = PrivacyChoices(statsEnabled = true, sentryEnabled = true, loggingLevel = LoggingLevel.STANDARD, loggingRestartPending = false),
+			choices = PrivacyChoices(statsEnabled = true, sentryEnabled = true, loggingLevel = LoggingLevel.BASIC, loggingRestartPending = false),
 			onNetworkStatsEnable = {},
 			onMonitoringEnable = {},
 			onLoggingLevelChange = {},

@@ -531,10 +531,10 @@
 	<string name="logs_empty_placeholder">No logs yet</string>
 	<string name="logs_level_title">Your app logs</string>
 	<string name="logs_level_off">Off</string>
-	<string name="logs_level_standard">Standard</string>
+	<string name="logs_level_basic">Basic</string>
 	<string name="logs_level_debug">Debug</string>
 	<string name="logs_level_off_description">The app keeps no log of its own. The VPN still keeps a basic log, on this device only.</string>
-	<string name="logs_level_standard_description">Keeps a record of what the app does, on this device only. Nym never has access.</string>
+	<string name="logs_level_basic_description">Keeps a record of what the app does, on this device only. Nym never has access.</string>
 	<string name="logs_level_debug_description">Adds detail for troubleshooting. Uses more battery, and logs can grow up to 10x larger.</string>
 	<string name="logs_share_logs">Share logs</string>
 	<string name="logs_save_logs">Save logs</string>
