@@ -140,6 +140,9 @@ impl From<lib::VpnApiError> for BackendError {
                 None,
             ),
             lib::VpnApiError::Response(response) => BackendError::from(response),
+            lib::VpnApiError::Other(msg) => {
+                BackendError::internal(&format!("VPN API error: {msg}"), None)
+            }
         }
     }
 }

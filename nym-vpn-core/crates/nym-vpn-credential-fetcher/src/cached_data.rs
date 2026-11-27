@@ -49,9 +49,12 @@ impl CachedData {
                 .vpn_api_client
                 .get_directory_zk_nyms_ticketbook_partial_verification_keys(epoch_id)
                 .await
-                .map_err(VpnApiFetcherError::vpn_api_error(
-                    "get_directory_zk_nyms_ticketbook_partial_verification_keys",
-                ))?;
+                .map_err(|err| {
+                    VpnApiFetcherError::from_vpn_api_error(
+                        "get_directory_zk_nyms_ticketbook_partial_verification_keys",
+                        err,
+                    )
+                })?;
 
             // a vpn-api deployed without the `epoch-id` param ignores it and answers with the
             // current epoch, which is indistinguishable from never having asked
@@ -81,9 +84,12 @@ impl CachedData {
                 .vpn_api_client
                 .get_directory_zk_nyms_ticketbook_master_verification_key(epoch_id)
                 .await
-                .map_err(VpnApiFetcherError::vpn_api_error(
-                    "get_directory_zk_nyms_ticketbook_master_verification_key",
-                ))?;
+                .map_err(|err| {
+                    VpnApiFetcherError::from_vpn_api_error(
+                        "get_directory_zk_nyms_ticketbook_master_verification_key",
+                        err,
+                    )
+                })?;
             let key = VerificationKeyAuth::try_from_bs58(&response.bs58_encoded_key)
                 .map_err(VpnApiFetcherError::InvalidVerificationKey)?;
 

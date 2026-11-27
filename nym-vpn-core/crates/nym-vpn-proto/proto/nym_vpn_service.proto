@@ -815,6 +815,7 @@ message VpnApiError {
     string timeout = 1;
     StatusError status_code = 2;
     VpnApiErrorResponse response = 3;
+    string other = 4;
   }
   message StatusError {
     uint32 code = 1;

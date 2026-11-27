@@ -175,9 +175,12 @@ impl VpnApiCredentialFetcher {
             .vpn_api_client
             .get_directory_zk_nyms_ticketbook_aggregated_coin_indices_signatures(epoch_id)
             .await
-            .map_err(VpnApiFetcherError::vpn_api_error(
-                "get_directory_zk_nyms_ticketbook_aggregated_coin_indices_signatures",
-            ))?;
+            .map_err(|err| {
+                VpnApiFetcherError::from_vpn_api_error(
+                    "get_directory_zk_nyms_ticketbook_aggregated_coin_indices_signatures",
+                    err,
+                )
+            })?;
         Ok(response.signatures)
     }
 
@@ -193,9 +196,12 @@ impl VpnApiCredentialFetcher {
                 expiration_date,
             )
             .await
-            .map_err(VpnApiFetcherError::vpn_api_error(
-                "get_directory_zk_nyms_ticketbook_aggregated_expiration_date_signatures",
-            ))?;
+            .map_err(|err| {
+                VpnApiFetcherError::from_vpn_api_error(
+                    "get_directory_zk_nyms_ticketbook_aggregated_expiration_date_signatures",
+                    err,
+                )
+            })?;
         Ok(response.signatures)
     }
 }
