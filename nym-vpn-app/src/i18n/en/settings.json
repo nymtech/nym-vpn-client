@@ -127,13 +127,14 @@
     "slider": {
       "faster": "Faster",
       "anonymity": "+ Anonymity",
-      "slower": "Slower"
+      "less-data": "Less data"
     },
     "performance": {
       "title": "Expected performance of current settings:",
       "speed": {
         "title": "Packet rate",
-        "value": "Up to {{value}}"
+        "value": "Up to {{value}}",
+        "unlimited": "Up to internet speed"
       },
       "privacy": {
         "title": "Latency",

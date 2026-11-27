@@ -124,8 +124,6 @@ export function CardNewCopyableRow({
 
 export type CardHeaderSwitchProps = {
   header: string;
-  subheader?: string;
-  subheaderColor?: 'default' | 'king-nacho';
   checked: boolean;
   onClick: () => void;
   disabled?: boolean;
@@ -136,8 +134,6 @@ export type CardHeaderSwitchProps = {
 
 export function CardHeaderSwitch({
   header,
-  subheader,
-  subheaderColor = 'default',
   checked,
   onClick,
   className,
@@ -168,28 +164,12 @@ export function CardHeaderSwitch({
         <p className="text-text-primary truncate text-base select-none">
           {header}
         </p>
-        {subheader && (
-          <p
-            className={clsx(
-              'text-sm select-none',
-              subheaderColor === 'default'
-                ? 'text-text-secondary'
-                : 'text-status-warning',
-            )}
-          >
-            {subheader}
-          </p>
-        )}
       </div>
       <Switch
         checked={checked}
         onChange={onClick}
         disabled={disabled}
-        className={clsx(
-          'self-start',
-          subheader && 'mt-2',
-          disabled && 'opacity-50',
-        )}
+        className={clsx('self-start', disabled && 'opacity-50')}
       />
     </div>
   );

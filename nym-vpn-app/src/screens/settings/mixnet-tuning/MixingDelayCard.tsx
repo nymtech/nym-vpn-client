@@ -33,12 +33,13 @@ function MixingDelaySlider({
         min={mixingDelay.minValue}
         max={mixingDelay.maxValue}
         step={1}
+        defaultValue={mixingDelay.defaultValue}
         valueIndicator
         ariaLabel={t('mixnet-tuning.mixing-delay.title')}
         labels={levels.map((level, index) => (
           <div
             key={level.key}
-            className={clsx('flex flex-col text-sm', {
+            className={clsx('text-text-primary flex flex-col text-sm', {
               'items-start': index === 0,
               'items-end': index === levels.length - 1,
               'items-center': index !== 0 && index !== levels.length - 1,
