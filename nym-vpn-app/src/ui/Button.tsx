@@ -1,6 +1,6 @@
 import { Button as BuButton } from '@base-ui/react';
 import clsx from 'clsx';
-import { ReactNode } from 'react';
+import { ReactNode, Ref } from 'react';
 import Spinner from './Spinner';
 
 export type ButtonVariant =
@@ -56,6 +56,7 @@ export type ButtonNewProps = {
   disabled?: boolean;
   className?: string;
   loading?: boolean;
+  ref?: Ref<HTMLButtonElement>;
 };
 
 function Button({
@@ -65,6 +66,7 @@ function Button({
   disabled,
   className,
   loading,
+  ref,
 }: ButtonNewProps) {
   const content = loading ? (
     <Spinner className={clsx(loadingStyles[variant])} />
@@ -73,6 +75,7 @@ function Button({
   );
   return (
     <BuButton
+      ref={ref}
       className={clsx([
         'group',
         'flex items-center justify-center',

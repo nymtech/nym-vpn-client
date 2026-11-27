@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { MsIcon, PageAnim, Switch } from '../../../ui';
+import { Button, MsIcon, PageAnim, Switch } from '../../../ui';
 import { dispatch, useMainState } from '../../../store';
 import SettingsGroup from '../SettingsGroup';
 import { routes } from '../../../router';
@@ -12,7 +12,7 @@ import TelemetryInfoDialog, {
 } from '../../technical-opt-in/TelemetryInfoDialog';
 
 function DataAndPrivacy() {
-  const { monitoring, networkStats } = useMainState();
+  const { monitoring, networkStats, debugLogging } = useMainState();
   const [info, setInfo] = useState<TelemetryInfoKind | null>(null);
 
   const { t } = useTranslation(['settings', 'welcome']);
@@ -30,6 +30,17 @@ function DataAndPrivacy() {
     } catch {}
   };
 
+  const toggleDebugLogging = useCallback(async () => {
+    const next = !debugLogging;
+    dispatch({ type: 'set-debug-logging', enabled: next });
+    try {
+      await invoke('set_debug_logging', { enabled: next });
+    } catch (e) {
+      console.error('failed to set debug logging', e);
+      dispatch({ type: 'set-debug-logging', enabled: debugLogging });
+    }
+  }, [debugLogging]);
+
   const onMonitoringChange = async () => {
     const isChecked = !monitoring;
     dispatch({ type: 'set-monitoring', enabled: isChecked });
@@ -44,32 +55,7 @@ function DataAndPrivacy() {
 
   return (
     <PageAnim className="mt-2 flex h-full flex-col gap-6">
-      <SettingsGroup
-        settings={[
-          {
-            title: t('logs.title'),
-            leadingIcon: 'sort',
-            trailing: (
-              <MsIcon icon="chevron_right" className="text-text-primary" />
-            ),
-            onClick: () => navigate(routes.logs),
-          },
-        ]}
-      />
-      <SettingsGroup
-        settings={[
-          {
-            title: t('diagnostic.title'),
-            leadingIcon: 'monitor_heart',
-            trailing: (
-              <MsIcon icon="chevron_right" className="text-text-primary" />
-            ),
-            onClick: () => navigate(routes.diagnostic),
-          },
-        ]}
-      />
-
-      {/* Telemetry opt-ins — identical to the onboarding screen */}
+      {/* One card per data choice, in the same order as iOS and Android (onboarding groups the opt-ins on every app) */}
       <SettingsGroup
         settings={[
           {
@@ -93,6 +79,10 @@ function DataAndPrivacy() {
             ),
             'data-testid': 'data-privacy-netstats-option',
           },
+        ]}
+      />
+      <SettingsGroup
+        settings={[
           {
             title: t('monitoring.label', { ns: 'welcome' }),
             titleTrailing: (
@@ -123,6 +113,40 @@ function DataAndPrivacy() {
           },
         ]}
       />
+      <SettingsGroup
+        settings={[
+          {
+            title: t('privacy.troubleshooting.title'),
+            desc: t('privacy.troubleshooting.desc'),
+            leadingIcon: 'find_in_page',
+            trailing: (
+              <Switch
+                checked={debugLogging}
+                onChange={toggleDebugLogging}
+                data-testid="data-privacy-debug-logging-switch"
+              />
+            ),
+            'data-testid': 'data-privacy-debug-logging-option',
+          },
+        ]}
+      />
+
+      <SettingsGroup
+        settings={[
+          {
+            title: t('logs.title'),
+            desc: t('logs.desc'),
+            leadingIcon: 'sort',
+            trailing: (
+              <MsIcon icon="chevron_right" className="text-text-primary" />
+            ),
+            onClick: () => navigate(routes.logs),
+          },
+        ]}
+      />
+      <Button onClick={() => navigate(routes.diagnostic)}>
+        {t('diagnostic.run')}
+      </Button>
 
       <TelemetryInfoDialog kind={info} onClose={() => setInfo(null)} />
     </PageAnim>

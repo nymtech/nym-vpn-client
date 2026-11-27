@@ -1,20 +1,27 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { Separator } from '@base-ui/react';
-import { Button, ButtonIconNew, PageAnim } from '../../../ui';
+import { Button, ButtonIconNew, PageAnim, Spinner } from '../../../ui';
 import { useClipboard } from '../../../hooks';
 
 function Diagnostic() {
   const { t } = useTranslation('settings');
   const { copy } = useClipboard();
 
-  const [diagnosticRunning, setDiagnosticRunning] = useState(false);
+  // Starts true: the run begins as soon as the page opens
+  const [diagnosticRunning, setDiagnosticRunning] = useState(true);
   const [diagnosticResult, setDiagnosticResult] = useState<string | null>(null);
+  // Every finished run leaves either a report or nothing, so failure is derived, not stored
+  const diagnosticFailed = !diagnosticRunning && !diagnosticResult;
   const [shareLoading, setShareLoading] = useState(false);
+  const startedRef = useRef(false);
+  // Re-run unmounts while a run is going, so focus goes back to it when a re-run ends
+  const rerunRef = useRef<HTMLButtonElement>(null);
+  const refocusRerunRef = useRef(false);
 
-  const handleRunDiagnostic = async () => {
+  const handleRunDiagnostic = useCallback(async () => {
     setDiagnosticRunning(true);
+    setDiagnosticResult(null);
     try {
       const report = await invoke('run_diagnostic', {
         params: {
@@ -25,9 +32,29 @@ function Diagnostic() {
         },
       });
       setDiagnosticResult(JSON.stringify(report, null, 2));
+    } catch (error) {
+      console.error('failed to run diagnostic', error);
     } finally {
       setDiagnosticRunning(false);
     }
+  }, []);
+
+  // StrictMode runs effects twice in dev; the ref keeps it to one run per visit
+  useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    handleRunDiagnostic();
+  }, [handleRunDiagnostic]);
+
+  useEffect(() => {
+    if (diagnosticRunning || !refocusRerunRef.current) return;
+    refocusRerunRef.current = false;
+    rerunRef.current?.focus();
+  }, [diagnosticRunning]);
+
+  const handleRerun = () => {
+    refocusRerunRef.current = true;
+    handleRunDiagnostic();
   };
 
   const handleShareReport = async () => {
@@ -48,14 +75,26 @@ function Diagnostic() {
   return (
     <PageAnim className="flex h-full flex-col">
       <div className="flex min-h-0 flex-1 flex-col gap-6">
-        <Button
-          onClick={handleRunDiagnostic}
-          disabled={diagnosticRunning}
-          loading={diagnosticRunning}
-        >
-          {t('diagnostic.run')}
-        </Button>
-        {diagnosticResult && (
+        {diagnosticRunning && (
+          <div
+            className="flex justify-center pt-6"
+            role="status"
+            aria-label={t('diagnostic.running')}
+          >
+            <Spinner className="border-brand-primary! border-b-transparent!" />
+          </div>
+        )}
+        {!diagnosticRunning && (
+          <Button ref={rerunRef} onClick={handleRerun}>
+            {t('diagnostic.rerun')}
+          </Button>
+        )}
+        {diagnosticFailed && (
+          <p className="text-status-error text-center text-sm" role="alert">
+            {t('diagnostic.failed')}
+          </p>
+        )}
+        {!diagnosticRunning && diagnosticResult && (
           <>
             <Button
               variant="outlined"
@@ -65,9 +104,9 @@ function Diagnostic() {
             >
               {t('diagnostic.share')}
             </Button>
-            <div className="dark:bg-surface-elev flex min-h-0 flex-1 flex-col space-y-4 rounded-lg bg-white p-6 font-mono text-xs">
+            <div className="dark:bg-surface-elev flex min-h-0 flex-1 flex-col space-y-4 rounded-lg bg-white p-6">
               <div className="flex items-center justify-between">
-                <span className="text-text-primary text-sm font-semibold">
+                <span className="text-text-primary text-base">
                   {t('diagnostic.report-title')}
                 </span>
                 <ButtonIconNew
@@ -79,12 +118,8 @@ function Diagnostic() {
                   // noDefaultSize
                 />
               </div>
-              <Separator
-                orientation="horizontal"
-                className="bg-text-tertiary dark:bg-text-secondary h-px w-full"
-              />
               <div className="min-h-0 flex-1 overflow-y-auto">
-                <pre className="text-text-secondary wrap-break-word whitespace-pre-wrap">
+                <pre className="text-text-secondary font-mono text-xs wrap-break-word whitespace-pre-wrap">
                   {diagnosticResult}
                 </pre>
               </div>

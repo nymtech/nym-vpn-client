@@ -91,15 +91,12 @@
     "emptyData": "No license data available"
   },
   "logs": {
-    "title": "Logs (stored locally)",
+    "title": "View & share logs",
+    "desc": "Diagnostic logs stored locally only",
     "app": "App logs",
     "daemon": "Daemon logs",
-    "debug-logging": {
-      "title": "Enable debug logging"
-    },
     "actions": {
       "delete": {
-        "action-button": "Delete",
         "title": "Delete NymVPN logs?",
         "description": "Deleting logs improves privacy but prevents Support from diagnosing your connection issues.",
         "confirmButtonText": "Delete logs",
@@ -108,12 +105,9 @@
         "success": "Logs deleted successfully"
       },
       "export": {
-        "action-button": "Export as ZIP",
-        "title": "Export NymVPN logs?",
+        "action-button": "Share logs",
         "description": "Shared log files can be viewed by recipients and anyone they share them with.",
-        "confirmButtonText": "Export anyway",
-        "cancelButtonText": "Cancel",
-        "error": "Failed to export logs"
+        "error": "Failed to share logs"
       }
     }
   },
@@ -279,7 +273,11 @@
   },
   "privacy": {
     "title": "Data, privacy & logs",
-    "monitoring-restart-note": "Changes will apply after app and daemon restart."
+    "monitoring-restart-note": "Changes will apply after app and daemon restart.",
+    "troubleshooting": {
+      "title": "Your debug logs",
+      "desc": "Helps us fix connection problems"
+    }
   },
   "account": {
     "planValidUntil": "Plan valid until {{date}}",
@@ -303,9 +301,12 @@
   },
   "diagnostic": {
     "title": "Diagnostic tool",
-    "run": "Run Diagnostic",
+    "run": "Run diagnostics",
+    "rerun": "Re-run diagnostics",
+    "running": "Running diagnostics",
     "share": "Share report",
-    "report-title": "Diagnostic report"
+    "report-title": "Diagnostic report",
+    "failed": "Failed to run diagnostics. Please try again."
   },
   "split-tunneling": {
     "title": "Split tunneling",

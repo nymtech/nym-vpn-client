@@ -1,12 +1,14 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { Button, Dialog, MsIcon } from '.';
+import { Button, ButtonVariant, Dialog, MsIcon } from '.';
 
 export type ConfirmationDialogProps = {
   icon: string;
   title: string;
   description: string;
   confirmButtonText: string;
+  // destructive for an action that can't be undone, such as deleting logs
+  confirmVariant?: ButtonVariant;
   cancelButtonText?: string;
   isOpen: boolean;
   isLoading: boolean;
@@ -19,6 +21,7 @@ function ConfirmationDialog({
   title,
   description,
   confirmButtonText,
+  confirmVariant = 'primary',
   cancelButtonText,
   isOpen,
   isLoading,
@@ -46,7 +49,7 @@ function ConfirmationDialog({
         <Button
           onClick={onConfirm}
           className="min-w-32"
-          variant="primary"
+          variant={confirmVariant}
           loading={isLoading}
           disabled={isLoading}
         >

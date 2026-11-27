@@ -9,7 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Data, privacy & logs is reordered to match iOS and Android, and Run diagnostics now sits on it and starts the run as soon as the diagnostic page opens (https://github.com/nymtech/nym-vpn-client/pull/7243)
+- Data, privacy & logs: debug logging moved here from the Logs screen as "Your debug logs", next to the other data choices (https://github.com/nymtech/nym-vpn-client/pull/7243)
+- Logs is now "View & share logs", with a line saying logs stay on this device. Share logs and Delete logs are buttons on the page instead of in the menu. Share logs saves a zip of the app and daemon logs straight away; Delete logs still asks first (https://github.com/nymtech/nym-vpn-client/pull/7243)
 - [Linux] The deb package now depends on `polkit-1-auth-agent`, so a polkit authentication agent is installed together with the app. This dependency used to come with `nym-vpnd` (https://github.com/nymtech/nym-vpn-client/pull/7175)
+
+### Fixed
+
+- A failed diagnostic run no longer fails silently; it now shows "Failed to run diagnostics. Please try again." (https://github.com/nymtech/nym-vpn-client/pull/7243)
 
 ## [2026.16.1] - 2026-11-19
 
