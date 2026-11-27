@@ -90,7 +90,7 @@ function Diagnostic() {
           </Button>
         )}
         {diagnosticFailed && (
-          <p className="text-text-secondary text-sm" role="alert">
+          <p className="text-status-error text-center text-sm" role="alert">
             {t('diagnostic.failed')}
           </p>
         )}
