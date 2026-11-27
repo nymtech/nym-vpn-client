@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.17.0] - TBD
+
 ### Added
 - Connect after redeeming a free pass or signing in with a QR code, with a checkbox to opt out (https://github.com/nymtech/nym-vpn-client/pull/7236)
 
