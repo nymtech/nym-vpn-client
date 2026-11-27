@@ -36,6 +36,7 @@ pub(crate) const IP: &str = "ip";
 pub(crate) const PAIRING: &str = "pairing";
 pub(crate) const START: &str = "start";
 pub(crate) const CHECK: &str = "check";
+pub(crate) const CONFIRM_PIN: &str = "confirm-pin";
 pub(crate) const PAIR: &str = "pair";
 pub(crate) const GET_SECRET: &str = "get-secret";
 pub(crate) const SHARE_SECRET: &str = "share-secret";

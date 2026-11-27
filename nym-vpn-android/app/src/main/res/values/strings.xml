@@ -254,14 +254,16 @@
 	<string name="settings_reset_app_title">Reset app data</string>
 	<string name="settings_system_status_title">System status</string>
 	<string name="settings_mixnet_tuning_title">Mixnet tuning</string>
-	<string name="settings_mixnet_tuning_description">Fine tune your mixnet parameters</string>
+	<string name="settings_mixnet_tuning_description">Customize traffic patterns of Mixnet mode</string>
 	<string name="settings_quit_title">Quit NymVPN</string>
 	<string name="settings_app_version_line">App version: %1$s</string>
 	<string name="settings_language_crowdin_link" translatable="false">https://crowdin.com/editor/nymvpn-apps</string>
 	<string name="settings_language_help_title">Help with translation</string>
 	<string name="settings_language_help_description">Make the app better in your language.</string>
 	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings…</string>
-	<string name="settings_ad_blocking_title">Ad blocking</string>
+	<string name="settings_ad_blocking_title">Block ads</string>
+	<string name="settings_ad_blocking_description_on">Blocking ads and trackers</string>
+	<string name="settings_ad_blocking_description_off">Ads and trackers allowed</string>
 	<string name="settings_kill_switch_title">Kill switch</string>
 	<string name="settings_kill_switch_description">Uses Android\'s **Always-on VPN** to prevent data leaks</string>
 	<string name="settings_bypass_lan_title">Bypass LAN</string>
@@ -272,6 +274,14 @@
 	<string name="settings_power_managment_title">Power management</string>
 	<string name="settings_shortcuts_title">App shortcuts</string>
 	<string name="settings_logs_title">Logs &amp; data</string>
+	<string name="settings_your_account_title">Your account</string>
+	<string name="settings_section_account">Account</string>
+	<string name="settings_section_protection">Protection</string>
+	<string name="settings_section_connection">Connection</string>
+	<string name="settings_section_routing">Routing</string>
+	<string name="settings_section_app">App</string>
+	<string name="settings_section_help_data">Help and data</string>
+	<string name="settings_search_placeholder">Search settings</string>
 	<string name="settings_legal_title">Legal</string>
 	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Specific IP ranges connect directly</string>
@@ -401,16 +411,28 @@
 	<string name="censorship_quic_title">Disguise your traffic</string>
 	<string name="censorship_quic_description">Bridges help you slip past networks that detect and block VPN traffic. **dVPN** mode uses AmneziaWG by default to make **WireGuard** harder to detect.</string>
 	<string name="censorship_bridge_changes_apply">Changes require reconnection.</string>
+	<string name="censorship_transport_auto_mode_disclaimer">Auto only uses a bridge if the direct connection fails, so your pin has no effect unless that happens.</string>
 	<string name="censorship_bridge_off_title">Off</string>
 	<string name="censorship_bridge_off_description">Connect directly, without a bridge. Fastest, but easiest to block.</string>
 	<string name="censorship_bridge_auto_title">Auto</string>
-	<string name="censorship_bridge_auto_description">Tries **WireGuard** first, then switches to a bridge (QUIC, TLS, or SSH) if it fails.</string>
+	<string name="censorship_bridge_auto_description">Tries **WireGuard** first, then switches to a bridge if it fails.</string>
 	<string name="censorship_bridge_on_title">On</string>
 	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be your entry server.</string>
 	<string name="censorship_quic_link" translatable="false">https://nym.com/features/anti-censorship-bridges</string>
 	<string name="censorship_stealth_title">Disguise your Nym connection</string>
 	<string name="censorship_stealth_description">Stay connected even if Nym\'s servers are blocked where you are.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_transport_title">Bridge transport</string>
+	<string name="censorship_transport_description">Choose which protocol a bridge connection uses.</string>
+	<string name="censorship_transport_auto_title">Default</string>
+	<string name="censorship_transport_auto_description">Tries QUIC first, then falls back to TLS or SSH if it fails.</string>
+	<string name="censorship_transport_quic_title">QUIC</string>
+	<string name="censorship_transport_quic_description">Always use QUIC.</string>
+	<string name="censorship_transport_tls_title">TLS</string>
+	<string name="censorship_transport_tls_description">Always use TLS.</string>
+	<string name="censorship_transport_ssh_title">SSH</string>
+	<string name="censorship_transport_ssh_description">Always use SSH.</string>
+	<string name="censorship_transport_preference_error">Could not save transport preference. Please try again.</string>
 	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers that offer a bridge. To reveal all servers, set “Disguise your traffic” to Off or Auto.</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_privacy_start">By continuing, you agree to NymVPN\'s  </string>
@@ -479,7 +501,6 @@
 	<string name="passphrase_info_keeps_anonymous">Keeps you anonymous</string>
 	<string name="passphrase_info_belongs">Belongs only to you (self-custody)</string>
 	<!-- Account screen -->
-	<string name="account_title">Account and devices</string>
 	<string name="account_info_manage_button">Manage your subscription</string>
 	<string name="account_info_renew_auth_title">Renew your subscription</string>
 	<string name="account_info_link_auth_subtitle">Confirm it\'s you to add a social login</string>
@@ -536,8 +557,7 @@
 	<string name="logs_download_button">Save as file anyway</string>
 	<string name="logs_saved">Logs saved to your Downloads folder"</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
-	<string name="split_tunneling_dns_warning">Excluded apps connect directly to the internet, including their DNS lookups.</string>
+	<string name="split_tunneling_exclude_warning">Direct apps and their DNS lookups aren\'t protected by NymVPN.</string>
 	<string name="split_tunneling_search_apps_hint">Search apps</string>
 	<string name="split_tunneling_apps">Apps</string>
 	<string name="split_tunneling_direct">Direct</string>
@@ -555,7 +575,7 @@
 	<string name="split_tunneling_event_saved">Split tunneling settings saved</string>
 	<string name="split_tunneling_event_reconnecting">Reconnecting to apply split tunneling settings…</string>
 	<!-- DNS customization screen -->
-	<string name="dns_title">DNS customization</string>
+	<string name="dns_title">Customize DNS</string>
 	<string name="dns_description">By default, using Nym\'s recommended DNS servers. Configure custom servers below if needed.</string>
 	<string name="dns_view_list">View default DNS</string>
 	<string name="dns_hide_list">Hide default DNS</string>
@@ -617,11 +637,11 @@
 	<string name="support_protect_title">⚠️ Protect yourself from scams</string>
 	<string name="support_protect_description">Only contact NymVPN support through the official channels listed below. We will never ask for your passphrase or contact you first via direct messages.\n\nReceived unexpected contact? It\'s likely a scam.</string>
 	<!-- Private DNS modal -->
-	<string name="private_dns_title">Disable Private DNS to use ad blocker.</string>
+	<string name="private_dns_title">Disable Private DNS to block ads.</string>
 	<string name="private_dns_button">Open Settings</string>
 	<!-- Notifications screen -->
 	<string name="notifications_node_families_title">Server family reminders</string>
-	<string name="notifications_node_families_description">Keeps reminding of shared family</string>
+	<string name="notifications_node_families_description">Warn me when the selected entry and exit servers belong to the same operator family.</string>
 	<string name="notifications_system_title">System notifications</string>
 	<string name="notifications_system_description">Keeps the app running when closed</string>
 	<!-- Node Families -->
@@ -641,7 +661,7 @@
 	<string name="geo_exclusion_ports_text">1024–65535</string>
 	<string name="geo_exclusion_ranges_count">%1$s ranges</string>
 	<string name="geo_exclusion_last_updated">List updated %1$s</string>
-	<string name="geo_exclusion_error_failed_start_text">Geo Exclusion couldn\'t start. Reconnect and try again.</string>
+	<string name="geo_exclusion_error_failed_start_text">Geo-exclusion couldn\'t start. Reconnect and try again.</string>
 	<string name="geo_exclusion_error_invalid_port_text">Port must be between 1024 and 65535.</string>
 	<string name="geo_exclusion_error_forbidden_port_text">Port 1080 is forbidden. Choose another.</string>
 	<string name="geo_exclusion_excluded_regions_label">Excluded regions</string>
@@ -668,7 +688,7 @@
 	<string name="app_icon_change_body">The app will close briefly to apply the new icon. Only the home-screen icon and label change — notifications and system search still show NymVPN.</string>
 	<string name="app_icon_change_confirm">Change icon</string>
 	<!-- Profiles -->
-	<string name="profiles_title">Profiles</string>
+	<string name="profiles_title">Connection profiles</string>
 	<string name="profiles_safest_title">Auto</string>
 	<string name="profiles_safest_description">Best performing servers, never your own country</string>
 	<string name="profiles_random_title">Random</string>
@@ -741,6 +761,7 @@
 	<string name="pair_device_done">Done</string>
 	<string name="pairing_pin_description">Pairing code %1$s</string>
 	<string name="pairing_sign_in_nav_title">Sign in with another device</string>
+	<string name="pairing_waiting_for_code">Waiting for your other device…</string>
 	<string name="pairing_sign_in_title">Confirm on your other device</string>
 	<string name="pairing_sign_in_body">Check that your other device shows this code, then confirm it there.</string>
 	<string name="pairing_signing_in">Signing in…</string>
@@ -765,6 +786,8 @@
 	<string name="redeem_code_checking">Checking code…</string>
 	<string name="redeem_code_invalid">This isn\'t a valid NymVPN code</string>
 	<string name="redeem_code_enter_instead">Enter code instead</string>
+	<string name="redeem_code_connect_after">Connect after redeeming</string>
+	<string name="qr_scan_connect_when_done">Connect when done</string>
 	<string name="freepass_error_invalid">This code isn\'t valid. Check it and try again.</string>
 	<string name="freepass_error_already_redeemed">This code has already been used.</string>
 	<string name="freepass_error_rate_limited">Too many attempts. Try again in a minute.</string>

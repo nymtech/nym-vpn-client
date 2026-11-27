@@ -11,6 +11,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import dagger.hilt.android.HiltAndroidApp
 import io.sentry.Hint
+import io.sentry.KeyValueCollectionBehavior
 import io.sentry.SentryEvent
 import io.sentry.SentryLevel
 import io.sentry.SentryOptions
@@ -296,7 +297,15 @@ class NymVpn : Application() {
 				profileSampleRate = 0.05
 			}
 
-			options.isSendDefaultPii = false
+			options.dataCollection.apply {
+				userInfo = false
+				databaseQueryData = false
+				filePaths = false
+				cookies = KeyValueCollectionBehavior.off()
+				httpBodies = emptySet()
+				graphql.document = false
+				graphql.variables = false
+			}
 			options.isAttachViewHierarchy = false
 			options.sampleRate = sampleRate
 			options.profileSessionSampleRate = profileSampleRate

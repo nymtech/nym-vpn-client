@@ -22,6 +22,7 @@ public struct MixnetConfig: Codable, Equatable {
     public let isTwoHopEnabled: Bool
     public let bridgeMode: BridgeModeSetting
     public let isStealthApiEnabled: Bool
+    public let transportPreference: TransportPreferenceSetting
     public let isAdBlockingEnabled: Bool
     public let isErrorReportingEnabled: Bool
     public let isStatisticsEnabled: Bool
@@ -46,6 +47,7 @@ public struct MixnetConfig: Codable, Equatable {
         isStatisticsEnabled: Bool,
         bridgeMode: BridgeModeSetting,
         isStealthApiEnabled: Bool,
+        transportPreference: TransportPreferenceSetting = .auto,
         isLanBypassEnabled: Bool,
         isAdBlockingEnabled: Bool,
         isTwoHopEnabled: Bool = false,
@@ -64,6 +66,7 @@ public struct MixnetConfig: Codable, Equatable {
         self.isStatisticsEnabled = isStatisticsEnabled
         self.bridgeMode = bridgeMode
         self.isStealthApiEnabled = isStealthApiEnabled
+        self.transportPreference = transportPreference
         self.isLanBypassEnabled = isLanBypassEnabled
         self.isTwoHopEnabled = isTwoHopEnabled
         self.isAdBlockingEnabled = isAdBlockingEnabled
@@ -74,7 +77,7 @@ public struct MixnetConfig: Codable, Equatable {
 #endif
 
     private enum CodingKeys: String, CodingKey {
-        case entryGateway, exitRouter, isTwoHopEnabled, bridgeMode, isStealthApiEnabled
+        case entryGateway, exitRouter, isTwoHopEnabled, bridgeMode, isStealthApiEnabled, transportPreference
         case isAdBlockingEnabled, isErrorReportingEnabled, isStatisticsEnabled, isLanBypassEnabled
         case mixnetTuning, name
 #if os(iOS)
@@ -99,6 +102,10 @@ public struct MixnetConfig: Codable, Equatable {
             bridgeMode = try legacy.decode(Bool.self, forKey: .isQuicEnabled) ? .on : .off
         }
         isStealthApiEnabled = try container.decode(Bool.self, forKey: .isStealthApiEnabled)
+        transportPreference = try container.decodeIfPresent(
+            TransportPreferenceSetting.self,
+            forKey: .transportPreference
+        ) ?? .auto
         isAdBlockingEnabled = try container.decode(Bool.self, forKey: .isAdBlockingEnabled)
         isErrorReportingEnabled = try container.decode(Bool.self, forKey: .isErrorReportingEnabled)
         isStatisticsEnabled = try container.decode(Bool.self, forKey: .isStatisticsEnabled)
@@ -134,6 +141,7 @@ extension MixnetConfig {
             residentialExit: false,
             enableAdBlocking: isAdBlockingEnabled,
             frontingMode: isStealthApiEnabled ? .always : .onRetry,
+            transportPreference: transportPreference.bridgeTransport,
             customDns: CustomDnsSettings(
                 enabled: !customDns.isEmpty,
                 dnsServers: [DnsServer](plainDnsAddresses: customDns)

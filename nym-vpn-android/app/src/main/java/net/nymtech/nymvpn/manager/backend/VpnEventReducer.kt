@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.manager.backend
 import android.content.Context
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -56,6 +57,7 @@ class VpnEventReducer(private val context: Context, private val state: MutableSt
 		}
 	}
 
+	@OptIn(ExperimentalCoroutinesApi::class)
 	fun observe(scope: CoroutineScope, dispatcher: CoroutineDispatcher, apiFlow: StateFlow<VpnServiceApi?>) {
 		scope.launch(dispatcher) {
 			apiFlow

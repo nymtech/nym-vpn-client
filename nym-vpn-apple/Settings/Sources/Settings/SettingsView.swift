@@ -60,10 +60,16 @@ private extension SettingsView {
 #endif
 #if os(iOS)
         .fullScreenCover(isPresented: $viewModel.isCodeEntryPresented) {
-            CodeEntryView(startsWithScanner: true) { outcome in
+            FreepassOrPairingEntryView(startsWithScanner: true) { outcome in
                 viewModel.handleCodeEntry(outcome)
             }
             .interactiveDismissDisabled()
+        }
+#elseif os(macOS)
+        .sheet(isPresented: $viewModel.isCodeEntryPresented) {
+            FreepassCodeEntryView { outcome in
+                viewModel.handleCodeEntry(outcome)
+            }
         }
 #endif
         .onAppear {

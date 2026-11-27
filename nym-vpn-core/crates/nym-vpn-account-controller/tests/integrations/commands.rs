@@ -71,7 +71,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
     assert!(
         test_bench
             .command_sender
-            .create_account_command()
+            .create_account_command(None)
             .await
             .is_ok()
     );
@@ -206,7 +206,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
     assert!(
         test_bench
             .command_sender
-            .create_account_command()
+            .create_account_command(None)
             .await
             .is_ok()
     );
@@ -312,7 +312,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
         .await;
 
     assert_eq!(
-        test_bench.command_sender.create_account_command().await,
+        test_bench.command_sender.create_account_command(None).await,
         Err(AccountCommandError::ExistingAccount)
     );
 
@@ -428,7 +428,7 @@ async fn error_state_command() -> anyhow::Result<()> {
         .await;
 
     assert_eq!(
-        test_bench.command_sender.create_account_command().await,
+        test_bench.command_sender.create_account_command(None).await,
         Err(AccountCommandError::ExistingAccount)
     );
 

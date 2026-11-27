@@ -22,6 +22,9 @@ sealed interface PairingState {
 
 	data object AccountShared : PairingState
 
+	// The core sends the PIN once the other device confirms it got the same one.
+	data class WaitingForCode(val sessionId: UInt) : PairingState
+
 	data class WaitingForApproval(val pin: String, val sessionId: UInt) : PairingState {
 		override fun toString(): String = "WaitingForApproval(sessionId=$sessionId)"
 	}
@@ -37,6 +40,7 @@ internal val PairingState.activeSessionId: UInt?
 	get() = when (this) {
 		is PairingState.ShowingCode -> sessionId
 		is PairingState.ConfirmCode -> sessionId
+		is PairingState.WaitingForCode -> sessionId
 		is PairingState.WaitingForApproval -> sessionId
 		else -> null
 	}

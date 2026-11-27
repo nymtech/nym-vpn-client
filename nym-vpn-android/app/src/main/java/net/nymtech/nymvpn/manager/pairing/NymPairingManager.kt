@@ -74,7 +74,7 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 		// The core keeps the session even if the scanner closes meanwhile, so it's always recorded.
 		when (val result = withContext(NonCancellable) { call { it.scannedPairingKey(publicKey) } }) {
 			is PairingCommandResult.Ok -> {
-				_state.value = PairingState.WaitingForApproval(result.value.pinCode, result.value.sessionId)
+				_state.value = PairingState.WaitingForCode(result.value.sessionId)
 				if (!currentCoroutineContext().isActive) withContext(NonCancellable) { cancelActiveSession() }
 				PairingCommandResult.Ok(Unit)
 			}
@@ -116,10 +116,13 @@ class NymPairingManager @Inject constructor(private val connectionManager: VpnSe
 		if (current.activeSessionId != event.sessionId) return
 		Timber.tag(TAG).i("Event %s in %s", event, current)
 		when (val result = event.result) {
-			is PairingResult.PinCode -> if (current is PairingState.ShowingCode) {
-				_state.value = PairingState.ConfirmCode(result.v1, current.sessionId)
+			is PairingResult.PinCode -> when (current) {
+				is PairingState.ShowingCode -> _state.value = PairingState.ConfirmCode(result.v1, current.sessionId)
+				is PairingState.WaitingForCode -> _state.value = PairingState.WaitingForApproval(result.v1, current.sessionId)
+				else -> Unit
 			}
-			PairingResult.StoredMnemonic -> if (current is PairingState.WaitingForApproval) {
+			// The PIN is skipped if the other device approves before this one polls.
+			PairingResult.StoredMnemonic -> if (current is PairingState.WaitingForCode || current is PairingState.WaitingForApproval) {
 				runCatching { backendManager.refreshStoredAccount() }
 					.onFailure { Timber.tag(TAG).w("Refresh after pairing failed: %s", it::class.java.simpleName) }
 				_state.value = PairingState.SignedIn

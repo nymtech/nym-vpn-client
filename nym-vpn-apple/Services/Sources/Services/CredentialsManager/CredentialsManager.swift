@@ -621,11 +621,11 @@ extension CredentialsManager {
             if delay != .zero {
                 try? await Task.sleep(for: delay)
             }
-            await fetchAccountSummary()
+            let fetched = await fetchAccountSummary()
             if untilActive {
                 if accountSummary?.isActive == true { break }
             } else {
-                if accountSummary != nil { break }
+                if fetched, accountSummary != nil { break }
             }
         }
 #endif
@@ -634,19 +634,24 @@ extension CredentialsManager {
 
     /// Silent poller path: never throws. On failure keeps the last good summary and only
     /// raises `accountSummaryLastFetchFailed`.
-    private func fetchAccountSummary() async {
-        guard isValidCredentialImported else { return }
+    /// Returns whether the fetch succeeded.
+    private func fetchAccountSummary() async -> Bool {
+        guard isValidCredentialImported else { return false }
 #if os(macOS)
         // On gRPC failure keep the last good summary; only flag the failure.
         do {
             accountSummary = try await grpcManager.accountSummary()
             accountSummaryLastFetchFailed = false
+            return true
         } catch {
             accountSummaryLastFetchFailed = true
             logger.error(
                 "fetchAccountSummary (macOS) failed operation=accountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
             )
+            return false
         }
+#else
+        return false
 #endif
     }
 

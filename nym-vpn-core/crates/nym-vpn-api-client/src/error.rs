@@ -50,6 +50,9 @@ pub enum VpnApiClientError {
     #[error("failed to check account pairing")]
     CheckPairingAccount(#[source] Box<HttpClientError>),
 
+    #[error("failed to confirm pairing PIN")]
+    ConfirmPairingPinAccount(#[source] Box<HttpClientError>),
+
     #[error("failed to get pairing secret account")]
     GetPairingSecretAccount(#[source] Box<HttpClientError>),
 
@@ -220,5 +223,12 @@ impl VpnApiClientError {
     /// [`NymErrorResponse::is_account_not_found`].
     pub fn is_account_not_found(&self) -> bool {
         crate::response::extract_error_response(self).is_some_and(|e| e.is_account_not_found())
+    }
+
+    /// The API refused the request because too many were sent.
+    pub fn is_rate_limited(&self) -> bool {
+        self.http_client_error()
+            .and_then(HttpClientError::status_code)
+            .is_some_and(|status| status.as_u16() == 429)
     }
 }

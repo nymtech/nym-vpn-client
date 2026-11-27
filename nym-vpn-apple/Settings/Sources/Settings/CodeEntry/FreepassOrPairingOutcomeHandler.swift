@@ -1,4 +1,3 @@
-#if os(iOS)
 import Foundation
 import AccountPrefetchGates
 import CredentialsManager
@@ -6,9 +5,9 @@ import SnackbarManager
 import Theme
 
 @MainActor
-public enum CodeEntryOutcomeHandler {
+public enum FreepassOrPairingOutcomeHandler {
     public static func handle(
-        _ outcome: CodeEntryOutcome,
+        _ outcome: FreepassOrPairingOutcome,
         credentialsManager: CredentialsManager,
         sendSessionEvent: @escaping (SessionEvent) -> Void
     ) async {
@@ -42,4 +41,3 @@ public enum CodeEntryOutcomeHandler {
         sendSessionEvent(.authCompleted(outcome: outcome, flow: .login))
     }
 }
-#endif
