@@ -201,9 +201,6 @@ pub struct TestBench {
     /// Channel to keep track of its state
     pub state_receiver: AccountStateReceiver,
 
-    /// Replaces the VPN API client the AC talks to
-    pub vpn_api_client_sender: std::sync::Arc<tokio::sync::watch::Sender<VpnApiClient>>,
-
     /// Connectivity monitor to mock offline/online switch
     pub connectivity: MockConnectivityHandle,
 
@@ -302,7 +299,6 @@ impl TestBench {
 
         let command_sender = account_controller.get_command_sender();
         let state_receiver = account_controller.get_state_receiver();
-        let vpn_api_client_sender = account_controller.get_vpn_api_client_sender();
 
         let _account_controller_handle = tokio::task::spawn(account_controller.run());
 
@@ -311,7 +307,6 @@ impl TestBench {
             _tempdir: tempdir,
             command_sender,
             state_receiver,
-            vpn_api_client_sender,
             connectivity,
             vpn_api_server,
             nyxd_server,
