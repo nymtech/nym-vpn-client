@@ -25,7 +25,7 @@ use tracing_appender::{non_blocking::WorkerGuard, rolling::RollingFileAppender};
 use tracing_opentelemetry::get_otel_context;
 use tracing_subscriber::{
     EnvFilter, Layer,
-    filter::{LevelFilter, filter_fn},
+    filter::{FilterExt, LevelFilter, filter_fn},
     fmt::{FmtContext, FormatEvent, FormatFields, format::FmtSpan},
     layer::{Context, Filter, SubscriberExt},
     registry::LookupSpan,
@@ -36,10 +36,10 @@ use nym_vpn_lib_types::LogPath;
 
 const BACKUP_LOG_EXTENSION: &str = "old.log";
 
-/// Events with this field set to `true` (e.g. `tracing::warn!(skip_sentry = true, ...)`) are not sent to Sentry.
+/// Events with this field set to `true` (e.g. `tracing::warn!(skip_sentry = true, ...)`) are not sent to Sentry as issues.
 const SKIP_SENTRY_FIELD: &str = "skip_sentry";
 
-/// Third-party targets whose events are not sent to Sentry.
+/// Third-party targets whose events are not sent to Sentry as issues.
 static SKIP_SENTRY_TARGETS: [&str; 6] = [
     "hickory_net::h2",
     "hickory_server::server",
@@ -529,8 +529,10 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
                         matches!(*md.level(), Level::INFO | Level::DEBUG)
                     })),
                 )
-                .and_then(sentry_tracing::ErrorLayer::new().with_filter(LevelFilter::WARN))
-                .with_filter(SentryFilter),
+                .and_then(
+                    sentry_tracing::ErrorLayer::new()
+                        .with_filter(LevelFilter::WARN.and(SentryFilter)),
+                ),
         )
     } else {
         None
