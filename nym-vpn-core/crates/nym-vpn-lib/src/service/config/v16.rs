@@ -7,6 +7,7 @@ use crate::service::{
         VpnServiceConfigExt,
         circumvention::v9::FrontingMode,
         custom_dns::v15::CustomDnsSettings,
+        default_dns::v16::DefaultDnsSettings,
         entry_exit::v3::{EntryPoint, ExitPoint},
         gateway_independence::v11::GatewayIndependence,
         gateway_selection_algorithm::v12::GatewaySelectionAlgorithmConfig,
@@ -63,6 +64,8 @@ pub struct VpnServiceConfig {
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
     pub custom_dns: CustomDnsSettings,
+    #[serde(default)]
+    pub default_dns: DefaultDnsSettings,
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
@@ -88,6 +91,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
         let exit_point = nym_vpn_lib_types::ExitPoint::try_from(value.exit_point)?;
 
         let custom_dns = nym_vpn_lib_types::CustomDnsSettings::from(value.custom_dns);
+        let default_dns = nym_vpn_lib_types::DefaultDnsSettings::from(value.default_dns);
         let mixnet_traffic = nym_vpn_lib_types::MixnetTrafficConfig::from(value.mixnet_traffic);
         let network_stats = nym_vpn_lib_types::NetworkStatisticsConfig::from(value.network_stats);
         let split_tunnel = nym_vpn_lib_types::SplitTunnelSettings::from(value.split_tunnel);
@@ -121,6 +125,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
             custom_dns,
+            default_dns,
             mixnet_traffic,
             network_stats,
             split_tunnel,

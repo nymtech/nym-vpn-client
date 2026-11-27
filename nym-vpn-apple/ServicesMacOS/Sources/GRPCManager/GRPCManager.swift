@@ -13,6 +13,10 @@ import TunnelStatus
 
 let kRpcReconnectDelay = Duration.seconds(5)
 
+public enum GRPCManagerError: Error {
+    case clientUnavailable
+}
+
 @MainActor public final class GRPCManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var eventObserver: StreamObserver?
@@ -44,6 +48,14 @@ let kRpcReconnectDelay = Duration.seconds(5)
             platform: AppVersionProvider.platform,
             gitCommit: ""
         )
+    }
+
+    /// Throws while the daemon isn't connected.
+    var client: RpcClient {
+        get throws {
+            guard let rpcClient else { throw GRPCManagerError.clientUnavailable }
+            return rpcClient
+        }
     }
 
     private init() {

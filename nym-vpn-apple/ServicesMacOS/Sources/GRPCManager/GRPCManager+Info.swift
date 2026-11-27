@@ -3,22 +3,21 @@ import NymVPNLib
 extension GRPCManager {
     public func updateErrorReportingIfNeeded(with isEnabled: Bool) async throws {
         if isEnabled {
-            try await rpcClient?.enableSentry()
+            try await client.enableSentry()
         } else {
-            try await rpcClient?.disableSentry()
+            try await client.disableSentry()
         }
     }
 
     public func updateNetworkStatisticsIfNeeded(with isEnabled: Bool) async throws {
-        try await rpcClient?.networkStatsSetEnabled(enabled: isEnabled)
+        try await client.networkStatsSetEnabled(enabled: isEnabled)
     }
 
     public func needFullDiskAccess() async throws -> Bool {
-        guard let rpcClient else { return false }
-        return try await rpcClient.needFullDiskPermissions()
+        try await client.needFullDiskPermissions()
     }
 
     public func runDiagnostic() async throws -> String? {
-        try await rpcClient?.runDiagnostic()
+        try await client.runDiagnostic()
     }
 }

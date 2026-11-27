@@ -10,20 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [macOS] Add `CreateAccount` (with an optional free pass) and `RedeemFreepass` daemon RPCs, and expose pairing in the uniffi `RpcClient` (https://github.com/nymtech/nym-vpn-client/pull/7178)
+- Add setting to stop using Quad9 as a default DNS server. See `nym-vpnc dns default quad9 -h` for more info (https://github.com/nymtech/nym-vpn-client/pull/7246)
 
 ### Changed
 
 - `apply_freepass` no longer returns the subscription, and registers an account the VPN API doesn't know yet (https://github.com/nymtech/nym-vpn-client/pull/7178)
 - Account commands return `RateLimited`, `FreepassInvalid`, `FreepassAlreadyRedeemed` and `RecurringSubscriptionActive` errors instead of raw vpn-api errors (https://github.com/nymtech/nym-vpn-client/pull/7197)
 - uniffi `create_account` takes an optional free pass and redeems it before storing the account; `apply_freepass` is renamed to `redeem_freepass` (https://github.com/nymtech/nym-vpn-client/pull/7235)
+- Quad9 is no longer used as a default DNS server when the user or the exit gateway is in France (https://github.com/nymtech/nym-vpn-client/pull/7246)
+- `nym-vpnc dns` commands are split into `nym-vpnc dns custom` and `nym-vpnc dns default`, e.g. `nym-vpnc dns set` is now `nym-vpnc dns custom set` and `nym-vpnc dns get-default` is now `nym-vpnc dns default get` (https://github.com/nymtech/nym-vpn-client/pull/7246)
+- Pin the QR pairing PIN to the devices' public keys (https://github.com/nymtech/nym-vpn-client/pull/7193)
 
 ### Fixed
 
 - Add setting to auto connect the tunnel as soon as the VPN service starts but only if account is set. Auto-connects once account is set at runtime too. See `nym-vpnc auto-connect -h` for more info (https://github.com/nymtech/nym-vpn-client/pull/7199)
-
-### Changed
-
-- Pin the QR pairing PIN to the devices' public keys (https://github.com/nymtech/nym-vpn-client/pull/7193)
 
 ### Fixed
 

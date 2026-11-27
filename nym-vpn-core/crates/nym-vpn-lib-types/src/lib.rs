@@ -107,9 +107,9 @@ pub use rpc_requests::{
 pub use service::default_vpn_service_config;
 pub use service::{
     BackgroundCoverTrafficRate, BridgeMode, ContinuousTrafficSendingRate, CustomDnsSettings,
-    DnsServer, FrontingMode, GeoExclusionSettings, MixingDelay, MixnetTrafficConfig,
-    MixnetTrafficConfigValidationError, MixnetTrafficDefaults, PlainDnsProtocol, SplitApp,
-    SplitTunnelSettings, TargetState, VpnServiceConfig, VpnServiceInfo,
+    DefaultDnsSettings, DnsServer, FrontingMode, GeoExclusionSettings, MixingDelay,
+    MixnetTrafficConfig, MixnetTrafficConfigValidationError, MixnetTrafficDefaults,
+    PlainDnsProtocol, SplitApp, SplitTunnelSettings, TargetState, VpnServiceConfig, VpnServiceInfo,
 };
 pub use socks5::{EnableSocks5Request, HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
 pub use split_tunnel::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};

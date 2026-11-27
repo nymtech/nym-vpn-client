@@ -3,7 +3,6 @@ package net.nymtech.nymvpn.ui.screens.main
 import android.Manifest
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.net.VpnService
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
@@ -72,6 +71,7 @@ import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.prepareVpn
 import net.nymtech.nymvpn.util.extensions.scoreFor
 import net.nymtech.nymvpn.util.extensions.toConnectMode
 import net.nymtech.vpn.backend.Tunnel
@@ -154,9 +154,15 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	// ── Action handlers ──────────────────────────────────────────────────────
 
+	val vpnLockdownTitle = stringResource(R.string.vpn_blocked_by_system_lockdown)
 	fun onConnectPressed() {
-		val intent = VpnService.prepare(context)
-		if (intent != null) vpnActivityResultState.launch(intent) else viewModel.onConnect()
+		context.prepareVpn()
+			.onSuccess { intent ->
+				if (intent != null) vpnActivityResultState.launch(intent) else viewModel.onConnect()
+			}
+			.onFailure {
+				AlertController.show(AlertMessage(type = AlertType.Warning, title = vpnLockdownTitle, duration = 7_000L))
+			}
 	}
 
 	fun checkBatteryOptimization() {
@@ -242,7 +248,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	LaunchedEffect(loginProcessing) {
 		if (loginProcessing) {
-			bottomSheetContent = MainBottomSheetContent.LoginProcessing
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing(autoConnect = autoStart)
 		}
 	}
 
@@ -261,7 +267,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
-	if (autoStart && !didAutoStart && uiState.connectionState is ConnectionState.Disconnected) {
+	// With login processing, it connects once processing succeeds.
+	if (autoStart && !loginProcessing && !didAutoStart && uiState.connectionState is ConnectionState.Disconnected) {
 		LaunchedEffect(Unit) {
 			didAutoStart = true
 			onConnectPressed()
@@ -395,7 +402,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		},
 		onAuthSuccess = { bottomSheetContent = MainBottomSheetContent.Hidden },
 		onLoginProcessingStart = {
-			bottomSheetContent = MainBottomSheetContent.LoginProcessing
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing()
 		},
 		authSheetMinHeightPx = authSheetHeightPx,
 		onAuthSheetHeightChange = { height -> authSheetHeightPx = height },

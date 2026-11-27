@@ -163,6 +163,9 @@ location = "BE"
     "enabled": false,
     "dns_servers": []
   },
+  "default_dns": {
+    "enable_quad9": true
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -246,6 +249,9 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "custom_dns": {
     "enabled": false,
     "dns_servers": []
+  },
+  "default_dns": {
+    "enable_quad9": true
   },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
@@ -410,6 +416,9 @@ exit_point = "Random"
     "enabled": false,
     "dns_servers": []
   },
+  "default_dns": {
+    "enable_quad9": true
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -495,6 +504,9 @@ async fn test_service_config_migrate_from_v1() {
   "custom_dns": {
     "enabled": false,
     "dns_servers": []
+  },
+  "default_dns": {
+    "enable_quad9": true
   },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
@@ -597,6 +609,9 @@ async fn test_service_config_migrate_from_v2() {
         }
       }
     ]
+  },
+  "default_dns": {
+    "enable_quad9": true
   },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
@@ -709,6 +724,9 @@ async fn test_service_config_migrate_from_v3() {
         }
       }
     ]
+  },
+  "default_dns": {
+    "enable_quad9": true
   },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
@@ -837,6 +855,9 @@ async fn test_service_config_migrate_from_v4() {
         }
       }
     ]
+  },
+  "default_dns": {
+    "enable_quad9": true
   },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
@@ -971,6 +992,9 @@ async fn test_service_config_migrate_from_v5() {
       }
     ]
   },
+  "default_dns": {
+    "enable_quad9": true
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": 12,
     "average_packet_delay": 34,
@@ -1093,6 +1117,9 @@ async fn test_service_config_migrate_from_v6() {
         }
       }
     ]
+  },
+  "default_dns": {
+    "enable_quad9": true
   },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": 12,
@@ -1340,6 +1367,9 @@ async fn test_service_config_serialize_full() {
                 },
             ],
         },
+        default_dns: nym_vpn_lib_types::DefaultDnsSettings {
+            enable_quad9: false,
+        },
         mixnet_traffic: nym_vpn_lib_types::MixnetTrafficConfig {
             poisson_parameter_for_loop_cover_stream: Some(10),
             average_packet_delay: Some(200),
@@ -1443,6 +1473,9 @@ async fn test_service_config_migrate_from_v7() {
   "custom_dns": {
     "enabled": false,
     "dns_servers": []
+  },
+  "default_dns": {
+    "enable_quad9": true
   },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
@@ -1553,6 +1586,9 @@ async fn test_service_config_migrate_from_v8() {
   "custom_dns": {
     "enabled": false,
     "dns_servers": []
+  },
+  "default_dns": {
+    "enable_quad9": true
   },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
@@ -1676,6 +1712,9 @@ async fn test_service_config_migrate_from_v9() {
   "custom_dns": {
     "enabled": false,
     "dns_servers": []
+  },
+  "default_dns": {
+    "enable_quad9": true
   },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
@@ -1805,6 +1844,9 @@ async fn test_service_config_migrate_from_v13() {
     "enabled": false,
     "dns_servers": []
   },
+  "default_dns": {
+    "enable_quad9": true
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -1928,6 +1970,9 @@ async fn test_service_config_migrate_from_v14() {
         }}
       }}
     ]
+  }},
+  "default_dns": {{
+    "enable_quad9": true
   }},{common}
 }}"#
     );
