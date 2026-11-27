@@ -8,7 +8,6 @@ import { useDialog, useTopBar } from '../contexts';
 import { routes } from '../router';
 import { Routes, UiTheme } from '../types';
 import { useSetProfile } from '../hooks';
-import { ActionMenu } from '../screens';
 import ProfilesMenu from '../screens/home/ProfilesMenu';
 import { useSystemTheme } from '../state';
 import { useAppStore } from '../store';
@@ -146,7 +145,6 @@ export default function TopBar() {
       '/settings/data-privacy/logs': {
         title: t('logs.title', { ns: 'settings' }),
         leftIcon: 'keyboard_arrow_left',
-        rightComponent: <ActionMenu />,
         handleLeftNav: () => {
           navigate(-1);
         },

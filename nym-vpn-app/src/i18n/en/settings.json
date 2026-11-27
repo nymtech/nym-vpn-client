@@ -96,7 +96,6 @@
     "daemon": "Daemon logs",
     "actions": {
       "delete": {
-        "action-button": "Delete",
         "title": "Delete NymVPN logs?",
         "description": "Deleting logs improves privacy but prevents Support from diagnosing your connection issues.",
         "confirmButtonText": "Delete logs",
@@ -105,12 +104,9 @@
         "success": "Logs deleted successfully"
       },
       "export": {
-        "action-button": "Export as ZIP",
-        "title": "Export NymVPN logs?",
+        "action-button": "Share logs",
         "description": "Shared log files can be viewed by recipients and anyone they share them with.",
-        "confirmButtonText": "Export anyway",
-        "cancelButtonText": "Cancel",
-        "error": "Failed to export logs"
+        "error": "Failed to share logs"
       }
     }
   },
