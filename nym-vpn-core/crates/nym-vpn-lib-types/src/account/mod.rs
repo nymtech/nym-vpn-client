@@ -414,7 +414,7 @@ impl VpnAccountSummary {
     pub fn from_parts(
         api_summary: &nym_vpn_api_client::response::NymVpnAccountSummaryWithDeviceResponse,
         account_mode: nym_vpn_api_client::types::VpnAccountMode,
-    ) -> Result<Self, nym_vpn_api_client::error::VpnApiClientError> {
+    ) -> Result<Self, InvalidTimestampError> {
         let account_summary = &api_summary.account_summary;
         let traffic_reset_time = account_summary
             .fair_usage
@@ -571,7 +571,7 @@ pub struct NymVpnSubscription {
 
 #[cfg(feature = "nym-type-conversions")]
 impl TryFrom<&nym_vpn_api_client::response::NymVpnSubscription> for NymVpnSubscription {
-    type Error = nym_vpn_api_client::error::VpnApiClientError;
+    type Error = InvalidTimestampError;
 
     fn try_from(
         value: &nym_vpn_api_client::response::NymVpnSubscription,
@@ -579,19 +579,15 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnSubscription> for NymVpnSubscr
         let valid_until_utc =
             parse_timestamp(&value.valid_until_utc, "subscription.valid_until_utc")
                 .map(|t| t.unix_timestamp())
-                .ok_or_else(|| {
-                    nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
-                        "invalid subscription.valid_until_utc: {}",
-                        value.valid_until_utc
-                    ))
+                .ok_or_else(|| InvalidTimestampError {
+                    field: "subscription.valid_until_utc",
+                    value: value.valid_until_utc.clone(),
                 })?;
         let valid_from_utc = parse_timestamp(&value.valid_from_utc, "subscription.valid_from_utc")
             .map(|t| t.unix_timestamp())
-            .ok_or_else(|| {
-                nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
-                    "invalid subscription.valid_from_utc: {}",
-                    value.valid_from_utc
-                ))
+            .ok_or_else(|| InvalidTimestampError {
+                field: "subscription.valid_from_utc",
+                value: value.valid_from_utc.clone(),
             })?;
         Ok(Self {
             created_on_utc: value.created_on_utc.clone(),
@@ -604,6 +600,14 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnSubscription> for NymVpnSubscr
             is_recurring: value.is_recurring,
         })
     }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+#[derive(Debug, thiserror::Error)]
+#[error("invalid {field} timestamp: {value}")]
+pub struct InvalidTimestampError {
+    pub field: &'static str,
+    pub value: String,
 }
 
 #[cfg(feature = "nym-type-conversions")]
@@ -637,16 +641,16 @@ pub struct Subscription {
 impl TryFrom<nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse>
     for VpnAccountAuthMethod
 {
-    type Error = nym_vpn_api_client::error::VpnApiClientError;
+    type Error = InvalidTimestampError;
 
     fn try_from(
         value: nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse,
     ) -> Result<Self, Self::Error> {
         let created = parse_timestamp(&value.created, "auth_method.created").ok_or_else(|| {
-            nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
-                "invalid auth_method.created time format: {}",
-                value.created
-            ))
+            InvalidTimestampError {
+                field: "auth_method.created",
+                value: value.created.clone(),
+            }
         })?;
 
         Ok(Self {
@@ -782,7 +786,7 @@ mod tests {
     /// through `from_parts` in API mode with a synced clock.
     fn build(
         summary: &NymVpnAccountSummaryResponse,
-    ) -> Result<VpnAccountSummary, nym_vpn_api_client::error::VpnApiClientError> {
+    ) -> Result<VpnAccountSummary, InvalidTimestampError> {
         let with_device = NymVpnAccountSummaryWithDeviceResponse {
             account_summary: summary.clone(),
             active_device: None,
@@ -904,7 +908,7 @@ mod tests {
         assert!(
             err.to_string()
                 .contains("invalid subscription.valid_until_utc"),
-            "expected PayloadError for bad valid_until_utc, got {err:?}"
+            "expected InvalidTimestampError for bad valid_until_utc, got {err:?}"
         );
     }
 
@@ -957,7 +961,7 @@ mod tests {
         assert!(
             err.to_string()
                 .contains("invalid subscription.valid_until_utc"),
-            "expected PayloadError for bad valid_until_utc, got {err:?}"
+            "expected InvalidTimestampError for bad valid_until_utc, got {err:?}"
         );
     }
 
