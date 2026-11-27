@@ -18,21 +18,21 @@ import net.nymtech.nymvpn.util.extensions.safePopBackStack
 
 // The validator has already acted on the code. accountStored is whether an account existed when code entry opened.
 @Composable
-fun rememberOpenAcceptedCode(accountStored: Boolean): (ScannedQrCode) -> Unit {
+fun rememberOpenAcceptedCode(accountStored: Boolean): (code: ScannedQrCode, connect: Boolean) -> Unit {
 	val navController = LocalNavController.current
 	val freepassActivated = stringResource(R.string.freepass_activated)
-	return { code ->
+	return { code, connect ->
 		when (code) {
 			// From a sheet, the host screen stays below.
 			is ScannedQrCode.Pairing -> if (navController.currentDestination?.hasRoute<Route.QrScan>() == true) {
-				navController.replaceCurrentWith(Route.PairingSignIn)
+				navController.replaceCurrentWith(Route.PairingSignIn(autoConnect = connect))
 			} else {
-				navController.navigate(Route.PairingSignIn)
+				navController.navigate(Route.PairingSignIn(autoConnect = connect))
 			}
 			is ScannedQrCode.Freepass -> {
 				AlertController.show(AlertMessage(type = AlertType.Confirmation, title = freepassActivated))
 				// Login processing waits for a new account's device registration and zk-nyms.
-				navController.navigateAndForgetToMain(Route.Main(autoStart = false, loginProcessing = !accountStored))
+				navController.navigateAndForgetToMain(Route.Main(autoStart = connect, loginProcessing = !accountStored))
 			}
 		}
 	}

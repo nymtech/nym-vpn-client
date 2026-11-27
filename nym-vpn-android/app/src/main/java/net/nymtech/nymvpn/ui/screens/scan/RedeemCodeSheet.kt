@@ -35,7 +35,7 @@ fun RedeemCodeSheet(accountStored: Boolean, onDismiss: () -> Unit, viewModel: Re
 	val containerColor = MaterialTheme.colorScheme.surface
 
 	LaunchedEffect(Unit) {
-		viewModel.accepted.collect(openAcceptedCode)
+		viewModel.accepted.collect { openAcceptedCode(it, viewModel.uiState.value.connectAfter) }
 	}
 
 	DisposableEffect(viewModel) {
@@ -53,6 +53,7 @@ fun RedeemCodeSheet(accountStored: Boolean, onDismiss: () -> Unit, viewModel: Re
 		RedeemCodeView(
 			uiState = uiState,
 			onCodeChange = viewModel::onCodeChange,
+			onConnectAfterChange = viewModel::onConnectAfterChange,
 			onSubmit = viewModel::submit,
 		)
 	}

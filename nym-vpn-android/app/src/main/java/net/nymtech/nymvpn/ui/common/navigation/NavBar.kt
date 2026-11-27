@@ -205,7 +205,7 @@ fun NavBar(
 			)
 
 			route.startsWith(Route.Account::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = R.string.account_title,
+				titleRes = R.string.settings_your_account_title,
 				onBack = { navController.safePopBackStack() },
 			)
 

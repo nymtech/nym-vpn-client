@@ -52,6 +52,7 @@ internal fun QrScannerScreen(
 	onClose: () -> Unit,
 	secondaryAction: QrScanAction?,
 	paused: Boolean,
+	bottomContent: (@Composable (enabled: Boolean) -> Unit)?,
 	modifier: Modifier = Modifier,
 	viewModel: QrScannerViewModel = viewModel(key = "qr_scanner_${mode.name}") { QrScannerViewModel(mode, validator) },
 ) {
@@ -76,6 +77,7 @@ internal fun QrScannerScreen(
 		onClose = close,
 		secondaryAction = secondaryAction,
 		paused = paused,
+		bottomContent = bottomContent,
 		modifier = modifier,
 	)
 }
@@ -89,6 +91,7 @@ internal fun QrScannerScreen(
 	secondaryAction: QrScanAction?,
 	paused: Boolean,
 	modifier: Modifier = Modifier,
+	bottomContent: (@Composable (enabled: Boolean) -> Unit)? = null,
 ) {
 	val context = LocalContext.current
 	val permission = rememberCameraPermissionState()
@@ -130,6 +133,7 @@ internal fun QrScannerScreen(
 						showInvalidCode = uiState.showInvalidCode,
 						validating = uiState.validating,
 						secondaryAction = secondaryAction,
+						bottomContent = bottomContent,
 					)
 				}
 			}

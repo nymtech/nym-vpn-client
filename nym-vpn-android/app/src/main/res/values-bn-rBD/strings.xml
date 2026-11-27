@@ -235,7 +235,6 @@
 	<string name="settings_reset_app_title">অ্যাপ ডেটা মুছে দিন</string>
 	<string name="settings_system_status_title">সিস্টেম অবস্থা</string>
 	<string name="settings_mixnet_tuning_title">Mixnet টিউনিং</string>
-	<string name="settings_mixnet_tuning_description">আপনার মিক্সনেট প্যারামিটারগুলো সূক্ষ্মভাবে টিউন করুন</string>
 	<string name="settings_quit_title">NymVPN থেকে বের হন</string>
 	<string name="settings_app_version_line">অ্যাপ সংস্করণ: %1$s</string>
 	<string name="settings_language_help_title">অনুবাদে সাহায্য করুন</string>
@@ -440,7 +439,6 @@
 	<string name="passphrase_info_keeps_anonymous">আপনাকে গোপনীয় রাখে</string>
 	<string name="passphrase_info_belongs">শুধুমাত্র আপনারই (স্ব-হেফাজত)</string>
 	<!-- Account screen -->
-	<string name="account_title">অ্যাকাউন্ট ও ডিভাইস</string>
 	<string name="account_info_manage_button">আপনার সাবস্ক্রিপশন পরিচালনা করুন</string>
 	<string name="account_info_renew_auth_title">আপনার সাবস্ক্রিপশন নবায়ন করুন</string>
 	<string name="account_info_link_auth_subtitle">সোশ্যাল লগইন যোগ করতে নিশ্চিত করুন যে এটি আপনি</string>

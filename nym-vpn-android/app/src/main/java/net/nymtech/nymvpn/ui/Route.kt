@@ -86,7 +86,7 @@ sealed class Route {
 	data class QrScan(val fromWelcome: Boolean = false) : Route()
 
 	@Serializable
-	data object PairingSignIn : Route()
+	data class PairingSignIn(val autoConnect: Boolean = false) : Route()
 
 	@Serializable
 	data class ServerDetails(val id: String, val location: String) : Route()
