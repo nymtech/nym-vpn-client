@@ -76,10 +76,16 @@ private const val ERROR_ALPHA = 0.85f
 private const val BLOCKED_SWEEP = 360f * (1f - 0.15f)
 private const val BLOCKED_TURN_MS = 4000
 
+// Stopping: the fills hold their place and fade to 15%.
+private const val STOPPING_ALPHA = 0.15f
+private const val STOPPING_FADE_MS = 600
+
 @Composable
 fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: Tunnel.Mode, connectionTime: String? = null, modifier: Modifier = Modifier) {
 	val context = LocalContext.current
-	val bg = MaterialTheme.colorScheme.surface
+	val nymColors = LocalNymColors.current
+	val track = nymColors.markerTrack
+	val errorRed = nymColors.markerError
 	// read again on resume: the user can turn animations off in system settings with this screen open
 	val resumes = rememberResumeCount()
 	val animationsOff = remember(context, resumes) { areAnimationsOff(context) }
@@ -92,9 +98,18 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 	val isBlocked = phase == MarkerState.BLOCKED
 	val isConnecting = phase == MarkerState.CONNECTING
 
-	val (targetOuter, targetMiddle, targetInner) = remember(phase, marker.step) {
-		ringFillTargets(phase, marker.step)
+	// stopping keeps the last fills and fades them to 15%, as on iOS and desktop
+	// a plain holder, not state: it only remembers the last live fills for the next phase
+	val lastFills = remember { arrayOf(RingFillTargets(0f, 0f, 0f)) }
+	val fills = remember(phase, marker.step) {
+		if (isCanceling) lastFills[0] else ringFillTargets(phase, marker.step).also { lastFills[0] = it }
 	}
+	val (targetOuter, targetMiddle, targetInner) = fills
+	val fillAlpha by animateFloatAsState(
+		targetValue = if (isCanceling) STOPPING_ALPHA else 1f,
+		animationSpec = tween(if (isCanceling) STOPPING_FADE_MS else 200, easing = FastOutSlowInEasing),
+		label = "fillAlpha",
+	)
 	val sweepMs = if (vpnMode.isTwoHop()) 800 else 1200
 
 	val outerSweep by animateFloatAsState(
@@ -150,8 +165,9 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 	)
 
 	val fillColor = when {
-		isError || isBlocked -> MaterialTheme.colorScheme.error.copy(alpha = ERROR_ALPHA)
-		isConnecting -> LocalNymColors.current.markerConnecting
+		isError || isBlocked -> errorRed.copy(alpha = ERROR_ALPHA)
+		isConnecting -> nymColors.markerConnecting
+		isCanceling -> MaterialTheme.colorScheme.primary.copy(alpha = fillAlpha)
 		else -> MaterialTheme.colorScheme.primary
 	}
 
@@ -232,7 +248,7 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 						else -> -90f to 360f
 					}
 					drawArc(
-						color = bg,
+						color = track,
 						startAngle = trackStart,
 						sweepAngle = trackSweep,
 						useCenter = false,
@@ -299,7 +315,7 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 				lit = phase != MarkerState.NOT_PROTECTED,
 				playing = isConnected && !animationsOff,
 				litColor = MaterialTheme.colorScheme.onPrimaryContainer,
-				unlitColor = bg,
+				unlitColor = track,
 				modifier = Modifier.size(FACE_SIZE.dp),
 			)
 		}
@@ -315,11 +331,11 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 				horizontalArrangement = Arrangement.Center,
 			) {
 				if (showPulse) {
-					Pulse(color = MaterialTheme.colorScheme.error)
+					Pulse(color = errorRed)
 					Spacer(Modifier.width(6.dp))
 				}
 				Text(
-					text = (currentLabel ?: "").uppercase(),
+					text = currentLabel ?: "",
 					// connecting steps sit below the state words: already the smallest label, so lighter weight
 					style = if (isConnectingStep) {
 						MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal)
@@ -327,9 +343,9 @@ fun ConnectionStatus(connectionState: ConnectionState, marker: Marker, vpnMode: 
 						MaterialTheme.typography.labelSmall
 					},
 					color = when {
-						isError -> MaterialTheme.colorScheme.error
+						isError -> errorRed
 						isConnected -> MaterialTheme.colorScheme.primary
-						showPulse -> MaterialTheme.colorScheme.error
+						showPulse -> errorRed
 						else -> MaterialTheme.colorScheme.onSurfaceVariant
 					},
 				)

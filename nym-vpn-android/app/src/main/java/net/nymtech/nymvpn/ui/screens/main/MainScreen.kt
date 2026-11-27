@@ -55,6 +55,7 @@ import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.Marker
+import net.nymtech.nymvpn.ui.model.MarkerState
 import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.MainBottomSheetContent
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
@@ -451,9 +452,35 @@ private fun MainScreenContent(
 			stringResource(R.string.connection_status_direct)
 		else -> null
 	}
+	val managerState = appUiState.managerState
+	// traffic is only held offline when always-on runs with "Block connections without VPN". Read from the running
+	// service first (public API); the settings read is the fallback. Read again on resume: the user can change
+	// lockdown in system settings while this screen stays open.
+	val resumes = rememberResumeCount()
+	val killSwitch = remember(managerState.tunnelState, resumes, serviceBound) {
+		lockdownProbe() ?: (isVpnAlwaysOn(context) && isVpnLockdown(context))
+	}
+	// the screen also reads offline from the network status: follow it only for a live or
+	// already-offline session, so a connect attempt or a disconnect is never shown as blocked
+	val tunnelState = managerState.tunnelState
+	val liveOrOffline = tunnelState == Tunnel.State.Up || tunnelState is Tunnel.State.Offline
+	val markerTunnelState = when {
+		connectionState == ConnectionState.WaitingForConnection && liveOrOffline -> Tunnel.State.Offline(reconnect = true)
+		// a restart with the network down can leave the tunnel Up: still a session, so offline mid-session
+		connectionState == ConnectionState.Offline && tunnelState == Tunnel.State.Up -> Tunnel.State.Offline(reconnect = true)
+		connectionState == ConnectionState.Offline && (tunnelState == Tunnel.State.Down || tunnelState is Tunnel.State.Offline) ->
+			Tunnel.State.Offline(reconnect = false)
+		connectionState == ConnectionState.Disconnecting -> Tunnel.State.Disconnecting
+		else -> tunnelState
+	}
+	val marker = Marker.from(markerTunnelState, managerState.establishConnectionState, appUiState.vpnConfig.mode, killSwitch)
+	// blocked holds traffic until the session is dropped, so the button always offers Disconnect, never Connect
+	// (a restart with the network down reports Offline while the tunnel is still up)
+	val panelConnectionState = if (marker.state == MarkerState.BLOCKED) ConnectionState.WaitingForConnection else connectionState
+
 	val panelState = ConnectPanelState(
 		bridgeText = bridgeText,
-		connectionState = connectionState,
+		connectionState = panelConnectionState,
 		accountState = appUiState.managerState.accountState,
 		isMnemonicStored = appUiState.managerState.isMnemonicStored,
 		connectMode = connectMode,
@@ -485,29 +512,6 @@ private fun MainScreenContent(
 		isSubscriptionExpired = appUiState.subscription?.expiryState == ExpiryState.EXPIRED,
 		hasSubscriptionHistory = appUiState.hasSubscriptionHistory,
 	)
-
-	val managerState = appUiState.managerState
-	// traffic is only held offline when always-on runs with "Block connections without VPN". Read from the running
-	// service first (public API); the settings read is the fallback. Read again on resume: the user can change
-	// lockdown in system settings while this screen stays open.
-	val resumes = rememberResumeCount()
-	val killSwitch = remember(managerState.tunnelState, resumes, serviceBound) {
-		lockdownProbe() ?: (isVpnAlwaysOn(context) && isVpnLockdown(context))
-	}
-	// the screen also reads offline from the network status: follow it only for a live or
-	// already-offline session, so a connect attempt or a disconnect is never shown as blocked
-	val tunnelState = managerState.tunnelState
-	val liveOrOffline = tunnelState == Tunnel.State.Up || tunnelState is Tunnel.State.Offline
-	val markerTunnelState = when {
-		connectionState == ConnectionState.WaitingForConnection && liveOrOffline -> Tunnel.State.Offline(reconnect = true)
-		// a restart with the network down can leave the tunnel Up: still a session, so offline mid-session
-		connectionState == ConnectionState.Offline && tunnelState == Tunnel.State.Up -> Tunnel.State.Offline(reconnect = true)
-		connectionState == ConnectionState.Offline && (tunnelState == Tunnel.State.Down || tunnelState is Tunnel.State.Offline) ->
-			Tunnel.State.Offline(reconnect = false)
-		connectionState == ConnectionState.Disconnecting -> Tunnel.State.Disconnecting
-		else -> tunnelState
-	}
-	val marker = Marker.from(markerTunnelState, managerState.establishConnectionState, appUiState.vpnConfig.mode, killSwitch)
 
 	Box(
 		modifier = modifier
