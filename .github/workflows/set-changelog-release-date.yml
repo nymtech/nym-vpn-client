@@ -1,7 +1,8 @@
 name: set-changelog-release-date
 
 # Opens a PR against the given branch replacing `## [<version>] - TBD` with
-# `## [<version>] - <YYYY-MM-DD>` in every platform changelog.
+# `## [<version>] - <YYYY-MM-DD>` in every platform changelog. With insert_missing,
+# changelogs without a `## [<version>]` header get one inserted below [Unreleased].
 
 on:
   workflow_call:
@@ -14,6 +15,10 @@ on:
         description: "Released version (X.Y.Z)"
         type: string
         required: true
+      insert_missing:
+        description: "Insert the version header below [Unreleased] when missing"
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       branch:
@@ -24,6 +29,10 @@ on:
         description: "Released version (X.Y.Z)"
         type: string
         required: true
+      insert_missing:
+        description: "Insert the version header below [Unreleased] when missing"
+        type: boolean
+        default: false
       dry_run:
         description: "Print git diff only, do not commit or open PR"
         type: boolean
@@ -67,6 +76,7 @@ jobs:
           changelog: nym-vpn-core/CHANGELOG.md
           version: ${{ inputs.version }}
           release_date: ${{ steps.date.outputs.release_date }}
+          insert_missing: ${{ inputs.insert_missing }}
 
       - name: Update nym-vpn-app/CHANGELOG.md
         uses: ./.github/actions/set-changelog-release-date
@@ -74,6 +84,7 @@ jobs:
           changelog: nym-vpn-app/CHANGELOG.md
           version: ${{ inputs.version }}
           release_date: ${{ steps.date.outputs.release_date }}
+          insert_missing: ${{ inputs.insert_missing }}
 
       - name: Update nym-vpn-android/CHANGELOG.md
         uses: ./.github/actions/set-changelog-release-date
@@ -81,6 +92,7 @@ jobs:
           changelog: nym-vpn-android/CHANGELOG.md
           version: ${{ inputs.version }}
           release_date: ${{ steps.date.outputs.release_date }}
+          insert_missing: ${{ inputs.insert_missing }}
 
       - name: Update nym-vpn-apple/CHANGELOG.md
         uses: ./.github/actions/set-changelog-release-date
@@ -88,6 +100,7 @@ jobs:
           changelog: nym-vpn-apple/CHANGELOG.md
           version: ${{ inputs.version }}
           release_date: ${{ steps.date.outputs.release_date }}
+          insert_missing: ${{ inputs.insert_missing }}
 
       - name: Show diff
         id: diff
@@ -106,9 +119,9 @@ jobs:
           VERSION: ${{ inputs.version }}
           RELEASE_DATE: ${{ steps.date.outputs.release_date }}
           BASE_BRANCH: ${{ inputs.branch }}
-          BRANCH_NAME: automation/changelog-release-date-v${{ inputs.version }}
         run: |
           set -euo pipefail
+          BRANCH_NAME="automation/changelog-release-date-v${VERSION}-${BASE_BRANCH//\//-}"
           git config --global user.name "$GIT_USER"
           git config --global user.email "$GIT_EMAIL"
           git switch -C "$BRANCH_NAME"
@@ -127,4 +140,4 @@ jobs:
             --title "Set ${VERSION} release date in changelogs" \
             --milestone "no-milestone" \
             --label "no-ticket" \
-            --body "Replaces \`## [${VERSION}] - TBD\` with \`## [${VERSION}] - ${RELEASE_DATE}\` in the platform changelogs."
+            --body "Sets \`## [${VERSION}] - ${RELEASE_DATE}\` in the platform changelogs."
