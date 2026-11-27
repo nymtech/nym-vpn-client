@@ -2,3 +2,6 @@
 /nym-vpn-app/     @agentpietrucha @mrkiwi @tommyv1987
 /nym-vpn-apple/   @agentpietrucha @mrkiwi @tommyv1987
 /nym-vpn-android/ @agentpietrucha @mrkiwi @tommyv1987
+/.github/indexer/ @mfahampshire
+/.github/workflows/cd-retrieval-store.yml @mfahampshire
+/.github/workflows/ci-retrieval-indexer.yml @mfahampshire

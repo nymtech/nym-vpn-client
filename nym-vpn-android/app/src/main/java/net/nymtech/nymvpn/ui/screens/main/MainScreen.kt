@@ -34,7 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.billing.PLAY_STORE_LISTING_URL
@@ -248,7 +248,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	LaunchedEffect(loginProcessing) {
 		if (loginProcessing) {
-			bottomSheetContent = MainBottomSheetContent.LoginProcessing
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing(autoConnect = autoStart)
 		}
 	}
 
@@ -267,7 +267,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
-	if (autoStart && !didAutoStart && uiState.connectionState is ConnectionState.Disconnected) {
+	// With login processing, it connects once processing succeeds.
+	if (autoStart && !loginProcessing && !didAutoStart && uiState.connectionState is ConnectionState.Disconnected) {
 		LaunchedEffect(Unit) {
 			didAutoStart = true
 			onConnectPressed()
@@ -401,7 +402,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		},
 		onAuthSuccess = { bottomSheetContent = MainBottomSheetContent.Hidden },
 		onLoginProcessingStart = {
-			bottomSheetContent = MainBottomSheetContent.LoginProcessing
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing()
 		},
 		authSheetMinHeightPx = authSheetHeightPx,
 		onAuthSheetHeightChange = { height -> authSheetHeightPx = height },

@@ -7,7 +7,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -34,8 +34,9 @@ fun MainBottomSheet(
 
 	val isProcessing = content is MainBottomSheetContent.LoginProcessing
 	val isProcessingState = rememberUpdatedState(isProcessing)
-	val sheetState = rememberModalBottomSheetState(
-		skipPartiallyExpanded = true,
+	val sheetState = rememberBottomSheetState(
+		initialValue = SheetValue.Hidden,
+		enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
 		confirmValueChange = { newValue ->
 			!isProcessingState.value || newValue != SheetValue.Hidden
 		},
@@ -73,9 +74,10 @@ fun MainBottomSheet(
 					)
 				}
 			}
-			MainBottomSheetContent.LoginProcessing -> {
+			is MainBottomSheetContent.LoginProcessing -> {
 				ProcessingComponent(
 					onProcessingComplete = onDismissRequest,
+					autoConnect = content.autoConnect,
 					authSheetMinHeightPx = authSheetMinHeightPx,
 				)
 			}

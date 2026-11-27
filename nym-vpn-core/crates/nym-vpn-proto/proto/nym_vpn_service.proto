@@ -332,6 +332,8 @@ message VpnServiceConfig {
   FrontingModes fronting_mode = 31;
   GatewayIndependence gateway_independence = 32;
   BridgeModes bridge_mode = 34;
+  optional BridgeTransport transport_preference = 35;
+  bool auto_connect = 36;
 }
 
 message NetworkStatsConfig {
@@ -802,6 +804,10 @@ message AccountCommandError {
     bool pairing_session_id_mismatch = 21;
     bool no_pairing_shared_secret = 22;
     string pairing_deriving_shared_secret = 23;
+    bool rate_limited = 24;
+    bool freepass_invalid = 25;
+    bool freepass_already_redeemed = 26;
+    bool recurring_subscription_active = 27;
   }
 }
 
@@ -912,6 +918,11 @@ message RefreshAccountStateRequest {
 
 message AccountCommandResponse {
   optional AccountCommandError error = 1;
+}
+
+message CreateAccountRequest {
+  // Redeemed first; the account is stored only if that succeeds
+  optional string freepass = 1;
 }
 
 message BalanceList {
@@ -1164,6 +1175,10 @@ message BridgeModeRequest {
   BridgeModes mode = 1;
 }
 
+message TransportPreferenceRequest {
+  optional BridgeTransport transport = 1;
+}
+
 message PrivyDerivationMessage {
   string message = 1;
 }
@@ -1219,9 +1234,8 @@ message QrUrlResponse {
 }
 
 message QrPairingConfirmationResponse {
-  string pin_code = 1;
   // Identifies the started pairing process in its PairingCheckResult events
-  uint32 session_id = 2;
+  uint32 session_id = 1;
 }
 
 message GetDeeplinkParams {
@@ -1334,6 +1348,7 @@ service NymVpnService {
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetAutoConnect(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableCustomDns(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetCustomDns(DnsServerList) returns (google.protobuf.Empty) {}
   rpc SetMixnetTrafficConfig(MixnetTrafficConfig) returns (google.protobuf.Empty) {}
@@ -1344,6 +1359,7 @@ service NymVpnService {
   rpc SetEnableGatewayIndependence(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetGatewayIndependenceNotifications(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetFrontingMode(FrontingModeRequest) returns (google.protobuf.Empty) {}
+  rpc SetTransportPreference(TransportPreferenceRequest) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork(google.protobuf.StringValue) returns (google.protobuf.Empty) {}
@@ -1458,6 +1474,12 @@ service NymVpnService {
 
   // Login using a deeplink callback URL
   rpc DeeplinkStoreAccount(google.protobuf.StringValue) returns (AccountCommandResponse) {}
+
+  // Create and store a new account with a generated recovery phrase
+  rpc CreateAccount(CreateAccountRequest) returns (AccountCommandResponse) {}
+
+  // Redeem a free pass for the stored account
+  rpc RedeemFreepass(google.protobuf.StringValue) returns (AccountCommandResponse) {}
 
   // Pair a device with this account using a QR encoded URL
   rpc StartPairing(google.protobuf.Empty) returns (QrUrlResponse) {}

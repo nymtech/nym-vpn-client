@@ -10,6 +10,7 @@ import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.FavoriteSelector
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.TunnelState
+import java.util.IllformedLocaleException
 import java.util.Locale
 
 fun TunnelEvent.NewState.asTunnelState(): Tunnel.State = when (this.v1) {
@@ -66,7 +67,13 @@ fun String.asFavoriteSelector(): FavoriteSelector = when {
 	else -> FavoriteSelector.Region(this)
 }
 
-fun toDisplayCountry(twoLetterIsoCountryCode: String): String = Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry
+fun countryLocale(twoLetterIsoCountryCode: String): Locale? = try {
+	Locale.Builder().setRegion(twoLetterIsoCountryCode).build()
+} catch (_: IllformedLocaleException) {
+	null
+}
+
+fun toDisplayCountry(twoLetterIsoCountryCode: String): String = countryLocale(twoLetterIsoCountryCode)?.displayCountry ?: twoLetterIsoCountryCode.uppercase()
 
 private val ERROR_STATE_REASON_STRING_RES: Map<ErrorStateReason, Int> = mapOf(
 	ErrorStateReason.SetFirewallPolicy to R.string.error_reason_set_firewall_policy,

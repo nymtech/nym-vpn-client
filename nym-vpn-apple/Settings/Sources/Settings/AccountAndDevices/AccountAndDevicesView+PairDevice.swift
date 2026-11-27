@@ -1,8 +1,10 @@
+import SwiftUI
 #if os(iOS)
 import LocalAuthentication
-import SwiftUI
 import BiometricAuthenticator
 import SnackbarManager
+#endif
+import CredentialsManager
 import Theme
 import UIComponents
 
@@ -23,10 +25,11 @@ extension AccountAndDevicesView {
     }
 
     func startPairDevice() {
+#if os(iOS)
         Task {
             do {
                 try await BiometricAuthenticator.authenticate(reason: "pairDevice.authReason".localizedString)
-                isPairDevicePresented = true
+                presentPairDevice()
             } catch let error as LAError where [.userCancel, .systemCancel, .appCancel].contains(error.code) {
                 return
             } catch {
@@ -35,6 +38,15 @@ extension AccountAndDevicesView {
                 )
             }
         }
+#elseif os(macOS)
+        // The daemon asks the user to confirm when the code starts.
+        presentPairDevice()
+#endif
+    }
+
+    func presentPairDevice() {
+        isPairDevicePresented = true
+        // Started here, not on appear, so a sheet redraw can't restart the session.
+        Task { await PairingManager.shared.startShowingCode() }
     }
 }
-#endif

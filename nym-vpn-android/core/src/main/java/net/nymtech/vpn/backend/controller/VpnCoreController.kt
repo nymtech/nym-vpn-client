@@ -451,6 +451,7 @@ class VpnCoreController(
 			is CoreVpnConfigUpdate.SetStealthMode -> requireCoreSender {
 				it.setFrontingMode(if (update.value) FrontingMode.ALWAYS else FrontingMode.ON_RETRY)
 			}
+			is CoreVpnConfigUpdate.SetTransportPreference -> requireCoreSender { it.setTransportPreference(update.value) }
 			is CoreVpnConfigUpdate.SetNodeFamiliesNotificationsEnabled ->
 				requireCoreSender { it.setGatewayIndependenceNotifications(update.value) }
 			is CoreVpnConfigUpdate.SetGeoExclusionEnabled -> requireCoreSender { it.setGeoExclusionEnabled(update.value) }
@@ -487,6 +488,7 @@ private fun VpnServiceConfig.asCoreVpnConfig(localPrefs: LocalVpnPrefs): CoreVpn
 	sentry = localPrefs.sentry,
 	adBlockingEnabled = enableAdBlocking,
 	stealthMode = frontingMode == FrontingMode.ALWAYS,
+	transportPreference = transportPreference,
 	nodeFamiliesNotificationsEnabled = gatewayIndependence.enableNotifications,
 	geoExclusionEnabled = geoExclusion.enabled,
 	geoExclusionPort = geoExclusion.listenPort.toInt(),

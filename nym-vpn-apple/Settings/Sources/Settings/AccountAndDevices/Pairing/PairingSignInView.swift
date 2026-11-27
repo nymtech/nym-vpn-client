@@ -37,6 +37,9 @@ private extension PairingSignInView {
     @ViewBuilder
     var content: some View {
         switch pairingManager.state {
+        case .waitingForCode:
+            PairingStatusView(title: "pairing.waitingForCode".localizedString, isLoading: true)
+            cancelButton
         case let .waitingForApproval(pin, _):
             PairingStatusView(
                 title: "pairing.signIn.title".localizedString,
@@ -45,10 +48,7 @@ private extension PairingSignInView {
             PairingPinView(pin: pin)
             ProgressView()
                 .tint(Color.Nym.primary)
-            NymButton("cancel".localizedString, style: .textOnly) {
-                ImpactGenerator.shared.softImpact()
-                onBack()
-            }
+            cancelButton
         case .signedIn:
             PairingStatusView(title: "pairing.signingIn".localizedString, isLoading: true)
         case .expired:
@@ -57,6 +57,13 @@ private extension PairingSignInView {
             ended(title: error.localizedMessage)
         default:
             ended(title: "pairing.ended".localizedString)
+        }
+    }
+
+    var cancelButton: some View {
+        NymButton("cancel".localizedString, style: .textOnly) {
+            ImpactGenerator.shared.softImpact()
+            onBack()
         }
     }
 

@@ -60,6 +60,7 @@ async fn respond(line: &str, rpc_client: RpcClient) -> Result<bool> {
         Command::Tunnel { subcommand } => subcommand.execute(rpc_client).await?,
         Command::Lan { subcommand } => subcommand.execute(rpc_client).await?,
         Command::AdBlock { subcommand } => subcommand.execute(rpc_client).await?,
+        Command::AutoConnect { subcommand } => subcommand.execute(rpc_client).await?,
         Command::Dns { subcommand } => subcommand.execute(rpc_client).await?,
         Command::Network { subcommand } => subcommand.execute(rpc_client).await?,
         Command::Account { subcommand } => subcommand.execute(rpc_client).await?,
