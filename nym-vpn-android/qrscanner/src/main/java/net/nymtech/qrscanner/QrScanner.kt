@@ -21,6 +21,8 @@ fun QrScanner(
 	modifier: Modifier = Modifier,
 	secondaryAction: QrScanAction? = null,
 	paused: Boolean = false,
+	// Shown above the secondary action; disabled while a code is checked.
+	bottomContent: (@Composable (enabled: Boolean) -> Unit)? = null,
 ) {
 	QrScannerTheme {
 		QrScannerScreen(
@@ -30,6 +32,7 @@ fun QrScanner(
 			onClose = onClose,
 			secondaryAction = secondaryAction,
 			paused = paused,
+			bottomContent = bottomContent,
 			modifier = modifier,
 		)
 	}

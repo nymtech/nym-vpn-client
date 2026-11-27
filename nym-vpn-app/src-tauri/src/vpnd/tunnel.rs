@@ -44,13 +44,23 @@ pub struct BridgeAddress {
     pub transport: BridgeTransport,
 }
 
-#[derive(Serialize, Clone, Copy, Debug, PartialEq, TS)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub enum BridgeTransport {
     Quic,
     Tls,
     Ssh,
+}
+
+impl From<BridgeTransport> for lib::BridgeTransport {
+    fn from(transport: BridgeTransport) -> Self {
+        match transport {
+            BridgeTransport::Quic => lib::BridgeTransport::Quic,
+            BridgeTransport::Tls => lib::BridgeTransport::Tls,
+            BridgeTransport::Ssh => lib::BridgeTransport::Ssh,
+        }
+    }
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]

@@ -995,7 +995,6 @@ impl From<proto::QrUrlResponse> for QrUrl {
 impl From<QrPairingConfirmation> for proto::QrPairingConfirmationResponse {
     fn from(value: QrPairingConfirmation) -> Self {
         Self {
-            pin_code: value.pin_code,
             session_id: value.session_id,
         }
     }
@@ -1004,7 +1003,6 @@ impl From<QrPairingConfirmation> for proto::QrPairingConfirmationResponse {
 impl From<proto::QrPairingConfirmationResponse> for QrPairingConfirmation {
     fn from(value: proto::QrPairingConfirmationResponse) -> Self {
         Self {
-            pin_code: value.pin_code,
             session_id: value.session_id,
         }
     }

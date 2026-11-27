@@ -1,4 +1,4 @@
-# Logs out of the mock's default session and lands on the welcome sheet.
+# Logs out of the mock's default session (Log out button at the bottom of Settings) and lands on the welcome sheet.
 appId: net.nymtech.nymvpn.mock.debug
 ---
 - runFlow: open_app.yaml
@@ -7,12 +7,6 @@ appId: net.nymtech.nymvpn.mock.debug
 - extendedWaitUntil:
     visible:
       text: "Settings"
-    timeout: 10000
-
-- tapOn: "Account"
-- extendedWaitUntil:
-    visible:
-      text: "Account and devices"
     timeout: 10000
 
 - scrollUntilVisible:

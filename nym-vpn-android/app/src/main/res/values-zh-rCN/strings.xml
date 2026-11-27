@@ -235,7 +235,6 @@
 	<string name="settings_reset_app_title">重置应用数据</string>
 	<string name="settings_system_status_title">系统状态</string>
 	<string name="settings_mixnet_tuning_title">自定义混合网络参数</string>
-	<string name="settings_mixnet_tuning_description">自定义您的混合网络流量模式</string>
 	<string name="settings_quit_title">退出 NymVPN</string>
 	<string name="settings_app_version_line">应用版本: %1$s</string>
 	<string name="settings_language_help_title">帮助我们翻译 NymVPN</string>
@@ -438,7 +437,6 @@
 	<string name="passphrase_info_keeps_anonymous">确保无需任何个人信息以使用 NymVPN</string>
 	<string name="passphrase_info_belongs">仅属于您（自托管）</string>
 	<!-- Account screen -->
-	<string name="account_title">账号和设备</string>
 	<string name="account_info_manage_button">管理您的订阅</string>
 	<string name="account_info_renew_auth_title">续订您的订阅</string>
 	<string name="account_info_link_auth_subtitle">确认您的身份以添加社交登录</string>
@@ -494,7 +492,6 @@
 	<string name="logs_download_button">仍然保存为文件</string>
 	<string name="logs_saved">保存日志到下载文件夹</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling_info_msg">为每个应用程序设置通过 NymVPN 连接或者直接连接到网络。</string>
 	<string name="split_tunneling_search_apps_hint">搜索应用</string>
 	<string name="split_tunneling_apps">应用程序</string>
 	<string name="split_tunneling_direct">直连</string>

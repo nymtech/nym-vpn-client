@@ -11,6 +11,7 @@ public struct ConnectionConfig: Codable {
     public var bridgeMode: BridgeModeSetting
     public var enableAdBlocking: Bool
     public var stealthMode: Bool
+    public var transportPreference: TransportPreferenceSetting
     public var netstack: Bool
     public var residentialExit: Bool
     public var mixnetTuningConfig: MixnetTuningConfig
@@ -41,6 +42,7 @@ public struct ConnectionConfig: Codable {
         geoExclusionConfig: GeoExclusionConfig = GeoExclusionConfig(),
         gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true),
         stealthMode: Bool = false,
+        transportPreference: TransportPreferenceSetting = .auto,
         customDns: CustomDnsConfig = CustomDnsConfig()
     ) {
         self.entry = entry
@@ -52,6 +54,7 @@ public struct ConnectionConfig: Codable {
         self.bridgeMode = bridgeMode
         self.enableAdBlocking = enableAdBlocking
         self.stealthMode = stealthMode
+        self.transportPreference = transportPreference
         self.netstack = netstack
         self.residentialExit = residentialExit
         self.mixnetTuningConfig = mixnetTuningConfig
@@ -69,6 +72,7 @@ public struct ConnectionConfig: Codable {
         self.enableTwoHop = config.enableTwoHop
         self.bridgeMode = BridgeModeSetting(config.bridgeMode)
         self.stealthMode = config.frontingMode == .always
+        self.transportPreference = TransportPreferenceSetting(config.transportPreference)
         self.netstack = config.netstack
         self.residentialExit = config.residentialExit
         self.mixnetTuningConfig = MixnetTuningConfig(from: config.mixnetTraffic)
@@ -161,6 +165,7 @@ extension ConnectionConfig: Equatable {
         lhs.enableTwoHop == rhs.enableTwoHop &&
         lhs.bridgeMode == rhs.bridgeMode &&
         lhs.stealthMode == rhs.stealthMode &&
+        lhs.transportPreference == rhs.transportPreference &&
         lhs.netstack == rhs.netstack &&
         lhs.residentialExit == rhs.residentialExit &&
         lhs.mixnetTuningConfig == rhs.mixnetTuningConfig &&
@@ -196,12 +201,42 @@ public enum BridgeModeSetting: String, Codable, CaseIterable {
     }
 }
 
+public enum TransportPreferenceSetting: String, Codable, CaseIterable {
+    case auto, quic, tls, ssh
+
+    public init(_ transport: BridgeTransport?) {
+        switch transport {
+        case .none:
+            self = .auto
+        case .quic:
+            self = .quic
+        case .tls:
+            self = .tls
+        case .ssh:
+            self = .ssh
+        }
+    }
+
+    public var bridgeTransport: BridgeTransport? {
+        switch self {
+        case .auto:
+            nil
+        case .quic:
+            .quic
+        case .tls:
+            .tls
+        case .ssh:
+            .ssh
+        }
+    }
+}
+
 extension ConnectionConfig {
     private enum LegacyCodingKeys: String, CodingKey { case enableBridges, dns }
 
     private enum CodingKeys: String, CodingKey {
         case entry, exit, customDns, allowLan, disableIpv6, enableTwoHop
-        case bridgeMode, enableAdBlocking, stealthMode, netstack
+        case bridgeMode, enableAdBlocking, stealthMode, transportPreference, netstack
         case residentialExit, mixnetTuningConfig, splitTunnelConfig
         case geoExclusionConfig
         case gatewaySelectionAlgorithmConfig
@@ -228,6 +263,10 @@ extension ConnectionConfig {
             ?? (try legacy.decodeIfPresent(Bool.self, forKey: .enableBridges) == true ? .on : .off)
         self.enableAdBlocking = try container.decode(Bool.self, forKey: .enableAdBlocking)
         self.stealthMode = try container.decodeIfPresent(Bool.self, forKey: .stealthMode) ?? false
+        self.transportPreference = try container.decodeIfPresent(
+            TransportPreferenceSetting.self,
+            forKey: .transportPreference
+        ) ?? .auto
         self.netstack = try container.decode(Bool.self, forKey: .netstack)
         self.residentialExit = try container.decode(Bool.self, forKey: .residentialExit)
         self.mixnetTuningConfig = try container.decode(MixnetTuningConfig.self, forKey: .mixnetTuningConfig)

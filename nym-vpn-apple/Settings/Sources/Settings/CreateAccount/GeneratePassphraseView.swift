@@ -124,7 +124,7 @@ public struct GeneratePassphraseView: View {
         }
         .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
         .fullScreenCover(isPresented: $isCodeEntryPresented) {
-            CodeEntryView(startsWithScanner: true) { outcome in
+            FreepassOrPairingEntryView(startsWithScanner: true) { outcome in
                 isCodeEntryPresented = false
                 handleCodeEntry(outcome)
             }
@@ -382,7 +382,7 @@ extension GeneratePassphraseView {
     }
 
 #if os(iOS)
-    func handleCodeEntry(_ outcome: CodeEntryOutcome) {
+    func handleCodeEntry(_ outcome: FreepassOrPairingOutcome) {
         guard outcome != .cancelled else { return }
         let needsLogin = outcome == .pairingSignedIn || !credentialsManager.isValidCredentialImported
         didLeaveForSuccessfulPurchase = true
@@ -391,7 +391,7 @@ extension GeneratePassphraseView {
             path = NavigationPath()
         }
         Task {
-            await CodeEntryOutcomeHandler.handle(
+            await FreepassOrPairingOutcomeHandler.handle(
                 outcome,
                 credentialsManager: credentialsManager,
                 sendSessionEvent: { onSessionEvent?($0) }

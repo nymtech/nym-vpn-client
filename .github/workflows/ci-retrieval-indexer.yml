@@ -1,0 +1,44 @@
+name: ci-retrieval-indexer
+
+# Walks and chunks the code the retrieval indexer reads, with no store and no
+# secrets, so a change that would fail the develop write fails its own PR: a
+# source language the package cannot chunk and that is not on its accepted-drop
+# list, or a root that yields no chunks.
+on:
+  pull_request:
+    paths:
+      - "nym-vpn-core/**"
+      - "nym-vpn-app/**"
+      - "nym-vpn-android/**"
+      - "nym-vpn-apple/**"
+      - "wireguard/**"
+      - ".github/indexer/**"
+      - ".github/workflows/ci-retrieval-indexer.yml"
+      - ".github/workflows/cd-retrieval-store.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: arc-linux-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: .github/indexer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      # The pnpm version comes from packageManager in package.json.
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install the indexer
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Walk and chunk, writing nothing
+        run: pnpm check

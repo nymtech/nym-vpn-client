@@ -4,6 +4,7 @@ import { StateAction } from '../store/slices/createMainSlice';
 import {
   AccountLinks,
   BridgeMode,
+  BridgeTransport,
   ConnectingState,
   DiagnosticsSuggestedReason,
   FeatureFlags,
@@ -57,6 +58,7 @@ export type InitState = {
   geoExclusion: GeoExclusionSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
   frontingMode: FrontingMode;
+  transportPreference: BridgeTransport | null;
   gatewayIndependenceNotifications: boolean;
 };
 
@@ -124,6 +126,7 @@ export type AppState = {
   geoExclusion: GeoExclusionSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
   frontingMode: FrontingMode;
+  transportPreference: BridgeTransport | null;
   // gateway-independence reminder toggle ("Server family reminders"); daemon-backed
   gatewayIndependenceNotifications: boolean;
 };

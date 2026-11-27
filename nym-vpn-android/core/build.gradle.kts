@@ -10,7 +10,9 @@ plugins {
 
 android {
 	namespace = "${Constants.NAMESPACE}.${Constants.VPN_LIB_NAME}"
-	compileSdk = Constants.COMPILE_SDK
+	compileSdk {
+		version = release(Constants.COMPILE_SDK) { minorApiLevel = Constants.COMPILE_SDK_MINOR }
+	}
 	ndkVersion = Constants.NDK_VERSION
 
 	lint {

@@ -1,13 +1,9 @@
 extension GRPCManager {
     public func deviceIdentifier() async throws -> String? {
-        try await Task.detached { [weak self] in
-            try await self?.rpcClient?.getDeviceIdentity()
-        }.value
+        try await client.getDeviceIdentity()
     }
 
     public func accountIdentifier() async throws -> String? {
-        try await Task.detached { [weak self] in
-            try await self?.rpcClient?.getAccountIdentity()
-        }.value
+        try await client.getAccountIdentity()
     }
 }

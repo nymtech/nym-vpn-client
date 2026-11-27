@@ -11,7 +11,7 @@ tags:
 
 - extendedWaitUntil:
     visible:
-      text: "Account"
+      text: "Your account"
     timeout: 10000
 - assertVisible: "Connection profiles"
 - assertNotVisible: "NOT PROTECTED"
@@ -23,4 +23,4 @@ tags:
       text: "NOT PROTECTED"
     timeout: 10000
 - assertVisible: "Connect"
-- assertNotVisible: "Account"
+- assertNotVisible: "Your account"
