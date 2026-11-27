@@ -56,35 +56,26 @@ import UIKit
         queueTask?.cancel()
     }
 
-    /// Connection marker (#7063) for the live tunnel. `mode` resolves from the
-    /// live tunnel type, falling back to `ConnectionType` (.mixnet5hop is Mixnet).
-    var marker: Marker {
-        Marker(
-            tunnelStatus: status,
-            connectingState: lastConnectingStep,
-            isMixnet: mode == .anonymous
-        )
-    }
-
+    /// The single mapping from tunnel status, network, connecting step and errors to what the marker shows.
     var arcProgressState: ArcProgressState {
-        // Offline mid-session with the kill switch on holds traffic: blocked.
-        if marker.state == .blocked {
-            return .blocked
-        }
-        // Offline with no session to resume: not protected, no internet. The network
-        // reading only applies with no session; a live tunnel keeps its own state.
-        if status == .offline || (!isOnline && (status == .disconnected || status == .unknown)) {
+        // the network reading only applies with no session; a live tunnel keeps its own state
+        if !isOnline && (status == .disconnected || status == .unknown) {
             return .offline
         }
         switch status {
         case .connected:
             return .connected
+        case .offline:
+            return .offline
+        case .offlineReconnect:
+            // the kill switch is always on in the Apple apps, so a session waiting for the network holds traffic
+            return .blocked
         case .error:
             if GatewayIndependenceArcPolicy.shouldUseAwaitingGatewayConsentArc(
                 status: status,
                 lastError: connectionManager.lastError
             ) {
-                return .awaitingGatewayConsent
+                return .awaitingGatewayConsent(Self.resumedDisplayedStep(current: lastDisplayedStep))
             }
             if GatewayIndependenceArcPolicy.shouldUseFailedArc(
                 status: status,
@@ -93,11 +84,11 @@ import UIKit
                 return .failed
             }
             return .step(lastDisplayedStep ?? .choosingBestServers)
-        case .connecting, .reasserting, .restarting, .offlineReconnect:
+        case .connecting, .reasserting, .restarting:
             return .step(lastDisplayedStep ?? .initializingNym)
         case .disconnecting:
-            return .canceling
-        case .disconnected, .offline, .unknown:
+            return .canceling(lastDisplayedStep)
+        case .disconnected, .unknown:
             return hasFailure ? .failed : .disconnected
         }
     }
@@ -396,7 +387,7 @@ extension ConnectionStatusViewModel {
     /// pre-flight errors before any step).
     static func resumedDisplayedStep(
         current: ArcProgressState.Step?
-    ) -> ArcProgressState.Step? {
+    ) -> ArcProgressState.Step {
         current ?? .authenticatingAccount
     }
 }

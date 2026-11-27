@@ -1,23 +1,7 @@
-import TunnelStatus
 import XCTest
 @testable import UIComponents
 
 final class MarkerVisualTests: XCTestCase {
-    func testArcStepsDrawTheMarkerSteps() {
-        let steps: [(ArcProgressState.Step, TunnelConnectingState)] = [
-            (.initializingNym, .resolvingApiAddresses),
-            (.authenticatingAccount, .awaitingAccountReadiness),
-            (.downloadingZkNyms, .awaitingCredentialsAvailability),
-            (.updatingServerList, .refreshingGateways),
-            (.choosingBestServers, .selectingGateways),
-            (.registeringWithServers, .registeringWithGateways),
-            (.establishingConnection, .connectingTunnel)
-        ]
-        for (arcStep, connectingState) in steps {
-            XCTAssertEqual(arcStep.markerStep, Marker.step(for: connectingState), "\(arcStep)")
-        }
-    }
-
     func testOrbitTurnsOnceOverThePeriod() {
         XCTAssertEqual(MarkerOrbit.angle(at: 0), 0, accuracy: 0.0001)
         XCTAssertEqual(MarkerOrbit.angle(at: 1), 90, accuracy: 0.0001)

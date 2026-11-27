@@ -10,25 +10,21 @@ import Theme
 public struct ArcProgressView: View {
     public let state: ArcProgressState
     public let mode: ArcProgressMode
-    public let markerMode: MarkerMode
     public let connectedDate: Date?
     public let showsIndependenceWarning: Bool
     public let availableHeight: CGFloat?
 
-    @State private var lastStep: ArcProgressState.Step?
     @Environment(\.colorScheme) private var colorScheme
 
     public init(
         state: ArcProgressState,
         mode: ArcProgressMode = .fast,
-        markerMode: MarkerMode = .dvpn,
         connectedDate: Date? = nil,
         showsIndependenceWarning: Bool = false,
         availableHeight: CGFloat? = nil
     ) {
         self.state = state
         self.mode = mode
-        self.markerMode = markerMode
         self.connectedDate = connectedDate
         self.showsIndependenceWarning = showsIndependenceWarning
         self.availableHeight = availableHeight
@@ -54,10 +50,6 @@ public struct ArcProgressView: View {
         }
         .scaleEffect(contentScale, anchor: .center)
         .animation(.easeInOut(duration: 0.2), value: contentScale)
-        .onAppear { recordStepIfActive(state) }
-        .onChange(of: state) { _, newValue in
-            recordStepIfActive(newValue)
-        }
     }
 }
 
@@ -73,13 +65,11 @@ private extension ArcProgressView {
         }
     }
 
-    /// The mode face, centred in the rings: unlit in the track grey while not
-    /// protected, playing the illustrative route while connected.
     var face: some View {
         MarkerFace(
-            mode: markerMode,
-            lit: markerState != .notProtected,
-            playing: markerState == .connected,
+            mode: mode,
+            lit: !isUnprotected,
+            playing: state == .connected,
             litColor: Color.Nym.textPrimary,
             unlitColor: trackColor
         )
@@ -103,7 +93,7 @@ private extension ArcProgressView {
                 .animation(.easeIn(duration: 0.6), value: fillOpacity)
                 .animation(.easeOut(duration: 0.2), value: fillColor)
         }
-        .modifier(MarkerOrbit(isActive: markerState == .blocked && ring == .outer))
+        .modifier(MarkerOrbit(isActive: state == .blocked && ring == .outer))
     }
 
     var sphereFill: AnyShapeStyle {
@@ -197,34 +187,17 @@ private extension ArcProgressView {
         return false
     }
 
-    /// The connection marker state (#7063) this arc phase draws.
-    var markerState: MarkerState {
-        switch state {
-        case .disconnected, .offline:
-            return .notProtected
-        case .step(let step):
-            return .connecting(step: step.markerStep)
-        case .awaitingGatewayConsent:
-            return .connecting(step: (lastStep ?? .authenticatingAccount).markerStep)
-        case .connected:
-            return .connected
-        case .failed:
-            return .error
-        case .blocked:
-            return .blocked
-        case .canceling:
-            return .stopping
-        }
+    var isUnprotected: Bool {
+        state == .disconnected || state == .offline
     }
 
-    /// Setup yellow while connecting, error red on error, brand green otherwise.
     var fillColor: Color {
-        switch markerState {
-        case .error, .blocked:
+        switch state {
+        case .failed, .blocked:
             return Color.Nym.error
-        case .connecting:
+        case .step, .awaitingGatewayConsent:
             return colorScheme == .dark ? Constants.setupDark : Constants.setupLight
-        case .notProtected, .connected, .stopping:
+        case .disconnected, .offline, .connected, .canceling:
             return Constants.fastFill
         }
     }
@@ -233,13 +206,14 @@ private extension ArcProgressView {
         colorScheme == .dark ? Constants.track : Color.black.opacity(0.12)
     }
 
+    /// Stays faded while the fills drain to empty after canceling, so they never flash back to full.
     var fillOpacity: Double {
         switch state {
-        case .canceling:
-            return 0.15
+        case .canceling, .disconnected, .offline:
+            return Constants.stoppingFillOpacity
         case .failed, .blocked:
             return Constants.errorFillOpacity
-        default:
+        case .step, .awaitingGatewayConsent, .connected:
             return 1.0
         }
     }
@@ -248,14 +222,10 @@ private extension ArcProgressView {
         switch state {
         case .disconnected, .offline:
             return 0.85
-        case .step, .awaitingGatewayConsent:
-            return 1.0
-        case .connected, .blocked:
-            return 1.0
-        case .failed:
-            return 1.0
         case .canceling:
             return 0.7
+        case .step, .awaitingGatewayConsent, .connected, .blocked, .failed:
+            return 1.0
         }
     }
 
@@ -292,8 +262,7 @@ private extension ArcProgressView {
         }
     }
 
-    /// Caption under the label: why the device is offline (blocked or not
-    /// protected), else the gateway-independence warning while connecting.
+    /// Why the device is offline, else the gateway-independence warning while connecting.
     var secondaryCaptionKey: String? {
         switch state {
         case .blocked:
@@ -341,17 +310,13 @@ private extension ArcProgressView {
         case .failed:
             return 1.0
         case .blocked:
-            // only the outer ring, with a turning gap
             return ring == .outer ? 1.0 : 0.0
-        case .awaitingGatewayConsent:
-            // Hold whatever ring the connect had already reached (macOS loads
-            // up to the middle ring before the error); fall back to the outer
-            // ring when nothing was reached yet (iOS pre-flight). Never unload.
-            return progressForStep(lastStep ?? .authenticatingAccount, ring: ring)
+        case .awaitingGatewayConsent(let step):
+            return progressForStep(step, ring: ring)
         case .step(let step):
             return progressForStep(step, ring: ring)
-        case .canceling:
-            return progressForStep(lastStep, ring: ring)
+        case .canceling(let step):
+            return progressForStep(step, ring: ring)
         }
     }
 
@@ -364,12 +329,6 @@ private extension ArcProgressView {
         if ring.index > activeRing.index {
             return 0.0 }
         return step.isFirstHalf ? 0.5 : 1.0
-    }
-
-    func recordStepIfActive(_ state: ArcProgressState) {
-        if case .step(let step) = state {
-            lastStep = step
-        }
     }
 
     func stepLabel(_ step: ArcProgressState.Step) -> String {
@@ -391,29 +350,26 @@ private extension ArcProgressView {
         }
     }
 
-    /// On error every ring and its track loses a segment centred on
-    /// 3 o'clock, so the state reads without colour. Rings are rotated so the
-    /// path starts at 12 o'clock; the dash phase puts the gap at 0.2 to 0.3.
-    /// Blocked: the outer ring and its track lose a segment ending at 12 o'clock,
-    /// and `MarkerOrbit` turns it.
+    /// Error: every ring loses a segment centred on 3 o'clock.
+    /// Blocked: the outer ring loses a segment ending at 12 o'clock, which `MarkerOrbit` turns.
     func ringStroke(for ring: Ring) -> StrokeStyle {
-        if markerState == .blocked && ring == .outer {
-            let circumference = CGFloat.pi * ring.diameter
-            return StrokeStyle(
-                lineWidth: Constants.strokeWidth,
-                lineCap: .round,
-                dash: [circumference * (1 - Constants.blockedGap), circumference * Constants.blockedGap]
-            )
-        }
-        guard markerState == .error else {
+        let circumference = CGFloat.pi * ring.diameter
+        switch state {
+        case .failed:
+            return gappedStroke(circumference: circumference, gap: Constants.errorGap, phase: circumference * (1 - Constants.errorGapStart))
+        case .blocked where ring == .outer:
+            return gappedStroke(circumference: circumference, gap: Constants.blockedGap, phase: 0)
+        default:
             return StrokeStyle(lineWidth: Constants.strokeWidth, lineCap: .round)
         }
-        let circumference = CGFloat.pi * ring.diameter
-        return StrokeStyle(
+    }
+
+    func gappedStroke(circumference: CGFloat, gap: CGFloat, phase: CGFloat) -> StrokeStyle {
+        StrokeStyle(
             lineWidth: Constants.strokeWidth,
             lineCap: .round,
-            dash: [circumference * (1 - Constants.errorGap), circumference * Constants.errorGap],
-            dashPhase: circumference * (1 - Constants.errorGapStart)
+            dash: [circumference * (1 - gap), circumference * gap],
+            dashPhase: phase
         )
     }
 
@@ -472,7 +428,6 @@ private extension ArcProgressView {
 
         static let labelFontSize: CGFloat = 11
         static let warningFontSize: CGFloat = 10
-        /// Connecting steps sit one notch below the state words.
         static let stepFontSize: CGFloat = 10
         static let warningTopOffset: CGFloat = 18
         static let labelTopSpacing: CGFloat = 14
@@ -505,12 +460,10 @@ private extension ArcProgressView {
         static let fastFill      = Color.Nym.primary
         static let track         = Color.white.opacity(0.15)
         static let errorFillOpacity: Double = 0.85
-        /// Error gap: 10% of the circle, centred on 3 o'clock.
+        static let stoppingFillOpacity: Double = 0.15
         static let errorGap: CGFloat = 0.1
         static let errorGapStart: CGFloat = 0.25 + errorGap / 2
-        /// Blocked gap: 15% of the outer ring.
         static let blockedGap: CGFloat = 0.15
-        /// Setup yellow for the connecting fill.
         static let setupDark  = Color(red: 0xF4 / 255, green: 0xB9 / 255, blue: 0x40 / 255)
         static let setupLight = Color(red: 0x9A / 255, green: 0x5B / 255, blue: 0x00 / 255)
         static let errorTint     = Color.Nym.error.opacity(0.08)

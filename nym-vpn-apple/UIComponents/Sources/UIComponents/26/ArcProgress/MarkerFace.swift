@@ -1,18 +1,10 @@
 import SwiftUI
 
-/// The connection marker's face (#7063) says the mode. dVPN: an entry and an
-/// exit block, linked (2 hops). Mixnet: the three mix layers as a 3x3 field,
-/// with the five hops lit (entry, one node per layer, exit); hollow nodes are
-/// the unused ones. While not protected nothing is lit: dVPN shows only its
-/// outline, Mixnet only its nodes. While connected the face plays an
-/// illustrative route: a packet steps through the hops, and the Mixnet route
-/// changes every two passes. It illustrates how the network works; it is not
-/// a traffic meter. Drawn in an 80 x 80 box scaled to the frame. Decorative.
+/// dVPN: entry and exit blocks, linked. Mixnet: three mix layers as a 3x3 field with the five hops of a route lit.
+/// Decorative. `lit` is false while not protected; `playing` steps a packet through the hops.
 public struct MarkerFace: View {
-    public let mode: MarkerMode
-    /// false while not protected: no packets, only the outline or the nodes
+    public let mode: ArcProgressMode
     public let lit: Bool
-    /// true while connected: plays the illustrative route
     public let playing: Bool
     public let litColor: Color
     public let unlitColor: Color
@@ -22,7 +14,7 @@ public struct MarkerFace: View {
     @State private var playStart = Date()
     @State private var isOnScreen = true
 
-    public init(mode: MarkerMode, lit: Bool, playing: Bool, litColor: Color, unlitColor: Color) {
+    public init(mode: ArcProgressMode, lit: Bool, playing: Bool, litColor: Color, unlitColor: Color) {
         self.mode = mode
         self.lit = lit
         self.playing = playing
@@ -45,8 +37,7 @@ public struct MarkerFace: View {
 }
 
 private extension MarkerFace {
-    /// The route plays only while it can be seen: the scene is active and the
-    /// marker is on screen (#7063: the animation pauses when not visible).
+    /// Plays only while visible: scene active and on screen.
     var isPlaying: Bool {
         lit && playing && !reduceMotion && scenePhase == .active && isOnScreen
     }
@@ -71,16 +62,16 @@ private extension MarkerFace {
         return Canvas { context, size in
             context.scaleBy(x: size.width / MarkerFaceModel.box, y: size.height / MarkerFaceModel.box)
             switch mode {
-            case .dvpn:
+            case .fast:
                 MarkerFaceModel.drawDvpn(in: context, color: color, lit: lit, tick: tick)
-            case .mixnet:
+            case .anonymous:
                 MarkerFaceModel.drawMixnet(in: context, color: color, lit: lit, tick: tick)
             }
         }
     }
 }
 
-/// Geometry and rhythm of the face, in the 80 x 80 design box.
+/// Geometry and rhythm of the face, in an 80 x 80 box.
 enum MarkerFaceModel {
     static let box: CGFloat = 80
     static let strokeWidth: CGFloat = 2
@@ -103,12 +94,9 @@ enum MarkerFaceModel {
         [mixEntry, CGPoint(x: 24, y: 40), CGPoint(x: 40, y: 58), CGPoint(x: 56, y: 40), mixExit]
     ]
 
-    // rhythm: the spec's data line ticks (dVPN 80 ms, Mixnet 120 ms)
     static let dvpnTick: TimeInterval = 0.08
     static let mixTick: TimeInterval = 0.12
-    /// entry, link, exit: 240 ms each
     static let dvpnTicksPerHop = 3
-    /// 240 ms per hop
     static let mixTicksPerHop = 2
     /// five hops and one rest beat
     static let mixPass = 6
@@ -117,11 +105,11 @@ enum MarkerFaceModel {
     static let trail = 0.6
     static let playingRouteLine = 0.4
 
-    static func tickInterval(for mode: MarkerMode) -> TimeInterval {
+    static func tickInterval(for mode: ArcProgressMode) -> TimeInterval {
         switch mode {
-        case .dvpn:
+        case .fast:
             return dvpnTick
-        case .mixnet:
+        case .anonymous:
             return mixTick
         }
     }
@@ -131,7 +119,7 @@ enum MarkerFaceModel {
         max(0, Int((now.timeIntervalSince(start) / interval).rounded()))
     }
 
-    /// dVPN lit element: 0 entry, 1 link, 2 exit; nil when still.
+    /// 0 entry, 1 link, 2 exit; nil when still.
     static func dvpnHop(tick: Int?) -> Int? {
         tick.map { ($0 / dvpnTicksPerHop) % 3 }
     }

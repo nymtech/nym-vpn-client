@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Blocked: the outer ring's gap turns clockwise once every 4 s while the kill
-/// switch holds traffic. Still (gap ending at 12 o'clock) under Reduce Motion,
-/// and while the scene is not active or the marker is off screen (no timeline runs then).
+/// Turns the blocked ring's gap once per `period`. Still, with the gap ending at 12 o'clock, under Reduce Motion,
+/// while the scene is inactive or while off screen: no timeline runs then.
 struct MarkerOrbit: ViewModifier {
     static let period: TimeInterval = 4
 
