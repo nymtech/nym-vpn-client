@@ -387,6 +387,8 @@ private extension OneClickView {
             "disconnecting".localizedString
         case .noInternet:
             "offline".localizedString
+        case .blocked:
+            "disconnect".localizedString
         case .noSubscription:
             "home.getStarted".localizedString
         }
@@ -400,7 +402,7 @@ private extension OneClickView {
             .connecting
         case .stop:
             .destructive
-        case .connected:
+        case .connected, .blocked:
             .connected
         }
     }

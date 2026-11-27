@@ -2334,6 +2334,28 @@
         }
       }
     },
+    "arcProgress.blocked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kill switch is blocking traffic"
+          }
+        }
+      }
+    },
+    "arcProgress.blockedAction" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect to disable it"
+          }
+        }
+      }
+    },
     "arcProgress.connectionFailed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2457,6 +2479,17 @@
         }
       }
     },
+    "arcProgress.noInternet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection found"
+          }
+        }
+      }
+    },
     "arcProgress.notProtected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2576,7 +2609,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Authenticating account"
+            "value" : "Setting up your account"
           }
         },
         "es" : {
@@ -2789,7 +2822,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Establishing connection"
+            "value" : "Establishing server connection"
           }
         },
         "es" : {
@@ -2890,7 +2923,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Starting NymVPN"
+            "value" : "Initializing NymVPN"
           }
         },
         "es" : {
@@ -2991,7 +3024,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registering with servers"
+            "value" : "Registering anonymously with servers"
           }
         },
         "es" : {
@@ -14853,7 +14886,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Will connect once device goes online"
+            "value" : "Will connect once your device goes online"
           }
         },
         "es" : {
@@ -29254,7 +29287,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setting up your account (2/7)"
+            "value" : "Setting up your account"
           }
         },
         "es" : {
@@ -29343,7 +29376,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Downloading ZKNyms (3/7)"
+            "value" : "Downloading ZKNyms"
           }
         }
       }
@@ -29366,7 +29399,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Establishing server connection (7/7)"
+            "value" : "Establishing server connection"
           }
         },
         "es" : {
@@ -29467,7 +29500,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Updating server list (4/7)"
+            "value" : "Updating server list"
           }
         },
         "es" : {
@@ -29568,7 +29601,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registering anonymously with servers (6/7)"
+            "value" : "Registering anonymously with servers"
           }
         },
         "es" : {
@@ -29669,7 +29702,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Initializing NymVPN (1/7)"
+            "value" : "Initializing NymVPN"
           }
         },
         "es" : {
@@ -29770,7 +29803,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choosing best servers (5/7)"
+            "value" : "Choosing best servers"
           }
         },
         "es" : {

@@ -11,7 +11,7 @@ extension OneClickView {
                 guard configuration.showsAppUpdatePrompt else { return false }
                 // A required update waits for an active connection to end, so Disconnect and Stop stay reachable.
                 return configuration.blocksConnectForAppUpdate
-                    ? viewModel.connectState != .connected && viewModel.connectState != .stop
+                    ? ![.connected, .stop, .blocked].contains(viewModel.connectState)
                     : !configuration.appUpdatePromptDismissed
             },
             set: { presented in
@@ -36,14 +36,13 @@ extension OneClickView {
 
     var connectButtonDisabled: Bool {
         if configuration.blocksConnectForAppUpdate &&
-            viewModel.connectState != .connected &&
-            viewModel.connectState != .stop {
+            ![.connected, .stop, .blocked].contains(viewModel.connectState) {
             return true
         }
         switch viewModel.connectState {
         case .connecting, .disconnecting, .noInternet:
             return true
-        case .disconnected, .stop, .connected, .noSubscription:
+        case .disconnected, .stop, .connected, .blocked, .noSubscription:
             return false
         }
     }

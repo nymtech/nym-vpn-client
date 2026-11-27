@@ -117,6 +117,13 @@ public final class OneClickViewModel {
         guard !isConnectDisconnectInFlight else { return }
         guard connectionManager.currentTunnelStatus != .disconnecting else { return }
 
+        // Blocked: Disconnect ends the held session instead of starting a connect.
+        if connectState == .blocked {
+            impactGenerator.impact()
+            disconnectFromOffline()
+            return
+        }
+
         impactGenerator.impact()
         snackbarManager.clear()
 
