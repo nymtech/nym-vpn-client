@@ -1,7 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashSet, error::Error};
+use std::error::Error;
+
+use itertools::Itertools;
 
 use crate::{response::NymErrorResponse, types::AccountError};
 pub use nym_http_api_client::HttpClientError;
@@ -19,177 +21,26 @@ pub const FAIR_USAGE_DEPLETED_CODE_ID: &str = "e0b78604-bb9b-4524-add1-f50fe2614
 pub const UPSTREAM_UNAVAILABLE_CODE_ID: &str = "b4f0a4a9-7c31-4e7c-9b0e-52c1f8e2d6a7";
 
 #[derive(Debug, thiserror::Error)]
+#[error("failed to resolve {hostname}")]
+pub struct DnsResolutionFailure {
+    pub hostname: String,
+    #[source]
+    pub source: nym_http_api_client::ResolveError,
+}
+
+#[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
-    #[error("failed to create vpn api client")]
-    CreateVpnApiClient(#[source] Box<HttpClientError>),
+    #[error("http client error")]
+    HttpClient(#[from] Box<HttpClientError>),
 
-    #[error("failed to get account")]
-    GetAccount(#[source] Box<HttpClientError>),
+    #[error(
+        "failed to resolve hostname(s): {}",
+        failures.iter().map(|failure| failure.hostname.as_str()).join(", ")
+    )]
+    DnsResolution { failures: Vec<DnsResolutionFailure> },
 
-    #[error("failed to delete account")]
-    DeleteAccount(#[source] Box<HttpClientError>),
-
-    #[error("failed to get account summary")]
-    GetAccountSummary(#[source] Box<HttpClientError>),
-
-    #[error("failed to get canonical account identity")]
-    GetCanonicalAccountIdentity(#[source] Box<HttpClientError>),
-
-    #[error("failed to get account summary with device")]
-    GetAccountSummaryWithDevice(#[source] Box<HttpClientError>),
-
-    #[error("failed to link privy account")]
-    LinkPrivyAccount(#[source] Box<HttpClientError>),
-
-    #[error("failed to pair account")]
-    PairAccount(#[source] Box<HttpClientError>),
-
-    #[error("failed trying to pair to account")]
-    TryToPairToAccount(#[source] Box<HttpClientError>),
-
-    #[error("failed to check account pairing")]
-    CheckPairingAccount(#[source] Box<HttpClientError>),
-
-    #[error("failed to confirm pairing PIN")]
-    ConfirmPairingPinAccount(#[source] Box<HttpClientError>),
-
-    #[error("failed to get pairing secret account")]
-    GetPairingSecretAccount(#[source] Box<HttpClientError>),
-
-    #[error("failed to share pairing secret account")]
-    SharePairingSecretAccount(#[source] Box<HttpClientError>),
-
-    #[error("failed to get devices")]
-    GetDevices(#[source] Box<HttpClientError>),
-
-    #[error("failed to register device")]
-    RegisterDevice(#[source] Box<HttpClientError>),
-
-    #[error("failed to get active devices")]
-    GetActiveDevices(#[source] Box<HttpClientError>),
-
-    #[error("failed to get device by id")]
-    GetDeviceById(#[source] Box<HttpClientError>),
-
-    #[error("failed to get device zk-nym")]
-    GetDeviceZkNyms(#[source] Box<HttpClientError>),
-
-    #[error("failed to update device")]
-    UpdateDevice(#[source] Box<HttpClientError>),
-
-    #[error("failed to delete device")]
-    DeleteDevice(#[source] Box<HttpClientError>),
-
-    #[error("failed to request zk-nym")]
-    RequestZkNym(#[source] Box<HttpClientError>),
-
-    #[error("failed to get active zk-nym")]
-    GetActiveZkNym(#[source] Box<HttpClientError>),
-
-    #[error("failed to get zk-nym by id")]
-    GetZkNymById(#[source] Box<HttpClientError>),
-
-    #[error("failed to confirm zk-nym download")]
-    ConfirmZkNymDownloadById(#[source] Box<HttpClientError>),
-
-    #[error("failed to get free passes")]
-    GetFreePasses(#[source] Box<HttpClientError>),
-
-    #[error("failed to apply free pass")]
-    ApplyFreepass(#[source] Box<HttpClientError>),
-
-    #[error("failed to redeem free pass")]
-    RedeemFreepass(#[source] Box<HttpClientError>),
-
-    #[error("failed to get subscriptions")]
-    GetSubscriptions(#[source] Box<HttpClientError>),
-
-    #[error("failed to create subscription")]
-    CreateSubscription(#[source] Box<HttpClientError>),
-
-    #[error("failed to get active subscription")]
-    GetActiveSubscriptions(#[source] Box<HttpClientError>),
-
-    #[error("failed to check Apple introductory offer eligibility")]
-    CheckAppleIntroOfferEligibility(#[source] Box<HttpClientError>),
-
-    #[error("failed to get gateways")]
-    GetGateways(#[source] Box<HttpClientError>),
-
-    #[error("failed to get gateway countries")]
-    GetGatewayCountries(#[source] Box<HttpClientError>),
-
-    #[error("failed to get entry gateways")]
-    GetEntryGateways(#[source] Box<HttpClientError>),
-
-    #[error("failed to get entry gateway countries")]
-    GetEntryGatewayCountries(#[source] Box<HttpClientError>),
-
-    #[error("failed to get exit gateways")]
-    GetExitGateways(#[source] Box<HttpClientError>),
-
-    #[error("failed to get exit gateway countries")]
-    GetExitGatewayCountries(#[source] Box<HttpClientError>),
-
-    #[error("failed to get vpn gateways")]
-    GetVpnGateways(#[source] Box<HttpClientError>),
-
-    #[error("failed to get vpn gateway countries")]
-    GetVpnGatewayCountries(#[source] Box<HttpClientError>),
-
-    #[error("failed to get directory zk-nym ticketbook partial verification keys")]
-    GetDirectoryZkNymsTicketbookPartialVerificationKeys(#[source] Box<HttpClientError>),
-
-    #[error("failed to get directory zk-nym ticketbook master verification key")]
-    GetDirectoryZkNymsTicketbookMasterVerificationKey(#[source] Box<HttpClientError>),
-
-    #[error("failed to get directory zk-nym ticketbook aggregated coin indices signatures")]
-    GetDirectoryZkNymsTicketbookAggregatedCoinIndicesSignatures(#[source] Box<HttpClientError>),
-
-    #[error("failed to get directory zk-nym ticketbook aggregated expiration date signatures")]
-    GetDirectoryZkNymsTicketbookAggregatedExpirationDateSignatures(#[source] Box<HttpClientError>),
-
-    #[error("failed to get health")]
-    GetHealth(#[source] Box<HttpClientError>),
-
-    #[error("failed to get wellknown environments")]
-    GetWellknownEnvs(#[source] Box<HttpClientError>),
-
-    #[error("failed to get wellknown discovery")]
-    GetWellknownDiscovery(#[source] Box<HttpClientError>),
-
-    #[error("failed to get usage")]
-    GetUsage(#[source] Box<HttpClientError>),
-
-    #[error("failed to get registered network environments")]
-    GetNetworkEnvs(#[source] Box<HttpClientError>),
-
-    #[error("failed to get discovery info")]
-    GetDiscoveryInfo(#[source] Box<HttpClientError>),
-
-    #[error("failed to get vpn network Details")]
-    GetVpnNetworkDetails(#[source] Box<HttpClientError>),
-
-    #[error("failed to get user geolocation")]
-    GetGeoIp(#[source] Box<HttpClientError>),
-
-    #[error("failed to post account")]
-    PostAccount(#[source] Box<HttpClientError>),
-
-    #[error("failed to resolve hostname: {hostname}")]
-    DnsResolutionFailure {
-        hostname: String,
-        source: nym_http_api_client::ResolveError,
-    },
-
-    #[error("Failed to resolve hostname(s): {hostnames:?}")]
-    HostnamesResolutionError { hostnames: HashSet<String> },
-
-    #[error("the url {url} doesn't parse to a host and/or a port: {reason}")]
-    UrlError { url: url::Url, reason: String },
-
-    #[error("the url {url} is invalid")]
-    InvalidUrl { url: String },
+    #[error("invalid url {url}: {reason}")]
+    InvalidUrl { url: String, reason: String },
 
     #[error("account api client error: {0}")]
     AccountError(#[source] Box<AccountError>),
@@ -198,12 +49,15 @@ pub enum VpnApiClientError {
     /// Multiple attempts to receive remote time should happen before this error is returned
     #[error("too much time travel preventing receiving remote time")]
     TimeTravelTooMuch,
-
-    #[error("payload error: {0}")]
-    PayloadError(String),
 }
 
 pub type Result<T, E = VpnApiClientError> = std::result::Result<T, E>;
+
+impl From<HttpClientError> for VpnApiClientError {
+    fn from(error: HttpClientError) -> Self {
+        Self::HttpClient(Box::new(error))
+    }
+}
 
 impl TryFrom<VpnApiClientError> for NymErrorResponse {
     type Error = VpnApiClientError;
