@@ -92,6 +92,7 @@ impl AuthenticaticationResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::assert_matches;
     use strum::IntoEnumIterator;
 
     #[test]
@@ -107,25 +108,25 @@ mod tests {
     #[test]
     fn u8_to_enum() {
         let zero = AuthenticaticationQuery::from(0);
-        assert!(matches!(zero, AuthenticaticationQuery::Undefined));
+        assert_matches!(zero, AuthenticaticationQuery::Undefined);
         assert!(!zero.status());
         let one = AuthenticaticationQuery::from(1);
-        assert!(matches!(one, AuthenticaticationQuery::Status));
+        assert_matches!(one, AuthenticaticationQuery::Status);
         assert!(one.status());
 
         for idx in 2u8..255 {
             let other = AuthenticaticationQuery::from(idx);
-            assert!(matches!(other, AuthenticaticationQuery::Undefined));
+            assert_matches!(other, AuthenticaticationQuery::Undefined);
             assert!(!other.status());
         }
 
         let zero = AuthenticaticationResult::from(0);
-        assert!(matches!(zero, AuthenticaticationResult::Closed));
+        assert_matches!(zero, AuthenticaticationResult::Closed);
         let one = AuthenticaticationResult::from(1);
-        assert!(matches!(one, AuthenticaticationResult::Accepted));
+        assert_matches!(one, AuthenticaticationResult::Accepted);
         for idx in 2u8..255 {
             let other = AuthenticaticationResult::from(idx);
-            assert!(matches!(other, AuthenticaticationResult::Denied));
+            assert_matches!(other, AuthenticaticationResult::Denied);
         }
     }
 
