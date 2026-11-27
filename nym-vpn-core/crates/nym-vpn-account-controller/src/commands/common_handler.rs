@@ -111,7 +111,7 @@ pub(crate) async fn handle_get_canonical_account_identity<C: ConnectivityMonitor
         VpnAccountMode::Api | VpnAccountMode::Decentralised => Ok(Some(account.id().to_string())),
         VpnAccountMode::Privy => {
             let response = shared_state
-                .vpn_api_client
+                .vpn_api_client()
                 .get_canonical_account_identity(account)
                 .await?;
 
@@ -137,7 +137,7 @@ async fn handle_get_usage<C: ConnectivityMonitor>(
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
-    let usage = shared_state.vpn_api_client.get_usage(account).await?;
+    let usage = shared_state.vpn_api_client().get_usage(account).await?;
 
     tracing::debug!("Usage: {:#?}", usage);
     Ok(usage.items)
@@ -165,7 +165,7 @@ async fn handle_get_devices<C: ConnectivityMonitor>(
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
-    let devices = shared_state.vpn_api_client.get_devices(account).await?;
+    let devices = shared_state.vpn_api_client().get_devices(account).await?;
 
     tracing::debug!("The account has the following devices associated to it:");
     // TODO: pagination
@@ -186,7 +186,7 @@ async fn handle_get_active_devices<C: ConnectivityMonitor>(
         .ok_or(AccountCommandError::NoAccountStored)?;
 
     let devices = shared_state
-        .vpn_api_client
+        .vpn_api_client()
         .get_active_devices(account)
         .await?;
 
@@ -213,7 +213,7 @@ async fn handle_is_trial_eligible<C: ConnectivityMonitor>(
         .ok_or(AccountCommandError::NoAccountStored)?;
 
     let eligible = shared_state
-        .vpn_api_client
+        .vpn_api_client()
         .get_active_subscriptions(account)
         .await
         .map(|response| {
@@ -245,7 +245,7 @@ async fn handle_apply_freepass<C: ConnectivityMonitor>(
         .ok_or(AccountCommandError::NoAccountStored)?;
 
     match shared_state
-        .vpn_api_client
+        .vpn_api_client()
         .apply_freepass(account, code.clone())
         .await
     {
@@ -253,7 +253,7 @@ async fn handle_apply_freepass<C: ConnectivityMonitor>(
         // An account the API hasn't seen yet is registered by redeeming the pass instead.
         Err(err) if err.is_account_not_found() => {
             shared_state
-                .vpn_api_client
+                .vpn_api_client()
                 .redeem_freepass(account, code)
                 .await?;
             Ok(())
@@ -275,7 +275,7 @@ async fn handle_check_apple_intro_offer_eligibility<C: ConnectivityMonitor>(
         .ok_or(AccountCommandError::NoAccountStored)?;
 
     let compact_jws = shared_state
-        .vpn_api_client
+        .vpn_api_client()
         .check_apple_intro_offer_eligibility(account, product_id, transaction_id)
         .await
         .map(|response| response.compact_jws)

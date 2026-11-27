@@ -4,5 +4,6 @@
 mod apple_intro_offer_eligibility;
 mod commands;
 mod common;
+mod network_change;
 mod paths;
 mod trial_eligibility;

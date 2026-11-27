@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
 use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::VpnApiClient;
@@ -186,7 +188,7 @@ where
             bandwidth_control_command_tx,
             config,
             wireguard_keys_storage,
-            clients.nym_vpn_api_client,
+            Arc::new(watch::channel(clients.nym_vpn_api_client).0),
             clients.nyxd_client,
             vpn_api_account,
             cached_account_summary,
@@ -236,6 +238,11 @@ where
     /// Get the channel used to keep track of the controller state.
     pub fn get_state_receiver(&self) -> AccountStateReceiver {
         AccountStateReceiver::new(self.state_channel.1.clone())
+    }
+
+    /// Get the sender used to replace the VPN API client when the network environment changes.
+    pub fn get_vpn_api_client_sender(&self) -> Arc<watch::Sender<VpnApiClient>> {
+        self.shared_state.vpn_api_client_sender()
     }
 
     /// Get the wireguard keys database storage

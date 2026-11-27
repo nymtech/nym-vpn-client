@@ -87,7 +87,7 @@ impl SyncingNetworkState {
             .await;
         };
 
-        let vpn_api_client = shared_state.vpn_api_client.clone();
+        let vpn_api_client = shared_state.vpn_api_client();
 
         // Use the provided sync mode unless there is no cache
         let sync_mode = if shared_state.vpn_account_summary.is_none() {
