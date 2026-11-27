@@ -30,7 +30,7 @@ jobs:
         with:
           path: build/lib
           key: >-
-            libwg-android-go${{ env.GOLANG_VERSION }}-${{ hashFiles(
+            libwg-android-go${{ env.GOLANG_VERSION }}-ndk${{ env.NDK_VERSION }}-${{ hashFiles(
               '.github/workflows/build-wireguard-go-android.yml',
               'wireguard/libwg/**/*.go',
               'wireguard/libwg/**/*.diff',
