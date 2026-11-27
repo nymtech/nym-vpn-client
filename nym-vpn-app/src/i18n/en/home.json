@@ -21,6 +21,9 @@
   "connected-via-bridge": "Connected via {{transport}} bridge",
   "protection-dvpn": "dVPN protection",
   "protection-mixnet": "Mixnet protection",
+  "exit-address": {
+    "label": "Your Nym IP is"
+  },
   "random-server": "Random server",
   "safest-server-selection": "Auto server selection",
   "fastest-server-selection": "Fastest server selection",

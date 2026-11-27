@@ -32,6 +32,25 @@ test.describe('Connection', () => {
     await expect(mainPage.serverRow('Exit')).not.toContainText('Random');
   });
 
+  test('shows the exit address and plays the route only while connected', async ({
+    page,
+  }) => {
+    const exitAddress = page.getByTestId('exit-address');
+    const face = page.locator('[data-testid^="marker-face-"]');
+    await expect(exitAddress).toHaveCount(0);
+    await expect(face).toHaveAttribute('data-lit', 'false');
+
+    await mainPage.connectButton.click();
+    await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
+    await expect(exitAddress).toBeVisible();
+    await expect(face).toHaveAttribute('data-playing', 'true');
+
+    await mainPage.disconnectButton.click();
+    await expect(mainPage.connectButton).toBeVisible({ timeout: 15_000 });
+    await expect(exitAddress).toHaveCount(0);
+    await expect(face).toHaveAttribute('data-lit', 'false');
+  });
+
   test('disconnects from VPN correctly', async () => {
     await mainPage.connectButton.click();
     await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
