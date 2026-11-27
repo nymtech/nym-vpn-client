@@ -18568,13 +18568,13 @@
         }
       }
     },
-    "mixnetTuning.slower" : {
+    "mixnetTuning.lessData" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Slower"
+            "value" : "Less data"
           }
         }
       }
@@ -18762,6 +18762,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Up to"
+          }
+        }
+      }
+    },
+    "mixnetTuning.upToInternetSpeed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up to internet speed"
           }
         }
       }
