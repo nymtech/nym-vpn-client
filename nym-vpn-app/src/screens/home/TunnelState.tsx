@@ -29,7 +29,6 @@ const CIRCS = RADII.map((r) => 2 * Math.PI * r);
 // Sphere sits inside the innermost ring with a small gap
 const SPHERE_INSET = CX - (R_INNER - STROKE - 6);
 const SPHERE_SIZE = SIZE - SPHERE_INSET * 2;
-const GLOW_SPREAD = SPHERE_SIZE * 0.55;
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
 const TRACK = 'var(--nv-connection-arc-track)';
@@ -57,6 +56,9 @@ const ERROR_GAP_START = 0.25 + ERROR_GAP / 2;
 // Blocked: the outer ring, in the error colour, with a gap that turns once
 // every 4 s (track and fill together, so the gap stays open).
 const BLOCKED_GAP = 0.15;
+// Ring fill duration per step, as on iOS and Android.
+const DVPN_FILL_MS = 800;
+const MIXNET_FILL_MS = 1200;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -195,13 +197,17 @@ export function TunnelState() {
         ? 0.85
         : 1;
 
+  // ring fill pace matches iOS and Android: slower in Mixnet mode
+  const fillMs =
+    markerMode(vpnMode) === 'mixnet' ? MIXNET_FILL_MS : DVPN_FILL_MS;
+
   // error snaps into place so every ring's gap appears at 3 o'clock at once
   const ringTransition =
     phase === 'canceling'
       ? 'stroke-opacity 600ms ease-in, stroke-dashoffset 0ms'
       : phase === 'error'
         ? 'stroke-dashoffset 0ms, stroke 200ms ease, stroke-opacity 200ms ease'
-        : 'stroke-dashoffset 800ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease';
+        : `stroke-dashoffset ${fillMs}ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease`;
 
   // ─── Label text ───────────────────────────────────────────────────────────
   const label = useMemo((): string | null => {
@@ -211,7 +217,7 @@ export function TunnelState() {
       const prog = progress ?? progressMessages[progressMessages.length - 1];
       return prog ? tP(prog) : null;
     }
-    if (phase === 'canceling') return tP('canceling');
+    if (phase === 'canceling') return t('status.disconnecting');
     if (phase === 'blocked') return t('blocked');
     return null;
   }, [phase, progress, progressMessages, tP, t]);
@@ -327,24 +333,6 @@ export function TunnelState() {
             playing={phase === 'connected'}
           />
         </div>
-
-        {/* Connected glow halo (behind sphere, fades in) */}
-        {isConnected && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.32, ease: 'easeOut' }}
-            style={{
-              position: 'absolute',
-              top: SPHERE_INSET - GLOW_SPREAD / 2,
-              left: SPHERE_INSET - GLOW_SPREAD / 2,
-              width: SPHERE_SIZE + GLOW_SPREAD,
-              height: SPHERE_SIZE + GLOW_SPREAD,
-              borderRadius: '50%',
-              pointerEvents: 'none',
-            }}
-          />
-        )}
       </div>
 
       <div className="flex w-full flex-col items-center">

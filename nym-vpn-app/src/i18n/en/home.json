@@ -19,7 +19,8 @@
   "nym-exit-server": "Exit server",
   "connected-directly": "Connected directly",
   "connected-via-bridge": "Connected via {{transport}} bridge",
-  "connection-time": "Connection time",
+  "protection-dvpn": "dVPN protection",
+  "protection-mixnet": "Mixnet protection",
   "exit-address": {
     "label": "Your Nym IP is"
   },
