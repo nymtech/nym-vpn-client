@@ -4,7 +4,7 @@
 use std::time::Duration;
 
 use nym_http_api_client::Client as HttpApiClient;
-use nym_network_defaults::{ApiUrl, v2::NymNetworkDetails};
+use nym_network_defaults::v2::NymNetworkDetails;
 use nym_sdk::UserAgent;
 use nym_validator_client::nym_api::NymApiClientExt;
 use nym_vpn_api_client::{VpnApiClient, api_urls_to_urls, fronted_http_client};
@@ -16,9 +16,8 @@ const NETWORK_TIMEOUT: Duration = Duration::from_secs(10);
 /// Network fetcher responsible for interaction with Nym API.
 #[derive(Debug)]
 pub struct Fetcher {
-    // One client per known host, kept so each remembers its failed routes between refreshes.
-    api_clients: Vec<HttpApiClient>,
-    discovery_clients: Vec<VpnApiClient>,
+    api_client: HttpApiClient,
+    vpn_api_client: VpnApiClient,
     user_agent: Option<UserAgent>,
     discovery: Box<Discovery>,
 }
@@ -28,8 +27,8 @@ impl Fetcher {
     pub fn new(discovery: Discovery, user_agent: Option<UserAgent>) -> Result<Self> {
         Ok(Self {
             user_agent: user_agent.clone(),
-            api_clients: build_api_clients(&discovery, user_agent.clone())?,
-            discovery_clients: build_discovery_clients(&discovery, user_agent)?,
+            api_client: build_api_client(&discovery, user_agent.clone())?,
+            vpn_api_client: build_vpn_api_client(&discovery, user_agent)?,
             discovery: Box::new(discovery),
         })
     }
@@ -41,8 +40,8 @@ impl Fetcher {
             return Ok(());
         }
 
-        self.api_clients = build_api_clients(&new_discovery, self.user_agent.clone())?;
-        self.discovery_clients = build_discovery_clients(&new_discovery, self.user_agent.clone())?;
+        self.api_client = build_api_client(&new_discovery, self.user_agent.clone())?;
+        self.vpn_api_client = build_vpn_api_client(&new_discovery, self.user_agent.clone())?;
         *self.discovery = new_discovery;
 
         Ok(())
@@ -50,8 +49,8 @@ impl Fetcher {
 
     /// Fetch registered networks from the API.
     pub async fn fetch_registered_networks(&self) -> Result<RegisteredNetworks> {
-        try_each(&self.discovery_clients, |client| async move {
-            client
+        try_each_url(self.discovery.nym_vpn_api_urls().len(), || async {
+            self.vpn_api_client
                 .get_wellknown_envs()
                 .await
                 .map_err(Error::GetWellKnownEnvs)
@@ -63,28 +62,20 @@ impl Fetcher {
 
     /// Fetch discovery information from the API.
     pub async fn fetch_discovery(&self, network_name: &str) -> Result<Discovery> {
-        try_each(&self.discovery_clients, |client| {
-            self.fetch_discovery_from(client, network_name)
+        try_each_url(self.discovery.nym_vpn_api_urls().len(), || async {
+            self.vpn_api_client
+                .get_wellknown_discovery(network_name)
+                .await
+                .map_err(Error::GetWellKnownDiscovery)
         })
         .await
-    }
-
-    async fn fetch_discovery_from(
-        &self,
-        client: VpnApiClient,
-        network_name: &str,
-    ) -> Result<Discovery> {
-        let response = client
-            .get_wellknown_discovery(network_name)
-            .await
-            .map_err(Error::GetWellKnownDiscovery)?;
-        Discovery::try_from(response)
+        .and_then(Discovery::try_from)
     }
 
     /// Fetch network details from the API.
     pub async fn fetch_network_details(&self) -> Result<Box<NymNetworkDetails>> {
-        try_each(&self.api_clients, |client| async move {
-            client
+        try_each_url(self.discovery.nym_api_urls().len(), || async {
+            self.api_client
                 .get_network_details_v2()
                 .await
                 .map(|response| response.network)
@@ -96,80 +87,65 @@ impl Fetcher {
     }
 }
 
-/// Tries each known host in turn and returns the first answer that works.
-async fn try_each<C: Clone, T, Fut>(clients: &[C], fetch: impl Fn(C) -> Fut) -> Result<T>
+// A failed call moves the client on to its next host, so one call per url reaches all of them.
+async fn try_each_url<T, Fut>(urls: usize, call: impl Fn() -> Fut) -> Result<T>
 where
     Fut: Future<Output = Result<T>>,
 {
-    let mut last_error = Error::InvalidDiscoveryNetworking;
-    for client in clients {
-        match fetch(client.clone()).await {
-            Ok(value) => return Ok(value),
-            Err(err) => {
-                tracing::debug!("one host failed, trying the next: {err}");
-                last_error = err;
-            }
+    let mut result = call().await;
+    for _ in 1..urls {
+        if result.is_ok() {
+            break;
         }
+        result = call().await;
     }
-    Err(last_error)
+    result
 }
 
-/// A persisted or fetched discovery can be stale or wrong, so the bundled URLs stay behind it.
-fn with_bundled_urls(discovery: &Discovery, urls: fn(&Discovery) -> Vec<ApiUrl>) -> Vec<ApiUrl> {
-    let bundled = Discovery::default_discovery(&discovery.network_name)
-        .map(|bundled| urls(&bundled))
-        .unwrap_or_default();
-    crate::discovery_first(urls(discovery), bundled)
+fn build_api_client(discovery: &Discovery, user_agent: Option<UserAgent>) -> Result<HttpApiClient> {
+    let api_urls =
+        api_urls_to_urls(&discovery.nym_api_urls()).map_err(Error::CreateVpnApiClient)?;
+
+    fronted_http_client::fronted_http_client(api_urls, user_agent, Some(NETWORK_TIMEOUT))
+        .map_err(Error::CreateVpnApiClient)
 }
 
-fn build_discovery_clients(
+fn build_vpn_api_client(
     discovery: &Discovery,
     user_agent: Option<UserAgent>,
-) -> Result<Vec<VpnApiClient>> {
-    with_bundled_urls(discovery, Discovery::nym_vpn_api_urls)
-        .into_iter()
-        .map(|url| {
-            let urls = api_urls_to_urls(&[url]).map_err(Error::CreateVpnApiClient)?;
-            VpnApiClient::new(urls, user_agent.clone()).map_err(Error::CreateVpnApiClient)
-        })
-        .collect()
-}
+) -> Result<VpnApiClient> {
+    let vpn_api_urls =
+        api_urls_to_urls(&discovery.nym_vpn_api_urls()).map_err(Error::CreateVpnApiClient)?;
 
-fn build_api_clients(
-    discovery: &Discovery,
-    user_agent: Option<UserAgent>,
-) -> Result<Vec<HttpApiClient>> {
-    with_bundled_urls(discovery, Discovery::nym_api_urls)
-        .into_iter()
-        .map(|url| {
-            let urls = api_urls_to_urls(&[url]).map_err(Error::CreateVpnApiClient)?;
-            fronted_http_client::fronted_http_client(
-                urls,
-                user_agent.clone(),
-                Some(NETWORK_TIMEOUT),
-            )
-            .map_err(Error::CreateVpnApiClient)
-        })
-        .collect()
+    VpnApiClient::new(vpn_api_urls, user_agent).map_err(Error::CreateVpnApiClient)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_fetcher_urls_keep_the_bundled_ones_behind_a_changed_discovery() {
-        let mut discovery = Discovery::default_mainnet();
-        let stale = ApiUrl {
-            url: "https://other.test/api/".to_owned(),
-            front_hosts: None,
-        };
-        discovery.networking.nym_vpn_api_urls = vec![stale.clone()];
+    #[tokio::test]
+    async fn test_try_each_url_stops_at_the_first_success_or_after_every_url() {
+        use std::cell::Cell;
 
-        let urls = with_bundled_urls(&discovery, Discovery::nym_vpn_api_urls);
+        // (urls, call that succeeds, calls made, succeeded)
+        for (urls, succeeds_on, calls, ok) in [(3, 2, 2, true), (3, 9, 3, false), (1, 1, 1, true)] {
+            let made = Cell::new(0);
+            let result = try_each_url(urls, || {
+                made.set(made.get() + 1);
+                let call = made.get();
+                async move {
+                    if call >= succeeds_on {
+                        Ok(())
+                    } else {
+                        Err(Error::InvalidDiscoveryNetworking)
+                    }
+                }
+            })
+            .await;
 
-        assert_eq!(urls[0], stale);
-        assert_eq!(urls[1..], Discovery::default_mainnet().nym_vpn_api_urls());
+            assert_eq!((made.get(), result.is_ok()), (calls, ok));
+        }
     }
 
     #[tokio::test]

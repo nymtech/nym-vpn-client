@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `apply_freepass` no longer returns the subscription, and registers an account the VPN API doesn't know yet (https://github.com/nymtech/nym-vpn-client/pull/7178)
-- The network config uses the discovery API URLs ahead of the nym-api ones and tries each known host in turn when fetching discovery, registered networks and network details (https://github.com/nymtech/nym-vpn-client/pull/7248)
+- The network config uses the discovery API URLs ahead of the nym-api ones, and retries a failed fetch against the next known host (https://github.com/nymtech/nym-vpn-client/pull/7248)
 - Account commands return `RateLimited`, `FreepassInvalid`, `FreepassAlreadyRedeemed` and `RecurringSubscriptionActive` errors instead of raw vpn-api errors (https://github.com/nymtech/nym-vpn-client/pull/7197)
 
 ### Fixed
