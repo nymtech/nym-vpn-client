@@ -235,7 +235,6 @@
 	<string name="settings_reset_app_title">重置應用數據</string>
 	<string name="settings_system_status_title">系統狀態</string>
 	<string name="settings_mixnet_tuning_title">自定義混合網絡參數</string>
-	<string name="settings_mixnet_tuning_description">微調您的混合網絡參數</string>
 	<string name="settings_quit_title">退出 NymVPN</string>
 	<string name="settings_app_version_line">應用版本: %1$s</string>
 	<string name="settings_language_help_title">幫助我們翻譯</string>
@@ -438,7 +437,6 @@
 	<string name="passphrase_info_keeps_anonymous">確保無需任何個人信息以使用 NymVPN</string>
 	<string name="passphrase_info_belongs">僅屬於您（自託管）</string>
 	<!-- Account screen -->
-	<string name="account_title">賬號和設備</string>
 	<string name="account_info_manage_button">管理您的訂閱</string>
 	<string name="account_info_renew_auth_title">續訂您的訂閱</string>
 	<string name="account_info_link_auth_subtitle">請確認您的身分，以便新增社群帳號登入功能</string>

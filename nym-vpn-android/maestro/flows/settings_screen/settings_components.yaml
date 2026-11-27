@@ -1,4 +1,4 @@
-# Every row of the settings screen is present.
+# Every row of the settings screen is present, in section order, and search filters by title.
 appId: net.nymtech.nymvpn.mock.debug
 tags:
   - ui-validation
@@ -8,58 +8,124 @@ tags:
 - tapOn: "Settings"
 - assertVisible: "Settings"
 
-- assertVisible: "Account"
-- assertVisible: "Passphrase"
-- assertVisible: "Support & feedback"
+- scrollUntilVisible:
+    element:
+      text: "Your account"
+    direction: DOWN
 
-- assertVisible: "Kill switch"
-- assertVisible: "Ad blocking"
-- assertVisible: "LAN bypass"
-- assertVisible: "Customize DNS"
-- assertVisible: "Mixnet tuning"
-- assertVisible: "Split tunneling"
-- assertVisible: "Geo Exclusion"
-- assertVisible: "Connection profiles"
+- scrollUntilVisible:
+    element:
+      text: "Passphrase"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Redeem a code"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Block ads"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Kill switch"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Mixnet tuning"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Bypass LAN"
+    direction: DOWN
 
 - scrollUntilVisible:
     element:
       text: "Anti-censorship"
     direction: DOWN
-- assertVisible: "Anti-censorship"
 
 - scrollUntilVisible:
     element:
-      text: "Appearance"
+      text: "Connection profiles"
     direction: DOWN
-- assertVisible: "Appearance"
-- assertVisible: "Notifications"
-- assertVisible: "App shortcuts"
+
+- scrollUntilVisible:
+    element:
+      text: "Customize DNS"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Split tunneling"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Geo-exclusion"
+    direction: DOWN
 
 - scrollUntilVisible:
     element:
       text: "Launch at startup"
     direction: DOWN
-- assertVisible: "Launch at startup"
-- assertVisible: "Power management"
+
+- scrollUntilVisible:
+    element:
+      text: "App shortcuts"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Appearance"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Notifications"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Power management"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Support & feedback"
+    direction: DOWN
 
 - scrollUntilVisible:
     element:
       text: "Logs & data"
     direction: DOWN
-- assertVisible: "Logs & data"
 
 - scrollUntilVisible:
     element:
       text: "Legal"
     direction: DOWN
-- assertVisible: "Legal"
+
+- scrollUntilVisible:
+    element:
+      text: "Log out"
+    direction: DOWN
 
 - scrollUntilVisible:
     element:
       text: "Quit NymVPN"
     direction: DOWN
-- assertVisible: "Quit NymVPN"
-- assertVisible: "Log out"
 
 - assertVisible:
     text: "App version:.*"
+
+- scrollUntilVisible:
+    element:
+      text: "Search settings"
+    direction: UP
+- tapOn: "Search settings"
+- inputText: "dns"
+- assertVisible: "Customize DNS"
+- assertNotVisible: "Kill switch"
