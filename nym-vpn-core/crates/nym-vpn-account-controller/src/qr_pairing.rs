@@ -929,9 +929,7 @@ mod tests {
                 return std::future::pending().await;
             }
 
-            let process = db
-                .active_process(qr_pub_key, Some(&account.id()))
-                .map_err(VpnApiClientError::HttpClient)?;
+            let process = db.active_process(qr_pub_key, Some(&account.id()))?;
             let inner = match &process.state {
                 PairingState::Empty => None,
                 PairingState::SharedPin(data) => Some(data.pairing_response.clone()),
@@ -960,9 +958,7 @@ mod tests {
             }
 
             let account_id = account.id();
-            let process = db
-                .active_process(qr_pub_key, Some(&account_id))
-                .map_err(VpnApiClientError::HttpClient)?;
+            let process = db.active_process(qr_pub_key, Some(&account_id))?;
             let PairingState::SharedPin(data) = &process.state else {
                 return Err(VpnApiClientError::HttpClient(api_error(
                     "400: not in the step of PIN confirmation",
@@ -997,9 +993,7 @@ mod tests {
         ) -> Result<NymVpnPairingResponse, VpnApiClientError> {
             let mut db = self.api_db.lock().await;
 
-            let process = db
-                .active_process(remote_qr_pub_key, None)
-                .map_err(VpnApiClientError::HttpClient)?;
+            let process = db.active_process(remote_qr_pub_key, None)?;
             if !matches!(process.state, PairingState::Empty) {
                 // first come, first served: a second scan might be a MitM attempt
                 return Err(VpnApiClientError::HttpClient(api_error(
@@ -1034,9 +1028,7 @@ mod tests {
                 return std::future::pending().await;
             }
 
-            let process = db
-                .active_process(remote_qr_pub_key, None)
-                .map_err(VpnApiClientError::HttpClient)?;
+            let process = db.active_process(remote_qr_pub_key, None)?;
             let check_token = |token: &str| {
                 if pairing_token != token {
                     return Err(VpnApiClientError::HttpClient(api_error(
@@ -1078,9 +1070,7 @@ mod tests {
             let mut db = self.api_db.lock().await;
 
             let account_id = account.id();
-            let process = db
-                .active_process(qr_pub_key, Some(&account_id))
-                .map_err(VpnApiClientError::HttpClient)?;
+            let process = db.active_process(qr_pub_key, Some(&account_id))?;
             let token = match &process.state {
                 PairingState::Empty => {
                     return Err(VpnApiClientError::HttpClient(api_error(

@@ -11,10 +11,7 @@ pub fn fronted_http_client(
 ) -> Result<Client, VpnApiClientError> {
     let builder = fronted_http_client_builder(urls, user_agent, timeout)?;
 
-    let client = builder
-        .build()
-        .map_err(Box::new)
-        .map_err(VpnApiClientError::HttpClient)?;
+    let client = builder.build()?;
 
     Ok(client)
 }
@@ -26,9 +23,7 @@ pub fn fronted_http_client_builder(
 ) -> Result<ClientBuilder, VpnApiClientError> {
     let has_front = urls.iter().any(|url| url.has_front());
 
-    let mut builder = ClientBuilder::new_with_urls(urls)
-        .map_err(Box::new)
-        .map_err(VpnApiClientError::HttpClient)?;
+    let mut builder = ClientBuilder::new_with_urls(urls)?;
 
     // By default, HTTP client uses a singleton instance of reqwest client and hickory resolver.
     // This is not going to work in test environment since singletons are tied to single runtime and each test case uses a new runtime.

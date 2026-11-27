@@ -31,7 +31,7 @@ pub struct DnsResolutionFailure {
 #[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
     #[error("http client error")]
-    HttpClient(#[source] Box<HttpClientError>),
+    HttpClient(#[from] Box<HttpClientError>),
 
     #[error(
         "failed to resolve hostname(s): {}",
@@ -55,6 +55,12 @@ pub enum VpnApiClientError {
 }
 
 pub type Result<T, E = VpnApiClientError> = std::result::Result<T, E>;
+
+impl From<HttpClientError> for VpnApiClientError {
+    fn from(error: HttpClientError) -> Self {
+        Self::HttpClient(Box::new(error))
+    }
+}
 
 impl TryFrom<VpnApiClientError> for NymErrorResponse {
     type Error = VpnApiClientError;
