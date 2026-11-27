@@ -3,7 +3,7 @@ import Theme
 
 public struct SearchView: View {
     private let strokeTitle = "search".localizedString
-    private let searchTitle = "search.title".localizedString
+    private let searchTitle: String
     private let searchImageName = "searchIcon"
 
     @State private var isHovered = false
@@ -11,7 +11,8 @@ public struct SearchView: View {
 
     @Binding var searchText: String
 
-    public init(searchText: Binding<String>, isSearchFocused: FocusState<Bool>.Binding) {
+    public init(searchText: Binding<String>, isSearchFocused: FocusState<Bool>.Binding, placeholder: String? = nil) {
+        searchTitle = placeholder ?? "search.title".localizedString
         _searchText = searchText
         _isSearchFocused = isSearchFocused
     }

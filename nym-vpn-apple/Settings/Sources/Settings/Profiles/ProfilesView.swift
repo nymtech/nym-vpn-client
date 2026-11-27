@@ -27,7 +27,7 @@ public struct ProfilesView: View {
 private extension ProfilesView {
     func navbar() -> some View {
         CustomNavBar(
-            title: "profiles.title".localizedString,
+            title: "settings.profiles.title".localizedString,
             leftButton: CustomNavBarButton(type: .back, action: viewModel.navigateBack)
         )
     }

@@ -9,19 +9,11 @@ import Theme
 import UIComponents
 
 extension AccountAndDevicesView {
-    func pairDeviceSection() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "pairDevice.button".localizedString,
-                systemImageName: "qrcode",
-                position: SettingsListItemPosition(isFirst: true, isLast: true),
-                action: {
-                    impactGenerator.softImpact()
-                    startPairDevice()
-                }
-            )
-        )
+    func pairDeviceButton() -> some View {
+        NymButton("pairDevice.button".localizedString, style: .surface) {
+            impactGenerator.softImpact()
+            startPairDevice()
+        }
     }
 
     func startPairDevice() {

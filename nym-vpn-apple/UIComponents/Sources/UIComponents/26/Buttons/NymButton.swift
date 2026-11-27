@@ -9,11 +9,15 @@ public struct NymButton: View {
         case destructive
         case connecting
         case connected
+        /// Grey filled, no border, same background as a settings row.
+        case surface
 
         var backgroundColor: Color {
             switch self {
             case .primary:
                 .Nym.primary
+            case .surface:
+                .Nym.surface
             case .connecting:
                 .Nym.textTertiary
             case .secondary,
@@ -33,7 +37,7 @@ public struct NymButton: View {
             case .secondary,
                  .textOnly:
                 .Nym.primary
-            case .connected:
+            case .connected, .surface:
                 .Nym.textPrimary
             case .destructive:
                 .Nym.error
@@ -42,7 +46,7 @@ public struct NymButton: View {
 
         var borderColor: Color {
             switch self {
-            case .primary, .textOnly, .connecting:
+            case .primary, .textOnly, .connecting, .surface:
                 .clear
             case .secondary:
                 .Nym.primary
@@ -55,7 +59,7 @@ public struct NymButton: View {
 
         var borderWidth: CGFloat {
             switch self {
-            case .primary, .textOnly, .connecting:
+            case .primary, .textOnly, .connecting, .surface:
                 0
             case .secondary, .destructive, .connected:
                 1
@@ -181,6 +185,8 @@ private extension NymButton {
         NymButton("Learn more", style: .secondary) {}
         NymButton("Skip", style: .textOnly) {}
         NymButton("Delete account", style: .destructive) {}
+        NymButton("Pair new device", style: .surface) {}
+        NymButton("Log out", style: .surface, foregroundColor: .Nym.error) {}
         NymButton("Disabled", style: .primary, isDisabled: true) {}
     }
     .padding(NymSpacing.section)
