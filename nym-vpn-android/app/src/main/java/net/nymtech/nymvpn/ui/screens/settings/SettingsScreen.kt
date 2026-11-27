@@ -8,30 +8,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import net.nymtech.nymvpn.ui.screens.settings.components.SettingsGroup
-import net.nymtech.nymvpn.ui.screens.settings.components.accountEntries
-import net.nymtech.nymvpn.ui.screens.settings.components.appEntries
-import net.nymtech.nymvpn.ui.screens.settings.components.legalEntries
-import net.nymtech.nymvpn.ui.screens.settings.components.matchesSearch
-import net.nymtech.nymvpn.ui.screens.settings.components.logsEntries
-import net.nymtech.nymvpn.ui.screens.settings.components.supportEntries
-import net.nymtech.nymvpn.ui.screens.settings.components.vpnSettingsEntries
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -42,35 +36,42 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
-import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.AuthRoute
-import net.nymtech.nymvpn.ui.routeName
-import net.nymtech.nymvpn.ui.common.events.UiEvent
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.deviceauth.rememberScreenLockGate
+import net.nymtech.nymvpn.ui.common.events.UiEvent
+import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
-import net.nymtech.nymvpn.ui.screens.settings.components.AppVersionSection
+import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
+import net.nymtech.nymvpn.ui.routeName
+import net.nymtech.nymvpn.ui.screens.scan.RedeemCodeSheet
 import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
-import net.nymtech.nymvpn.ui.screens.settings.components.LoginSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
-import net.nymtech.nymvpn.ui.screens.settings.components.LogoutSection
-import net.nymtech.nymvpn.ui.screens.settings.components.QuitSection
+import net.nymtech.nymvpn.ui.screens.settings.components.SettingsEntryList
+import net.nymtech.nymvpn.ui.screens.settings.components.SettingsSection
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
+import net.nymtech.nymvpn.ui.screens.settings.components.accountEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.appEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.connectionEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.filterSettingsEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.footerEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.helpDataEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.protectionEntries
+import net.nymtech.nymvpn.ui.screens.settings.components.routingEntries
 import net.nymtech.nymvpn.ui.screens.settings.modal.PrivateDnsDialog
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isPrivateDnsEnabled
 import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
 import net.nymtech.nymvpn.util.extensions.launchPrivateDnsSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
-import androidx.compose.foundation.layout.navigationBarsPadding
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.qrscanner.isQrCameraAvailable
 import kotlin.Boolean
 
 @Composable
@@ -81,6 +82,8 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
 	var showPrivateDnsDialog by remember { mutableStateOf(false) }
+	var showRedeemCodeSheet by rememberSaveable { mutableStateOf(false) }
+	val cameraAvailable = remember(context) { isQrCameraAvailable(context) }
 
 	val lanReconnectingText = stringResource(R.string.settings_event_lan_reconnecting)
 	LaunchedEffect(viewModel) {
@@ -126,6 +129,10 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 		},
 	)
 
+	if (showRedeemCodeSheet) {
+		RedeemCodeSheet(accountStored = appUiState.managerState.isMnemonicStored, onDismiss = { showRedeemCodeSheet = false })
+	}
+
 	val shortcutsLockGate = rememberScreenLockGate(
 		setupBody = R.string.screen_lock_setup_shortcuts_body,
 		onLockSetAfterSetup = { viewModel.onAppShortcutsSelected(true) },
@@ -155,6 +162,12 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			},
 			onAccountClick = {
 				navController.navigate(Route.Account)
+			},
+			onPassphraseClick = {
+				navController.navigate(Route.Passphrase)
+			},
+			onRedeemCodeClick = {
+				if (cameraAvailable) navController.navigate(Route.QrScan()) else showRedeemCodeSheet = true
 			},
 			onSupportClick = {
 				navController.navigate(Route.Support)
@@ -228,15 +241,6 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 	)
 }
 
-private val settingsSectionOrder = listOf(
-	R.string.settings_section_account,
-	R.string.settings_section_protection,
-	R.string.settings_section_connection,
-	R.string.settings_section_routing,
-	R.string.settings_section_app,
-	R.string.settings_section_help_data,
-)
-
 @Composable
 fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 	Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -250,13 +254,24 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 				.padding(horizontal = 16.dp.scaledWidth())
 				.navigationBarsPadding(),
 		) {
-			var query by remember { mutableStateOf("") }
+			var query by rememberSaveable { mutableStateOf("") }
 			val entries = accountEntries(
 				isMnemonicStored = values.isMnemonicStored,
-				onAccountClick = actions.onAccountClick,
 				subscription = values.subscription,
-			) + vpnSettingsEntries(values, actions) + appEntries(values, actions) +
-				supportEntries(actions.onSupportClick) + logsEntries(actions.onPrivacyClick) + legalEntries(actions.onLegalClick)
+				onGetStartedClick = actions.onGetStartedClick,
+				onAccountClick = actions.onAccountClick,
+				onPassphraseClick = actions.onPassphraseClick,
+				onRedeemCodeClick = actions.onRedeemCodeClick,
+			) + protectionEntries(values, actions) + connectionEntries(values, actions) + routingEntries(actions) + appEntries(values, actions) +
+				helpDataEntries(onSupportClick = actions.onSupportClick, onPrivacyClick = actions.onPrivacyClick, onLegalClick = actions.onLegalClick) +
+				footerEntries(
+					isMnemonicStored = values.isMnemonicStored,
+					appVersion = values.appVersion,
+					onLogoutClick = actions.onLogoutClick,
+					onQuitClick = actions.onQuitClick,
+					onAppVersionClick = actions.onAppVersionClick,
+				)
+			val sectionTitles = SettingsSection.entries.associateWith { section -> section.title?.let { stringResource(it) } }
 			CustomTextField(
 				value = query,
 				onValueChange = { query = it },
@@ -280,39 +295,18 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 				textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
 				containerColor = MaterialTheme.colorScheme.background,
 			)
-			// while searching, keep only matching rows, each under its own section header
-			val search = query.trim()
-			val accountMatches = search.isEmpty() || matchesSearch(stringResource(R.string.settings_section_account), search)
-			var anyShown = false
-			settingsSectionOrder.forEach { section ->
-				val isAccount = section == R.string.settings_section_account
-				val items = entries.filter { entry ->
-					entry.section == section &&
-						(search.isEmpty() || (isAccount && accountMatches) || matchesSearch(entry.title, search))
-				}.map { it.item }
-				val showLogin = isAccount && accountMatches && !values.isMnemonicStored
-				if (items.isNotEmpty() || showLogin) {
-					anyShown = true
-					GroupLabel(stringResource(section))
-				}
-				if (showLogin) {
-					LoginSection(
-						isMnemonicStored = values.isMnemonicStored,
-						onGetStartedClick = actions.onGetStartedClick,
-					)
-				}
-				if (items.isNotEmpty()) SettingsGroup(items = items)
+			val visibleSections = filterSettingsEntries(entries, query) { sectionTitles.getValue(it) }
+			visibleSections.forEach { (section, sectionEntries) ->
+				sectionTitles.getValue(section)?.let { GroupLabel(it) }
+				SettingsEntryList(entries = sectionEntries)
 			}
-			if (!anyShown) {
+			if (visibleSections.isEmpty()) {
 				Text(
 					stringResource(R.string.no_results_found),
 					style = MaterialTheme.typography.bodyMedium,
 					color = MaterialTheme.colorScheme.onBackground,
 				)
 			}
-			LogoutSection(isMnemonicStored = values.isMnemonicStored, actions.onLogoutClick)
-			QuitSection(actions.onQuitClick)
-			AppVersionSection(appVersion = values.appVersion, onAppVersionClick = actions.onAppVersionClick)
 		}
 	}
 }

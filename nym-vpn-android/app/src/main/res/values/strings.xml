@@ -254,8 +254,7 @@
 	<string name="settings_reset_app_title">Reset app data</string>
 	<string name="settings_system_status_title">System status</string>
 	<string name="settings_mixnet_tuning_title">Mixnet tuning</string>
-	<string name="settings_mixnet_tuning_description">Fine tune your mixnet parameters</string>
-	<string name="settings_mixnet_tuning_subtitle">Customize traffic patterns of Mixnet mode</string>
+	<string name="settings_mixnet_tuning_description">Customize traffic patterns of Mixnet mode</string>
 	<string name="settings_quit_title">Quit NymVPN</string>
 	<string name="settings_app_version_line">App version: %1$s</string>
 	<string name="settings_language_crowdin_link" translatable="false">https://crowdin.com/editor/nymvpn-apps</string>
@@ -263,8 +262,8 @@
 	<string name="settings_language_help_description">Make the app better in your language.</string>
 	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings…</string>
 	<string name="settings_ad_blocking_title">Block ads</string>
-	<string name="settings_ad_blocking_subtitle_on">Blocking ads and trackers</string>
-	<string name="settings_ad_blocking_subtitle_off">Ads and trackers allowed</string>
+	<string name="settings_ad_blocking_description_on">Blocking ads and trackers</string>
+	<string name="settings_ad_blocking_description_off">Ads and trackers allowed</string>
 	<string name="settings_kill_switch_title">Kill switch</string>
 	<string name="settings_kill_switch_description">Uses Android\'s **Always-on VPN** to prevent data leaks</string>
 	<string name="settings_bypass_lan_title">Bypass LAN</string>
@@ -502,7 +501,6 @@
 	<string name="passphrase_info_keeps_anonymous">Keeps you anonymous</string>
 	<string name="passphrase_info_belongs">Belongs only to you (self-custody)</string>
 	<!-- Account screen -->
-	<string name="account_title">Account and devices</string>
 	<string name="account_info_manage_button">Manage your subscription</string>
 	<string name="account_info_renew_auth_title">Renew your subscription</string>
 	<string name="account_info_link_auth_subtitle">Confirm it\'s you to add a social login</string>

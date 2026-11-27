@@ -237,7 +237,6 @@
 	<string name="settings_reset_app_title">Reimposta dati dell\'app</string>
 	<string name="settings_system_status_title">Stato del sistema</string>
 	<string name="settings_mixnet_tuning_title">Regolazione di Mixnet</string>
-	<string name="settings_mixnet_tuning_description">Ottimizza i parametri del tuo Mixnet</string>
 	<string name="settings_quit_title">Esci Da NymVPN</string>
 	<string name="settings_app_version_line">Versione dell\'app: %1$s</string>
 	<string name="settings_language_help_title">Aiuto con traduzione</string>
@@ -442,7 +441,6 @@
 	<string name="passphrase_info_keeps_anonymous">Ti garantisce l’anonimato</string>
 	<string name="passphrase_info_belongs">Appartiene solo a te (auto-custodia)</string>
 	<!-- Account screen -->
-	<string name="account_title">Account e dispositivi</string>
 	<string name="account_info_manage_button">Gestisci il tuo abbonamento</string>
 	<string name="account_info_renew_auth_title">Rinnova il tuo abbonamento</string>
 	<string name="account_info_link_auth_subtitle">Conferma che sei tu per aggiungere un accesso tramite social</string>

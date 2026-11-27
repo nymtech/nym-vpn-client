@@ -15,6 +15,16 @@ tags:
 
 - scrollUntilVisible:
     element:
+      text: "Passphrase"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
+      text: "Redeem a code"
+    direction: DOWN
+
+- scrollUntilVisible:
+    element:
       text: "Block ads"
     direction: DOWN
 

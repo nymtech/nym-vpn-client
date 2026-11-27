@@ -18,28 +18,26 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun LoginSection(isMnemonicStored: Boolean, onGetStartedClick: () -> Unit) {
-	if (!isMnemonicStored) {
-		MainStyledButton(
-			onClick = onGetStartedClick,
-			content = {
-				Text(
-					stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started),
-					style = CustomTypography.buttonMain,
-				)
-			},
-			modifier = Modifier
-				.fillMaxWidth()
-				.height(48.dp.scaledHeight()),
-			shape = RoundedCornerShape(50),
-		)
-	}
+fun GetStartedButton(onClick: () -> Unit) {
+	MainStyledButton(
+		onClick = onClick,
+		content = {
+			Text(
+				stringResource(R.string.get_started),
+				style = CustomTypography.buttonMain,
+			)
+		},
+		modifier = Modifier
+			.fillMaxWidth()
+			.height(48.dp.scaledHeight()),
+		shape = RoundedCornerShape(50),
+	)
 }
 
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-internal fun PreviewLoginSection() {
+internal fun PreviewGetStartedButton() {
 	NymVPNTheme(Theme.default()) {
-		LoginSection(false) {}
+		GetStartedButton {}
 	}
 }

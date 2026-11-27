@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,14 +17,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,10 +31,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.toClipEntry
@@ -59,8 +56,6 @@ import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
-import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
 import net.nymtech.nymvpn.ui.common.deviceauth.DeviceAuthAction
 import net.nymtech.nymvpn.ui.common.deviceauth.rememberDeviceAuth
 import net.nymtech.nymvpn.ui.common.deviceauth.rememberScreenLockGate
@@ -68,18 +63,15 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountActionCard
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountInfoCard
+import net.nymtech.nymvpn.ui.screens.account.info.components.AccountButton
 import net.nymtech.nymvpn.ui.screens.account.info.components.BandwidthUiState
 import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PairDeviceDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.account.info.components.SubscriptionSection
 import net.nymtech.nymvpn.ui.screens.account.pairing.PairDeviceViewModel
-import net.nymtech.nymvpn.ui.screens.scan.RedeemCodeSheet
-import net.nymtech.nymvpn.ui.screens.settings.components.SettingsGroup
-import net.nymtech.nymvpn.ui.screens.settings.components.accountPageItems
 import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
-import net.nymtech.nymvpn.ui.screens.settings.components.LogoutSection
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionStatusText
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
@@ -91,9 +83,7 @@ import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
-import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import net.nymtech.qrscanner.isQrCameraAvailable
 
 @Composable
 fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: AccountInfoViewModel = hiltViewModel(), pairDeviceViewModel: PairDeviceViewModel = hiltViewModel()) {
@@ -104,8 +94,6 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
-	var showRedeemCodeSheet by rememberSaveable { mutableStateOf(false) }
-	val cameraAvailable = remember(context) { isQrCameraAvailable(context) }
 	val supportURL = stringResource(R.string.contact_url)
 
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -161,10 +149,6 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 			onCodesMatch = pairDeviceViewModel::confirm,
 			onDismiss = pairDeviceViewModel::dismiss,
 		)
-	}
-
-	if (showRedeemCodeSheet) {
-		RedeemCodeSheet(accountStored = appUiState.managerState.isMnemonicStored, onDismiss = { showRedeemCodeSheet = false })
 	}
 
 	val accountState = appUiState.managerState.accountState
@@ -223,12 +207,6 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 				}
 			}
 		},
-		onPassphraseClick = {
-			navController.navigate(Route.Passphrase)
-		},
-		onRedeemCodeClick = {
-			if (cameraAvailable) navController.navigate(Route.QrScan()) else showRedeemCodeSheet = true
-		},
 		onLogoutClick = {
 			showLogoutDialog = true
 		},
@@ -258,8 +236,6 @@ fun AccountInfoScreenContent(
 	onPairDeviceClick: () -> Unit,
 	onAccountIdClick: () -> Unit,
 	onDeviceIdClick: () -> Unit,
-	onPassphraseClick: () -> Unit,
-	onRedeemCodeClick: () -> Unit,
 	onLogoutClick: () -> Unit,
 	onDeleteAccountClick: () -> Unit,
 	onSelectPlanClick: () -> Unit,
@@ -348,44 +324,23 @@ fun AccountInfoScreenContent(
 		)
 		Spacer(Modifier.height(16.dp))
 		if (isMnemonicStored) {
-			SettingsGroup(items = accountPageItems(onPassphraseClick, onRedeemCodeClick))
-			Spacer(Modifier.height(16.dp))
-			OutlineStyledButton(
+			AccountButton(
+				text = stringResource(R.string.pair_device_button),
 				onClick = onPairDeviceClick,
-				content = {
-					Text(
-						stringResource(R.string.pair_device_button),
-						style = MaterialTheme.typography.titleMedium,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-				},
-				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
-				shape = RoundedCornerShape(12.dp),
 			)
 			Spacer(Modifier.height(16.dp))
-			LogoutSection(isMnemonicStored = true, onLogoutClick = onLogoutClick)
-			Spacer(Modifier.height(8.dp))
-			TransparentButton(
+			AccountButton(
+				text = stringResource(R.string.log_out),
+				onClick = onLogoutClick,
+				textColor = LocalNymColors.current.buttonErrorText,
+			)
+			Spacer(Modifier.height(16.dp))
+			AccountButton(
+				text = stringResource(R.string.account_info_delete_button),
 				onClick = onDeleteAccountClick,
-				content = {
-					Row(
-						horizontalArrangement = Arrangement.spacedBy(8.dp),
-						verticalAlignment = Alignment.CenterVertically,
-					) {
-						Text(
-							stringResource(R.string.account_info_delete_button),
-							style = MaterialTheme.typography.bodyLarge,
-							color = LocalNymColors.current.buttonErrorText,
-						)
-						Icon(
-							imageVector = Icons.Outlined.Lock,
-							contentDescription = null,
-							tint = LocalNymColors.current.buttonErrorText,
-							modifier = Modifier.size(18.dp),
-						)
-					}
-				},
-				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+				textColor = LocalNymColors.current.buttonErrorText,
+				containerColor = Color.Transparent,
+				trailingIcon = Icons.Outlined.Lock,
 			)
 		}
 	}
@@ -433,8 +388,6 @@ internal fun PreviewAccountInfoScreen() {
 				onPairDeviceClick = {},
 				onAccountIdClick = {},
 				onDeviceIdClick = {},
-				onPassphraseClick = {},
-				onRedeemCodeClick = {},
 				onLogoutClick = {},
 				onDeleteAccountClick = {},
 				onSelectPlanClick = {},

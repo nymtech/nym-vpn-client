@@ -235,7 +235,6 @@
 	<string name="settings_reset_app_title">Uygulama verilerini sıfırla</string>
 	<string name="settings_system_status_title">Sistem durumu</string>
 	<string name="settings_mixnet_tuning_title">Mixnet ayar optimizasyonu</string>
-	<string name="settings_mixnet_tuning_description">Mixnet parametrelerinizi hassas şekilde ayarlayın</string>
 	<string name="settings_quit_title">NymVPN\'i Kapat</string>
 	<string name="settings_app_version_line">Uygulama sürümü: %1$s</string>
 	<string name="settings_language_help_title">Çeviriye yardım et</string>
@@ -440,7 +439,6 @@
 	<string name="passphrase_info_keeps_anonymous">Anonimlik</string>
 	<string name="passphrase_info_belongs">Sadece size aittir ve kontrolünüz altındadır (self-custody)</string>
 	<!-- Account screen -->
-	<string name="account_title">Hesap ve cihazlar</string>
 	<string name="account_info_manage_button">Aboneliğinizi yönetin</string>
 	<string name="account_info_renew_auth_title">Aboneliğinizi yenileyin</string>
 	<string name="account_info_link_auth_subtitle">Sosyal medya ile giriş yaparak kimliğinizi doğrulayın</string>

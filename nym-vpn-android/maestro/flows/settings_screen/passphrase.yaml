@@ -7,11 +7,6 @@ tags:
 
 - tapOn: "Settings"
 
-- tapOn: "Your account"
-- scrollUntilVisible:
-      element:
-          text: "Passphrase"
-      direction: DOWN
 - tapOn:
       text: "Passphrase"
       index: 1
@@ -49,5 +44,5 @@ tags:
 - tapOn:
       text: "Continue"
 
-- assertVisible: "Your account"
+- assertVisible: "Settings"
 - assertNotVisible: "Show my passphrase"
