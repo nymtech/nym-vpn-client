@@ -20,7 +20,6 @@ import { useMainState } from '../../../store';
 import { routes } from '../../../router';
 import {
   useDeepLink,
-  useLogout,
   useRefreshAccountSummary,
   useToast,
 } from '../../../hooks';
@@ -28,6 +27,7 @@ import { DeeplinkTimeout } from '../../../errors';
 import { ContactSupportUrl } from '../../../constants';
 import { AccountStatus } from './account-status';
 import { AccountDescription } from './AccountDescription';
+import LogoutButton from './LogoutButton';
 
 const IdsTimeToLive = 120; // sec
 
@@ -35,7 +35,6 @@ function Account() {
   const { t, i18n } = useTranslation('settings');
   const navigate = useNavigate();
 
-  const { logout, loading } = useLogout();
   const {
     account,
     accountState,
@@ -258,14 +257,7 @@ function Account() {
       </CardNew>
 
       <div className="flex flex-col gap-2">
-        <Button
-          variant="destructive-outlined"
-          onClick={() => logout()}
-          disabled={loading}
-          loading={loading}
-        >
-          {t('account.logout')}
-        </Button>
+        <LogoutButton variant="destructive-outlined" />
       </div>
     </PageAnim>
   );

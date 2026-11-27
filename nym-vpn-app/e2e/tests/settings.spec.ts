@@ -15,7 +15,7 @@ test.describe('Settings', () => {
   });
 
   test('renders all settings correctly', async () => {
-    await expect(settingsPage.row('Account')).toBeVisible();
+    await expect(settingsPage.row('Your account')).toBeVisible();
     await expect(settingsPage.row('Support &')).toBeVisible();
     await expect(settingsPage.row('Kill switch')).toBeVisible();
     await expect(settingsPage.row('Block ads')).toBeVisible();
@@ -23,15 +23,93 @@ test.describe('Settings', () => {
     await expect(settingsPage.row('Bypass LAN')).toBeVisible();
     await expect(settingsPage.row('Customize DNS')).toBeVisible();
     await expect(settingsPage.row('Anti-censorship')).toBeVisible();
+    await expect(settingsPage.row('Connection profiles')).toBeVisible();
+    await expect(settingsPage.row('Mixnet tuning')).toBeVisible();
     await expect(settingsPage.row('App & wallet proxy')).toBeVisible();
-    await expect(settingsPage.row('Launch on')).toBeVisible();
+    await expect(settingsPage.row('Launch at startup')).toBeVisible();
     await expect(settingsPage.row('Appearance')).toBeVisible();
     await expect(settingsPage.row('Data, privacy')).toBeVisible();
     await expect(settingsPage.row('Legal')).toBeVisible();
+    await expect(settingsPage.logoutButton).toBeVisible();
     await expect(settingsPage.quitButton).toBeVisible();
     await expect(settingsPage.appVersion).toBeVisible();
     await expect(settingsPage.daemonVersion).toBeVisible();
     await expect(settingsPage.networkName).toHaveText('mainnet');
+  });
+
+  test('search keeps matches under their section with their description', async ({
+    page,
+  }) => {
+    await settingsPage.search('dns');
+    await expect(settingsPage.row('Customize DNS')).toBeVisible();
+    await expect(page.getByText('Connection', { exact: true })).toBeVisible();
+    await expect(settingsPage.row('Kill switch')).toBeHidden();
+
+    await settingsPage.search('kill');
+    await expect(settingsPage.row('Kill switch')).toContainText(
+      'Always on to protect your data',
+    );
+    await expect(settingsPage.quitButton).toBeHidden();
+  });
+
+  test('search matches a row by its description', async () => {
+    await settingsPage.search('local network');
+    await expect(settingsPage.row('Bypass LAN')).toBeVisible();
+    await expect(settingsPage.row('Kill switch')).toBeHidden();
+  });
+
+  test('search on a section heading keeps the whole section', async () => {
+    await settingsPage.search('routing');
+    await expect(settingsPage.row('Split tunneling')).toBeVisible();
+    await expect(settingsPage.row('App & wallet proxy')).toBeVisible();
+    await expect(settingsPage.row('Legal')).toBeHidden();
+  });
+
+  test('search finds Log out and Quit like any other item', async () => {
+    await settingsPage.search('log out');
+    await expect(settingsPage.logoutButton).toBeVisible();
+    await expect(settingsPage.quitButton).toBeHidden();
+    await expect(settingsPage.noResults).toBeHidden();
+
+    await settingsPage.search('quit');
+    await expect(settingsPage.quitButton).toBeVisible();
+    await expect(settingsPage.logoutButton).toBeHidden();
+  });
+
+  test('Log out asks first: Cancel keeps the account, Log out ends it', async () => {
+    await settingsPage.logoutButton.click();
+    await expect(settingsPage.logoutDialogTitle).toBeVisible();
+    await expect(settingsPage.logoutDialog).toContainText(
+      "Without your passphrase, you can't log back in.",
+    );
+
+    await settingsPage.logoutDialog
+      .getByRole('button', { name: 'Cancel' })
+      .click();
+    await expect(settingsPage.logoutDialogTitle).toBeHidden();
+    await expect(settingsPage.row('Your account')).toBeVisible();
+
+    await settingsPage.logout();
+    await expect(settingsPage.getStartedButton).toBeVisible();
+    await expect(settingsPage.logoutButton).toBeHidden();
+  });
+
+  test('search finds the account row by its own title', async () => {
+    await settingsPage.search('your account');
+    await expect(settingsPage.row('Your account')).toBeVisible();
+    await expect(settingsPage.noResults).toBeHidden();
+  });
+
+  test('search with no match shows no results and clearing restores the list', async () => {
+    await settingsPage.search('zzz');
+    await expect(settingsPage.noResults).toBeVisible();
+    await expect(settingsPage.quitButton).toBeHidden();
+
+    await settingsPage.search('');
+    await expect(settingsPage.noResults).toBeHidden();
+    await expect(settingsPage.row('Your account')).toBeVisible();
+    await expect(settingsPage.row('Legal')).toBeVisible();
+    await expect(settingsPage.quitButton).toBeVisible();
   });
 
   test('closes settings screen correctly', async ({ page }) => {
