@@ -30,14 +30,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
@@ -45,6 +43,7 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.extensions.rememberCopyToClipboard
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -52,7 +51,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 fun DiagnosticScreen(viewModel: DiagnosticViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
-	val clipboardManager = LocalClipboardManager.current
+	val copyToClipboard = rememberCopyToClipboard()
 	val copiedText = stringResource(R.string.diagnostic_copied)
 
 	DiagnosticScreen(
@@ -61,7 +60,7 @@ fun DiagnosticScreen(viewModel: DiagnosticViewModel = hiltViewModel()) {
 		onShareClick = { viewModel.shareReport(context) },
 		onCopyClick = {
 			uiState.report?.let {
-				clipboardManager.setText(AnnotatedString(it))
+				copyToClipboard(it)
 				Toast.makeText(context, copiedText, Toast.LENGTH_SHORT).show()
 			}
 		},

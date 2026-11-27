@@ -57,7 +57,15 @@ private val BracketLength = 40.dp
 private val BracketStrokeWidth = 4.dp
 
 @Composable
-internal fun QrScannerOverlay(@StringRes hintRes: Int, @StringRes invalidCodeRes: Int, showInvalidCode: Boolean, validating: Boolean, secondaryAction: QrScanAction?, modifier: Modifier = Modifier) {
+internal fun QrScannerOverlay(
+	@StringRes hintRes: Int,
+	@StringRes invalidCodeRes: Int,
+	showInvalidCode: Boolean,
+	validating: Boolean,
+	secondaryAction: QrScanAction?,
+	modifier: Modifier = Modifier,
+	bottomContent: (@Composable (enabled: Boolean) -> Unit)? = null,
+) {
 	val bracketColor = MaterialTheme.colorScheme.primary
 	BoxWithConstraints(modifier = modifier.fillMaxSize()) {
 		val windowSize = min(maxWidth, maxHeight) * ScanArea.WINDOW_FRACTION
@@ -160,6 +168,7 @@ internal fun QrScannerOverlay(@StringRes hintRes: Int, @StringRes invalidCodeRes
 						}
 					}
 				}
+				bottomContent?.invoke(!validating)
 				if (secondaryAction != null) {
 					// A code being checked can't be overtaken by another.
 					TextButton(

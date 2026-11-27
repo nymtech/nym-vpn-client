@@ -687,6 +687,10 @@ impl TunnelMonitor {
                     let (entry_bridge_addr, transport_fwd_handle) = bridge_redial::start_bridges(
                         &selected_gateways,
                         self.tunnel_parameters.bridge_fallback,
+                        self.tunnel_parameters
+                            .tunnel_settings
+                            .wireguard_tunnel_options
+                            .transport_preference,
                         self.shutdown_token.child_token(),
                         bridge_close_tx,
                         #[cfg(target_os = "linux")]

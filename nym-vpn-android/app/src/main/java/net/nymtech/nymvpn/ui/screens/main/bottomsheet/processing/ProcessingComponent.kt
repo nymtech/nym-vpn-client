@@ -61,7 +61,7 @@ import nym_vpn_lib_types.AccountControllerState
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun ProcessingComponent(onProcessingComplete: () -> Unit, authSheetMinHeightPx: Int = 0, viewModel: LoginProcessingViewModel = hiltViewModel()) {
+fun ProcessingComponent(onProcessingComplete: () -> Unit, authSheetMinHeightPx: Int = 0, autoConnect: Boolean = false, viewModel: LoginProcessingViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
 	val uiPhase by viewModel.uiPhase.collectAsState()
 	val progressStep by viewModel.progressStep.collectAsState()
@@ -79,6 +79,7 @@ fun ProcessingComponent(onProcessingComplete: () -> Unit, authSheetMinHeightPx: 
 
 	LaunchedEffect(navigationRoute, timedOut, failureMessageRes) {
 		val destination = navigationRoute ?: return@LaunchedEffect
+		val succeeded = !timedOut && failureMessageRes == null
 		failureMessageRes?.let { messageRes ->
 			SnackbarController.showMessage(StringValue.StringResource(messageRes))
 			viewModel.consumeFailureMessageRes()
@@ -89,7 +90,7 @@ fun ProcessingComponent(onProcessingComplete: () -> Unit, authSheetMinHeightPx: 
 		viewModel.consumeNavigationRoute()
 		onProcessingComplete()
 		if (destination is Route.Main) {
-			navController.navigateAndForgetToMain(destination)
+			navController.navigateAndForgetToMain(destination.copy(autoStart = autoConnect && succeeded))
 		} else {
 			navController.navigateAndForget(destination)
 		}

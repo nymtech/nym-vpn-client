@@ -1,4 +1,3 @@
-#if os(iOS)
 import Foundation
 import Theme
 import UIComponents
@@ -60,4 +59,3 @@ final class RedeemCodeViewModel {
         }
     }
 }
-#endif

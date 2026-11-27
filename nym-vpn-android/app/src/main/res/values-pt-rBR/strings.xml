@@ -237,7 +237,6 @@
 	<string name="settings_reset_app_title">Redefinir dados do aplicativo</string>
 	<string name="settings_system_status_title">Status do sistema</string>
 	<string name="settings_mixnet_tuning_title">Configuração da Mixnet</string>
-	<string name="settings_mixnet_tuning_description">Ajuste os parâmetros do mixnet</string>
 	<string name="settings_quit_title">Sair da NymVPN</string>
 	<string name="settings_app_version_line">Versão do app: %1$s</string>
 	<string name="settings_language_help_title">Ajuda com tradução</string>
@@ -443,7 +442,6 @@
 	<string name="passphrase_info_keeps_anonymous">Mantém você anônimo</string>
 	<string name="passphrase_info_belongs">Pertence apenas a você (autocustódia)</string>
 	<!-- Account screen -->
-	<string name="account_title">Conta e dispositivos</string>
 	<string name="account_info_manage_button">Gerenciar assinatura</string>
 	<string name="account_info_renew_auth_title">Renove sua assinatura</string>
 	<string name="account_info_link_auth_subtitle">Confirme que é você para adicionar um login por rede social</string>
@@ -499,7 +497,6 @@
 	<string name="logs_download_button">Salvar como arquivo mesmo assim</string>
 	<string name="logs_saved">Registros salvos na pasta de downloads</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling_info_msg">Defina para cada app usar o NymVPN ou conectar diretamente.</string>
 	<string name="split_tunneling_search_apps_hint">Pesquisar aplicativos</string>
 	<string name="split_tunneling_apps">Aplicativos</string>
 	<string name="split_tunneling_direct">Direto</string>

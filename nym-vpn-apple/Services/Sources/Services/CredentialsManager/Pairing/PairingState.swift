@@ -9,6 +9,8 @@ public enum PairingState: Equatable, Sendable, CustomStringConvertible {
     case confirmCode(pin: String, sessionId: UInt32)
     case sharingAccount
     case accountShared
+    /// The core sends the PIN once the other device confirms it got the same one.
+    case waitingForCode(sessionId: UInt32)
     case waitingForApproval(pin: String, sessionId: UInt32)
     case signedIn
     case expired
@@ -28,6 +30,8 @@ public enum PairingState: Equatable, Sendable, CustomStringConvertible {
             "sharingAccount"
         case .accountShared:
             "accountShared"
+        case let .waitingForCode(sessionId):
+            "waitingForCode(sessionId: \(sessionId))"
         case let .waitingForApproval(_, sessionId):
             "waitingForApproval(sessionId: \(sessionId))"
         case .signedIn:
@@ -43,6 +47,7 @@ public enum PairingState: Equatable, Sendable, CustomStringConvertible {
         switch self {
         case let .showingCode(_, sessionId, _),
              let .confirmCode(_, sessionId),
+             let .waitingForCode(sessionId),
              let .waitingForApproval(_, sessionId):
             sessionId
         default:

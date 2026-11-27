@@ -8,15 +8,15 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, NymVpnSubscription, QrPairingConfirmation, QrUrl,
-    RegisterAccountResponse, StorableAccount, StoredAccountMode, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, QrPairingConfirmation, QrUrl, RegisterAccountResponse,
+    StorableAccount, StoredAccountMode, VpnAccountSummary,
 };
 use tokio::sync::oneshot;
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
-    /// Generate a mnemonic and store it
-    CreateAccount(ReturnSender<(), AccountCommandError>),
+    /// Generate a mnemonic and store it, redeeming the free pass first when given
+    CreateAccount(ReturnSender<(), AccountCommandError>, Option<String>),
 
     /// Store the given account
     StoreAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
@@ -87,7 +87,7 @@ pub enum AccountCommand {
 impl AccountCommand {
     pub fn return_error(self, error: AccountCommandError) {
         match self {
-            AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::CreateAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::RedeemFreepass(return_sender, _, _) => return_sender.send(Err(error)),
@@ -178,11 +178,8 @@ pub enum CommonCommand {
         String,
     ),
 
-    /// Redeems a free pass code on the account and returns the subscription it grants.
-    ApplyFreepass(
-        ReturnSender<NymVpnSubscription, AccountCommandError>,
-        String,
-    ),
+    /// Redeems a free pass code on the account. The subscription arrives with the next sync.
+    ApplyFreepass(ReturnSender<(), AccountCommandError>, String),
 
     /// Return the deeplink URL for the specfied deeplink kind and name
     GetDeeplink(

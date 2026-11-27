@@ -241,7 +241,6 @@
 	<string name="settings_reset_app_title">Сбросить данные приложения</string>
 	<string name="settings_system_status_title">Статус системы</string>
 	<string name="settings_mixnet_tuning_title">Настройка микснета</string>
-	<string name="settings_mixnet_tuning_description">Тонкая настройка параметров микснета</string>
 	<string name="settings_quit_title">Выйти из NymVPN</string>
 	<string name="settings_app_version_line">Версия приложения: %1$s</string>
 	<string name="settings_language_help_title">Помощь с переводом</string>
@@ -450,7 +449,6 @@
 	<string name="passphrase_info_keeps_anonymous">Сохраняет вашу анонимность</string>
 	<string name="passphrase_info_belongs">Принадлежит только вам (самостоятельное хранение)</string>
 	<!-- Account screen -->
-	<string name="account_title">Учетная запись и устройства</string>
 	<string name="account_info_manage_button">Управляйте своей подпиской</string>
 	<string name="account_info_renew_auth_title">Продли подписку</string>
 	<string name="account_info_link_auth_subtitle">Подтверди, что это ты, чтобы добавить вход через соцсети</string>
@@ -506,7 +504,6 @@
 	<string name="logs_download_button">Все равно сохранить как файл</string>
 	<string name="logs_saved">Логи сохранены в загрузки\"</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling_info_msg">Настройте каждое приложение для использования NymVPN или прямого подключения.</string>
 	<string name="split_tunneling_search_apps_hint">Поиск приложений</string>
 	<string name="split_tunneling_apps">Приложения</string>
 	<string name="split_tunneling_direct">Прямое подключение</string>

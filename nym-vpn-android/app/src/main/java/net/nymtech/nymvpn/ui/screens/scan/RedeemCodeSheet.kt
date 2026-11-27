@@ -6,7 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -27,14 +27,15 @@ fun RedeemCodeSheet(accountStored: Boolean, onDismiss: () -> Unit, viewModel: Re
 	val openAcceptedCode = rememberOpenAcceptedCode(hadAccount)
 	val loading by rememberUpdatedState(uiState.loading)
 	// A redeem in flight can't be cancelled, so the sheet stays open.
-	val sheetState = rememberModalBottomSheetState(
-		skipPartiallyExpanded = true,
+	val sheetState = rememberBottomSheetState(
+		initialValue = SheetValue.Hidden,
+		enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
 		confirmValueChange = { it != SheetValue.Hidden || !loading },
 	)
 	val containerColor = MaterialTheme.colorScheme.surface
 
 	LaunchedEffect(Unit) {
-		viewModel.accepted.collect(openAcceptedCode)
+		viewModel.accepted.collect { openAcceptedCode(it, viewModel.uiState.value.connectAfter) }
 	}
 
 	DisposableEffect(viewModel) {
@@ -52,6 +53,7 @@ fun RedeemCodeSheet(accountStored: Boolean, onDismiss: () -> Unit, viewModel: Re
 		RedeemCodeView(
 			uiState = uiState,
 			onCodeChange = viewModel::onCodeChange,
+			onConnectAfterChange = viewModel::onConnectAfterChange,
 			onSubmit = viewModel::submit,
 		)
 	}

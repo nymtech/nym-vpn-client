@@ -36,7 +36,14 @@ import net.nymtech.nymvpn.ui.theme.Theme
 
 // Laid out like the auth views, for the welcome sheet and the redeem sheet.
 @Composable
-fun RedeemCodeView(uiState: RedeemCodeUiState, onCodeChange: (String) -> Unit, onSubmit: () -> Unit, modifier: Modifier = Modifier, onBackClick: (() -> Unit)? = null) {
+fun RedeemCodeView(
+	uiState: RedeemCodeUiState,
+	onCodeChange: (String) -> Unit,
+	onConnectAfterChange: (Boolean) -> Unit,
+	onSubmit: () -> Unit,
+	modifier: Modifier = Modifier,
+	onBackClick: (() -> Unit)? = null,
+) {
 	SecureScreen()
 	SecureOverlayProtection()
 
@@ -76,7 +83,7 @@ fun RedeemCodeView(uiState: RedeemCodeUiState, onCodeChange: (String) -> Unit, o
 			color = MaterialTheme.colorScheme.onPrimaryContainer,
 			modifier = Modifier.semantics { heading() },
 		)
-		RedeemCodeForm(uiState = uiState, onCodeChange = onCodeChange, onSubmit = onSubmit)
+		RedeemCodeForm(uiState = uiState, onCodeChange = onCodeChange, onConnectAfterChange = onConnectAfterChange, onSubmit = onSubmit)
 	}
 }
 
@@ -88,6 +95,7 @@ private fun PreviewRedeemCodeViewDark() {
 			uiState = RedeemCodeUiState(),
 			onBackClick = {},
 			onCodeChange = {},
+			onConnectAfterChange = {},
 			onSubmit = {},
 		)
 	}

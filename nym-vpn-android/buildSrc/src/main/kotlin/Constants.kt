@@ -5,6 +5,7 @@ object Constants {
     const val VERSION_CODE = 20261700
     const val TARGET_SDK = 36
     const val COMPILE_SDK = 37
+    const val COMPILE_SDK_MINOR = 1
     const val MIN_SDK = 24
 
 	const val JVM_TARGET = "21"

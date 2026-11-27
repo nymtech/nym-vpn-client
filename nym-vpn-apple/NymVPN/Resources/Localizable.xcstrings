@@ -3812,6 +3812,72 @@
         }
       }
     },
+    "censorship.transport.auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Auto"
+          }
+        }
+      }
+    },
+    "censorship.transport.quic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "QUIC"
+          }
+        }
+      }
+    },
+    "censorship.transport.ssh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "SSH"
+          }
+        }
+      }
+    },
+    "censorship.transport.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Pin the bridge transport, or let NymVPN pick automatically."
+          }
+        }
+      }
+    },
+    "censorship.transport.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bridge transport"
+          }
+        }
+      }
+    },
+    "censorship.transport.tls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "TLS"
+          }
+        }
+      }
+    },
     "censorship.stealhapi.link" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20841,6 +20907,17 @@
         }
       }
     },
+    "pairing.waitingForCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for your other device…"
+          }
+        }
+      }
+    },
     "passohrase.loseSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28627,17 +28704,6 @@
         }
       }
     },
-    "splitTunel.apps.exclude" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose apps to exclude from NymVPN tunnel."
-          }
-        }
-      }
-    },
     "splitTunnel.accessibility.excluded" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28704,28 +28770,6 @@
         }
       }
     },
-    "splitTunnel.apps.unprotected" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⚠️  Excluding an app will leave it unprotected."
-          }
-        }
-      }
-    },
-    "splitTunnel.betaFeature" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beta feature"
-          }
-        }
-      }
-    },
     "splitTunnel.cannotExcludeNym" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28733,17 +28777,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Nym VPN can’t exclude itself."
-          }
-        }
-      }
-    },
-    "splitTunnel.dnsWarning" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Excluded apps connect directly to the internet. Their DNS lookups still go through NymVPN, unless the app uses its own DNS."
           }
         }
       }
@@ -28766,6 +28799,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Exclude from VPN"
+          }
+        }
+      }
+    },
+    "splitTunnel.excludeWarning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluded apps aren't protected by NymVPN, but their DNS lookups still go through it unless the app uses its own."
           }
         }
       }
@@ -32816,6 +32860,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn't confirm it's you. Try again."
+          }
+        }
+      }
+    },
+    "censorship.transport.autoModeDisclaimer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Auto only uses a bridge if the direct connection fails, so your pin has no effect unless that happens."
           }
         }
       }

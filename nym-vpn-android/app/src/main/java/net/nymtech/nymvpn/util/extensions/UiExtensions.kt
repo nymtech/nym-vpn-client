@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.util.extensions
 
 import android.annotation.SuppressLint
+import android.content.ClipData
 import android.content.Context
 import android.text.format.DateUtils
 import androidx.compose.foundation.clickable
@@ -10,11 +11,15 @@ import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
@@ -24,6 +29,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
@@ -32,6 +38,7 @@ import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BridgeParameter
 import net.nymtech.vpn.model.NymGateway
+import net.nymtech.vpn.util.extensions.toDisplayCountry as coreToDisplayCountry
 import nym_vpn_lib.VpnException
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ErrorStateReason
@@ -40,7 +47,6 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Score
 import timber.log.Timber
 import java.time.Instant
-import java.util.Locale
 import kotlin.reflect.KClass
 
 fun Dp.scaledHeight(previewScale: Float = 1f): Dp = if (NymVpn.isInitialized) {
@@ -202,7 +208,7 @@ fun List<NymGateway>.scoreSorted(mode: Tunnel.Mode): List<NymGateway> = this.sor
 	it.scoreFor(mode) ?: Score.OFFLINE
 }
 
-fun toDisplayCountry(twoLetterIsoCountryCode: String): String = Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry
+fun toDisplayCountry(twoLetterIsoCountryCode: String): String = coreToDisplayCountry(twoLetterIsoCountryCode)
 
 fun EntryPoint.Country.toDisplayCountry(): String = toDisplayCountry(twoLetterIsoCountryCode)
 
@@ -320,5 +326,14 @@ fun isValidIPv6(s: String): Boolean {
 	val toCheck = if (hasV4Tail) nonEmpty.dropLast(1) else nonEmpty
 	return toCheck.all { g ->
 		g.length in 1..4 && g.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }
+	}
+}
+
+@Composable
+fun rememberCopyToClipboard(): (String) -> Unit {
+	val clipboard = LocalClipboard.current
+	val scope = rememberCoroutineScope()
+	return remember(clipboard, scope) {
+		{ text -> scope.launch { clipboard.setClipEntry(ClipData.newPlainText("", text).toClipEntry()) } }
 	}
 }
