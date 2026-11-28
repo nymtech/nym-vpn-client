@@ -151,6 +151,16 @@ export function TunnelState() {
     }
   }, [suppressRelaxedIndependenceError, computedPhase]);
 
+  // The mode toggle updates `vpnMode` at once, but the tunnel stays connected
+  // in the previous mode for a moment before it reconnects. Hold the face on
+  // the mode that is actually connected so the new mode's route does not play
+  // over the old tunnel.
+  const liveMode = markerMode(vpnMode);
+  const [faceMode, setFaceMode] = useState(liveMode);
+  if (phase !== 'connected' && phase !== 'canceling' && faceMode !== liveMode) {
+    setFaceMode(liveMode);
+  }
+
   // ─── Ring targets based on current progress ───────────────────────────────
   const progress = connectingState?.progress;
 
@@ -327,9 +337,9 @@ export function TunnelState() {
           }}
         >
           <MarkerFace
-            mode={markerMode(vpnMode)}
+            mode={faceMode}
             size={SPHERE_SIZE}
-            lit={phase !== 'disconnected'}
+            lit={phase === 'connected'}
             playing={phase === 'connected'}
           />
         </div>

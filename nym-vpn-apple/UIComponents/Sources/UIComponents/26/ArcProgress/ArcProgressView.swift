@@ -15,6 +15,8 @@ public struct ArcProgressView: View {
     public let availableHeight: CGFloat?
 
     @Environment(\.colorScheme) private var colorScheme
+    /// The mode the face keeps showing while a mode switch tears the old tunnel down.
+    @State private var heldFaceMode: ArcProgressMode?
 
     public init(
         state: ArcProgressState,
@@ -50,6 +52,16 @@ public struct ArcProgressView: View {
         }
         .scaleEffect(contentScale, anchor: .center)
         .animation(.easeInOut(duration: 0.2), value: contentScale)
+        .onChange(of: mode) { oldValue, _ in
+            if holdsFaceMode, heldFaceMode == nil {
+                heldFaceMode = oldValue
+            }
+        }
+        .onChange(of: holdsFaceMode) { _, holds in
+            if !holds {
+                heldFaceMode = nil
+            }
+        }
     }
 }
 
@@ -67,8 +79,8 @@ private extension ArcProgressView {
 
     var face: some View {
         MarkerFace(
-            mode: mode,
-            lit: !isUnprotected,
+            mode: holdsFaceMode ? (heldFaceMode ?? mode) : mode,
+            lit: state == .connected,
             playing: state == .connected,
             litColor: Color.Nym.textPrimary,
             unlitColor: trackColor
@@ -187,8 +199,15 @@ private extension ArcProgressView {
         return false
     }
 
-    var isUnprotected: Bool {
-        state == .disconnected || state == .offline
+    /// A mode switch updates `mode` at once, but the tunnel stays up in the previous mode until it
+    /// has disconnected. The face holds that mode until the new connection starts.
+    var holdsFaceMode: Bool {
+        switch state {
+        case .connected, .canceling:
+            return true
+        case .disconnected, .offline, .blocked, .step, .awaitingGatewayConsent, .failed:
+            return false
+        }
     }
 
     var fillColor: Color {

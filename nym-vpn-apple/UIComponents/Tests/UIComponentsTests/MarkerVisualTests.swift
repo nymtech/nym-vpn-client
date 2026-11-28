@@ -25,11 +25,16 @@ final class MarkerVisualTests: XCTestCase {
         }
     }
 
-    func testDvpnCyclesEntryLinkExitEveryThreeTicks() {
-        let hops = (0..<10).map { MarkerFaceModel.dvpnHop(tick: $0) }
-        XCTAssertEqual(hops, [0, 0, 0, 1, 1, 1, 2, 2, 2, 0])
+    func testDvpnPassIsEntryLinkExitAndTwoRestBeats() {
+        let hops = (0..<16).map { MarkerFaceModel.dvpnHop(tick: $0) }
+        XCTAssertEqual(hops, [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 0])
         XCTAssertEqual(MarkerFaceModel.dvpnOpacity(element: 1, tick: 3), 1)
         XCTAssertEqual(MarkerFaceModel.dvpnOpacity(element: 0, tick: 3), MarkerFaceModel.dim)
+        // the rest beats dim every element
+        for element in 0..<3 {
+            XCTAssertEqual(MarkerFaceModel.dvpnOpacity(element: element, tick: 9), MarkerFaceModel.dim)
+            XCTAssertEqual(MarkerFaceModel.dvpnOpacity(element: element, tick: 14), MarkerFaceModel.dim)
+        }
     }
 
     func testMixnetPassIsFiveHopsAndARest() {
