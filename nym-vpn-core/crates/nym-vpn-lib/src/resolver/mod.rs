@@ -15,7 +15,7 @@
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 mod unix;
 
-use nym_common::trace_err_chain;
+use nym_common::{ErrorExt, trace_err_chain};
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 pub(crate) use unix::flush_system_cache;
 
@@ -740,7 +740,11 @@ impl ResolverImpl {
                             trace_err_chain!(err, "failed to send response");
                         })
                 } else {
-                    trace_err_chain!(resolve_err, "failed to resolve hostname");
+                    tracing::error!(
+                        skip_sentry = true,
+                        "{}",
+                        resolve_err.display_chain_with_msg("failed to resolve hostname")
+                    );
                     send_error_response(message, response_handler, ResponseCode::ServFail).await
                 }
             }

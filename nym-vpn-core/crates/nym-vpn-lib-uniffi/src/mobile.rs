@@ -166,6 +166,7 @@ impl VPNConfig {
             // Not available via vpn service on mobile platforms
             split_tunnel: SplitTunnelSettings::default(),
             geo_exclusion: GeoExclusionSettings::default(),
+            default_dns: Default::default(),
             auto_connect: false,
         })
     }

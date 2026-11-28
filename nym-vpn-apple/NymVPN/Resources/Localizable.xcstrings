@@ -2334,6 +2334,28 @@
         }
       }
     },
+    "arcProgress.blocked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kill switch is blocking traffic"
+          }
+        }
+      }
+    },
+    "arcProgress.blockedAction" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect to disable it"
+          }
+        }
+      }
+    },
     "arcProgress.connectionFailed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2457,6 +2479,17 @@
         }
       }
     },
+    "arcProgress.noInternet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection found"
+          }
+        }
+      }
+    },
     "arcProgress.notProtected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2576,7 +2609,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Authenticating account"
+            "value" : "Setting up your account"
           }
         },
         "es" : {
@@ -2789,7 +2822,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Establishing connection"
+            "value" : "Establishing server connection"
           }
         },
         "es" : {
@@ -2890,7 +2923,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Starting NymVPN"
+            "value" : "Initializing NymVPN"
           }
         },
         "es" : {
@@ -2991,7 +3024,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registering with servers"
+            "value" : "Registering anonymously with servers"
           }
         },
         "es" : {
@@ -6063,7 +6096,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "DNS customization"
+            "value" : "Customize DNS"
           }
         }
       }
@@ -14230,7 +14263,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enable Geo-exclusion"
+            "value" : "Enable geo-exclusion"
           }
         }
       }
@@ -14252,7 +14285,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geo Exclusion couldn't start. Reconnect and try again."
+            "value" : "Geo-exclusion couldn't start. Reconnect and try again."
           }
         }
       }
@@ -14853,7 +14886,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Will connect once device goes online"
+            "value" : "Will connect once your device goes online"
           }
         },
         "es" : {
@@ -25791,7 +25824,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Blocking ads and tracker"
+            "value" : "Blocking ads and trackers"
           }
         }
       }
@@ -26116,7 +26149,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "App Icon"
+            "value" : "App icon"
           }
         }
       }
@@ -28099,7 +28132,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manage Subscription"
+            "value" : "Manage subscription"
           }
         }
       }
@@ -28427,6 +28460,83 @@
         }
       }
     },
+    "settings.search.placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search settings"
+          }
+        }
+      }
+    },
+    "settings.section.account" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
+          }
+        }
+      }
+    },
+    "settings.section.app" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        }
+      }
+    },
+    "settings.section.connection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connection"
+          }
+        }
+      }
+    },
+    "settings.section.helpAndData" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help and data"
+          }
+        }
+      }
+    },
+    "settings.section.protection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protection"
+          }
+        }
+      }
+    },
+    "settings.section.routing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routing"
+          }
+        }
+      }
+    },
     "settings.splitTunnel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28583,6 +28693,17 @@
         }
       }
     },
+    "settings.yourAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account"
+          }
+        }
+      }
+    },
     "signIn.heading" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28671,17 +28792,6 @@
         }
       }
     },
-    "splitTunel.apps.exclude" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose apps to exclude from NymVPN tunnel."
-          }
-        }
-      }
-    },
     "splitTunnel.accessibility.excluded" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28748,28 +28858,6 @@
         }
       }
     },
-    "splitTunnel.apps.unprotected" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⚠️  Excluding an app will leave it unprotected."
-          }
-        }
-      }
-    },
-    "splitTunnel.betaFeature" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beta feature"
-          }
-        }
-      }
-    },
     "splitTunnel.cannotExcludeNym" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28777,17 +28865,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Nym VPN can’t exclude itself."
-          }
-        }
-      }
-    },
-    "splitTunnel.dnsWarning" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Excluded apps connect directly to the internet. Their DNS lookups still go through NymVPN, unless the app uses its own DNS."
           }
         }
       }
@@ -28810,6 +28887,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Exclude from VPN"
+          }
+        }
+      }
+    },
+    "splitTunnel.excludeWarning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluded apps aren't protected by NymVPN, but their DNS lookups still go through it unless the app uses its own."
           }
         }
       }
@@ -28864,7 +28952,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This feature requires Full Disc Access, that you can enable in system settings."
+            "value" : "This feature requires Full Disk Access, that you can enable in system settings."
           }
         }
       }
@@ -29287,7 +29375,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setting up your account (2/7)"
+            "value" : "Setting up your account"
           }
         },
         "es" : {
@@ -29376,7 +29464,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Downloading ZKNyms (3/7)"
+            "value" : "Downloading ZKNyms"
           }
         }
       }
@@ -29399,7 +29487,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Establishing server connection (7/7)"
+            "value" : "Establishing server connection"
           }
         },
         "es" : {
@@ -29500,7 +29588,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Updating server list (4/7)"
+            "value" : "Updating server list"
           }
         },
         "es" : {
@@ -29601,7 +29689,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registering anonymously with servers (6/7)"
+            "value" : "Registering anonymously with servers"
           }
         },
         "es" : {
@@ -29702,7 +29790,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Initializing NymVPN (1/7)"
+            "value" : "Initializing NymVPN"
           }
         },
         "es" : {
@@ -29803,7 +29891,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choosing best servers (5/7)"
+            "value" : "Choosing best servers"
           }
         },
         "es" : {

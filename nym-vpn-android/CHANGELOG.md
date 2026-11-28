@@ -7,12 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.17.0] - TBD
+
+### Added
+- Connect after redeeming a free pass or signing in with a QR code, with a checkbox to opt out (https://github.com/nymtech/nym-vpn-client/pull/7236)
+
 ### Changed
+- Home screen shows the new connection marker: step-by-step connecting rings, a mode face for dVPN and Mixnet, and a blocked state when "Block connections without VPN" holds traffic offline (https://github.com/nymtech/nym-vpn-client/pull/7092)
 - Free pass errors come from the core instead of matching API responses in the app (https://github.com/nymtech/nym-vpn-client/pull/7197)
 - QR sign-in: take PIN code from event stream instead of return value of library call (https://github.com/nymtech/nym-vpn-client/pull/7193)
+- Split tunneling shows one warning above the app list instead of two notes (https://github.com/nymtech/nym-vpn-client/pull/7230)
+- Settings are now grouped into labeled sections with a search field to find any setting by its name, description or section (https://github.com/nymtech/nym-vpn-client/pull/7170)
 
 ### Fixed
 - Home screen: the selected connection mode now has an outline in the brand colour, so it is clear which one is on, also in dark mode
+- Prevent crash on connect when another VPN is set as always-on; show a warning instead (https://github.com/nymtech/nym-vpn-client/pull/7181)                                 
 
 ## [2026.16.0] - 2026-11-18
 

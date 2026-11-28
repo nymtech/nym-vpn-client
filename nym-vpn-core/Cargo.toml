@@ -62,7 +62,7 @@ default-members = [
 ]
 
 [workspace.package]
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymvpn.com/"
@@ -82,6 +82,14 @@ debug = false
 
 [profile.fdroid]
 inherits = "release"
+debug = false
+
+# Used to extract UniFFI metadata since uniffi-bindgen cannot read static libs larger than 4 GiB.
+# See https://github.com/mozilla/uniffi-rs/issues/3093
+[profile.uniffi-metadata]
+inherits = "release"
+lto = false
+opt-level = 0
 debug = false
 
 # debug symbols are extracted and stripped by gradle
@@ -134,9 +142,9 @@ glob = "0.3"
 iprange = "0.6.7"
 ipnet = "2.12.2"
 hex = "0.4"
-hickory-proto = "0.26.3"
-hickory-resolver = "0.26.3"
-hickory-server = "0.26.3"
+hickory-proto = "0.26.4"
+hickory-resolver = "0.26.4"
+hickory-server = "0.26.4"
 http-body-util = "0.1.5"
 hyper-rustls = { version = "0.27.10" }
 hkdf = "0.13"

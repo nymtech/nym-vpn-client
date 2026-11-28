@@ -1,7 +1,6 @@
 name: build-wireguard-go-windows
 on:
   pull_request:
-    types: [opened]
     paths:
       - "wireguard/**"
       - ".github/workflows/build-wireguard-go-windows.yml"
@@ -38,12 +37,34 @@ jobs:
       - name: Dotenv Action
         uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
 
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
+        with:
+          crate: cargo-get
+
+      - name: Get libwg version
+        id: version
+        shell: bash
+        working-directory: nym-vpn-core
+        run: |
+          version=$(cargo get workspace.package.version --major --minor --patch --delimiter '.')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Cache libwg
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: cache
         with:
           path: build/lib
-          key: libwg-windows-${{ matrix.cpu_arch || 'x64' }}-go${{ env.GOLANG_VERSION }}-${{ hashFiles('.github/workflows/build-wireguard-go-windows.yml', 'wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: >-
+            libwg-windows-${{ matrix.cpu_arch || 'x64' }}-v${{ steps.version.outputs.version }}-go${{ env.GOLANG_VERSION }}-${{ hashFiles(
+              '.github/workflows/build-wireguard-go-windows.yml',
+              'wireguard/libwg/**/*.go',
+              'wireguard/libwg/**/*.diff',
+              'wireguard/libwg/**/*.mod',
+              'wireguard/libwg/**/go.sum',
+              'wireguard/libwg/libwg.rc',
+              'wireguard/build-wireguard-go.sh'
+            ) }}
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
@@ -78,12 +99,6 @@ jobs:
         run: |
           winget list GnuWin32.Make || winget install --disable-interactivity --accept-source-agreements --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
-
-      - name: Install cargo-get
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
-        with:
-          crate: cargo-get
 
       - name: Setup VS dev shell
         if: steps.cache.outputs.cache-hit != 'true'

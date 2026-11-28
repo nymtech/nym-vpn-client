@@ -237,7 +237,6 @@
 	<string name="settings_reset_app_title">تنظیم مجدد داده‌های برنامه</string>
 	<string name="settings_system_status_title">وضعیت سیستم</string>
 	<string name="settings_mixnet_tuning_title">تنظیمات mixnet</string>
-	<string name="settings_mixnet_tuning_description">پارامترهای میکس‌نت خود را ریزتنظیم کنید</string>
 	<string name="settings_quit_title">خروج از NymVPN</string>
 	<string name="settings_app_version_line">نسخه برنامه: %1$s</string>
 	<string name="settings_language_help_title">کمک‌کردن به ترجمه</string>
@@ -442,7 +441,6 @@
 	<string name="passphrase_info_keeps_anonymous">شما را ناشناس نگه می‌دارد</string>
 	<string name="passphrase_info_belongs">فقط متعلق به شماست (حضانت-شخصی)</string>
 	<!-- Account screen -->
-	<string name="account_title">حساب کاربری و دستگاه‌ها</string>
 	<string name="account_info_manage_button">مدیریت اشتراک</string>
 	<string name="account_info_renew_auth_title">اشتراک خود را تمدید کنید</string>
 	<string name="account_info_link_auth_subtitle">تأیید کنید که شما هستید تا ورود با حساب اجتماعی را اضافه کنید</string>
@@ -498,7 +496,6 @@
 	<string name="logs_download_button">در هر صورت به عنوان فایل ذخیره کنید</string>
 	<string name="logs_saved">گزارش‌ها در پوشه دانلود ذخیره شد</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling_info_msg">هر برنامه را طوری تنظیم کنید که از NymVPN استفاده کند یا بدون آن مستقیماً متصل شود.</string>
 	<string name="split_tunneling_search_apps_hint">جستجوی برنامه‌ها</string>
 	<string name="split_tunneling_apps">برنامه‌ها</string>
 	<string name="split_tunneling_direct">مستقیم</string>

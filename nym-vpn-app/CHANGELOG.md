@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.17.0] - TBD
+
 ### Changed
 
+- Settings are now grouped into labeled sections with a search field that finds any setting, Log out and Quit included, by its name, its description or its section (https://github.com/nymtech/nym-vpn-client/pull/7169)
+- Settings: switches come first in each section, Mixnet tuning moves into Protection, Account becomes "Your account", Profiles becomes "Connection profiles", and a grey Log out button sits at the bottom of Settings. Log out now asks first, here and on the account screen, since it disconnects the VPN and removes the account from this device, as on Android and iOS (https://github.com/nymtech/nym-vpn-client/pull/7169)
+- Home screen: the connection rings show the new connection marker. Connecting fills the rings in yellow step by step, an error breaks every ring at the same point, and losing the network mid-session shows "Kill switch is blocking traffic" instead of an error. The centre shows the mode: two linked blocks for dVPN, the mix layers for Mixnet, with the route playing while connected. The connecting steps drop the "(n/7)" counter and use a smaller label than the state words. Connected shows "dVPN protection" or "Mixnet protection" in green above the timer, stopping reads "Disconnecting", and the rings fill more slowly in Mixnet mode, as on iOS and Android. (https://github.com/nymtech/nym-vpn-client/pull/7094)
 - [Linux] The deb package now depends on `polkit-1-auth-agent`, so a polkit authentication agent is installed together with the app. This dependency used to come with `nym-vpnd` (https://github.com/nymtech/nym-vpn-client/pull/7175)
 
 ## [2026.16.1] - 2026-11-19

@@ -355,14 +355,14 @@ impl InnerHandler {
                         Err(Error::ReportSending) if sending_retries < SendingConfig::MAX_RETRIES => {
                             let next_delay = SendingConfig::random_small_delay();
                             sending_retries += 1;
-                            tracing::error!("Stats report handling ended with errors, retrying in {} secs", next_delay.as_secs());
+                            tracing::error!(skip_sentry = true, "Stats report handling ended with errors, retrying in {} secs", next_delay.as_secs());
                             timer.as_mut().set(tokio::time::sleep(next_delay).fuse());
                         },
                         // Sending error no error
                         Err(Error::ReportSending) if sending_retries >= SendingConfig::MAX_RETRIES => {
                             let next_delay = SendingConfig::random_big_delay();
                             sending_retries = 0;
-                            tracing::error!("Stats report handling ended with errors. Too many retries, retrying in {} mins", next_delay.as_secs() / 60);
+                            tracing::error!(skip_sentry = true, "Stats report handling ended with errors. Too many retries, retrying in {} mins", next_delay.as_secs() / 60);
                             timer.as_mut().set(tokio::time::sleep(next_delay).fuse());
                         },
                         // Storage error

@@ -334,6 +334,7 @@ message VpnServiceConfig {
   BridgeModes bridge_mode = 34;
   optional BridgeTransport transport_preference = 35;
   bool auto_connect = 36;
+  DefaultDnsSettings default_dns = 37;
 }
 
 message NetworkStatsConfig {
@@ -820,6 +821,7 @@ message VpnApiError {
     string timeout = 1;
     StatusError status_code = 2;
     VpnApiErrorResponse response = 3;
+    string other = 4;
   }
   message StatusError {
     uint32 code = 1;
@@ -1282,6 +1284,10 @@ message CustomDnsSettings {
   bool enabled = 2;
 }
 
+message DefaultDnsSettings {
+  bool enable_quad9 = 1;
+}
+
 enum PlainDnsProtocol {
   PLAIN_DNS_PROTOCOL_UDP = 0;
   PLAIN_DNS_PROTOCOL_TCP = 1;
@@ -1350,6 +1356,7 @@ service NymVpnService {
   rpc SetResidentialExit(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAutoConnect(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableCustomDns(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableQuad9(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetCustomDns(DnsServerList) returns (google.protobuf.Empty) {}
   rpc SetMixnetTrafficConfig(MixnetTrafficConfig) returns (google.protobuf.Empty) {}
   rpc SetGeoExclusionEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}

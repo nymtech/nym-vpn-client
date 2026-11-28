@@ -11,10 +11,7 @@ pub fn fronted_http_client(
 ) -> Result<Client, VpnApiClientError> {
     let builder = fronted_http_client_builder(urls, user_agent, timeout)?;
 
-    let client = builder
-        .build()
-        .map_err(Box::new)
-        .map_err(VpnApiClientError::CreateVpnApiClient)?;
+    let client = builder.build()?;
 
     Ok(client)
 }
@@ -26,9 +23,7 @@ pub fn fronted_http_client_builder(
 ) -> Result<ClientBuilder, VpnApiClientError> {
     let has_front = urls.iter().any(|url| url.has_front());
 
-    let mut builder = ClientBuilder::new_with_urls(urls)
-        .map_err(Box::new)
-        .map_err(VpnApiClientError::CreateVpnApiClient)?;
+    let mut builder = ClientBuilder::new_with_urls(urls)?;
 
     // By default, HTTP client uses a singleton instance of reqwest client and hickory resolver.
     // This is not going to work in test environment since singletons are tied to single runtime and each test case uses a new runtime.
@@ -68,8 +63,9 @@ pub fn api_url_to_url(api_url: &ApiUrl) -> Result<Url, VpnApiClientError> {
         })
         .transpose()?;
 
-    let http_url = Url::new(url, fronts).map_err(|_e| VpnApiClientError::InvalidUrl {
-        url: api_url.url.to_string(),
+    let http_url = Url::new(url, fronts).map_err(|e| VpnApiClientError::InvalidUrl {
+        url: api_url.url.clone(),
+        reason: e.to_string(),
     })?;
 
     Ok(http_url)
@@ -102,8 +98,9 @@ pub fn api_url_to_url_and_domain(
         })
         .transpose()?;
 
-    let http_url = Url::new(url, fronts).map_err(|_e| VpnApiClientError::InvalidUrl {
-        url: api_url.url.to_string(),
+    let http_url = Url::new(url, fronts).map_err(|e| VpnApiClientError::InvalidUrl {
+        url: api_url.url.clone(),
+        reason: e.to_string(),
     })?;
 
     Ok((http_url, domain))
@@ -114,8 +111,10 @@ fn parse_url(s: &str) -> Result<url::Url, VpnApiClientError> {
         Ok(url) => Ok(url),
         Err(_) => {
             let with_scheme = format!("https://{s}");
-            url::Url::parse(&with_scheme)
-                .map_err(|_e| VpnApiClientError::InvalidUrl { url: s.to_string() })
+            url::Url::parse(&with_scheme).map_err(|e| VpnApiClientError::InvalidUrl {
+                url: s.to_owned(),
+                reason: e.to_string(),
+            })
         }
     }
 }

@@ -183,6 +183,9 @@ pub enum VpnApiError {
 
     #[error(transparent)]
     Response(#[from] VpnApiErrorResponse),
+
+    #[error("{0}")]
+    Other(String),
 }
 
 impl VpnApiError {
@@ -190,7 +193,7 @@ impl VpnApiError {
         match self {
             VpnApiError::Response(err) => err.message.clone(),
             VpnApiError::StatusCode { .. } => self.to_string(),
-            VpnApiError::Timeout(_) => self.to_string(),
+            VpnApiError::Timeout(_) | VpnApiError::Other(_) => self.to_string(),
         }
     }
 
@@ -211,33 +214,24 @@ impl VpnApiError {
     }
 }
 
-// That should disappear when reworking those errors
 #[cfg(feature = "nym-type-conversions")]
-impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
-    type Error = nym_vpn_api_client::error::VpnApiClientError;
+impl From<&nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
+    fn from(err: &nym_vpn_api_client::error::VpnApiClientError) -> Self {
+        use nym_vpn_api_client::error::HttpClientError;
 
-    fn try_from(err: nym_vpn_api_client::error::VpnApiClientError) -> Result<Self, Self::Error> {
-        let err = match VpnApiErrorResponse::try_from(err) {
-            Ok(err) => return Ok(Self::Response(err)),
-            Err(err) => err,
-        };
+        let http_err = err.http_client_error();
 
-        if err
-            .http_client_error()
-            .is_some_and(nym_vpn_api_client::error::HttpClientError::is_timeout)
-        {
-            return Ok(Self::Timeout(err.to_string()));
-        }
-
-        match err
-            .http_client_error()
-            .and_then(nym_vpn_api_client::error::HttpClientError::status_code)
-        {
-            Some(code) => Ok(Self::StatusCode {
+        if let Some(response) = nym_vpn_api_client::response::extract_error_response(err) {
+            Self::Response(response.into())
+        } else if http_err.is_some_and(HttpClientError::is_timeout) {
+            Self::Timeout(err.to_string())
+        } else if let Some(code) = http_err.and_then(HttpClientError::status_code) {
+            Self::StatusCode {
                 code: code.into(),
                 msg: err.to_string(),
-            }),
-            None => Err(err),
+            }
+        } else {
+            Self::Other(err.to_string())
         }
     }
 }
@@ -420,7 +414,7 @@ impl VpnAccountSummary {
     pub fn from_parts(
         api_summary: &nym_vpn_api_client::response::NymVpnAccountSummaryWithDeviceResponse,
         account_mode: nym_vpn_api_client::types::VpnAccountMode,
-    ) -> Result<Self, nym_vpn_api_client::error::VpnApiClientError> {
+    ) -> Result<Self, InvalidTimestampError> {
         let account_summary = &api_summary.account_summary;
         let traffic_reset_time = account_summary
             .fair_usage
@@ -577,7 +571,7 @@ pub struct NymVpnSubscription {
 
 #[cfg(feature = "nym-type-conversions")]
 impl TryFrom<&nym_vpn_api_client::response::NymVpnSubscription> for NymVpnSubscription {
-    type Error = nym_vpn_api_client::error::VpnApiClientError;
+    type Error = InvalidTimestampError;
 
     fn try_from(
         value: &nym_vpn_api_client::response::NymVpnSubscription,
@@ -585,19 +579,15 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnSubscription> for NymVpnSubscr
         let valid_until_utc =
             parse_timestamp(&value.valid_until_utc, "subscription.valid_until_utc")
                 .map(|t| t.unix_timestamp())
-                .ok_or_else(|| {
-                    nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
-                        "invalid subscription.valid_until_utc: {}",
-                        value.valid_until_utc
-                    ))
+                .ok_or_else(|| InvalidTimestampError {
+                    field: "subscription.valid_until_utc",
+                    value: value.valid_until_utc.clone(),
                 })?;
         let valid_from_utc = parse_timestamp(&value.valid_from_utc, "subscription.valid_from_utc")
             .map(|t| t.unix_timestamp())
-            .ok_or_else(|| {
-                nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
-                    "invalid subscription.valid_from_utc: {}",
-                    value.valid_from_utc
-                ))
+            .ok_or_else(|| InvalidTimestampError {
+                field: "subscription.valid_from_utc",
+                value: value.valid_from_utc.clone(),
             })?;
         Ok(Self {
             created_on_utc: value.created_on_utc.clone(),
@@ -610,6 +600,14 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnSubscription> for NymVpnSubscr
             is_recurring: value.is_recurring,
         })
     }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+#[derive(Debug, thiserror::Error)]
+#[error("invalid {field} timestamp: {value}")]
+pub struct InvalidTimestampError {
+    pub field: &'static str,
+    pub value: String,
 }
 
 #[cfg(feature = "nym-type-conversions")]
@@ -643,16 +641,16 @@ pub struct Subscription {
 impl TryFrom<nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse>
     for VpnAccountAuthMethod
 {
-    type Error = nym_vpn_api_client::error::VpnApiClientError;
+    type Error = InvalidTimestampError;
 
     fn try_from(
         value: nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse,
     ) -> Result<Self, Self::Error> {
         let created = parse_timestamp(&value.created, "auth_method.created").ok_or_else(|| {
-            nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
-                "invalid auth_method.created time format: {}",
-                value.created
-            ))
+            InvalidTimestampError {
+                field: "auth_method.created",
+                value: value.created.clone(),
+            }
         })?;
 
         Ok(Self {
@@ -788,7 +786,7 @@ mod tests {
     /// through `from_parts` in API mode with a synced clock.
     fn build(
         summary: &NymVpnAccountSummaryResponse,
-    ) -> Result<VpnAccountSummary, nym_vpn_api_client::error::VpnApiClientError> {
+    ) -> Result<VpnAccountSummary, InvalidTimestampError> {
         let with_device = NymVpnAccountSummaryWithDeviceResponse {
             account_summary: summary.clone(),
             active_device: None,
@@ -910,7 +908,7 @@ mod tests {
         assert!(
             err.to_string()
                 .contains("invalid subscription.valid_until_utc"),
-            "expected PayloadError for bad valid_until_utc, got {err:?}"
+            "expected InvalidTimestampError for bad valid_until_utc, got {err:?}"
         );
     }
 
@@ -963,7 +961,7 @@ mod tests {
         assert!(
             err.to_string()
                 .contains("invalid subscription.valid_until_utc"),
-            "expected PayloadError for bad valid_until_utc, got {err:?}"
+            "expected InvalidTimestampError for bad valid_until_utc, got {err:?}"
         );
     }
 

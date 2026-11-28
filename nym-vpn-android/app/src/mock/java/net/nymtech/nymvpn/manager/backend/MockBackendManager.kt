@@ -16,6 +16,8 @@ import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.model.RecentGateways
+import net.nymtech.vpn.model.account.CreateAccountResult
+import net.nymtech.vpn.model.freepass.FreepassResult
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.AutologinResponse
@@ -285,10 +287,13 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		isGatewayIndependenceEnabled = enabled
 	}
 
-	override suspend fun createAccount() {
+	override suspend fun createAccount(freepass: String?): CreateAccountResult {
 		_state.update { it.copy(isMnemonicStored = true) }
 		_accountSummaryFlow.value = mockAccountSummary
+		return CreateAccountResult.Created
 	}
+
+	override suspend fun redeemFreepass(code: String): FreepassResult = FreepassResult.Redeemed
 
 	override suspend fun registerAccount(purchaseToken: String?): String = "mock-registration-id"
 

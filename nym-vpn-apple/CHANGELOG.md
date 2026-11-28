@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.17.0] - TBD
+
 ### Added
 
 - iOS: Sign in by scanning a QR code from a signed-in device (https://github.com/nymtech/nym-vpn-client/pull/7122)
@@ -17,8 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Home screen shows the new connection marker: step-by-step connecting rings, a mode face for dVPN and Mixnet, and a blocked state when the kill switch holds traffic offline (https://github.com/nymtech/nym-vpn-client/pull/7093)
+- Settings are now grouped into labeled sections with a search field to find any setting by its name, description or section ([#7171](https://github.com/nymtech/nym-vpn-client/pull/7171))
 - iOS: Debug logging is now "Your troubleshooting detail" in Data, privacy & logs, with an info sheet explaining what it does (https://github.com/nymtech/nym-vpn-client/pull/7138)
 - iOS, macOS: Free pass errors come from the core instead of matching API responses in the app (https://github.com/nymtech/nym-vpn-client/pull/7197)
+- macOS: Split tunneling shows one warning above the app list instead of several notes (https://github.com/nymtech/nym-vpn-client/pull/7228)
 - macOS: "Your connection quality" and "Your app errors & crashes" show the VPN service's own settings, are asked during onboarding, and show "Daemon not running" when the service can't be reached (https://github.com/nymtech/nym-vpn-client/pull/7231)
 
 ### Fixed

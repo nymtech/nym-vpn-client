@@ -12,6 +12,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -30,7 +31,7 @@ import net.nymtech.nymvpn.ui.screens.scan.RedeemCodeUiState
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun RedeemCodeForm(uiState: RedeemCodeUiState, onCodeChange: (String) -> Unit, onSubmit: () -> Unit, modifier: Modifier = Modifier) {
+fun RedeemCodeForm(uiState: RedeemCodeUiState, onCodeChange: (String) -> Unit, onConnectAfterChange: (Boolean) -> Unit, onSubmit: () -> Unit, modifier: Modifier = Modifier) {
 	val keyboardController = LocalSoftwareKeyboardController.current
 	val checkingDescription = stringResource(R.string.redeem_code_checking)
 	val canSubmit = !uiState.loading && uiState.code.isNotBlank()
@@ -88,6 +89,13 @@ fun RedeemCodeForm(uiState: RedeemCodeUiState, onCodeChange: (String) -> Unit, o
 			),
 			keyboardActions = KeyboardActions(onDone = { submit() }),
 			modifier = Modifier.fillMaxWidth(),
+		)
+		ConnectAfterCheckbox(
+			checked = uiState.connectAfter,
+			onCheckedChange = onConnectAfterChange,
+			label = stringResource(R.string.redeem_code_connect_after),
+			enabled = !uiState.loading,
+			modifier = Modifier.align(Alignment.CenterHorizontally),
 		)
 		MainStyledButton(
 			onClick = submit,

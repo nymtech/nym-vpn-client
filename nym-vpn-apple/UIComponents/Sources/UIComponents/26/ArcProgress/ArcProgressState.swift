@@ -7,8 +7,12 @@ public enum ArcProgressState: Equatable, Sendable {
     /// Idle / not connected — all rings at track opacity, label "Not protected".
     case disconnected
 
-    /// Device has no internet — idle rings, label "Your device has no internet connection".
+    /// No internet and no session to resume: idle rings, "Not protected" with the no-internet caption.
     case offline
+
+    /// Offline mid-session: the kill switch (always on in the Apple apps) holds traffic.
+    /// The outer ring only, in red with a turning gap.
+    case blocked
 
     /// One of the six connecting steps — fills 50% (first half) or 100% (full)
     /// of the corresponding ring. Outer ring covers steps 1–2, middle 3–4,
@@ -22,11 +26,11 @@ public enum ArcProgressState: Equatable, Sendable {
     /// gets the error tint, label "Connection failed".
     case failed
 
-    /// Mid-cancel — fills fade to 15% opacity, no color change.
-    case canceling
+    /// Mid-cancel: holds the last displayed step's fills and fades them out.
+    case canceling(Step?)
 
-    /// Gateway independence pre-flight blocked — not connected; label prompts consent.
-    case awaitingGatewayConsent
+    /// Gateway independence pre-flight blocked: holds the reached step; label prompts consent.
+    case awaitingGatewayConsent(Step)
 
     public enum Step: Equatable, Sendable, CaseIterable {
         case initializingNym
@@ -41,6 +45,7 @@ public enum ArcProgressState: Equatable, Sendable {
 
 /// Visual mode — `fast` is the default mint palette; `anonymous` is the muted
 /// gray palette used when the user is connecting through the anonymous pool.
+/// Also picks the marker face: dVPN blocks for `fast`, the mix field for `anonymous`.
 public enum ArcProgressMode: Equatable, Sendable {
     case fast
     case anonymous

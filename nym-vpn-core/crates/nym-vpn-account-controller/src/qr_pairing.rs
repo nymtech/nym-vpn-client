@@ -192,7 +192,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                 }
                 Ok(response.inner)
             }
-            Some(Err(VpnApiClientError::CheckPairingAccount(e))) if e.is_timeout() => {
+            Some(Err(VpnApiClientError::HttpClient(e))) if e.is_timeout() => {
                 tracing::debug!("Timeout on checking the pairing");
                 Ok(None)
             }
@@ -253,7 +253,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
             ))
             .await
         {
-            Some(Err(VpnApiClientError::ConfirmPairingPinAccount(e))) if e.is_timeout() => {
+            Some(Err(VpnApiClientError::HttpClient(e))) if e.is_timeout() => {
                 tracing::debug!("Timeout on confirming the PIN");
                 Ok(None)
             }
@@ -413,7 +413,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                 tracing::debug!("Received account secret mnemonic, pairing completed");
                 Ok(Some(parsed_mnemonic))
             }
-            Some(Err(VpnApiClientError::GetPairingSecretAccount(e))) if e.is_timeout() => {
+            Some(Err(VpnApiClientError::HttpClient(e))) if e.is_timeout() => {
                 tracing::debug!("Timeout on checking the pairing");
                 Ok(None)
             }
@@ -775,7 +775,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
 mod tests {
     use std::collections::HashMap;
 
-    use nym_http_api_client::{HttpClientError, ResolveError};
+    use nym_http_api_client::{HttpClientError, ResolveError, StatusCode, reqwest::Url};
     use nym_qr_pairing_requests::{
         NymVpnPairingFinalisedResponse, PairingConfirmPinRequestBody, SharePairSecretBody,
     };
@@ -855,10 +855,16 @@ mod tests {
                 .get_mut(qr_pub_key)
                 .filter(|process| process.expires_at > Instant::now())
                 .ok_or_else(|| {
-                    api_error("404: no active pairing process for the provided QR public key")
+                    api_error(
+                        StatusCode::NOT_FOUND,
+                        "no active pairing process for the provided QR public key",
+                    )
                 })?;
             if account_id.is_some_and(|account_id| account_id != process.account_id) {
-                return Err(api_error("401: the public key is part of another account"));
+                return Err(api_error(
+                    StatusCode::UNAUTHORIZED,
+                    "the public key is part of another account",
+                ));
             }
             Ok(process)
         }
@@ -870,8 +876,13 @@ mod tests {
         }
     }
 
-    fn api_error(message: &str) -> Box<HttpClientError> {
-        Box::new(HttpClientError::GenericRequestFailure(message.to_string()))
+    fn api_error(status: StatusCode, message: &str) -> Box<HttpClientError> {
+        Box::new(HttpClientError::EndpointFailure {
+            url: Box::new(Url::parse("https://nymvpn.com/api").unwrap()),
+            status,
+            headers: Box::default(),
+            error: message.to_owned(),
+        })
     }
 
     /// A timed out request; a DNS lookup timeout is the only one that can be made without
@@ -929,15 +940,14 @@ mod tests {
                 return std::future::pending().await;
             }
 
-            let process = db
-                .active_process(qr_pub_key, Some(&account.id()))
-                .map_err(VpnApiClientError::CheckPairingAccount)?;
+            let process = db.active_process(qr_pub_key, Some(&account.id()))?;
             let inner = match &process.state {
                 PairingState::Empty => None,
                 PairingState::SharedPin(data) => Some(data.pairing_response.clone()),
                 PairingState::ConfirmedPin { .. } | PairingState::SharedSecret { .. } => {
-                    return Err(VpnApiClientError::CheckPairingAccount(api_error(
-                        "400: the process already advanced",
+                    return Err(VpnApiClientError::HttpClient(api_error(
+                        StatusCode::BAD_REQUEST,
+                        "the process already advanced",
                     )));
                 }
             };
@@ -954,18 +964,18 @@ mod tests {
         ) -> Result<StatusOk, VpnApiClientError> {
             let mut db = self.api_db.lock().await;
             if db.reject_pin_confirmations {
-                return Err(VpnApiClientError::ConfirmPairingPinAccount(api_error(
-                    "500: PIN confirmation refused",
+                return Err(VpnApiClientError::HttpClient(api_error(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "PIN confirmation refused",
                 )));
             }
 
             let account_id = account.id();
-            let process = db
-                .active_process(qr_pub_key, Some(&account_id))
-                .map_err(VpnApiClientError::ConfirmPairingPinAccount)?;
+            let process = db.active_process(qr_pub_key, Some(&account_id))?;
             let PairingState::SharedPin(data) = &process.state else {
-                return Err(VpnApiClientError::ConfirmPairingPinAccount(api_error(
-                    "400: not in the step of PIN confirmation",
+                return Err(VpnApiClientError::HttpClient(api_error(
+                    StatusCode::BAD_REQUEST,
+                    "not in the step of PIN confirmation",
                 )));
             };
             process.state = PairingState::ConfirmedPin {
@@ -979,7 +989,7 @@ mod tests {
             };
             if db.time_out_next_pin_confirmation {
                 db.time_out_next_pin_confirmation = false;
-                return Err(VpnApiClientError::ConfirmPairingPinAccount(timeout_error()));
+                return Err(VpnApiClientError::HttpClient(timeout_error()));
             }
 
             Ok(StatusOk {
@@ -997,13 +1007,12 @@ mod tests {
         ) -> Result<NymVpnPairingResponse, VpnApiClientError> {
             let mut db = self.api_db.lock().await;
 
-            let process = db
-                .active_process(remote_qr_pub_key, None)
-                .map_err(VpnApiClientError::TryToPairToAccount)?;
+            let process = db.active_process(remote_qr_pub_key, None)?;
             if !matches!(process.state, PairingState::Empty) {
                 // first come, first served: a second scan might be a MitM attempt
-                return Err(VpnApiClientError::TryToPairToAccount(api_error(
-                    "400: pairing request has already been submitted for this QR public key",
+                return Err(VpnApiClientError::HttpClient(api_error(
+                    StatusCode::BAD_REQUEST,
+                    "pairing request has already been submitted for this QR public key",
                 )));
             }
 
@@ -1034,21 +1043,21 @@ mod tests {
                 return std::future::pending().await;
             }
 
-            let process = db
-                .active_process(remote_qr_pub_key, None)
-                .map_err(VpnApiClientError::GetPairingSecretAccount)?;
+            let process = db.active_process(remote_qr_pub_key, None)?;
             let check_token = |token: &str| {
                 if pairing_token != token {
-                    return Err(VpnApiClientError::GetPairingSecretAccount(api_error(
-                        "401: provided token is not correct",
+                    return Err(VpnApiClientError::HttpClient(api_error(
+                        StatusCode::UNAUTHORIZED,
+                        "provided token is not correct",
                     )));
                 }
                 Ok(())
             };
             let response = match &process.state {
                 PairingState::Empty => {
-                    return Err(VpnApiClientError::GetPairingSecretAccount(api_error(
-                        "400: pairing process not started",
+                    return Err(VpnApiClientError::HttpClient(api_error(
+                        StatusCode::BAD_REQUEST,
+                        "pairing process not started",
                     )));
                 }
                 PairingState::SharedPin(_) => NymVpnGetPairingSecretResponse::Nothing,
@@ -1078,24 +1087,25 @@ mod tests {
             let mut db = self.api_db.lock().await;
 
             let account_id = account.id();
-            let process = db
-                .active_process(qr_pub_key, Some(&account_id))
-                .map_err(VpnApiClientError::SharePairingSecretAccount)?;
+            let process = db.active_process(qr_pub_key, Some(&account_id))?;
             let token = match &process.state {
                 PairingState::Empty => {
-                    return Err(VpnApiClientError::SharePairingSecretAccount(api_error(
-                        "400: process was not started",
+                    return Err(VpnApiClientError::HttpClient(api_error(
+                        StatusCode::BAD_REQUEST,
+                        "process was not started",
                     )));
                 }
                 PairingState::SharedPin(_) => {
-                    return Err(VpnApiClientError::SharePairingSecretAccount(api_error(
-                        "400: pin should be confirmed first",
+                    return Err(VpnApiClientError::HttpClient(api_error(
+                        StatusCode::BAD_REQUEST,
+                        "pin should be confirmed first",
                     )));
                 }
                 PairingState::ConfirmedPin { token, .. } => token.clone(),
                 PairingState::SharedSecret { .. } => {
-                    return Err(VpnApiClientError::SharePairingSecretAccount(api_error(
-                        "400: secret was already shared",
+                    return Err(VpnApiClientError::HttpClient(api_error(
+                        StatusCode::BAD_REQUEST,
+                        "secret was already shared",
                     )));
                 }
             };

@@ -29,8 +29,6 @@ import Theme
 
     @State private var isPresentedManageSubscription = false
     @State var isLogoutConfirmationDisplayed = false
-    @State var isLogoutLoading = false
-    @State var logoutProgressText: String?
     @State var isRefreshingAccount = false
     @State var autologinState = AutologinState()
     @State var isPairDevicePresented = false
@@ -48,7 +46,6 @@ import Theme
                         if credentialsManager.isValidCredentialImported {
                             accountStatusSection()
                             nymAccountSection()
-                            pairDeviceSection()
                             accountIdentifier()
                             accountIdText()
                             deviceIdentifier()
@@ -58,8 +55,11 @@ import Theme
                                 manageSubscription()
                             }
 #endif
-                            if appSettings.isCredentialImported {
-                                logoutButton()
+                            VStack(spacing: NymSpacing.large) {
+                                pairDeviceButton()
+                                if appSettings.isCredentialImported {
+                                    logoutButton()
+                                }
                             }
                         }
                     }
@@ -91,19 +91,12 @@ import Theme
             Color.Nym.background
                 .ignoresSafeArea()
         }
-        .overlay {
-            if isLogoutConfirmationDisplayed {
-                ActionDialogView(
-                    viewModel: ActionDialogViewModel(
-                        isDisplayed: $isLogoutConfirmationDisplayed,
-                        configuration: logoutDialogConfiguration,
-                        impactGenerator: .shared,
-                        isLoading: $isLogoutLoading,
-                        loadingTextOverride: $logoutProgressText
-                    )
-                )
-            }
-        }
+        .logoutDialog(
+            isPresented: $isLogoutConfirmationDisplayed,
+            credentialsManager: credentialsManager,
+            connectionManager: connectionManager,
+            onLoggedOut: { navigateToRoot() }
+        )
         .task {
             await credentialsManager.updateAccountSummary()
             showAllowanceReachedSnackbarIfNeeded()
@@ -133,7 +126,7 @@ import Theme
 extension AccountAndDevicesView {
     func navbar() -> some View {
         CustomNavBar(
-            title: "settings.account".localizedString,
+            title: "settings.yourAccount".localizedString,
             leftButton: CustomNavBarButton(type: .back, action: { navigateBack() })
         )
     }
@@ -243,17 +236,9 @@ extension AccountAndDevicesView {
     }
 
     func logoutButton() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .empty,
-                title: "settings.logout".localizedString,
-                type: .destructive,
-                position: .init(isFirst: true, isLast: true),
-                action: {
-                    isLogoutConfirmationDisplayed = true
-                }
-            )
-        )
+        NymButton("settings.logout".localizedString, style: .surface, foregroundColor: .Nym.error) {
+            isLogoutConfirmationDisplayed = true
+        }
     }
 
     func cell(title: String, subtitle: String, systemImageName: String, imageSize: CGFloat) -> some View {
@@ -329,20 +314,5 @@ extension AccountAndDevicesView {
                 )
             }
         }
-    }
-
-    @MainActor
-    func logout() async {
-        await credentialsManager.beginLogout()
-        defer { credentialsManager.endLogout() }
-
-        if LogoutTeardownPolicy.needsDisconnectWait(for: connectionManager.currentTunnelStatus) {
-            logoutProgressText = "disconnecting".localizedString
-        }
-        await connectionManager.disconnectBeforeLogout()
-
-        logoutProgressText = "settings.loggingOut".localizedString
-        try? await credentialsManager.removeCredential()
-        logoutProgressText = nil
     }
 }

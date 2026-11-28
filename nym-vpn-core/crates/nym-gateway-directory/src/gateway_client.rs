@@ -125,7 +125,7 @@ impl ResolvedConfig {
 
         // Each lookup can wait out a DNS timeout, so run them together rather than back to back.
         let (nyxd_socket_addrs, nym_api_resolver_overrides, nym_vpn_api_resolver_overrides) = tokio::try_join!(
-            url_to_socket_addr(&nyxd_url, Some((1, 1))),
+            url_to_socket_addr(&nyxd_url),
             ResolverOverrides::from_api_urls(&config.nym_api_urls),
             ResolverOverrides::from_api_urls(&config.nym_vpn_api_urls),
         )?;

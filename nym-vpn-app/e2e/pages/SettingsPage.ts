@@ -8,8 +8,12 @@ class SettingsPage {
   readonly daemonVersion: Locator;
   readonly networkName: Locator;
   readonly toast: Locator;
+  readonly searchInput: Locator;
+  readonly noResults: Locator;
   readonly accountRow: Locator;
   readonly logoutButton: Locator;
+  readonly logoutDialog: Locator;
+  readonly logoutDialogTitle: Locator;
   readonly accountId: Locator;
   readonly deviceId: Locator;
   readonly getStartedButton: Locator;
@@ -39,9 +43,21 @@ class SettingsPage {
     this.daemonVersion = page.getByTestId('daemon-version-value');
     this.networkName = page.getByTestId('network-name-value');
     this.toast = page.getByRole('dialog');
+    this.searchInput = page.getByPlaceholder('Search settings');
+    this.noResults = page.getByText('No results found.');
 
-    this.accountRow = page.getByRole('button', { name: /Account/ }).first();
+    this.accountRow = page
+      .getByRole('button', { name: /Your account/ })
+      .first();
     this.logoutButton = page.getByRole('button', { name: /Log ?out/i });
+    this.logoutDialog = page.getByRole('dialog', {
+      name: 'Log out of this device?',
+    });
+    // the dialog wrapper has no box of its own, so visibility is read off
+    // its title
+    this.logoutDialogTitle = this.logoutDialog.getByRole('heading', {
+      name: 'Log out of this device?',
+    });
     this.accountId = page.getByText('Account ID', { exact: true });
     this.deviceId = page.getByText('Device ID', { exact: true });
     this.getStartedButton = page.getByRole('button', { name: 'Get started' });
@@ -67,7 +83,7 @@ class SettingsPage {
     this.invalidDnsError = page.getByText('Invalid DNS address format');
     this.customDnsList = page.getByText(/Custom DNS servers \(\d\/\d\)/);
 
-    this.displayModeRow = page.getByRole('button', { name: /Display mode/ });
+    this.displayModeRow = page.getByRole('button', { name: /Display theme/ });
     this.languageRow = page.getByRole('button', { name: /Language/ });
     this.automaticTheme = page.getByRole('radio', { name: /Automatic/ });
     this.lightTheme = page.getByRole('radio', { name: /Light theme/ });
@@ -91,6 +107,17 @@ class SettingsPage {
         name: typeof label === 'string' ? new RegExp(label) : label,
       })
       .first();
+  }
+
+  async search(term: string) {
+    await this.searchInput.fill(term);
+  }
+
+  /** Log out, confirming in the dialog that Log out opens. */
+  async logout() {
+    await this.logoutButton.click();
+    await this.logoutDialog.getByRole('button', { name: 'Log out' }).click();
+    await this.logoutDialogTitle.waitFor({ state: 'hidden' });
   }
 
   async openRow(label: string | RegExp) {

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
+    fmt,
     path::{Path, PathBuf},
     sync::{Arc, OnceLock},
 };
@@ -15,14 +16,18 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tracing::{Dispatch, Event, Level, Subscriber, dispatcher::WeakDispatch};
+use tracing::{
+    Dispatch, Event, Level, Metadata, Subscriber,
+    dispatcher::WeakDispatch,
+    field::{Field, Visit},
+};
 use tracing_appender::{non_blocking::WorkerGuard, rolling::RollingFileAppender};
 use tracing_opentelemetry::get_otel_context;
 use tracing_subscriber::{
     EnvFilter, Layer,
-    filter::{LevelFilter, filter_fn},
+    filter::{FilterExt, LevelFilter, filter_fn},
     fmt::{FmtContext, FormatEvent, FormatFields, format::FmtSpan},
-    layer::SubscriberExt,
+    layer::{Context, Filter, SubscriberExt},
     registry::LookupSpan,
     util::SubscriberInitExt,
 };
@@ -30,6 +35,19 @@ use tracing_subscriber::{
 use nym_vpn_lib_types::LogPath;
 
 const BACKUP_LOG_EXTENSION: &str = "old.log";
+
+/// Events with this field set to `true` (e.g. `tracing::warn!(skip_sentry = true, ...)`) are not sent to Sentry as issues.
+const SKIP_SENTRY_FIELD: &str = "skip_sentry";
+
+/// Third-party targets whose events are not sent to Sentry as issues.
+static SKIP_SENTRY_TARGETS: [&str; 6] = [
+    "hickory_net::h2",
+    "hickory_server::server",
+    "nym_bridges::forward",
+    "nym_client_core::client::real_messages_control::real_traffic_stream::sending_delay_controller",
+    "nym_http_api_client::dns",
+    "nym_ip_packet_client::listener",
+];
 
 static INFO_TARGETS: [&str; 16] = [
     "hyper",
@@ -56,6 +74,39 @@ static WARN_TARGETS: [&str; 4] = [
     "zbus",
     "nym_socks5_client_core",
 ];
+
+struct SentryFilter;
+
+impl<S> Filter<S> for SentryFilter {
+    fn enabled(&self, metadata: &Metadata<'_>, _cx: &Context<'_, S>) -> bool {
+        !SKIP_SENTRY_TARGETS.contains(&metadata.target())
+    }
+
+    fn event_enabled(&self, event: &Event<'_>, _cx: &Context<'_, S>) -> bool {
+        if event.metadata().fields().field(SKIP_SENTRY_FIELD).is_none() {
+            true
+        } else {
+            let mut visitor = SkipSentryVisitor::default();
+            event.record(&mut visitor);
+            !visitor.skip
+        }
+    }
+}
+
+#[derive(Default)]
+struct SkipSentryVisitor {
+    skip: bool,
+}
+
+impl Visit for SkipSentryVisitor {
+    fn record_bool(&mut self, field: &Field, value: bool) {
+        if field.name() == SKIP_SENTRY_FIELD {
+            self.skip = value;
+        }
+    }
+
+    fn record_debug(&mut self, _field: &Field, _value: &dyn fmt::Debug) {}
+}
 
 pub struct Options {
     pub verbosity_level: Level,
@@ -478,7 +529,10 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
                         matches!(*md.level(), Level::INFO | Level::DEBUG)
                     })),
                 )
-                .and_then(sentry_tracing::ErrorLayer::new().with_filter(LevelFilter::WARN)),
+                .and_then(
+                    sentry_tracing::ErrorLayer::new()
+                        .with_filter(LevelFilter::WARN.and(SentryFilter)),
+                ),
         )
     } else {
         None
@@ -532,4 +586,56 @@ pub fn setup_logging_with_file_remover(
             worker_guard: logging_setup.worker_guard,
         }
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    use super::*;
+
+    struct CountingLayer(Arc<AtomicUsize>);
+
+    impl<S: Subscriber> Layer<S> for CountingLayer {
+        fn on_event(&self, _event: &Event<'_>, _ctx: Context<'_, S>) {
+            self.0.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    fn is_sent(emit: impl FnOnce()) -> bool {
+        let count = Arc::new(AtomicUsize::new(0));
+        let subscriber = tracing_subscriber::registry()
+            .with(CountingLayer(count.clone()).with_filter(SentryFilter));
+        tracing::subscriber::with_default(subscriber, emit);
+        count.load(Ordering::SeqCst) == 1
+    }
+
+    #[test]
+    fn sends_event_without_skip_sentry_field() {
+        assert!(is_sent(|| tracing::warn!("message")));
+    }
+
+    #[test]
+    fn skips_event_with_skip_sentry_true() {
+        assert!(!is_sent(|| tracing::warn!(skip_sentry = true, "message")));
+    }
+
+    #[test]
+    fn sends_event_with_skip_sentry_false() {
+        assert!(is_sent(|| tracing::warn!(skip_sentry = false, "message")));
+    }
+
+    #[test]
+    fn skips_event_from_skipped_target() {
+        assert!(!is_sent(
+            || tracing::warn!(target: "nym_bridges::forward", "message")
+        ));
+    }
+
+    #[test]
+    fn sends_event_from_submodule_of_skipped_target() {
+        assert!(is_sent(
+            || tracing::warn!(target: "nym_bridges::forward::submodule", "message")
+        ));
+    }
 }

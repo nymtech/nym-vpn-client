@@ -14,6 +14,7 @@ set -euo pipefail
 CORE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LIB_CRATE_DIR="$CORE_DIR/crates/nym-vpn-lib-uniffi"
 LIB_FILE="libnym_vpn_lib_uniffi.a"
+METADATA_PROFILE="uniffi-metadata"
 OUT_DIR="$LIB_CRATE_DIR/NymVPNLib"
 GEN_DIR="$LIB_CRATE_DIR/generated"
 SOURCES_DIR="$OUT_DIR/Sources/NymVPNLib"
@@ -89,10 +90,21 @@ for PLATFORM in "${PLATFORMS[@]}"; do
     HEADERS_DIR="$GEN_DIR/headers/$PLATFORM"
     mkdir -p "$BINDINGS_DIR" "$HEADERS_DIR"
 
+    if [[ "$PROFILE" == "debug" ]]; then
+        METADATA_LIB="$CORE_DIR/target/$FIRST_TRIPLE/$PROFILE/$LIB_FILE"
+    else
+        (
+            cd "$CORE_DIR"
+            cargo rustc --package nym-vpn-lib-uniffi --lib --crate-type staticlib \
+                --profile "$METADATA_PROFILE" --target "$FIRST_TRIPLE"
+        )
+        METADATA_LIB="$CORE_DIR/target/$FIRST_TRIPLE/$METADATA_PROFILE/$LIB_FILE"
+    fi
+
     (
         cd "$CORE_DIR"
         cargo run --quiet --package uniffi-bindgen --bin uniffi-bindgen -- generate \
-            --library "$CORE_DIR/target/$FIRST_TRIPLE/$PROFILE/$LIB_FILE" \
+            --library "$METADATA_LIB" \
             --language swift \
             --out-dir "$BINDINGS_DIR"
     )

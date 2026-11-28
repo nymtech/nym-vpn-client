@@ -54,7 +54,7 @@ function AccountSettingRow() {
       <SettingsGroup
         settings={[
           {
-            title: 'Account',
+            title: t('account.your-account'),
             desc: <AccountDescription />,
             leadingIcon: 'person',
             onClick: () => navigate(routes.accountSettings),

@@ -420,6 +420,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "array-const-fn-init"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bcb85e548c05d407fa6faff46b750ba287714ef32afc0f5e15b4641ffd6affb"
+
+[[package]]
 name = "arrayref"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1467,7 +1473,7 @@ version = "3.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "faf9468729b8cbcea668e36183cb69d317348c2e08e994829fb56ebfdfbaac34"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2188,7 +2194,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c54e03a951783e8b327515db3f2a2fd0e3bed362a96b066f341ce66ed49b4ead"
 dependencies = [
  "data-encoding",
- "syn 1.0.109",
+ "syn 3.0.9",
 ]
 
 [[package]]
@@ -2501,7 +2507,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2847,7 +2853,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3693,14 +3699,15 @@ checksum = "e712f64ec3850b98572bffac52e2c6f282b29fe6c5fa6d42334b30be438d95c1"
 
 [[package]]
 name = "hickory-net"
-version = "0.26.3"
+version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c480823ed7c2c5d0f09c41020cb6b7c28029ce60ec42dc942158dcf22f8e0a4d"
+checksum = "ea9b43710d47761c90da994eeec7e1bee50095f2b4bcdfd42acd67ca5f814e47"
 dependencies = [
  "async-trait",
  "bytes",
  "cfg-if",
  "data-encoding",
+ "form_urlencoded",
  "futures-channel",
  "futures-io",
  "futures-util",
@@ -3727,9 +3734,9 @@ dependencies = [
 
 [[package]]
 name = "hickory-proto"
-version = "0.26.3"
+version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12b92608f679a6fa515dd1d15c1ff89443026e391200a2c840c7afcba482893d"
+checksum = "927c672dc4fd1e4b7cfcb7b751fe1d5766638080b8d243b78165ef660c2061e7"
 dependencies = [
  "data-encoding",
  "idna",
@@ -3748,9 +3755,9 @@ dependencies = [
 
 [[package]]
 name = "hickory-resolver"
-version = "0.26.3"
+version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f3da5255c95d5a716857d54b5b8f4e8d67c3484d3beaaaae2ce25063b3ba981"
+checksum = "e847eb9a1b4e6bd038c2ff9400aff8ba02b450baa7f691bc56359c9af0418145"
 dependencies = [
  "cfg-if",
  "futures-util",
@@ -3769,7 +3776,7 @@ dependencies = [
  "rustls 0.23.46",
  "serde",
  "smallvec",
- "system-configuration 0.7.0",
+ "system-configuration 0.8.0",
  "thiserror 2.0.21",
  "tokio",
  "tokio-rustls 0.26.6",
@@ -3779,9 +3786,9 @@ dependencies = [
 
 [[package]]
 name = "hickory-server"
-version = "0.26.3"
+version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "950c2ad9ba2ad35d6890b725baff91305f65b87d7719a6c6071514dc70f13eeb"
+checksum = "bc612071fc85d6eda57193a56961e25768159afcf859085dee44827f19a960c8"
 dependencies = [
  "async-trait",
  "bytes",
@@ -4144,7 +4151,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.58.0",
+ "windows-core 0.62.2",
 ]
 
 [[package]]
@@ -5175,7 +5182,7 @@ dependencies = [
  "mio",
  "nix 0.31.3",
  "serialport",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -5427,7 +5434,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -5590,7 +5597,7 @@ dependencies = [
 
 [[package]]
 name = "nym-apple-network"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "block2",
  "dispatch2",
@@ -5650,7 +5657,7 @@ dependencies = [
 
 [[package]]
 name = "nym-authorization-service"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "libc",
  "objc2-core-foundation",
@@ -5764,7 +5771,7 @@ dependencies = [
  "serde",
  "serde_json",
  "slab",
- "socket2 0.5.10",
+ "socket2 0.6.5",
  "thiserror 2.0.21",
  "time",
  "tinyvec",
@@ -5790,7 +5797,7 @@ dependencies = [
 
 [[package]]
 name = "nym-cgroup"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "log",
@@ -5938,7 +5945,7 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -5995,7 +6002,7 @@ dependencies = [
 
 [[package]]
 name = "nym-conflict"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "ipnetwork",
  "netlink-packet-core",
@@ -6008,12 +6015,12 @@ dependencies = [
 
 [[package]]
 name = "nym-connection-monitor"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "async-trait",
  "futures",
  "nix 0.31.3",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "pretty_assertions",
  "socket2 0.6.5",
  "surge-ping",
@@ -6179,7 +6186,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "dbus",
  "libc",
@@ -6190,7 +6197,7 @@ dependencies = [
 
 [[package]]
 name = "nym-diagnostic"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6254,13 +6261,13 @@ dependencies = [
 
 [[package]]
 name = "nym-dns"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "duct",
  "futures",
  "inotify",
  "nix 0.31.3",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-dbus",
  "nym-routing",
  "nym-windows",
@@ -6317,7 +6324,7 @@ dependencies = [
 
 [[package]]
 name = "nym-exclude"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "nix 0.31.3",
  "nym-cgroup",
@@ -6338,7 +6345,7 @@ dependencies = [
 
 [[package]]
 name = "nym-favorites"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "async-trait",
  "itertools 0.15.0",
@@ -6353,7 +6360,7 @@ dependencies = [
 
 [[package]]
 name = "nym-file-updater"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "futures",
  "nym-http-api-client",
@@ -6369,7 +6376,7 @@ dependencies = [
 
 [[package]]
 name = "nym-firewall"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "ipnetwork",
  "libc",
@@ -6378,7 +6385,7 @@ dependencies = [
  "nftnl",
  "nix 0.31.3",
  "nym-cgroup",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-firewall-config",
  "nym-platform-metadata",
  "pfctl",
@@ -6391,7 +6398,7 @@ dependencies = [
 
 [[package]]
 name = "nym-firewall-config"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "const-addrs",
  "ipnetwork",
@@ -6438,7 +6445,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-directory"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "async-compression",
@@ -6595,7 +6602,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ifconfig"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "bitflags 2.13.2",
  "futures",
@@ -6647,7 +6654,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -6792,7 +6799,7 @@ dependencies = [
 
 [[package]]
 name = "nym-macos"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "nix 0.31.3",
  "tracing",
@@ -6895,7 +6902,7 @@ dependencies = [
 
 [[package]]
 name = "nym-nm-vpn-plugin"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -6996,14 +7003,14 @@ dependencies = [
 
 [[package]]
 name = "nym-offline-monitor"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "async-trait",
  "debounced",
  "dispatch2",
  "futures",
  "nym-apple-network",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-routing",
  "nym-windows",
  "thiserror 2.0.21",
@@ -7051,7 +7058,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "hex",
  "nym-bin-common",
@@ -7065,7 +7072,7 @@ dependencies = [
 
 [[package]]
 name = "nym-qr-pairing-requests"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "nym-serde-helpers",
  "schemars 0.8.22",
@@ -7126,14 +7133,14 @@ dependencies = [
 
 [[package]]
 name = "nym-routing"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "bitflags 2.13.2",
  "futures",
  "ipnetwork",
  "libc",
  "nix 0.31.3",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-windows",
  "rtnetlink",
  "system-configuration 0.8.0",
@@ -7233,7 +7240,7 @@ dependencies = [
 
 [[package]]
 name = "nym-setup"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -7276,7 +7283,7 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "async-compression",
@@ -7318,7 +7325,7 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy-ipc"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -7515,7 +7522,7 @@ dependencies = [
 
 [[package]]
 name = "nym-split-tunnel"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "bitflags 2.13.2",
  "bytes",
@@ -7529,7 +7536,7 @@ dependencies = [
  "nftnl",
  "nix 0.31.3",
  "nym-cgroup",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-dbus",
  "nym-firewall",
  "nym-firewall-config",
@@ -7554,7 +7561,7 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "futures",
  "nym-bin-common",
@@ -7574,7 +7581,7 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics-api-client"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "nym-http-api-client",
  "nym-statistics-common",
@@ -7750,7 +7757,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-account-controller"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "aes-gcm 0.11.1",
  "anyhow",
@@ -7761,7 +7768,7 @@ dependencies = [
  "hkdf 0.13.0",
  "nym-bandwidth-controller",
  "nym-bandwidth-fetcher",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-compact-ecash",
  "nym-credential-proxy-requests",
  "nym-credentials",
@@ -7798,7 +7805,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-api-client"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "async-trait",
  "backon",
@@ -7809,7 +7816,7 @@ dependencies = [
  "hex",
  "itertools 0.15.0",
  "nym-bridges-types",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-compact-ecash",
  "nym-config",
  "nym-contracts-common",
@@ -7836,7 +7843,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-credential-fetcher"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -7864,7 +7871,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "adblock",
  "anyhow",
@@ -7898,7 +7905,7 @@ dependencies = [
  "nym-bridges",
  "nym-cgroup",
  "nym-client-core",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-config",
  "nym-conflict",
  "nym-connection-monitor",
@@ -7980,7 +7987,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-types"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "bip39",
  "clap",
@@ -8012,7 +8019,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-uniffi"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "async-trait",
  "futures",
@@ -8026,7 +8033,7 @@ dependencies = [
  "ndk-context",
  "nym-authorization-service",
  "nym-bandwidth-controller",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-diagnostic",
  "nym-favorites",
  "nym-firewall-config",
@@ -8060,10 +8067,10 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-network-config"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "itertools 0.15.0",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-http-api-client",
  "nym-network-defaults",
  "nym-offline-monitor",
@@ -8084,7 +8091,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "hyper 1.12.0",
  "nym-ipc",
@@ -8103,7 +8110,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-store"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -8126,7 +8133,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnc"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "celes 3.0.0",
@@ -8149,7 +8156,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -8194,7 +8201,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-go"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "hex",
  "ipnetwork",
@@ -8211,7 +8218,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-metadata-client"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "nix 0.31.3",
  "nym-credentials-interface",
@@ -8228,7 +8235,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "bitflags 2.13.2",
  "futures",
@@ -8621,7 +8628,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d8fae84b431384b68627d0f9b3b1245fcf9f46f6c0e3dc902e9dce64edd1967"
 dependencies = [
  "libc",
- "windows-sys 0.36.1",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -9306,13 +9313,15 @@ dependencies = [
 
 [[package]]
 name = "prefix-trie"
-version = "0.8.4"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cf6e3177f0684016a5c209b00882e15f8bdd3f3bb48f0491df10cd102d0c6e7"
+checksum = "77fe9ec8fb906114b52bc2e9aa142ac11817d0fcd33a32fb2feb94d823ad9a4d"
 dependencies = [
+ "array-const-fn-init",
  "either",
  "ipnet",
  "num-traits",
+ "smallvec",
 ]
 
 [[package]]
@@ -9630,7 +9639,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls 0.23.46",
- "socket2 0.5.10",
+ "socket2 0.6.5",
  "thiserror 2.0.21",
  "tokio",
  "tracing",
@@ -9669,9 +9678,9 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.5.10",
+ "socket2 0.6.5",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -10277,7 +10286,7 @@ dependencies = [
  "errno 0.3.14",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -10369,7 +10378,7 @@ dependencies = [
  "security-framework 3.7.0",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -11155,7 +11164,7 @@ version = "1.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4db69cba1110affc0e9f7bcd48bbf87b3f4fc7c61fc9155afd4c469eb3d6c1b"
 dependencies = [
- "errno 0.2.8",
+ "errno 0.3.14",
  "libc",
 ]
 
@@ -11817,17 +11826,6 @@ dependencies = [
 
 [[package]]
 name = "system-configuration"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a13f3d0daba03132c0aa9767f98351b3488edc2c100cda2d2ec2b04f3d8d3c8b"
-dependencies = [
- "bitflags 2.13.2",
- "core-foundation 0.9.4",
- "system-configuration-sys 0.6.0",
-]
-
-[[package]]
-name = "system-configuration"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "501336eb7ba9e417300a6a0fa985721065467aa83a6dcf0422a8e43e4c0328fa"
@@ -11934,10 +11932,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.3",
  "once_cell",
  "rustix",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -12048,12 +12046,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "230a1b821ccbd75b185820a1f1ff7b14d21da1e442e22c0863ea5f08771a8874"
 dependencies = [
  "rustix",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
 name = "test-manager"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "async-tempfile",
@@ -12095,7 +12093,7 @@ dependencies = [
 
 [[package]]
 name = "test-rpc"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "bytes",
  "colored 3.1.1",
@@ -12117,7 +12115,7 @@ dependencies = [
 
 [[package]]
 name = "test-runner"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "bytes",
  "dirs 7.0.0",
@@ -12142,7 +12140,7 @@ dependencies = [
 
 [[package]]
 name = "test_macro"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -13015,7 +13013,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "uniffi",
 ]
@@ -13573,7 +13571,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -14013,7 +14011,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d6f32a0ff4a9f6f01231eb2059cc85479330739333e0e58cadf03b6af2cca10"
 dependencies = [
  "cfg-if",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

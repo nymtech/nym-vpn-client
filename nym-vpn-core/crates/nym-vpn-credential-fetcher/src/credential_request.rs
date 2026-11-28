@@ -265,7 +265,7 @@ impl CredentialRequestTask {
                 request.ticketbook_type.to_string(),
             )
             .await
-            .map_err(VpnApiFetcherError::vpn_api_error("request_zk_nym"))
+            .map_err(|err| VpnApiFetcherError::from_vpn_api_error("request_zk_nym", err))
             .inspect(|response| tracing::info!("Successful zk-nym request: {}", response.id))
     }
 
@@ -274,9 +274,9 @@ impl CredentialRequestTask {
         self.vpn_api_client
             .confirm_zk_nym_download_by_id(&self.account, &self.device, id)
             .await
-            .map_err(VpnApiFetcherError::vpn_api_error(
-                "confirm_zk_nym_download_by_id",
-            ))
+            .map_err(|err| {
+                VpnApiFetcherError::from_vpn_api_error("confirm_zk_nym_download_by_id", err)
+            })
             .inspect(|response| tracing::debug!("Confirmed zk-nym download: {}", response))
     }
 
@@ -323,7 +323,7 @@ impl CredentialRequestTask {
             .vpn_api_client
             .get_device_zk_nyms(&self.account, &self.device)
             .await
-            .map_err(VpnApiFetcherError::vpn_api_error("get_device_zk_nyms"))?
+            .map_err(|err| VpnApiFetcherError::from_vpn_api_error("get_device_zk_nyms", err))?
             .items
             .into_iter()
             .map(
@@ -366,9 +366,9 @@ impl CredentialRequestTask {
                     .map(|item| (item.id, item.ticketbook_type))
                     .collect()
             })
-            .map_err(VpnApiFetcherError::vpn_api_error(
-                "get_zk_nyms_available_for_download",
-            ))
+            .map_err(|err| {
+                VpnApiFetcherError::from_vpn_api_error("get_zk_nyms_available_for_download", err)
+            })
     }
 
     async fn poll_zk_nym(&self, id: &str) -> Result<NymVpnZkNym, VpnApiFetcherError> {
@@ -382,7 +382,7 @@ impl CredentialRequestTask {
                 .vpn_api_client
                 .get_zk_nym_by_id(&self.account, &self.device, id)
                 .await
-                .map_err(VpnApiFetcherError::vpn_api_error("polling_zk_nym"))?;
+                .map_err(|err| VpnApiFetcherError::from_vpn_api_error("polling_zk_nym", err))?;
 
             if poll_response.status != NymVpnZkNymStatus::Pending {
                 tracing::info!("Polling zk-nym finished");

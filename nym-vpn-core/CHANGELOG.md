@@ -7,28 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.17.0] - TBD
+
 ### Added
 
 - [macOS] Add `CreateAccount` (with an optional free pass) and `RedeemFreepass` daemon RPCs, and expose pairing in the uniffi `RpcClient` (https://github.com/nymtech/nym-vpn-client/pull/7178)
+- Add setting to stop using Quad9 as a default DNS server. See `nym-vpnc dns default quad9 -h` for more info (https://github.com/nymtech/nym-vpn-client/pull/7246)
+- Add setting to auto connect the tunnel as soon as the VPN service starts but only if account is set. Auto-connects once account is set at runtime too. See `nym-vpnc auto-connect -h` for more info (https://github.com/nymtech/nym-vpn-client/pull/7199)
 
 ### Changed
 
 - `apply_freepass` no longer returns the subscription, and registers an account the VPN API doesn't know yet (https://github.com/nymtech/nym-vpn-client/pull/7178)
 - Account commands return `RateLimited`, `FreepassInvalid`, `FreepassAlreadyRedeemed` and `RecurringSubscriptionActive` errors instead of raw vpn-api errors (https://github.com/nymtech/nym-vpn-client/pull/7197)
-
-### Fixed
-
-- Add setting to auto connect the tunnel as soon as the VPN service starts but only if account is set. Auto-connects once account is set at runtime too. See `nym-vpnc auto-connect -h` for more info (https://github.com/nymtech/nym-vpn-client/pull/7199)
-
-### Changed
-
+- uniffi `create_account` takes an optional free pass and redeems it before storing the account; `apply_freepass` is renamed to `redeem_freepass` (https://github.com/nymtech/nym-vpn-client/pull/7235)
+- Quad9 is no longer used as a default DNS server when the user or the exit gateway is in France (https://github.com/nymtech/nym-vpn-client/pull/7246)
+- `nym-vpnc dns` commands are split into `nym-vpnc dns custom` and `nym-vpnc dns default`, e.g. `nym-vpnc dns set` is now `nym-vpnc dns custom set` and `nym-vpnc dns get-default` is now `nym-vpnc dns default get` (https://github.com/nymtech/nym-vpn-client/pull/7246)
 - Pin the QR pairing PIN to the devices' public keys (https://github.com/nymtech/nym-vpn-client/pull/7193)
+- Stop sending noisy, non-actionable warnings and errors to Sentry (https://github.com/nymtech/nym-vpn-client/pull/7253)
 - Network statistics are off by default; configs saved without a choice migrate to off (https://github.com/nymtech/nym-vpn-client/pull/7231)
 
 ### Fixed
 
 - [Linux, macOS] Refuse starting `nym-vpnd` if something else is accepting connection on `nym-vpn.sock` to prevent overwriting active UDS socket file. Note: only debug macOS builds use UDS, release builds use XPC that already handles that properly. (https://github.com/nymtech/nym-vpn-client/pull/7200)
 - [Linux] The `nym-vpnd` deb package no longer depends on `polkit-1-auth-agent`, so installing it on a system without a desktop doesn't pull in a graphical polkit agent. The dependency moved to the `nym-vpn-app` deb package. On a headless install, run `nym-vpnc` as root or add your user to the `nym-vpn` group (https://github.com/nymtech/nym-vpn-client/pull/7175)
+- Fix ad-blocker blocking DNS names that are not valid URL hosts, such as `_minecraft._tcp.192.168.1.66` (https://github.com/nymtech/nym-vpn-client/pull/7255)
 
 
 ## [2026.16.0] - 2026-11-18

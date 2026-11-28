@@ -16,7 +16,7 @@ use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
     AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams, ParsedAccountLinks,
     RegisterAccountResponse, StorableAccount, StoreAccountRequest, StoredAccountMode,
-    VpnAccountSummary,
+    VpnAccountSummary, VpnApiError,
 };
 use nym_vpn_store::{
     account::AccountInformationStorage,
@@ -61,10 +61,13 @@ impl NymVpnAccountStorage {
         let account = VpnAccount::try_from(storable_account.clone()).map_err(VpnError::internal)?;
 
         let vpn_api_client = self.create_vpn_api_client().await?;
-        let _response = vpn_api_client
-            .get_account(&account)
-            .await
-            .map_err(|_err| VpnError::AccountNotRegistered)?;
+        vpn_api_client.get_account(&account).await.map_err(|err| {
+            if err.is_account_not_found() {
+                VpnError::AccountNotRegistered
+            } else {
+                VpnError::from(VpnApiError::from(&err))
+            }
+        })?;
 
         self.storage.store_account(storable_account).await?;
         self.storage.init_keys(None).await?;

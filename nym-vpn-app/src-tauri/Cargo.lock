@@ -6272,7 +6272,7 @@ dependencies = [
 
 [[package]]
 name = "nym-apple-network"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "block2",
  "dispatch2",
@@ -6531,7 +6531,7 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 
 [[package]]
 name = "nym-compact-ecash"
@@ -6737,7 +6737,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "dbus",
  "libc",
@@ -6814,7 +6814,7 @@ dependencies = [
 
 [[package]]
 name = "nym-favorites"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "async-trait",
  "itertools 0.15.0",
@@ -6868,7 +6868,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-directory"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "async-compression",
@@ -7044,7 +7044,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "block2",
  "cc",
@@ -7342,14 +7342,14 @@ dependencies = [
 
 [[package]]
 name = "nym-offline-monitor"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "async-trait",
  "debounced",
  "dispatch2",
  "futures",
  "nym-apple-network",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-routing",
  "nym-windows",
  "thiserror 2.0.20",
@@ -7397,7 +7397,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "hex",
  "nym-dbus",
@@ -7410,7 +7410,7 @@ dependencies = [
 
 [[package]]
 name = "nym-qr-pairing-requests"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "nym-serde-helpers",
  "serde",
@@ -7439,14 +7439,14 @@ dependencies = [
 
 [[package]]
 name = "nym-routing"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "bitflags 2.13.2",
  "futures",
  "ipnetwork",
  "libc",
  "nix 0.31.3",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-windows",
  "rtnetlink",
  "system-configuration 0.8.0",
@@ -7948,7 +7948,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-api-client"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "async-trait",
  "backon",
@@ -7959,7 +7959,7 @@ dependencies = [
  "hex",
  "itertools 0.15.0",
  "nym-bridges-types",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-compact-ecash",
  "nym-config",
  "nym-contracts-common",
@@ -7984,7 +7984,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "anyhow",
  "build-info",
@@ -8047,7 +8047,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-types"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "bip39",
  "ipnetwork",
@@ -8075,10 +8075,10 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-network-config"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "itertools 0.15.0",
- "nym-common 2026.17.0-beta.1",
+ "nym-common 2026.18.0-beta.1",
  "nym-http-api-client",
  "nym-network-defaults",
  "nym-offline-monitor",
@@ -8099,7 +8099,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "hyper 1.12.0",
  "nym-ipc",
@@ -8133,7 +8133,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "2026.17.0-beta.1"
+version = "2026.18.0-beta.1"
 dependencies = [
  "bitflags 2.13.2",
  "futures",

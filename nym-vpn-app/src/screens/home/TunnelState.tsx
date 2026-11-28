@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
+import clsx from 'clsx';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../../store';
 import {
@@ -11,6 +12,9 @@ import {
 } from '../../hooks';
 import { setToString } from '../../util';
 import ConnectionTimer from './ConnectionTimer';
+import ExitAddress from './ExitAddress';
+import { MarkerFace } from './marker/MarkerFace';
+import { markerFromTunnel, markerMode } from './marker/markerState';
 
 // ─── Geometry ────────────────────────────────────────────────────────────────
 const SIZE = 180;
@@ -25,22 +29,11 @@ const CIRCS = RADII.map((r) => 2 * Math.PI * r);
 // Sphere sits inside the innermost ring with a small gap
 const SPHERE_INSET = CX - (R_INNER - STROKE - 6);
 const SPHERE_SIZE = SIZE - SPHERE_INSET * 2;
-const GLOW_SPREAD = SPHERE_SIZE * 0.55;
-
-// ─── Progress → ring/half mapping ────────────────────────────────────────────
-const PROGRESS_STEPS = {
-  'resolving-api-addresses': { ring: 0, half: true },
-  'awaiting-account-readiness': { ring: 0, half: false },
-  'awaiting-credentials-availability': { ring: 0, half: false },
-  'refreshing-gateways': { ring: 1, half: true },
-  'selecting-gateways': { ring: 1, half: false },
-  'registering-with-gateways': { ring: 2, half: true },
-  'connecting-tunnel': { ring: 2, half: false },
-} as const;
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
 const TRACK = 'var(--nv-connection-arc-track)';
 const FILL = 'var(--nv-brand-primary)';
+const CONNECTING_CLR = 'var(--nv-connection-connecting)';
 const ERROR_CLR = 'var(--nv-status-error)';
 
 // Delay (ms) before surfacing the transient `needs-relaxed-independence-criteria`
@@ -49,12 +42,28 @@ const ERROR_CLR = 'var(--nv-status-error)';
 const RELAXED_INDEPENDENCE_ERROR_DELAY = 1000;
 
 type Phase =
-  'disconnected' | 'connecting' | 'connected' | 'canceling' | 'error';
+  | 'disconnected'
+  | 'connecting'
+  | 'connected'
+  | 'canceling'
+  | 'error'
+  | 'blocked';
+
+// Error rings each lose a segment centred on 3 o'clock, so the state reads
+// without colour. The SVG is rotated so 0 is 12 o'clock.
+const ERROR_GAP = 0.1;
+const ERROR_GAP_START = 0.25 + ERROR_GAP / 2;
+// Blocked: the outer ring, in the error colour, with a gap that turns once
+// every 4 s (track and fill together, so the gap stays open).
+const BLOCKED_GAP = 0.15;
+// Ring fill duration per step, as on iOS and Android.
+const DVPN_FILL_MS = 800;
+const MIXNET_FILL_MS = 1200;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function TunnelState() {
-  const { state, connectingState, progressMessages } = useAppStore(
+  const { state, connectingState, progressMessages, vpnMode } = useAppStore(
     useShallow((s) => ({
       state: s.state,
       connectingState: s.connectingState,
@@ -107,25 +116,28 @@ export function TunnelState() {
   const suppressRelaxedIndependenceError =
     isRelaxedIndependenceError && !showRelaxedIndependenceError;
 
+  // the marker model: blocked = offline mid-session (traffic held), and the
+  // connecting step (1 to 6) that the rings draw
+  const marker = markerFromTunnel(state, vpnMode, connectingState?.progress);
+  const isBlocked = marker.state === 'blocked';
   const isError =
     !suppressRelaxedIndependenceError &&
-    (state === 'error' ||
-      state === 'unknown' ||
-      state === 'offline' ||
-      state === 'offline-auto-reconnect');
+    (state === 'error' || state === 'unknown');
   const isConnected = state === 'connected';
   const isConnecting = state === 'connecting';
   const isCanceling = state === 'disconnecting';
 
   const computedPhase: Phase = isError
     ? 'error'
-    : isCanceling
-      ? 'canceling'
-      : isConnected
-        ? 'connected'
-        : isConnecting
-          ? 'connecting'
-          : 'disconnected';
+    : isBlocked
+      ? 'blocked'
+      : isCanceling
+        ? 'canceling'
+        : isConnected
+          ? 'connected'
+          : isConnecting
+            ? 'connecting'
+            : 'disconnected';
 
   // While suppressing the transient error, keep showing the previous phase
   // (typically `connecting` during a server switch) so nothing flashes.
@@ -145,15 +157,19 @@ export function TunnelState() {
   const ringTargets = useMemo((): number[] => {
     if (phase === 'connected') return [0, 0, 0];
     if (phase === 'error') return [0, 0, 0];
-    if (phase !== 'connecting' || !progress) return [...CIRCS];
-    const step = PROGRESS_STEPS[progress];
-    if (!step) return [...CIRCS];
+    // only the outer ring, with a turning gap
+    if (phase === 'blocked') return [0, CIRCS[1], CIRCS[2]];
+    if (phase !== 'connecting') return [...CIRCS];
+    // six steps over three rings: odd steps half-fill a ring, even seal it
+    const step = marker.step ?? 1;
+    const ring = Math.floor((step - 1) / 2);
+    const half = step % 2 === 1;
     return CIRCS.map((C, i) => {
-      if (i < step.ring) return 0;
-      if (i === step.ring) return step.half ? C / 2 : 0;
+      if (i < ring) return 0;
+      if (i === ring) return half ? C / 2 : 0;
       return C;
     });
-  }, [phase, progress]);
+  }, [phase, marker.step]);
 
   // ─── Freeze offsets when entering canceling ──────────────────────────────
   // Updated whenever we're NOT in canceling, so when that phase begins
@@ -168,14 +184,30 @@ export function TunnelState() {
   const effectiveOffsets = isCanceling ? frozenOffsetsRef.current : ringTargets;
 
   // ─── Per-ring stroke appearance ───────────────────────────────────────────
-  const strokeColor = phase === 'error' ? ERROR_CLR : FILL;
+  const strokeColor =
+    phase === 'error' || phase === 'blocked'
+      ? ERROR_CLR
+      : phase === 'connecting'
+        ? CONNECTING_CLR
+        : FILL;
   const strokeOpacity =
-    phase === 'canceling' ? 0.15 : phase === 'error' ? 0.6 : 1;
+    phase === 'canceling'
+      ? 0.15
+      : phase === 'error' || phase === 'blocked'
+        ? 0.85
+        : 1;
 
+  // ring fill pace matches iOS and Android: slower in Mixnet mode
+  const fillMs =
+    markerMode(vpnMode) === 'mixnet' ? MIXNET_FILL_MS : DVPN_FILL_MS;
+
+  // error snaps into place so every ring's gap appears at 3 o'clock at once
   const ringTransition =
     phase === 'canceling'
       ? 'stroke-opacity 600ms ease-in, stroke-dashoffset 0ms'
-      : 'stroke-dashoffset 800ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease';
+      : phase === 'error'
+        ? 'stroke-dashoffset 0ms, stroke 200ms ease, stroke-opacity 200ms ease'
+        : `stroke-dashoffset ${fillMs}ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease`;
 
   // ─── Label text ───────────────────────────────────────────────────────────
   const label = useMemo((): string | null => {
@@ -185,15 +217,13 @@ export function TunnelState() {
       const prog = progress ?? progressMessages[progressMessages.length - 1];
       return prog ? tP(prog) : null;
     }
-    if (phase === 'canceling') return tP('canceling');
+    if (phase === 'canceling') return t('status.disconnecting');
+    if (phase === 'blocked') return t('blocked');
     return null;
   }, [phase, progress, progressMessages, tP, t]);
 
   // ─── Error content ────────────────────────────────────────────────────────
   const getError = () => {
-    if (state === 'offline') return <p>{t('offline-message')}</p>;
-    if (state === 'offline-auto-reconnect')
-      return <p>{t('offline-reconnect-message')}</p>;
     if (tunnelError)
       return <p data-testid="tunnel-specific-error">{tTE(tunnelError)}</p>;
     if (isAccountError) {
@@ -238,6 +268,19 @@ export function TunnelState() {
               fill="none"
               strokeWidth={STROKE}
               strokeLinecap="round"
+              strokeDasharray={
+                phase === 'error'
+                  ? `${CIRCS[i] * (1 - ERROR_GAP)} ${CIRCS[i] * ERROR_GAP}`
+                  : phase === 'blocked' && i === 0
+                    ? `${CIRCS[i] * (1 - BLOCKED_GAP)} ${CIRCS[i] * BLOCKED_GAP}`
+                    : undefined
+              }
+              strokeDashoffset={
+                phase === 'error' ? -CIRCS[i] * ERROR_GAP_START : undefined
+              }
+              className={
+                phase === 'blocked' && i === 0 ? 'nv-marker-orbit' : undefined
+              }
               style={{ stroke: TRACK }}
             />
           ))}
@@ -253,55 +296,85 @@ export function TunnelState() {
               strokeOpacity={strokeOpacity}
               strokeWidth={STROKE}
               strokeLinecap="round"
-              strokeDasharray={CIRCS[i]}
-              strokeDashoffset={effectiveOffsets[i]}
+              strokeDasharray={
+                phase === 'error'
+                  ? `${CIRCS[i] * (1 - ERROR_GAP)} ${CIRCS[i] * ERROR_GAP}`
+                  : phase === 'blocked' && i === 0
+                    ? `${CIRCS[i] * (1 - BLOCKED_GAP)} ${CIRCS[i] * BLOCKED_GAP}`
+                    : CIRCS[i]
+              }
+              strokeDashoffset={
+                phase === 'error'
+                  ? -CIRCS[i] * ERROR_GAP_START
+                  : effectiveOffsets[i]
+              }
+              className={
+                phase === 'blocked' && i === 0 ? 'nv-marker-orbit' : undefined
+              }
               style={{ stroke: strokeColor, transition: ringTransition }}
             />
           ))}
         </svg>
 
-        {/* Connected glow halo (behind sphere, fades in) */}
-        {isConnected && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.32, ease: 'easeOut' }}
-            style={{
-              position: 'absolute',
-              top: SPHERE_INSET - GLOW_SPREAD / 2,
-              left: SPHERE_INSET - GLOW_SPREAD / 2,
-              width: SPHERE_SIZE + GLOW_SPREAD,
-              height: SPHERE_SIZE + GLOW_SPREAD,
-              borderRadius: '50%',
-              pointerEvents: 'none',
-            }}
+        {/* Face: says the mode (two blocks for dVPN, the mix field for Mixnet) */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'grid',
+            placeItems: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <MarkerFace
+            mode={markerMode(vpnMode)}
+            size={SPHERE_SIZE}
+            lit={phase !== 'disconnected'}
+            playing={phase === 'connected'}
           />
-        )}
+        </div>
       </div>
 
       <div className="flex w-full flex-col items-center">
         <ConnectionTimer />
-        <div className="min-h-8 w-full">
-          <AnimatePresence mode="wait">
-            {label !== null && (
-              <motion.div
-                key={label}
-                data-testid="connection-status-text"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-                className="text-text-secondary flex items-center justify-center text-lg"
-              >
-                {label}
-              </motion.div>
+        <ExitAddress />
+        {/* one polite live region, mounted before any change, so a new state is announced (the timer stays outside it) */}
+        <div role="status" className="flex w-full flex-col items-center">
+          <div className="min-h-8 w-full">
+            <AnimatePresence mode="wait">
+              {label !== null && (
+                <motion.div
+                  key={label}
+                  data-testid="connection-status-text"
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 12 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className={clsx(
+                    'text-text-secondary flex items-center justify-center',
+                    // connecting steps sit at the IP line's size, below the state words
+                    phase === 'connecting' ? 'text-base' : 'text-lg',
+                  )}
+                >
+                  {label}
+                </motion.div>
+              )}
+            </AnimatePresence>
+            {/* blocked: will reconnect once online; offline with no session: not protected, no internet */}
+            {(phase === 'blocked' ||
+              (phase === 'disconnected' && state === 'offline')) && (
+              <p className="text-text-secondary text-center text-base">
+                {state === 'offline'
+                  ? t('offline-message')
+                  : t('blocked-action')}
+              </p>
             )}
-          </AnimatePresence>
-          {phase === 'error' && (
-            <div className="text-status-error text-center text-lg">
-              {getError()}
-            </div>
-          )}
+            {phase === 'error' && (
+              <div className="text-status-error text-center text-lg">
+                {getError()}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

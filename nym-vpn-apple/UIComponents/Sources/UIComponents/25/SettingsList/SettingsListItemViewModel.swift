@@ -117,7 +117,7 @@ public final class SettingsListItemViewModel: ObservableObject, Hashable {
         }
     }
 
-    let title: String
+    public let title: String
     let multilineText: AttributedString?
     let imageName: String?
     let systemImageName: String?

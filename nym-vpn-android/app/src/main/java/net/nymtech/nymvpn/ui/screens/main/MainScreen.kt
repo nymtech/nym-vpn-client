@@ -3,7 +3,6 @@ package net.nymtech.nymvpn.ui.screens.main
 import android.Manifest
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.net.VpnService
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
@@ -36,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.billing.PLAY_STORE_LISTING_URL
@@ -72,6 +72,7 @@ import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.prepareVpn
 import net.nymtech.nymvpn.util.extensions.scoreFor
 import net.nymtech.nymvpn.util.extensions.toConnectMode
 import net.nymtech.vpn.backend.Tunnel
@@ -93,6 +94,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val connectionSeconds by viewModel.connectionSeconds.collectAsStateWithLifecycle()
 	val connectionTime = remember(connectionSeconds) { connectionSeconds?.convertSecondsToTimeString() }
 	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
+	val lockdown by viewModel.lockdown.collectAsStateWithLifecycle()
+	LifecycleResumeEffect(Unit) {
+		viewModel.refreshLockdown()
+		onPauseOrDispose { }
+	}
 	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsStateWithLifecycle()
 
 	val deviceAuthViewModel: DeviceAuthViewModel = hiltViewModel()
@@ -154,9 +160,15 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	// ── Action handlers ──────────────────────────────────────────────────────
 
+	val vpnLockdownTitle = stringResource(R.string.vpn_blocked_by_system_lockdown)
 	fun onConnectPressed() {
-		val intent = VpnService.prepare(context)
-		if (intent != null) vpnActivityResultState.launch(intent) else viewModel.onConnect()
+		context.prepareVpn()
+			.onSuccess { intent ->
+				if (intent != null) vpnActivityResultState.launch(intent) else viewModel.onConnect()
+			}
+			.onFailure {
+				AlertController.show(AlertMessage(type = AlertType.Warning, title = vpnLockdownTitle, duration = 7_000L))
+			}
 	}
 
 	fun checkBatteryOptimization() {
@@ -242,7 +254,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	LaunchedEffect(loginProcessing) {
 		if (loginProcessing) {
-			bottomSheetContent = MainBottomSheetContent.LoginProcessing
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing(autoConnect = autoStart)
 		}
 	}
 
@@ -261,7 +273,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
-	if (autoStart && !didAutoStart && uiState.connectionState is ConnectionState.Disconnected) {
+	// With login processing, it connects once processing succeeds.
+	if (autoStart && !loginProcessing && !didAutoStart && uiState.connectionState is ConnectionState.Disconnected) {
 		LaunchedEffect(Unit) {
 			didAutoStart = true
 			onConnectPressed()
@@ -297,6 +310,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		connectionTime = connectionTime,
 		initialPanelState = if (appUiState.settings.panelCollapsed) PanelState.COLLAPSED else PanelState.FULL,
 		contentPadding = padding,
+		lockdown = lockdown,
 		onAction = { action ->
 			when (action) {
 				ConnectAction.CONNECT -> onConnectPressed()
@@ -395,7 +409,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		},
 		onAuthSuccess = { bottomSheetContent = MainBottomSheetContent.Hidden },
 		onLoginProcessingStart = {
-			bottomSheetContent = MainBottomSheetContent.LoginProcessing
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing()
 		},
 		authSheetMinHeightPx = authSheetHeightPx,
 		onAuthSheetHeightChange = { height -> authSheetHeightPx = height },
@@ -430,6 +444,7 @@ private fun MainScreenContent(
 	modifier: Modifier = Modifier,
 	contentPadding: PaddingValues = PaddingValues(),
 	previewAlertMessage: AlertMessage? = null,
+	lockdown: Boolean = false,
 ) {
 	val context = LocalContext.current
 	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
@@ -442,6 +457,7 @@ private fun MainScreenContent(
 			stringResource(R.string.connection_status_direct)
 		else -> null
 	}
+
 	val panelState = ConnectPanelState(
 		bridgeText = bridgeText,
 		connectionState = connectionState,
@@ -491,8 +507,8 @@ private fun MainScreenContent(
 		) {
 			ConnectionStatus(
 				connectionState = connectionState,
+				lockdown = lockdown,
 				vpnMode = appUiState.vpnConfig.mode,
-				establishConnectionState = appUiState.managerState.establishConnectionState,
 				connectionTime = connectionTime,
 			)
 		}

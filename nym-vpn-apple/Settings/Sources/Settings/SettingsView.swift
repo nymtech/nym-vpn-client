@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import ConnectionManager
 import ConnectionTypes
 import CredentialsManager
 import Device
@@ -9,7 +10,10 @@ import Theme
 
 public struct SettingsView: View {
     @EnvironmentObject private var credentialsManager: CredentialsManager
+    @EnvironmentObject private var connectionManager: ConnectionManager
     @StateObject private var viewModel: SettingsViewModel
+    @State private var searchText = ""
+    @FocusState private var isSearchFocused: Bool
 #if os(macOS)
     @State private var autologinState = AutologinState()
 #endif
@@ -32,13 +36,14 @@ private extension SettingsView {
                 VStack(spacing: 0) {
                     Spacer()
                         .frame(height: NymSpacing.section)
-                    settingsList()
+                    SearchView(
+                        searchText: $searchText,
+                        isSearchFocused: $isSearchFocused,
+                        placeholder: "settings.search.placeholder".localizedString
+                    )
                     Spacer()
                         .frame(height: NymSpacing.section)
-                    appVersionText()
-                        .onTapGesture(count: 3) {
-                            viewModel.navigateToSantasMenu()
-                        }
+                    settingsList()
                 }
                 .padding(.horizontal, NymSpacing.large)
             }
@@ -72,6 +77,12 @@ private extension SettingsView {
             }
         }
 #endif
+        .logoutDialog(
+            isPresented: $viewModel.isLogoutConfirmationDisplayed,
+            credentialsManager: credentialsManager,
+            connectionManager: connectionManager,
+            onLoggedOut: { viewModel.navigateToRoot() }
+        )
         .onAppear {
 #if os(macOS)
             viewModel.autologinState = autologinState
@@ -79,6 +90,10 @@ private extension SettingsView {
             Task {
                 await credentialsManager.updateAccountSummary()
             }
+        }
+        .onDisappear {
+            // a pushed subpage hides this screen; start unfiltered when coming back
+            searchText = ""
         }
     }
 
@@ -94,13 +109,59 @@ private extension SettingsView {
 
     @ViewBuilder
     func settingsList() -> some View {
-        SettingsList(viewModel: SettingsListViewModel(sections: viewModel.sections))
+        let sections = SettingsSearch.filter(viewModel.sections, query: searchText) { viewModel.blocks(for: $0) }
+        if sections.isEmpty && !viewModel.sections.isEmpty {
+            sectionHeader("search.noResults".localizedString)
+        } else {
+            ForEach(sections, id: \.self) { section in
+                if let title = section.kind.title {
+                    sectionHeader(title)
+                        .accessibilityAddTraits(.isHeader)
+                }
+                ForEach(section.blocks.filter(\.isAboveRows), id: \.self) { block($0) }
+                if !section.rows.isEmpty {
+                    SettingsList(
+                        viewModel: SettingsListViewModel(
+                            sections: [SettingsSection(kind: section.kind, viewModels: section.rows)]
+                        )
+                    )
+                }
+                ForEach(section.blocks.filter { !$0.isAboveRows }, id: \.self) { block($0) }
+            }
+        }
     }
 
-    func appVersionText() -> some View {
+    @ViewBuilder
+    func block(_ block: SettingsBlock) -> some View {
+        switch block {
+        case .getStarted:
+            NymButton(block.title, style: .primary) {
+                viewModel.getStarted()
+            }
+            .padding(.bottom, NymSpacing.large)
+        case .appVersion:
+            appVersionText(block.title)
+                .padding(.top, NymSpacing.section)
+                .onTapGesture(count: 3) {
+                    viewModel.navigateToSantasMenu()
+                }
+        }
+    }
+
+    func sectionHeader(_ title: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodySmall)
+                .padding(.bottom, NymSpacing.small)
+            Spacer()
+        }
+    }
+
+    func appVersionText(_ title: String) -> some View {
         VStack(spacing: 0) {
             HStack {
-                Text(viewModel.versionTitle)
+                Text(title)
                     .foregroundStyle(Color.Nym.textSecondary)
                     .nymTextStyle(.bodySmall)
                     .padding(.bottom, NymSpacing.large)
