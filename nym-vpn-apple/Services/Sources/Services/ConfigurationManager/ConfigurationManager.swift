@@ -22,6 +22,11 @@ import PathManager
 
 #if os(macOS)
     private let grpcManager: GRPCManager
+    private lazy var telemetryConsent = TelemetryConsentCoordinator(
+        daemon: GRPCTelemetryConsentDaemon(grpcManager: grpcManager),
+        store: AppSettingsTelemetryConsentStore(appSettings: appSettings),
+        log: { [logger] message in logger.error("\(message)") }
+    )
 #endif
 
     private var cancellables = Set<AnyCancellable>()
@@ -164,6 +169,13 @@ import PathManager
             .filter { $0 }
             .sink { [weak self] _ in
                 self?.updateCompatibilityVersions()
+                self?.telemetryConsent.daemonConnected()
+            }
+            .store(in: &cancellables)
+
+        grpcManager.configChanged
+            .sink { [weak self] in
+                self?.telemetryConsent.daemonConfigChanged()
             }
             .store(in: &cancellables)
 #endif
@@ -289,9 +301,6 @@ private extension ConfigurationManager {
         )
         logger.info("Configured environment: \(currentEnvString)")
         lastConfiguredEnvString = currentEnvString
-#else
-        try? await updateErrorReportingIfNeeded()
-        try? await updateNetworkStatisticsIfNeeded()
 #endif
         updateAccountLinks()
         updateCompatibilityVersions()
@@ -324,14 +333,87 @@ private extension ConfigurationManager {
             }
         }
     }
+}
 
 #if os(macOS)
-    func updateErrorReportingIfNeeded() async throws {
-        try await grpcManager.updateErrorReportingIfNeeded(with: appSettings.isErrorReportingOn)
+// MARK: - Data-sharing consent -
+public extension ConfigurationManager {
+    func userChangedTelemetryConsent(_ setting: TelemetryConsentSetting, to isEnabled: Bool) {
+        telemetryConsent.userChanged(setting, to: isEnabled)
     }
 
-    func updateNetworkStatisticsIfNeeded() async throws {
-        try await grpcManager.updateNetworkStatisticsIfNeeded(with: appSettings.isStatisticsEnabled)
+    func submitOnboardingTelemetryConsent() {
+        telemetryConsent.onboardingAnswered()
     }
-#endif
 }
+
+@MainActor
+private final class GRPCTelemetryConsentDaemon: TelemetryConsentDaemon {
+    private let grpcManager: GRPCManager
+
+    init(grpcManager: GRPCManager) {
+        self.grpcManager = grpcManager
+    }
+
+    // Read only from the coordinator's queued work: inside an `$isServing` sink it would still
+    // be false, because @Published emits before storing the new value.
+    var isConnected: Bool { grpcManager.isServing }
+
+    func read(_ setting: TelemetryConsentSetting) async throws -> Bool {
+        switch setting {
+        case .networkStatistics:
+            try await grpcManager.isNetworkStatisticsEnabled()
+        case .errorReporting:
+            try await grpcManager.isErrorReportingEnabled()
+        }
+    }
+
+    func write(_ setting: TelemetryConsentSetting, _ isEnabled: Bool) async throws {
+        switch setting {
+        case .networkStatistics:
+            try await grpcManager.setNetworkStatistics(isEnabled)
+        case .errorReporting:
+            try await grpcManager.setErrorReporting(isEnabled)
+        }
+    }
+}
+
+@MainActor
+private final class AppSettingsTelemetryConsentStore: TelemetryConsentStore {
+    private let appSettings: AppSettings
+
+    init(appSettings: AppSettings) {
+        self.appSettings = appSettings
+    }
+
+    var isOnboardingAnswered: Bool { appSettings.welcomeScreenDidDisplay }
+
+    func value(_ setting: TelemetryConsentSetting) -> Bool {
+        switch setting {
+        case .networkStatistics: appSettings.isStatisticsEnabled
+        case .errorReporting: appSettings.isErrorReportingOn
+        }
+    }
+
+    func setValue(_ setting: TelemetryConsentSetting, _ isEnabled: Bool) {
+        switch setting {
+        case .networkStatistics: appSettings.isStatisticsEnabled = isEnabled
+        case .errorReporting: appSettings.isErrorReportingOn = isEnabled
+        }
+    }
+
+    func isPendingForDaemon(_ setting: TelemetryConsentSetting) -> Bool {
+        switch setting {
+        case .networkStatistics: appSettings.isStatisticsPendingForDaemon
+        case .errorReporting: appSettings.isErrorReportingPendingForDaemon
+        }
+    }
+
+    func setPendingForDaemon(_ setting: TelemetryConsentSetting, _ isPending: Bool) {
+        switch setting {
+        case .networkStatistics: appSettings.isStatisticsPendingForDaemon = isPending
+        case .errorReporting: appSettings.isErrorReportingPendingForDaemon = isPending
+        }
+    }
+}
+#endif

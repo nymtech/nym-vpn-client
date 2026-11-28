@@ -32897,6 +32897,17 @@
         }
       }
     },
+    "welcomeOptIns.monitoring.restartNote" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The VPN service's error reports start after you restart your Mac."
+          }
+        }
+      }
+    },
     "welcomeOptIns.info.title" : {
       "extractionState" : "manual",
       "localizations" : {

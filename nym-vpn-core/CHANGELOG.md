@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `nym-vpnc dns` commands are split into `nym-vpnc dns custom` and `nym-vpnc dns default`, e.g. `nym-vpnc dns set` is now `nym-vpnc dns custom set` and `nym-vpnc dns get-default` is now `nym-vpnc dns default get` (https://github.com/nymtech/nym-vpn-client/pull/7246)
 - Pin the QR pairing PIN to the devices' public keys (https://github.com/nymtech/nym-vpn-client/pull/7193)
 - Stop sending noisy, non-actionable warnings and errors to Sentry (https://github.com/nymtech/nym-vpn-client/pull/7253)
+- Network statistics are off by default; configs saved without a choice migrate to off (https://github.com/nymtech/nym-vpn-client/pull/7231)
 
 ### Fixed
 

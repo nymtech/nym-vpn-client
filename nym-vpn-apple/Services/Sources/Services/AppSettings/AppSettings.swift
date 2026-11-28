@@ -102,9 +102,19 @@ import ConnectionTypes
         didSet { serverFamilyRemindersEnabledPublisher = serverFamilyRemindersEnabled }
     }
 
-    // iOS passes this into the tunnel config at connect. macOS pushes it to nym-vpnd. Same default.
+    // iOS passes this into the tunnel config at connect. On macOS it mirrors nym-vpnd's value.
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = false
+
+#if os(macOS)
+    /// Set while the daemon hasn't received this choice yet. Defaults to `true` so installs from
+    /// before nym-vpnd owned these settings send their saved choice once.
+    @AppStorage(AppSettingKey.statisticsPendingForDaemon.rawValue)
+    public var isStatisticsPendingForDaemon = true
+
+    @AppStorage(AppSettingKey.errorReportingPendingForDaemon.rawValue)
+    public var isErrorReportingPendingForDaemon = true
+#endif
 
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
     public var statisticsConnectionCount = 0
@@ -277,6 +287,8 @@ public enum AppSettingKey: String {
     case ipv6TrafficIsEnabled
     case statistics
     case statisticsConnectionCount
+    case statisticsPendingForDaemon
+    case errorReportingPendingForDaemon
     case dismissedAppUpdateFloor
     case quic
     case bridgeMode

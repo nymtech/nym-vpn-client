@@ -14,6 +14,7 @@ import Routes
 import Settings
 import TunnelStatus
 #if os(macOS)
+import ConfigurationManager
 import GRPCManager
 #endif
 
@@ -210,6 +211,9 @@ import GRPCManager
 
     func technicalOptInsContinueTapped() {
         appSettings.welcomeScreenDidDisplay = true
+#if os(macOS)
+        ConfigurationManager.shared.submitOnboardingTelemetryConsent()
+#endif
         handleSessionEvent(.technicalOptInsContinued)
     }
 

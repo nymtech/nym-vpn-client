@@ -8,14 +8,17 @@ public struct TelemetryOptInCard: View {
     private let icon: String
     private let title: String
     private let subtitle: String
+    private let note: String?
     @Binding private var isOn: Bool
     private let isDisabled: Bool
     private let onInfo: () -> Void
 
+    /// `note` adds a warning-coloured line under the subtitle, e.g. when a change applies later.
     public init(
         icon: String,
         title: String,
         subtitle: String,
+        note: String? = nil,
         isOn: Binding<Bool>,
         isDisabled: Bool = false,
         onInfo: @escaping () -> Void
@@ -23,6 +26,7 @@ public struct TelemetryOptInCard: View {
         self.icon = icon
         self.title = title
         self.subtitle = subtitle
+        self.note = note
         self._isOn = isOn
         self.isDisabled = isDisabled
         self.onInfo = onInfo
@@ -53,9 +57,15 @@ public struct TelemetryOptInCard: View {
                 Text(subtitle)
                     .nymTextStyle(.bodySmall)
                     .foregroundStyle(Color.Nym.textSecondary)
+                if let note {
+                    Text(note)
+                        .nymTextStyle(.bodySmall)
+                        .foregroundStyle(Color.Nym.warning)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             Toggle("", isOn: $isOn)
+                .toggleStyle(.switch)
                 .labelsHidden()
                 .tint(Color.Nym.primary)
                 .disabled(isDisabled)
@@ -67,5 +77,16 @@ public struct TelemetryOptInCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.Nym.surfaceAlt)
         )
+    }
+}
+
+public extension TelemetryOptInCard {
+    /// On macOS nym-vpnd starts its own error reporting only when it launches.
+    static var errorReportingRestartNote: String? {
+#if os(macOS)
+        "welcomeOptIns.monitoring.restartNote".localizedString
+#else
+        nil
+#endif
     }
 }

@@ -96,6 +96,7 @@ private extension WelcomeOptInsView {
                 icon: "ladybug",
                 title: "welcomeOptIns.monitoring.title".localizedString,
                 subtitle: "welcomeOptIns.monitoring.subtitle".localizedString,
+                note: TelemetryOptInCard.errorReportingRestartNote,
                 isOn: $isErrorReportingOn,
                 onInfo: { infoContent = monitoringInfo() }
             )

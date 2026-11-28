@@ -176,7 +176,7 @@ location = "BE"
     "min_gateway_mixnet_performance": null
   },
   "network_stats": {
-    "enabled": true,
+    "enabled": false,
     "allow_disconnected": false
   },
   "split_tunnel": {
@@ -263,7 +263,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
     "min_gateway_mixnet_performance": null
   },
   "network_stats": {
-    "enabled": true,
+    "enabled": false,
     "allow_disconnected": false
   },
   "split_tunnel": {
@@ -349,7 +349,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
     "min_gateway_mixnet_performance": null
   },
   "network_stats": {
-    "enabled": true,
+    "enabled": false,
     "allow_disconnected": false
   },
   "split_tunnel": {
@@ -429,7 +429,7 @@ exit_point = "Random"
     "min_gateway_mixnet_performance": null
   },
   "network_stats": {
-    "enabled": true,
+    "enabled": false,
     "allow_disconnected": false
   },
   "split_tunnel": {
@@ -518,7 +518,7 @@ async fn test_service_config_migrate_from_v1() {
     "min_gateway_mixnet_performance": null
   },
   "network_stats": {
-    "enabled": true,
+    "enabled": false,
     "allow_disconnected": false
   },
   "split_tunnel": {
@@ -623,7 +623,7 @@ async fn test_service_config_migrate_from_v2() {
     "min_gateway_mixnet_performance": null
   },
   "network_stats": {
-    "enabled": true,
+    "enabled": false,
     "allow_disconnected": false
   },
   "split_tunnel": {
@@ -738,7 +738,7 @@ async fn test_service_config_migrate_from_v3() {
     "min_gateway_mixnet_performance": null
   },
   "network_stats": {
-    "enabled": true,
+    "enabled": false,
     "allow_disconnected": false
   },
   "split_tunnel": {

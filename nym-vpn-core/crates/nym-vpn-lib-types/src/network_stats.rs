@@ -34,9 +34,10 @@ pub struct NetworkStatisticsConfig {
 }
 
 impl Default for NetworkStatisticsConfig {
+    /// Off until the user opts in: apps show the daemon's value as the user's choice.
     fn default() -> Self {
         NetworkStatisticsConfig {
-            enabled: true,
+            enabled: false,
             allow_disconnected: false,
         }
     }
@@ -69,4 +70,16 @@ pub struct NetworkStatisticsIdentity {
 
     /// Actual ID used
     pub id: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_is_opted_out() {
+        let config = NetworkStatisticsConfig::default();
+        assert!(!config.enabled);
+        assert!(!config.allow_disconnected);
+    }
 }
