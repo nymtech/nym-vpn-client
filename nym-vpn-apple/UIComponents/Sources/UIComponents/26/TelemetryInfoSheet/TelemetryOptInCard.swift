@@ -65,6 +65,7 @@ public struct TelemetryOptInCard: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             Toggle("", isOn: $isOn)
+                .toggleStyle(.switch)
                 .labelsHidden()
                 .tint(Color.Nym.primary)
                 .disabled(isDisabled)

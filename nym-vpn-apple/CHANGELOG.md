@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Home screen: the selected connection mode now has an outline in the brand colour, so it is clear which one is on, also in dark mode
 - iOS: The VPN connection's error reporting follows the "Your app errors & crashes" setting (https://github.com/nymtech/nym-vpn-client/pull/7138)
 - macOS: "Your connection quality" and "Your app errors & crashes" choices now reliably reach the VPN service, including from onboarding and after it reconnects (https://github.com/nymtech/nym-vpn-client/pull/7231)
+- macOS: "Your connection quality" and "Your app errors & crashes" use switches like the other settings, instead of checkboxes (https://github.com/nymtech/nym-vpn-client/pull/7231)
 
 ## [2026.16.0] - 2026-11-18
 
