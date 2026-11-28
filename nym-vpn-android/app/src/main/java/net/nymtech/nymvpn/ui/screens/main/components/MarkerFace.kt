@@ -54,6 +54,9 @@ private val MIX_ROUTE_PATHS: List<Path> = MIX_ROUTES.map { route ->
 private const val DVPN_TICK_MS = 80L
 private const val MIX_TICK_MS = 120L
 private const val DVPN_TICKS_PER_HOP = 3
+
+// three hops and two rest beats (480 ms pause)
+private const val DVPN_PASS = 5
 private const val MIX_TICKS_PER_HOP = 2
 
 // five hops and one rest beat
@@ -63,7 +66,7 @@ private const val DIM = 0.32f
 private const val TRAIL = 0.6f
 private const val ROUTE_ALPHA = 0.4f
 
-/** Decorative, no content description. [lit] is false while not protected; [playing] steps a packet through the hops. */
+/** Decorative, no content description. [lit] is true only while connected; [playing] steps a packet through the hops. */
 @Composable
 fun MarkerFace(vpnMode: Tunnel.Mode, lit: Boolean, playing: Boolean, litColor: Color, unlitColor: Color, modifier: Modifier = Modifier) {
 	val play = lit && playing
@@ -91,8 +94,8 @@ private fun rememberTick(running: Boolean, tickMs: Long): Int {
 }
 
 private fun DrawScope.drawDvpnFace(color: Color, lit: Boolean, playing: Boolean, tick: Int, scale: Float) {
-	// 0 entry, 1 link, 2 exit, -1 still
-	val hop = if (playing) (tick / DVPN_TICKS_PER_HOP) % 3 else -1
+	// 0 entry, 1 link, 2 exit, 3+ rest (all dim), -1 still
+	val hop = if (playing) (tick / DVPN_TICKS_PER_HOP) % DVPN_PASS else -1
 	val alphaOf = { i: Int -> if (hop < 0 || hop == i) 1f else DIM }
 	drawLine(color = color, start = DVPN_LINK_START * scale, end = DVPN_LINK_END * scale, strokeWidth = LINE_WIDTH * scale, alpha = alphaOf(1))
 	drawSquare(color, DVPN_ENTRY, BLOCK, lit, alphaOf(0), scale)

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// dVPN: entry and exit blocks, linked. Mixnet: three mix layers as a 3x3 field with the five hops of a route lit.
-/// Decorative. `lit` is false while not protected; `playing` steps a packet through the hops.
+/// Decorative. `lit` is true only while connected; `playing` steps a packet through the hops.
 public struct MarkerFace: View {
     public let mode: ArcProgressMode
     public let lit: Bool
@@ -97,6 +97,8 @@ enum MarkerFaceModel {
     static let dvpnTick: TimeInterval = 0.08
     static let mixTick: TimeInterval = 0.12
     static let dvpnTicksPerHop = 3
+    /// three hops and two rest beats (480 ms pause)
+    static let dvpnPass = 5
     static let mixTicksPerHop = 2
     /// five hops and one rest beat
     static let mixPass = 6
@@ -119,9 +121,9 @@ enum MarkerFaceModel {
         max(0, Int((now.timeIntervalSince(start) / interval).rounded()))
     }
 
-    /// 0 entry, 1 link, 2 exit; nil when still.
+    /// 0 entry, 1 link, 2 exit, 3 and up the rest beats (all dim); nil when still.
     static func dvpnHop(tick: Int?) -> Int? {
-        tick.map { ($0 / dvpnTicksPerHop) % 3 }
+        tick.map { ($0 / dvpnTicksPerHop) % dvpnPass }
     }
 
     static func dvpnOpacity(element: Int, tick: Int?) -> Double {

@@ -44,17 +44,20 @@ fun ConnectionStatus(connectionState: ConnectionState, lockdown: Boolean, vpnMod
 	val animationsOff = remember(context, resumes) { areAnimationsOff(context) }
 	// blocked: a live session waiting for the network while the system holds traffic
 	val isBlocked = connectionState == ConnectionState.WaitingForConnection && lockdown
-	val isUnprotected = connectionState == ConnectionState.Disconnected ||
-		connectionState == ConnectionState.Offline ||
-		(connectionState == ConnectionState.WaitingForConnection && !isBlocked)
+	val isConnected = connectionState == ConnectionState.Connected
+	// A mode switch updates vpnMode at once, but the tunnel stays up in the previous mode until it
+	// has disconnected. Hold the face on that mode until the new connection starts.
+	val heldFaceMode = remember { arrayOf(vpnMode) }
+	if (!isConnected && connectionState != ConnectionState.Disconnecting) heldFaceMode[0] = vpnMode
+	val faceMode = heldFaceMode[0]
 
 	Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
 		Box(contentAlignment = Alignment.Center) {
 			ConnectionRings(connectionState = connectionState, isBlocked = isBlocked, vpnMode = vpnMode, animationsOff = animationsOff)
 			MarkerFace(
-				vpnMode = vpnMode,
-				lit = !isUnprotected,
-				playing = connectionState == ConnectionState.Connected && !animationsOff,
+				vpnMode = faceMode,
+				lit = isConnected,
+				playing = isConnected && !animationsOff,
 				litColor = MaterialTheme.colorScheme.onPrimaryContainer,
 				unlitColor = LocalNymColors.current.markerTrack,
 				modifier = Modifier.size(FACE_SIZE.dp),

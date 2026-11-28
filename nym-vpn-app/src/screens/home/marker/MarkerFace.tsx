@@ -50,6 +50,7 @@ const NODE_R = 3.5;
 const DVPN_TICK_MS = 80;
 const MIX_TICK_MS = 120;
 const DVPN_TICKS_PER_HOP = 3; // entry, link, exit: 240 ms each
+const DVPN_PASS = 5; // three hops and two rest beats (480 ms pause)
 const MIX_TICKS_PER_HOP = 2; // 240 ms per hop
 const MIX_PASS = 6; // five hops and one rest beat
 const MIX_PASSES_PER_ROUTE = 2;
@@ -91,8 +92,8 @@ function Node({ x, y }: { x: number; y: number }) {
 
 function DvpnFace({ lit, playing }: { lit: boolean; playing: boolean }) {
   const tick = useTick(playing, DVPN_TICK_MS);
-  // 0 entry, 1 link, 2 exit; -1 when still
-  const hop = playing ? Math.floor(tick / DVPN_TICKS_PER_HOP) % 3 : -1;
+  // 0 entry, 1 link, 2 exit, 3+ rest (all dim); -1 when still
+  const hop = playing ? Math.floor(tick / DVPN_TICKS_PER_HOP) % DVPN_PASS : -1;
   const op = (i: number) => (hop < 0 || hop === i ? 1 : DIM);
   const fill = lit ? undefined : 'none';
   return (
